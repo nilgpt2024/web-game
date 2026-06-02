@@ -8,15 +8,41 @@
   <meta name="author" content="Game Developer">
   <title>PAC-MAN | 经典吃豆人游戏</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👻</text></svg>">
-  <link rel="stylesheet" href="style.css">
+    <!-- 共享样式 -->
+  <link rel="stylesheet" href="../../game-shared.css">
+
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+  
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+<!-- Navigation -->
+  
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+    </nav>
+
   <!-- 游戏容器 -->
   <div class="game-container">
     <!-- 头部信息 -->
     <header class="header">
-      <h1 class="title">🟡 PAC-MAN</h1>
-      <p class="subtitle">经典街机游戏 - 收集豆子，躲避幽灵，挑战极限！</p>
+      <h1 class="title" data-i18n="pacman.title">🟡 PAC-MAN</h1>
+      <p class="subtitle" data-i18n="pacman.subtitle">经典街机游戏 - 收集豆子，躲避幽灵，挑战极限！</p>
     </header>
 
     <!-- 信息栏 -->
@@ -52,12 +78,12 @@
 <!-- Made with love by SinceraXY -->
         <div class="overlay-content">
           <div class="start-icon">🟡</div>
-          <h2 class="overlay-title">PAC-MAN</h2>
-          <p class="overlay-subtitle">准备好开始经典街机冒险了吗？</p>
-          <p class="overlay-hint">收集所有豆子，躲避幽灵！</p>
+          <h2 class="overlay-title" data-i18n="pacman.startTitle">PAC-MAN</h2>
+          <p class="overlay-subtitle" data-i18n="pacman.startSubtitle">准备好开始经典街机冒险了吗？</p>
+          <p class="overlay-hint" data-i18n="pacman.startHint">收集所有豆子，躲避幽灵！</p>
           <button class="start-btn" id="startBtn">
             <span class="btn-icon">🎮</span>
-            <span class="btn-text">开始游戏</span>
+            <span class="btn-text" data-i18n="pacman.startGame">开始游戏</span>
           </button>
         </div>
       </div>
@@ -66,19 +92,19 @@
       <div class="pause-overlay hidden" id="pauseOverlay">
         <div class="overlay-content">
           <div class="pause-icon">⏸️</div>
-          <h2 class="overlay-title">PAUSED</h2>
-          <p class="overlay-subtitle">游戏已暂停</p>
+          <h2 class="overlay-title" data-i18n="pacman.paused">PAUSED</h2>
+          <p class="overlay-subtitle" data-i18n="pacman.pausedSubtitle">游戏已暂停</p>
           <div class="pause-buttons">
             <button class="pause-btn primary" id="resumeBtn">
               <span>▶️</span>
-              <span>继续游戏</span>
+              <span data-i18n="pacman.resumeGame">继续游戏</span>
             </button>
             <button class="pause-btn secondary" id="pauseQuitBtn">
               <span>🏠</span>
-              <span>返回主菜单</span>
+              <span data-i18n="pacman.backToMenu">返回主菜单</span>
             </button>
           </div>
-          <p class="pause-tips">按 <kbd>P</kbd> 键快速继续</p>
+          <p class="pause-tips" data-i18n="pacman.pauseTip">按 <kbd>P</kbd> 键快速继续</p>
         </div>
       </div>
     </div>
@@ -87,15 +113,15 @@
     <div class="controls">
       <button class="control-btn" id="pauseBtn">
         <span class="btn-icon">⏸️</span>
-        <span class="btn-text">暂停</span>
+        <span class="btn-text" data-i18n="pacman.pause">暂停</span>
       </button>
       <button class="control-btn" id="restartBtn">
         <span class="btn-icon">🔄</span>
-        <span class="btn-text">重新开始</span>
+        <span class="btn-text" data-i18n="common.restart">重新开始</span>
       </button>
       <button class="control-btn" id="soundBtn">
         <span class="btn-icon">🔊</span>
-        <span class="btn-text">音效</span>
+        <span class="btn-text" data-i18n="pacman.sound">音效</span>
       </button>
     </div>
 
@@ -122,74 +148,74 @@
     <div class="instructions">
       <h3 class="instructions-title">
         <span class="title-icon">📖</span>
-        <span>GAME RULES</span>
+        <span data-i18n="pacman.gameRules">GAME RULES</span>
       </h3>
       <div class="instructions-grid">
         <div class="instruction-card">
           <span class="card-icon">🎮</span>
-          <h4>操作控制</h4>
-          <p>使用方向键 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>WASD</kbd> 移动吃豆人</p>
+          <h4 data-i18n="pacman.controlsTitle">操作控制</h4>
+          <p data-i18n="pacman.controlsDesc">使用方向键 <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> 或 <kbd>WASD</kbd> 移动吃豆人</p>
         </div>
         <div class="instruction-card">
           <span class="card-icon">⚪</span>
-          <h4>收集豆子</h4>
-          <p>吃掉所有小豆子得分，收集完毕进入下一关卡</p>
+          <h4 data-i18n="pacman.collectDotsTitle">收集豆子</h4>
+          <p data-i18n="pacman.collectDotsDesc">吃掉所有小豆子得分，收集完毕进入下一关卡</p>
         </div>
         <div class="instruction-card">
           <span class="card-icon">🔵</span>
-          <h4>能量豆子</h4>
-          <p>吃大豆子可短暂反击幽灵，获得额外高分奖励</p>
+          <h4 data-i18n="pacman.powerPelletTitle">能量豆子</h4>
+          <p data-i18n="pacman.powerPelletDesc">吃大豆子可短暂反击幽灵，获得额外高分奖励</p>
         </div>
         <div class="instruction-card">
           <span class="card-icon">👻</span>
-          <h4>躲避幽灵</h4>
-          <p>避开四个幽灵追击，每条生命都很珍贵</p>
+          <h4 data-i18n="pacman.avoidGhostsTitle">躲避幽灵</h4>
+          <p data-i18n="pacman.avoidGhostsDesc">避开四个幽灵追击，每条生命都很珍贵</p>
         </div>
         <div class="instruction-card ghost-intro">
           <span class="card-icon">🔴</span>
-          <h4>Blinky（追击者）</h4>
-          <p>红色幽灵，直接追踪你的位置</p>
+          <h4 data-i18n="pacman.ghostBlinky">Blinky（追击者）</h4>
+          <p data-i18n="pacman.ghostBlinkyDesc">红色幽灵，直接追踪你的位置</p>
         </div>
         <div class="instruction-card ghost-intro">
           <span class="card-icon">🩷</span>
-          <h4>Pinky（伏击者）</h4>
-          <p>粉色幽灵，预测你的前方位置</p>
+          <h4 data-i18n="pacman.ghostPinky">Pinky（伏击者）</h4>
+          <p data-i18n="pacman.ghostPinkyDesc">粉色幽灵，预测你的前方位置</p>
         </div>
         <div class="instruction-card ghost-intro">
           <span class="card-icon">🩵</span>
-          <h4>Inky（变化者）</h4>
-          <p>青色幽灵，行动难以预测</p>
+          <h4 data-i18n="pacman.ghostInky">Inky（变化者）</h4>
+          <p data-i18n="pacman.ghostInkyDesc">青色幽灵，行动难以预测</p>
         </div>
         <div class="instruction-card ghost-intro">
           <span class="card-icon">🟠</span>
-          <h4>Clyde（游荡者）</h4>
-          <p>橙色幽灵，时近时远难以捉摸</p>
+          <h4 data-i18n="pacman.ghostClyde">Clyde（游荡者）</h4>
+          <p data-i18n="pacman.ghostClydeDesc">橙色幽灵，时近时远难以捉摸</p>
         </div>
       </div>
 
       <!-- 评分规则 -->
       <div class="score-rules">
-        <h4 class="score-title">🎯 评分规则</h4>
+        <h4 class="score-title" data-i18n="pacman.scoreRulesTitle">🎯 评分规则</h4>
         <div class="score-list">
           <div class="score-row">
             <span class="item-preview">⚪</span>
-            <span class="item-desc">普通豆子</span>
-            <span class="score-value">+10 分</span>
+            <span class="item-desc" data-i18n="pacman.dotScoreName">普通豆子</span>
+            <span class="score-value" data-i18n="pacman.dotScoreValue">+10 分</span>
           </div>
           <div class="score-row">
             <span class="item-preview">🔵</span>
-            <span class="item-desc">能量豆子</span>
-            <span class="score-value">+50 分</span>
+            <span class="item-desc" data-i18n="pacman.pelletScoreName">能量豆子</span>
+            <span class="score-value" data-i18n="pacman.pelletScoreValue">+50 分</span>
           </div>
           <div class="score-row">
             <span class="item-preview">👻</span>
-            <span class="item-desc">吃掉幽灵</span>
-            <span class="score-value">+200 分</span>
+            <span class="item-desc" data-i18n="pacman.ghostScoreName">吃掉幽灵</span>
+            <span class="score-value" data-i18n="pacman.ghostScoreValue">+200 分</span>
           </div>
           <div class="score-row highlight">
             <span class="item-preview">🎯</span>
-            <span class="item-desc">清空关卡</span>
-            <span class="score-value">+500 分</span>
+            <span class="item-desc" data-i18n="pacman.clearLevelScoreName">清空关卡</span>
+            <span class="score-value" data-i18n="pacman.clearLevelScoreValue">+500 分</span>
           </div>
         </div>
       </div>
@@ -202,8 +228,8 @@
     <div class="modal-content">
       <div class="game-over-content">
         <div class="game-over-icon" id="gameOverIcon">👻</div>
-        <h2 id="gameOverTitle">GAME OVER</h2>
-        <p class="game-over-subtitle" id="gameOverSubtitle">游戏结束</p>
+        <h2 id="gameOverTitle" data-i18n="pacman.gameOverTitle">GAME OVER</h2>
+        <p class="game-over-subtitle" id="gameOverSubtitle" data-i18n="pacman.gameOverSubtitle">游戏结束</p>
         <div class="game-over-stats">
           <div class="stat-card">
             <div class="stat-icon">🎯</div>
@@ -248,11 +274,11 @@
 <!-- GitHub: https://github.com/SinceraXY/GameHub -->
 
             <span>🔄</span>
-            <span>再玩一次</span>
+            <span data-i18n="pacman.playAgain">再玩一次</span>
           </button>
           <button class="modal-btn secondary" id="backToMenuBtn">
             <span>🏠</span>
-            <span>返回主菜单</span>
+            <span data-i18n="pacman.backToMenuBtn">返回主菜单</span>
           </button>
         </div>
       </div>
@@ -260,5 +286,16 @@
   </div>
 
   <script src="script.js"></script>
+
+  <!-- Font Awesome (for icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+  
+  <script>
+    // 初始化游戏国际化
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
 </body>
 </html>

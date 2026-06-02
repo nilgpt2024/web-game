@@ -1,17 +1,95 @@
-/* ==================== CSS变量 ====================*/
+/* ==================== Shared Light Theme ==================== */
+:root {
+  --accent: #0d9488;
+  --accent-hover: #0f766e;
+  --accent-dim: rgba(13, 148, 136, 0.08);
+  
+  --bg: #f8f7f4;
+  --bg-surface: #f0efeb;
+  --bg-card: #ffffff;
+  
+  --text: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --text-muted: #9a9a9a;
+  
+  --border: rgba(0, 0, 0, 0.07);
+  --border-hover: rgba(0, 0, 0, 0.14);
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  
+  --shadow-ambient: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-glow: 0 0 40px rgba(13, 148, 136, 0.1);
+  
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ==================== Navigation ==================== */
+.game-nav {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 1.5rem;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 250ms var(--ease-out);
+  text-decoration: none;
+}
+
+.back-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+
+/* ==================== Double Border Card ==================== */
+.game-card-shell {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 3px;
+  transition: all 400ms var(--ease-out);
+  box-shadow: var(--shadow-ambient);
+}
+
+.game-card-core {
+  background: var(--bg-card);
+  border-radius: calc(var(--radius-xl) - 3px);
+  padding: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ==================== Original Game Styles ==================== */
 :root {
   --primary-blue: #4A90E2;
   --primary-dark: #2C3E50;
   --accent-yellow: #F39C12;
   --accent-green: #27AE60;
-  --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.3);
   --radius-md: 12px;
   --radius-lg: 16px;
 }
 
-/* ==================== 基础样式 ==================== */
 * {
   margin: 0;
   padding: 0;
@@ -19,35 +97,60 @@
 }
 
 body {
-  font-family: 'Pacifico', cursive, sans-serif;
-  background: var(--bg-gradient);
+  font-family: 'Plus Jakarta Sans', 'Pacifico', cursive, sans-serif;
+  background: var(--bg);
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 1rem;
-  color: #fff;
+  color: var(--text);
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* ==================== 游戏容器 ==================== */
+body::before {
+  content: '';
+  position: fixed;
+  top: -300px;
+  right: -200px;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, var(--accent-dim) 0%, transparent 70%);
+  filter: blur(140px);
+  z-index: -1;
+}
+
 .game-container {
   width: 100%;
   max-width: 700px;
-  animation: fadeIn 0.6s ease;
+  animation: fadeIn 0.7s var(--ease-out);
 }
 
-/* ==================== 游戏头部 ==================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
 .game-header {
   text-align: center;
   margin-bottom: 1.5rem;
 }
-/* Author: SinceraXY */
 
 .game-title {
   font-size: 3rem;
   font-weight: 400;
   margin-bottom: 0.5rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  font-family: 'Pacifico', cursive;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,43 +166,38 @@ body {
 
 .game-subtitle {
   font-size: 1.1rem;
-  opacity: 0.95;
-  font-family: 'Segoe UI', sans-serif;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+  color: var(--text-secondary);
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  font-weight: 500;
 }
 
-/* ==================== 游戏画布区域 ==================== */
 .game-main {
   display: flex;
   justify-content: center;
   margin-bottom: 1.5rem;
 }
 
-/* Created by SinceraXY */
-
 canvas {
-  /* 保持原始尺寸 620x480 */
   display: block;
-  border: 4px solid rgba(255, 255, 255, 0.3);
+  border: 3px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-/* Made with love by SinceraXY */
+  box-shadow: var(--shadow-md);
   background: url('http://s2js.com/img/etc/flappyback.png') !important;
   background-size: cover !important;
-  transition: transform 0.2s ease;
+  transition: all 250ms var(--ease-out);
   cursor: pointer;
 }
 
 canvas:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  border-color: var(--accent);
 }
 
 canvas:active {
   transform: translateY(-2px);
 }
 
-/* ==================== 游戏底部 ==================== */
 .game-footer {
   text-align: center;
 }
@@ -118,17 +216,17 @@ canvas:active {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  backdrop-filter: blur(10px);
-  box-shadow: var(--shadow-md);
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-ambient);
+  transition: all 300ms var(--ease-out);
 }
 
 .info-item:hover {
-  background: rgba(255, 255, 255, 0.25);
+  border-color: var(--border-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: var(--shadow-md);
 }
 
 .info-icon {
@@ -136,12 +234,12 @@ canvas:active {
 }
 
 .info-text {
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
-/* ==================== 功能介绍 ==================== */
 .game-features {
   margin-top: 2rem;
   text-align: center;
@@ -150,9 +248,9 @@ canvas:active {
 .features-title {
   font-size: 1.3rem;
   margin-bottom: 1rem;
-  color: #fff;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  font-family: 'Segoe UI', sans-serif;
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  font-weight: 700;
 }
 
 .features-grid {
@@ -164,39 +262,21 @@ canvas:active {
 
 .feature-tag {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 215, 0, 0.5);
-  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
   font-size: 0.9rem;
   font-weight: 600;
-  color: #FFD700;
-  backdrop-filter: blur(5px);
-  transition: all 0.3s ease;
-  font-family: 'Segoe UI', sans-serif;
-
-/* Made with love */
-
+  color: var(--accent);
+  transition: all 300ms var(--ease-out);
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 }
 
 .feature-tag:hover {
-  background: rgba(255, 215, 0, 0.2);
-  border-color: #FFD700;
+  background: var(--accent-dim);
+  border-color: var(--accent);
   transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
-}
-
-/* ==================== 动画效果 ==================== */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-/* Developer: SinceraXY */
+  box-shadow: var(--shadow-glow);
 }
 
 @keyframes bounce {
@@ -212,8 +292,6 @@ canvas:active {
   0%, 100% {
     transform: translateY(0) rotate(0deg);
   }
-
-/* Developer: SinceraXY */
   25% {
     transform: translateY(-8px) rotate(-5deg);
   }
@@ -222,8 +300,11 @@ canvas:active {
   }
 }
 
-/* ==================== 响应式设计 ==================== */
 @media (max-width: 768px) {
+  body {
+    padding: 0.75rem;
+  }
+  
   .game-title {
     font-size: 2.5rem;
   }
@@ -268,7 +349,6 @@ canvas:active {
   .game-subtitle {
     font-size: 0.9rem;
   }
-/* Dedicated to my girlfriend */
   
   .info-text {
     font-size: 0.85rem;

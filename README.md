@@ -8,7 +8,7 @@
 [![GitHub license](https://img.shields.io/github/license/SinceraXY/GameHub)](https://github.com/SinceraXY/GameHub/blob/main/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/SinceraXY/GameHub/pulls)
 
-**[中文](README.md) | [English](README_EN.md)**
+**[中文](README.md)** **|** **[English](README_EN.md)**
 
 一个精美炫酷的HTML5游戏合集主页，包含42款精心分类的小游戏。
 
@@ -16,7 +16,7 @@
 
 </div>
 
----
+***
 
 ## 🎯 如何运行
 
@@ -27,19 +27,17 @@
    git clone https://github.com/SinceraXY/GameHub.git
    cd GameHub
    ```
-
 2. **打开主页**
    - 直接双击 `index.html` 文件，或
    - 使用本地服务器（推荐）：
    ```bash
    # Python
    python -m http.server 8000
-   
+
    # Node.js
    npx http-server -p 8000
    ```
    然后访问 `http://localhost:8000`
-
 3. **开始游戏** 🎮
    - 浏览42款游戏
    - 点击任意游戏卡片即可开始
@@ -49,33 +47,37 @@
 ### 在线部署
 
 如需在线部署，请参考 [部署指南](docs/DEPLOYMENT.md)，支持：
+
 - GitHub Pages（免费）
 - Netlify / Vercel
 - 自托管服务器
 
----
+***
 
 ## 🌟 特色功能
 
 ### 🎨 **精美设计**
+
 - ✨ 现代化渐变UI设计
 - 🌈 丰富的色彩搭配
 - 💫 流畅的动画效果
 - 🎭 动态背景特效
 
 ### 🎯 **智能分类**
+
 - 📂 7大游戏分类
 - 🔍 实时搜索功能
 - 🏷️ 一键过滤分类
 - 📊 可视化统计
 
 ### 🎮 **游戏体验**
+
 - 🚀 即点即玩，无需下载
 - 📱 全平台响应式设计
 - ⚡ 快速加载
 - 🎯 42款精品游戏
 
----
+***
 
 ## 📁 项目结构
 
@@ -137,16 +139,18 @@
         └── Type-Number-Guessing/
 ```
 
----
+***
 
 ## 🚀 快速开始
 
 ### 方法1：直接打开（推荐）
+
 1. 双击 `index.html` 文件
 2. 浏览器会自动打开主页
 3. 开始畅玩游戏！
 
 ### 方法2：使用本地服务器
+
 ```bash
 # 使用 Python
 python -m http.server 8000
@@ -160,11 +164,12 @@ npx http-server -p 8000
 
 然后访问：`http://localhost:8000`
 
----
+***
 
 ## 🎯 游戏分类详情
 
 ### 🧩 Puzzle（益智解谜）- 8款
+
 > 需要逻辑思维和策略规划
 
 - **2048** - 经典数字合并益智游戏
@@ -177,6 +182,7 @@ npx http-server -p 8000
 - **Tilting Maze** - 重力迷宫
 
 ### ⚡ Action（动作反应）- 11款
+
 > 需要快速反应和手眼协调
 
 - **Archery** - 射箭竞技
@@ -192,6 +198,7 @@ npx http-server -p 8000
 - **Whack A Mole** - 打地鼠游戏
 
 ### 🕹️ Arcade（经典街机）- 8款
+
 > 经典游戏，怀旧元素
 
 - **Bubble Shooter** - 泡泡龙射击
@@ -204,6 +211,7 @@ npx http-server -p 8000
 - **Tower Blocks** - 叠叠乐
 
 ### ♟️ Board（棋牌策略）- 3款
+
 > 策略对战，规则博弈
 
 - **Gomoku** - 五子棋对战
@@ -211,6 +219,7 @@ npx http-server -p 8000
 - **Tic Tac Toe** - 井字棋
 
 ### 🧠 Memory（记忆训练）- 4款
+
 > 训练记忆力和观察力
 
 - **Color Match** - 颜色匹配记忆
@@ -219,6 +228,7 @@ npx http-server -p 8000
 - **Simon Says** - 西蒙说记忆
 
 ### ⌨️ Typing（打字练习）- 4款
+
 > 提升打字速度和准确度
 
 - **Hangman** - 猜单词游戏
@@ -227,6 +237,7 @@ npx http-server -p 8000
 - **Typing Speed Challenge** - 打字速度挑战
 
 ### 🎲 Casual（休闲娱乐）- 4款
+
 > 轻松休闲，简单有趣
 
 - **Dice Roll Simulator** - 骰子模拟器
@@ -234,32 +245,36 @@ npx http-server -p 8000
 - **Speak Number Guessing** - 语音猜数字
 - **Type Number Guessing** - 打字猜数字
 
----
+***
 
 ## 💡 功能说明
 
 ### 🔍 搜索功能
+
 - 在顶部搜索框输入游戏名称
 - 支持模糊搜索
 - 实时显示搜索结果
 
 ### 🏷️ 分类过滤
+
 - 点击分类按钮快速过滤
 - 显示当前分类游戏数量
 - 支持"全部"查看所有游戏
 
 ### 📊 统计信息
+
 - 可视化显示各分类游戏数量
 - 百分比进度条
 - 动画效果展示
 
 ### 🎨 视觉效果
+
 - 动态渐变背景
 - 悬停动画
 - 平滑滚动
 - 响应式设计
 
----
+***
 
 ## 🛠️ 技术栈
 
@@ -275,38 +290,41 @@ npx http-server -p 8000
   - Intersection Observer
   - 动态渲染
 
----
+***
 
 ## 📱 浏览器兼容性
 
-| 浏览器 | 版本 | 支持 |
-|--------|------|------|
-| Chrome | 90+ | ✅ |
-| Firefox | 88+ | ✅ |
-| Safari | 14+ | ✅ |
-| Edge | 90+ | ✅ |
-| Opera | 76+ | ✅ |
+| 浏览器     | 版本  | 支持 |
+| ------- | --- | -- |
+| Chrome  | 90+ | ✅  |
+| Firefox | 88+ | ✅  |
+| Safari  | 14+ | ✅  |
+| Edge    | 90+ | ✅  |
+| Opera   | 76+ | ✅  |
 
----
+***
 
 ## 🎯 使用建议
 
 ### **新手推荐**
+
 1. **Casual** - 轻松上手
 2. **Arcade** - 经典易懂
 3. **Board** - 规则简单
 
 ### **进阶挑战**
+
 1. **Puzzle** - 挑战智力
 2. **Action** - 考验反应
 3. **Typing** - 提升技能
 
 ### **专项训练**
+
 1. **Memory** - 记忆力训练
 2. **Typing** - 打字速度提升
 3. **Puzzle** - 逻辑思维锻炼
 
----
+***
 
 ## 📈 统计数据
 
@@ -326,11 +344,12 @@ npx http-server -p 8000
 └─────────────────────────┘
 ```
 
----
+***
 
 ## 🔧 自定义修改
 
 ### 添加新游戏
+
 1. 在 `games/` 对应分类文件夹中添加游戏
 2. 修改 `script.js` 中的 `gamesData` 对象
 3. 添加游戏信息：名称、路径、图标、描述
@@ -345,6 +364,7 @@ npx http-server -p 8000
 ```
 
 ### 修改主题颜色
+
 在 `style.css` 的 `:root` 中修改CSS变量：
 
 ```css
@@ -356,11 +376,12 @@ npx http-server -p 8000
 }
 ```
 
----
+***
 
 ## 🎨 设计特点
 
 ### 色彩系统
+
 - **Puzzle** - 紫色系（#667eea）
 - **Action** - 粉色系（#f093fb）
 - **Arcade** - 黄色系（#feca57）
@@ -370,32 +391,34 @@ npx http-server -p 8000
 - **Casual** - 玫红系（#ee5a6f）
 
 ### 动画效果
+
 - 淡入动画
 - 悬停提升
 - 渐变移动
 - 进度条动画
 - 背景漂浮
 
----
+***
 
 ## 🎯 核心亮点
 
-| 特性 | 说明 |
-|------|------|
-| 🎮 **42款游戏** | 精心挑选的HTML5游戏，涵盖7大分类 |
-| 🚀 **即点即玩** | 无需下载安装，打开浏览器即可畅玩 |
-| 📱 **响应式设计** | 完美适配桌面、平板和移动设备 |
-| 🎨 **精美UI** | 现代化设计，渐变色彩，流畅动画 |
-| 🔍 **智能搜索** | 实时搜索，快速定位你想玩的游戏 |
-| 🏷️ **分类过滤** | 7大游戏分类，一键筛选 |
-| ⚡ **性能优化** | 懒加载、动画优化，流畅体验 |
-| 🎯 **易于部署** | 支持GitHub Pages等多种部署方式 |
+| 特性           | 说明                    |
+| ------------ | --------------------- |
+| 🎮 **42款游戏** | 精心挑选的HTML5游戏，涵盖7大分类   |
+| 🚀 **即点即玩**  | 无需下载安装，打开浏览器即可畅玩      |
+| 📱 **响应式设计** | 完美适配桌面、平板和移动设备        |
+| 🎨 **精美UI**  | 现代化设计，渐变色彩，流畅动画       |
+| 🔍 **智能搜索**  | 实时搜索，快速定位你想玩的游戏       |
+| 🏷️ **分类过滤** | 7大游戏分类，一键筛选           |
+| ⚡ **性能优化**   | 懒加载、动画优化，流畅体验         |
+| 🎯 **易于部署**  | 支持GitHub Pages等多种部署方式 |
 
----
+***
 
 ## 📝 更新日志
 
 ### v1.0.0 (2025-10-28)
+
 - ✅ 初始版本发布
 - ✅ 42款游戏完整收录
 - ✅ 7大分类系统
@@ -405,7 +428,7 @@ npx http-server -p 8000
 - ✅ 动画特效
 - ✅ 完整文档和部署指南
 
----
+***
 
 ## 🗺️ 路线图
 
@@ -420,13 +443,13 @@ npx http-server -p 8000
 - [ ] 社交分享功能
 - [ ] 游戏推荐算法
 
----
+***
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=SinceraXY/GameHub&type=Date)](https://star-history.com/#SinceraXY/GameHub&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=SinceraXY/GameHub\&type=Date)](https://star-history.com/#SinceraXY/GameHub\&Date)
 
----
+***
 
 ## 🤝 贡献指南
 
@@ -438,29 +461,29 @@ npx http-server -p 8000
 4. 推送到分支
 5. 创建 Pull Request
 
----
+***
 
 ## 📄 许可证
 
 Apache License
 
----
+***
 
 ## 🙏 致谢
 
 感谢所有游戏开发者的辛勤付出！
 
----
+***
 
 ## 📞 联系方式
 
 如有问题或建议，欢迎反馈！
 
 - 🐙 **GitHub**: [SinceraXY/GameHub](https://github.com/SinceraXY/GameHub)
-- 📧 **Email**: 2952671670@qq.com
+- 📧 **Email**: <2952671670@qq.com>
 - 💬 **QQ**: 2952671670
 
----
+***
 
 <div align="center">
 

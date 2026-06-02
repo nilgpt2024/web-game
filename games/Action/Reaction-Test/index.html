@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" data-i18n-attr="content" data-i18n="reaction.metaDesc" content="测试你的反应速度！支持经典模式、颜色识别模式和序列反应模式，挑战你的极限反应时间。" />
+    <meta name="keywords" content="反应测试,reaction test,反应速度,反应力,休闲游戏" />
+    <title data-i18n="reaction.title">Reaction Test - 反应测试</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>" />
+    <link rel="stylesheet" href="../../game-shared.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+        <div class="lang-switcher">
+            <button class="lang-btn active" data-lang="zh-CN" title="中文">
+                <span class="lang-flag">🇨🇳</span>
+                <span class="lang-text">中文</span>
+            </button>
+            <button class="lang-btn" data-lang="en" title="English">
+                <span class="lang-flag">🇺🇸</span>
+                <span class="lang-text">EN</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <!-- 游戏头部 -->
+    <header class="game-header">
+        <div class="header-icon">⚡</div>
+        <h1 class="game-title" data-i18n="reaction.gameTitle">Reaction Test</h1>
+        <p class="game-subtitle" data-i18n="reaction.gameSubtitle">测试你的极限反应速度！</p>
+    </header>
+
+    <!-- 模式选择 -->
+    <div class="mode-selector">
+        <button class="mode-btn active" data-mode="classic">
+            <span class="mode-icon">🎯</span>
+            <span class="mode-name" data-i18n="reaction.modes.classic">经典模式</span>
+            <span class="mode-desc" data-i18n="reaction.modes.classicDesc">等待变绿后点击</span>
+        </button>
+        <button class="mode-btn" data-mode="color">
+            <span class="mode-icon">🎨</span>
+            <span class="mode-name" data-i18n="reaction.modes.color">颜色模式</span>
+            <span class="mode-desc" data-i18n="reaction.modes.colorDesc">识别指定颜色并点击</span>
+        </button>
+        <button class="mode-btn" data-mode="sequence">
+            <span class="mode-icon">🔘</span>
+            <span class="mode-name" data-i18n="reaction.modes.sequence">序列模式</span>
+            <span class="mode-desc" data-i18n="reaction.modes.sequenceDesc">按顺序点击亮起的按钮</span>
+        </button>
+    </div>
+
+    <!-- 统计信息 -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-icon">⏱️</div>
+            <div class="stat-content">
+                <div class="stat-label" data-i18n="reaction.lastTime">上次反应</div>
+                <div class="stat-value" id="last-time">---</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-content">
+                <div class="stat-label" data-i18n="reaction.bestTime">最佳成绩</div>
+                <div class="stat-value" id="best-time">---</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <div class="stat-label" data-i18n="reaction.avgTime">平均时间</div>
+                <div class="stat-value" id="avg-time">---</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎮</div>
+            <div class="stat-content">
+                <div class="stat-label" data-i18n="reaction.attempts">尝试次数</div>
+                <div class="stat-value" id="attempts">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 经典/颜色模式 - 反应区域 -->
+    <div class="reaction-area" id="reaction-area">
+        <div class="reaction-zone" id="reaction-zone">
+            <div class="zone-content" id="zone-content">
+                <span class="zone-text" id="zone-text" data-i18n="reaction.clickStart">点击开始</span>
+            </div>
+        </div>
+        <div class="target-color-display" id="target-color-display" style="display:none;">
+            <span data-i18n="reaction.targetColor">目标颜色：</span>
+            <span class="color-chip" id="target-color-chip"></span>
+            <span class="color-name" id="target-color-name"></span>
+        </div>
+    </div>
+
+    <!-- 序列模式区域 -->
+    <div class="sequence-area" id="sequence-area" style="display:none;">
+        <div class="sequence-grid" id="sequence-grid">
+            <div class="seq-btn" data-index="0"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="1"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="2"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="3"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="4"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="5"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="6"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="7"><span class="seq-btn-inner"></span></div>
+            <div class="seq-btn" data-index="8"><span class="seq-btn-inner"></span></div>
+        </div>
+        <div class="sequence-info">
+            <div class="seq-round-info">
+                <span data-i18n="reaction.round">回合</span>: <strong id="seq-round">0</strong>/<span id="seq-total-rounds">5</span>
+            </div>
+            <div class="seq-timer-bar">
+                <div class="seq-timer-fill" id="seq-timer-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 结果展示 -->
+    <div class="result-display" id="result-display" style="display:none;">
+        <div class="result-card" id="result-card">
+            <div class="result-grade" id="result-grade">A+</div>
+            <div class="result-time" id="result-time">200 ms</div>
+            <div class="result-rating" id="result-rating" data-i18n="reaction.ratings.excellent">优秀！闪电般的反应！</div>
+        </div>
+    </div>
+
+    <!-- 历史记录 -->
+    <div class="history-section">
+        <div class="history-header">
+            <h3 data-i18n="reaction.historyTitle">📜 历史记录</h3>
+            <button class="clear-history-btn" id="clear-history" data-i18n="reaction.clearHistory">清空</button>
+        </div>
+        <div class="history-list" id="history-list">
+            <div class="history-empty" data-i18n="reaction.noHistory">暂无记录，开始挑战吧！</div>
+        </div>
+    </div>
+
+    <!-- 控制按钮 -->
+    <div class="controls">
+        <button id="start-btn" class="btn btn-primary btn-3d">
+            <span class="btn-icon">▶️</span>
+            <span class="btn-text" data-i18n="common.start">开始测试</span>
+        </button>
+        <button id="reset-btn" class="btn btn-secondary btn-3d hide">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text" data-i18n="common.restart">重新开始</span>
+        </button>
+    </div>
+
+    <!-- 评级说明 -->
+    <div class="rating-guide">
+        <h4 data-i18n="reaction.ratingGuide">评级标准</h4>
+        <div class="rating-items">
+            <div class="rating-item excellent"><span class="rating-badge">S</span> &lt; 150ms — <span data-i18n="reaction.ratings.excellent">超神</span></div>
+            <div class="rating-item great"><span class="rating-badge">A</span> 150-200ms — <span data-i18n="reaction.ratings.great">优秀</span></div>
+            <div class="rating-item good"><span class="rating-badge">B</span> 200-280ms — <span data-i18n="reaction.ratings.good">良好</span></div>
+            <div class="rating-item average"><span class="rating-badge">C</span> 280-350ms — <span data-i18n="reaction.ratings.average">一般</span></div>
+            <div class="rating-item slow"><span class="rating-badge">D</span> &gt; 350ms — <span data-i18n="reaction.ratings.slow">需练习</span></div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+
+<!-- Font Awesome (for icons) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- 游戏国际化脚本 -->
+<script src="../../../game-i18n.js"></script>
+
+<script>
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+</script>
+</body>
+</html>

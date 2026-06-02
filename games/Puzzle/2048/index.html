@@ -9,11 +9,36 @@
   <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
   
+  <!-- 共享样式 -->
+  <link rel="stylesheet" href="../../game-shared.css">
+  
   <!-- 样式表 -->
   <link rel="stylesheet" href="style.css">
-<!-- QQ: 2952671670 -->
 </head>
 <body>
+  
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+  
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+    </nav>
+
+
   <!-- 游戏容器 -->
   <div class="game-container">
     <!-- 游戏头部 -->
@@ -21,23 +46,20 @@
       <div class="title-group">
         <h1 class="game-title">
           <span class="icon">🎮</span>
-          <span>2048</span>
+          <span data-i18n="specific.2048.title">2048</span>
         </h1>
         <button id="help-btn" class="help-btn" aria-label="游戏说明" title="游戏说明">
           <span>❓</span>
-
-<!-- GitHub: https://github.com/SinceraXY/GameHub -->
-
         </button>
       </div>
       
       <div class="scores-group">
         <div class="score-box">
-          <div class="score-label">当前分数</div>
+          <div class="score-label" data-i18n="common.score">当前分数</div>
           <div id="score" class="score-value">0</div>
         </div>
         <div class="score-box highscore-box">
-          <div class="score-label">最高分</div>
+          <div class="score-label" data-i18n="common.highScore">最高分</div>
           <div id="high-score" class="score-value">0</div>
         </div>
       </div>
@@ -45,14 +67,14 @@
 
     <!-- 游戏说明文字 -->
     <div class="game-description">
-      <p id="result">合并相同数字，挑战 <strong>2048</strong> 方块！</p>
+      <p id="result" data-i18n="specific.2048.desc">合并相同数字，挑战 <strong>2048</strong> 方块！</p>
     </div>
 
     <!-- 游戏控制按钮 -->
     <div class="game-controls">
       <button id="new-game-btn" class="control-button new-game-btn">
         <span>🔄</span>
-        <span>重新开始</span>
+        <span data-i18n="common.newGame">重新开始</span>
       </button>
     </div>
 
@@ -92,52 +114,62 @@
 
   <!-- 帮助弹窗 -->
   <div id="help-modal" class="help-modal">
-<!-- Email: 2952671670@qq.com -->
     <div class="help-content">
       <div class="help-header">
-        <h2>📖 游戏说明</h2>
+        <h2 data-i18n="specific.2048.helpTitle">📖 游戏说明</h2>
         <button id="close-help" class="close-btn">&times;</button>
       </div>
       <div class="help-body">
         <section class="help-section">
-          <h3>🎯 游戏目标</h3>
-<!-- Dedicated to my girlfriend -->
-          <p>合并相同的数字方块，最终达到<strong>2048</strong>！</p>
+          <h3 data-i18n="ui.goal">🎯 游戏目标</h3>
+          <p data-i18n="specific.2048.goal">合并相同的数字方块，最终达到<strong>2048</strong>！</p>
         </section>
         <section class="help-section">
-          <h3>🕹️ 操作方式</h3>
+          <h3 data-i18n="ui.controls">🕹️ 操作方式</h3>
           <ul>
-            <li><strong>键盘</strong>：使用方向键 ⬆️ ⬇️ ⬅️ ➡️</li>
-            <li><strong>移动端</strong>：点击屏幕下方的方向按钮</li>
+            <li><strong data-i18n="ui.keyboard">键盘</strong>：<span data-i18n="ui.arrowKeys">使用方向键 ⬆️ ⬇️ ⬅️ ➡️</span></li>
+            <li><strong data-i18n="ui.mobile">移动端</strong>：<span data-i18n="specific.2048.controlsMobile">点击屏幕下方的方向按钮</span></li>
           </ul>
         </section>
         <section class="help-section">
-          <h3>📜 游戏规则</h3>
+          <h3 data-i18n="ui.rulesTitle">📜 游戏规则</h3>
           <ul>
-            <li>每次移动时，所有方块会向指定方向滑动</li>
-            <li>相同数字的方块碰撞时会<strong>合并</strong></li>
-            <li>合并后的数字等于两者之和</li>
-            <li>每次移动后会随机生成一个新方块（2或4）</li>
-            <li>无法移动时游戏结束</li>
+            <li data-i18n="specific.2048.rules1">每次移动时，所有方块会向指定方向滑动</li>
+            <li data-i18n="specific.2048.rules2">相同数字的方块碰撞时会<strong>合并</strong></li>
+            <li data-i18n="specific.2048.rules3">合并后的数字等于两者之和</li>
+            <li data-i18n="specific.2048.rules4">每次移动后会随机生成一个新方块（2或4）</li>
+            <li data-i18n="specific.2048.rules5">无法移动时游戏结束</li>
           </ul>
         </section>
         <section class="help-section">
-          <h3>💡 游戏技巧</h3>
+          <h3 data-i18n="ui.tipsTitle">💡 游戏技巧</h3>
           <ul>
-            <li>尽量把大数字放在角落</li>
-            <li>保持方块按顺序排列</li>
-            <li>避免棋盘过于分散</li>
-            <li>提前规划移动路线</li>
+            <li data-i18n="specific.2048.tip1">尽量把大数字放在角落</li>
+            <li data-i18n="specific.2048.tip2">保持方块按顺序排列</li>
+            <li data-i18n="specific.2048.tip3">避免棋盘过于分散</li>
+            <li data-i18n="specific.2048.tip4">提前规划移动路线</li>
           </ul>
         </section>
       </div>
       <div class="help-footer">
-        <button id="start-btn" class="start-btn">开始游戏</button>
+        <button id="start-btn" class="start-btn" data-i18n="common.start">开始游戏</button>
       </div>
     </div>
   </div>
 
+  <!-- Font Awesome (for icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+  
   <!-- JavaScript -->
   <script src="script.js"></script>
+  
+  <script>
+    // 初始化游戏国际化
+    const gameI18n = new GameI18n({ gameName: '2048' });
+    gameI18n.init();
+  </script>
 </body>
 </html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title data-i18n="mahjong.title">Mahjong Connect - 麻将连连看</title>
+  <meta name="description" content="Play Mahjong Connect! Match pairs of tiles with a path that has at most 2 turns." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%230d9488' width='64' height='64' rx='10'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='white'%3E麻%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../../game-shared.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Game Header -->
+  <header class="game-header">
+    <h1 class="game-title">
+      <span class="title-icon">🀄</span>
+      <span data-i18n="mahjong.title">Mahjong Connect - 麻将连连看</span>
+    </h1>
+    <p class="game-subtitle" data-i18n="mahjong.subtitle">Match tiles with at most 2 turns to clear the board!</p>
+  </header>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Game Stats -->
+      <div class="stats-section">
+        <h3 class="section-title" data-i18n="mahjong.stats">Statistics</h3>
+        <div class="stat-item">
+          <span class="stat-label" data-i18n="mahjong.timer">Timer</span>
+          <span class="stat-value" id="timer">00:00</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" data-i18n="mahjong.remaining">Remaining</span>
+          <span class="stat-value" id="remaining">72</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" data-i18n="mahjong.matches">Matches</span>
+          <span class="stat-value" id="matches">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" data-i18n="mahjong.bestTime">Best Time</span>
+          <span class="stat-value" id="bestTime">--:--</span>
+        </div>
+      </div>
+
+      <!-- Control Buttons -->
+      <div class="controls-section">
+        <h3 class="section-title" data-i18n="mahjong.controls">Controls</h3>
+        <button type="button" class="control-btn hint-btn" id="hintBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span data-i18n="mahjong.hint">Hint</span>
+        </button>
+        <button type="button" class="control-btn shuffle-btn" id="shuffleBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+          <span data-i18n="mahjong.shuffle">Shuffle</span>
+        </button>
+        <button type="button" class="control-btn restart-btn" id="restartBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+          <span data-i18n="mahjong.newGame">New Game</span>
+        </button>
+      </div>
+
+      <!-- How to Play -->
+      <div class="info-section">
+        <h3 class="section-title" data-i18n="mahjong.howToPlay">How to Play</h3>
+        <ul class="info-list">
+          <li data-i18n="mahjong.rule1">Click two matching tiles to eliminate them</li>
+          <li data-i18n="mahjong.rule2">The path between tiles can have at most 2 turns</li>
+          <li data-i18n="mahjong.rule3">Use Hint to find a valid pair</li>
+          <li data-i18n="mahjong.rule4">Use Shuffle when stuck</li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Game Board Area -->
+    <main class="game-main">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="status-icon">⏱️</span>
+          <span id="timerDisplay">00:00</span>
+        </div>
+        <div class="status-item">
+          <span class="status-icon">🀄</span>
+          <span data-i18n="mahjong.left">Left:</span>
+          <span id="tilesLeft">72</span>
+        </div>
+      </div>
+
+      <!-- Game Board -->
+      <div class="board-wrapper">
+        <canvas id="lineCanvas"></canvas>
+        <div id="gameBoard" class="game-board"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div class="game-over-modal" id="gameOverModal">
+    <div class="modal-content">
+      <div class="modal-icon" id="modalIcon">🎉</div>
+      <h2 class="modal-title" id="modalTitle" data-i18n="mahjong.victory">Victory!</h2>
+      <p class="modal-message" id="modalMessage"></p>
+      <div class="modal-stats">
+        <div class="modal-stat">
+          <span class="modal-stat-label" data-i18n="mahjong.timeUsed">Time Used</span>
+          <span class="modal-stat-value" id="finalTime">00:00</span>
+        </div>
+        <div class="modal-stat">
+          <span class="modal-stat-label" data-i18n="mahjong.totalMatches">Total Matches</span>
+          <span class="modal-stat-value" id="finalMatches">36</span>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn play-again-btn" id="playAgainBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span data-i18n="mahjong.playAgain">Play Again</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+
+  <script>
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
+</body>
+</html>

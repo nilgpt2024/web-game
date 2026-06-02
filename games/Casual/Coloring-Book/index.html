@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="一个精美的涂色游戏，提供多种图案和丰富的颜色选择，释放你的创意！" />
+    <meta name="keywords" content="涂色游戏,绘画,coloring book,填色" />
+    <title data-i18n="coloring.title">涂色本 - Coloring Book</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
+    <link rel="stylesheet" href="../../game-shared.css" />
+    <link rel="stylesheet" href="style.css" />
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  </head>
+  <body>
+  
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container coloring-container">
+    <!-- 游戏头部 -->
+    <header class="game-header">
+      <div class="header-icon-wrap">
+        <span class="header-icon">🎨</span>
+      </div>
+      <h1 class="game-title" data-i18n="coloring.title">涂色本</h1>
+      <p class="game-subtitle" data-i18n="coloring.subtitle">选择图案，用色彩点亮你的创意世界！</p>
+    </header>
+
+    <!-- 图案选择区 -->
+    <section class="pattern-section">
+      <h2 class="section-title" data-i18n="coloring.selectPattern">选择图案</h2>
+      <div class="pattern-grid" id="pattern-grid">
+        <button class="pattern-card active" data-pattern="cat" title="小猫">
+          <div class="pattern-preview" id="preview-cat"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.cat">小猫</span>
+        </button>
+        <button class="pattern-card" data-pattern="dog" title="小狗">
+          <div class="pattern-preview" id="preview-dog"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.dog">小狗</span>
+        </button>
+        <button class="pattern-card" data-pattern="butterfly" title="蝴蝶">
+          <div class="pattern-preview" id="preview-butterfly"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.butterfly">蝴蝶</span>
+        </button>
+        <button class="pattern-card" data-pattern="fish" title="小鱼">
+          <div class="pattern-preview" id="preview-fish"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.fish">小鱼</span>
+        </button>
+        <button class="pattern-card" data-pattern="house" title="房子">
+          <div class="pattern-preview" id="preview-house"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.house">房子</span>
+        </button>
+        <button class="pattern-card" data-pattern="tree" title="大树">
+          <div class="pattern-preview" id="preview-tree"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.tree">大树</span>
+        </button>
+        <button class="pattern-card" data-pattern="sun" title="太阳">
+          <div class="pattern-preview" id="preview-sun"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.sun">太阳</span>
+        </button>
+        <button class="pattern-card" data-pattern="flower" title="花朵">
+          <div class="pattern-preview" id="preview-flower"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.flower">花朵</span>
+        </button>
+        <button class="pattern-card" data-pattern="star" title="星星">
+          <div class="pattern-preview" id="preview-star"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.star">星星</span>
+        </button>
+        <button class="pattern-card" data-pattern="heart" title="爱心">
+          <div class="pattern-preview" id="preview-heart"></div>
+          <span class="pattern-name" data-i18n="coloring.patterns.heart">爱心</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 主画布区域 -->
+    <section class="canvas-section">
+      <div class="canvas-wrapper">
+        <div class="canvas-frame">
+          <canvas id="main-canvas" width="500" height="500"></canvas>
+          <canvas id="line-canvas" width="500" height="500"></canvas>
+        </div>
+        <div class="canvas-shadow"></div>
+      </div>
+
+      <!-- 工具栏 -->
+      <div class="toolbar">
+        <div class="tool-group">
+          <button class="tool-btn active" data-tool="fill" title="填充工具">
+            <i class="fas fa-fill-drip"></i>
+            <span data-i18n="coloring.tools.fill">填充</span>
+          </button>
+          <button class="tool-btn" data-tool="brush" title="画笔工具">
+            <i class="fas fa-paintbrush"></i>
+            <span data-i18n="coloring.tools.brush">画笔</span>
+          </button>
+          <button class="tool-btn" data-tool="eraser" title="橡皮擦">
+            <i class="fas fa-eraser"></i>
+            <span data-i18n="coloring.tools.eraser">橡皮擦</span>
+          </button>
+        </div>
+
+        <div class="tool-group brush-size-group" id="brush-size-group" style="display:none;">
+          <label data-i18n="coloring.brushSize">笔刷大小:</label>
+          <input type="range" id="brush-size" min="2" max="30" value="8" />
+          <span id="brush-size-value">8px</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 调色板区域 -->
+    <section class="palette-section">
+      <h2 class="section-title" data-i18n="coloring.palette">调色板</h2>
+      
+      <!-- 预设颜色 -->
+      <div class="palette-presets">
+        <button class="color-swatch active" data-color="#ef4444" style="background:#ef4444" title="红色"></button>
+        <button class="color-swatch" data-color="#f97316" style="background:#f97316" title="橙色"></button>
+        <button class="color-swatch" data-color="#eab308" style="background:#eab308" title="黄色"></button>
+        <button class="color-swatch" data-color="#22c55e" style="background:#22c55e" title="绿色"></button>
+        <button class="color-swatch" data-color="#0d9488" style="background:#0d9488" title="青色"></button>
+        <button class="color-swatch" data-color="#3b82f6" style="background:#3b82f6" title="蓝色"></button>
+        <button class="color-swatch" data-color="#8b5cf6" style="background:#8b5cf6" title="紫色"></button>
+        <button class="color-swatch" data-color="#ec4899" style="background:#ec4899" title="粉色"></button>
+        <button class="color-swatch" data-color="#78716c" style="background:#78716c" title="灰色"></button>
+        <button class="color-swatch" data-color="#18181b" style="background:#18181b" title="黑色"></button>
+        <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;border:2px solid #e5e7eb" title="白色"></button>
+        
+        <div class="custom-color-wrapper">
+          <label for="custom-color" class="custom-color-label" data-i18n="coloring.customColor">自定义</label>
+          <input type="color" id="custom-color" value="#0d9488" title="自定义颜色" />
+        </div>
+      </div>
+
+      <!-- 当前颜色显示 -->
+      <div class="current-color-display">
+        <span data-i18n="coloring.currentColor">当前颜色:</span>
+        <div class="current-color-box" id="current-color-box" style="background:#0d9488"></div>
+        <code id="current-color-code">#0d9488</code>
+      </div>
+    </section>
+
+    <!-- 操作按钮 -->
+    <section class="actions-section">
+      <div class="action-buttons">
+        <button class="action-btn action-undo" id="btn-undo" title="撤销">
+          <i class="fas fa-undo"></i>
+          <span data-i18n="coloring.undo">撤销</span>
+        </button>
+        <button class="action-btn action-clear" id="btn-clear" title="清除全部">
+          <i class="fas fa-trash-alt"></i>
+          <span data-i18n="coloring.clear">清除全部</span>
+        </button>
+        <button class="action-btn action-save" id="btn-save" title="保存图片">
+          <i class="fas fa-download"></i>
+          <span data-i18n="coloring.save">保存图片</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 提示信息 -->
+    <footer class="game-footer">
+      <p data-i18n="coloring.tip">💡 点击图案区域使用填充工具，或切换到画笔自由绘画</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+  
+  <script>
+    // 初始化游戏国际化
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
+</body>
+</html>

@@ -8,10 +8,34 @@
     <meta name="keywords" content="连连看,match pairs,消除游戏,益智游戏" />
     <title>Match Pairs - 连连看</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔗</text></svg>">
+    <link rel="stylesheet" href="../../game-shared.css" />
     <link rel="stylesheet" href="style.css" />
     <script src="script.js" defer></script>
   </head>
   <body>
+  
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+<!-- Navigation -->
+  
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+    </nav>
+
     <div class="container">
       <!-- 游戏头部 -->
       <header class="game-header">
@@ -138,5 +162,16 @@
         <span class="combo-text" id="combo-text">5 COMBO!</span>
       </div>
     </div>
-  </body>
+  
+  <!-- Font Awesome (for icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+  
+  <script>
+    // 初始化游戏国际化
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
+</body>
 </html>

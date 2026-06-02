@@ -14,57 +14,95 @@
     <!-- 主页 -->
     <url>
         <loc>https://YOUR_DOMAIN/</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>weekly</changefreq>
         <priority>1.0</priority>
+    </url>
+
+    <!-- 合规与信息页面 -->
+    <url>
+        <loc>https://YOUR_DOMAIN/privacy-policy.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/terms-of-service.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/about.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/contact.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
     </url>
 
     <!-- Puzzle Games -->
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/2048/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/Jigsaw-Puzzle/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/Klotski/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/Maze-Escape/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/Minesweeper/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/Spot-Difference/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/Sudoku/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Puzzle/Tilting-Maze/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Puzzle/Sokoban/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Puzzle/Tangram/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -72,67 +110,91 @@
     <!-- Action Games -->
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Archery/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Breakout/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Crossy-Road/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Emoji-Catcher/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Flappy-Bird/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Fruit-Slicer/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Insect-Catch/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Piano-Tiles/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Ping-Pong/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Shape-Clicker/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Action/Whack-A-Mole/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Action/Dodge-Game/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Action/Space-Shooter/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Action/Platform-Game/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Action/Reaction-Test/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -140,49 +202,49 @@
     <!-- Arcade Games -->
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Bubble-Shooter/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Candy-Crush/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Jump-Game/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Pac-Man/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Snake/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Space-Invaders/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Tetris/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Arcade/Tower-Blocks/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -190,19 +252,37 @@
     <!-- Board Games -->
     <url>
         <loc>https://YOUR_DOMAIN/games/Board/Gomoku/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Board/Rock-Paper-Scissors/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Board/Tic-Tac-Toe/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Board/Reversi/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Board/Solitaire/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Board/Mahjong-Connect/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -210,25 +290,25 @@
     <!-- Memory Games -->
     <url>
         <loc>https://YOUR_DOMAIN/games/Memory/Color-Match/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Memory/Match-Pairs/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Memory/Memory-Card/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Memory/Simon-Says/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -236,25 +316,25 @@
     <!-- Typing Games -->
     <url>
         <loc>https://YOUR_DOMAIN/games/Typing/Hangman/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Typing/Speed-Typing/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Typing/Type-Master/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Typing/Typing-Speed-Challenge/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
@@ -262,25 +342,37 @@
     <!-- Casual Games -->
     <url>
         <loc>https://YOUR_DOMAIN/games/Casual/Dice-Roll-Simulator/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Casual/Quiz/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Casual/Speak-Number-Guessing/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>
     <url>
         <loc>https://YOUR_DOMAIN/games/Casual/Type-Number-Guessing/index.html</loc>
-        <lastmod>2025-10-28</lastmod>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Casual/Rhythm-Game/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.8</priority>
+    </url>
+    <url>
+        <loc>https://YOUR_DOMAIN/games/Casual/Coloring-Book/index.html</loc>
+        <lastmod>2025-05-31</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.8</priority>
     </url>

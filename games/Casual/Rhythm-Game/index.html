@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title data-i18n="title">音乐节奏游戏</title>
+    <link rel="stylesheet" href="../../game-shared.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="game-nav-fixed">
+        <a href="../../index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            <span data-i18n="common.backToHub">返回游戏大厅</span>
+        </a>
+        <div class="nav-right">
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="zh-CN" title="中文">
+                    <span class="lang-flag">🇨🇳</span>
+                    <span class="lang-text">中文</span>
+                </button>
+                <button class="lang-btn" data-lang="en" title="English">
+                    <span class="lang-flag">🇺🇸</span>
+                    <span class="lang-text">EN</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="game-container">
+        <div id="menu-screen">
+            <div class="menu-content">
+                <h2 data-i18n="selectSong">选择曲目</h2>
+                <div class="song-list">
+                    <button class="song-btn" data-song="easy" data-i18n="songEasy">🎵 轻松节拍 (Easy)</button>
+                    <button class="song-btn" data-song="normal" data-i18n="songNormal">🎶 动感旋律 (Normal)</button>
+                    <button class="song-btn" data-song="hard" data-i18n="songHard">🔥 极速狂飙 (Hard)</button>
+                    <button class="song-btn" data-song="extreme" data-i18n="songExtreme">💀 地狱模式 (Extreme)</button>
+                </div>
+                <div class="controls-info">
+                    <h3 data-i18n="controls">操作说明</h3>
+                    <p><kbd>D</kbd> <kbd>F</kbd> <kbd>J</kbd> <kbd>K</kbd></p>
+                    <p data-i18n="orKeys">或方向键 ← → ↑ ↓</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <div id="game-header">
+                <div class="score-display">
+                    <span data-i18n="score">分数:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="combo-display">
+                    <span data-i18n="combo">连击:</span>
+                    <span id="combo">0</span>
+                    <span id="combo-multiplier"></span>
+                </div>
+                <div class="accuracy-display">
+                    <span data-i18n="accuracy">准确率:</span>
+                    <span id="accuracy">100%</span>
+                </div>
+            </div>
+
+            <div id="game-area">
+                <div class="track-container">
+                    <div class="track" data-track="0">
+                        <div class="track-line"></div>
+                        <div class="hit-zone">
+                            <div class="hit-key">D</div>
+                        </div>
+                    </div>
+                    <div class="track" data-track="1">
+                        <div class="track-line"></div>
+                        <div class="hit-zone">
+                            <div class="hit-key">F</div>
+                        </div>
+                    </div>
+                    <div class="track" data-track="2">
+                        <div class="track-line"></div>
+                        <div class="hit-zone">
+                            <div class="hit-key">J</div>
+                        </div>
+                    </div>
+                    <div class="track" data-track="3">
+                        <div class="track-line"></div>
+                        <div class="hit-zone">
+                            <div class="hit-key">K</div>
+                        </div>
+                    </div>
+                    <div class="judgment-line"></div>
+                </div>
+
+                <div id="judgment-display"></div>
+                <div id="effects-container"></div>
+            </div>
+
+            <div id="game-footer">
+                <button id="pause-btn" data-i18n="pause">⏸ 暂停</button>
+                <div class="progress-bar">
+                    <div id="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-screen" style="display: none;">
+            <div class="result-content">
+                <h2 data-i18n="gameOver">游戏结束!</h2>
+                <div class="result-stats">
+                    <div class="stat-item">
+                        <span data-i18n="finalScore">最终得分</span>
+                        <span id="final-score">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span data-i18n="maxCombo">最大连击</span>
+                        <span id="max-combo">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span data-i18n="perfectCount">Perfect</span>
+                        <span id="perfect-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span data-i18n="goodCount">Good</span>
+                        <span id="good-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span data-i18n="missCount">Miss</span>
+                        <span id="miss-count">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span data-i18n="finalAccuracy">准确率</span>
+                        <span id="final-accuracy">0%</span>
+                    </div>
+                </div>
+                <div class="result-grade" id="result-grade">S</div>
+                <div class="result-buttons">
+                    <button id="retry-btn" data-i18n="retry">🔄 重试</button>
+                    <button id="menu-btn" data-i18n="menu">📋 选曲</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../game-i18n.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

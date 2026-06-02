@@ -10,7 +10,10 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍬</text></svg>">
     
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="style.css">
+      <!-- 共享样式 -->
+  <link rel="stylesheet" href="../../game-shared.css">
+
+<link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fredoka+One&display=swap" rel="stylesheet">
@@ -20,6 +23,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+  
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+<!-- Navigation -->
+  
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+    </nav>
+
     <!-- Background Particles -->
     <div class="particles">
         <div class="particle"></div>
@@ -40,19 +66,19 @@
             <div class="mode-content">
                 <h1 class="game-title">
                     <i class="fas fa-candy-cane"></i>
-                    Candy Crush Game
+                    <span data-i18n="candycrush.title">Candy Crush Game</span>
                 </h1>
-                <h2 class="mode-subtitle">选择游戏模式</h2>
+                <h2 class="mode-subtitle" data-i18n="candycrush.selectMode">选择游戏模式</h2>
                 <div class="mode-buttons">
                     <button id="endlessMode" class="mode-btn endless">
                         <i class="fas fa-infinity"></i>
-                        <span class="btn-text">无尽模式</span>
-                        <span class="btn-desc">尽情享受，无时间限制</span>
+                        <span class="btn-text" data-i18n="candycrush.endlessMode">无尽模式</span>
+                        <span class="btn-desc" data-i18n="candycrush.endlessModeDesc">尽情享受，无时间限制</span>
                     </button>
                     <button id="timedMode" class="mode-btn timed">
                         <i class="fas fa-clock"></i>
-                        <span class="btn-text">限时模式</span>
-                        <span class="btn-desc">挑战2分钟极限</span>
+                        <span class="btn-text" data-i18n="candycrush.timedMode">限时模式</span>
+                        <span class="btn-desc" data-i18n="candycrush.timedModeDesc">挑战2分钟极限</span>
                     </button>
                 </div>
             </div>
@@ -66,7 +92,7 @@
                 <div class="score-container">
                     <div class="score-label">
                         <i class="fas fa-star"></i>
-                        <span>得分</span>
+                        <span data-i18n="common.score">得分</span>
                     </div>
     <!-- Author: SinceraXY | China University of Petroleum, Beijing -->
                     <div class="score-value" id="score">0</div>
@@ -77,11 +103,11 @@
                 <div class="game-controls">
                     <button id="changeMode" class="control-btn">
                         <i class="fas fa-exchange-alt"></i>
-                        <span>切换模式</span>
+                        <span data-i18n="candycrush.changeMode">切换模式</span>
                     </button>
                     <button id="restartGame" class="control-btn restart">
                         <i class="fas fa-redo"></i>
-                        <span>重新开始</span>
+                        <span data-i18n="common.restart">重新开始</span>
                     </button>
                 </div>
             </div>
@@ -100,16 +126,16 @@
             <div class="modal-icon">
                 <i class="fas fa-trophy"></i>
             </div>
-            <h2 class="modal-title">游戏结束！</h2>
-            <p class="modal-score">你的得分：<span id="finalScore">0</span></p>
+            <h2 class="modal-title" data-i18n="candycrush.gameOver">游戏结束！</h2>
+            <p class="modal-score" data-i18n="candycrush.finalScoreText">你的得分：<span id="finalScore">0</span></p>
             <div class="modal-buttons">
                 <button id="playAgain" class="modal-btn primary">
                     <i class="fas fa-play"></i>
-                    再玩一次
+                    <span data-i18n="candycrush.playAgain">再玩一次</span>
                 </button>
                 <button id="backToMenu" class="modal-btn secondary">
                     <i class="fas fa-home"></i>
-                    返回菜单
+                    <span data-i18n="candycrush.backToMenu">返回菜单</span>
                 </button>
             </div>
         </div>
@@ -117,5 +143,14 @@
 
     <!-- JavaScript -->
     <script src="script.js"></script>
+
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+  
+  <script>
+    // 初始化游戏国际化
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
 </body>
 </html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sokoban Game - Classic puzzle game, push boxes to targets">
+    <title>Sokoban Game | 推箱子游戏</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
+    
+    <!-- 共享样式 -->
+    <link rel="stylesheet" href="../../game-shared.css">
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="game-nav-fixed">
+        <a href="../../../index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            <span data-i18n="common.backToHub">返回游戏大厅</span>
+        </a>
+        <div class="nav-right">
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="zh-CN" title="中文">
+                    <span class="lang-flag">🇨🇳</span>
+                    <span class="lang-text">中文</span>
+                </button>
+                <button class="lang-btn" data-lang="en" title="English">
+                    <span class="lang-flag">🇺🇸</span>
+                    <span class="lang-text">EN</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Game Header -->
+    <header class="game-header">
+        <div class="header-content">
+            <h1 class="game-title">
+                <i class="fas fa-box"></i>
+                <span data-i18n="specific.Sokoban.title">Sokoban</span>
+            </h1>
+            <button id="rules-btn" class="rules-btn">
+                <i class="fas fa-question-circle"></i>
+                <span data-i18n="ui.rulesTitle">游戏规则</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Game Stats Panel -->
+    <div class="stats-panel">
+        <div class="stat-card">
+            <i class="fas fa-shoe-prints"></i>
+            <div class="stat-info">
+                <span class="stat-label" data-i18n="common.level">关卡</span>
+                <span class="stat-value" id="level-display">1 / 12</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-walking"></i>
+            <div class="stat-info">
+                <span class="stat-label" data-i18n="sokoban.steps">步数</span>
+                <span class="stat-value" id="steps-display">0</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-trophy"></i>
+            <div class="stat-info">
+                <span class="stat-label" data-i18n="sokoban.bestRecord">最优记录</span>
+                <span class="stat-value" id="best-display">-</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-boxes"></i>
+            <div class="stat-info">
+                <span class="stat-label" data-i18n="sokoban.remainingBoxes">剩余箱子</span>
+                <span class="stat-value" id="boxes-display">0 / 0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Selection Panel -->
+    <div class="level-panel" id="level-panel">
+        <h3><i class="fas fa-layer-group"></i> <span data-i18n="sokoban.selectLevel">选择关卡</span></h3>
+        <div class="level-grid" id="level-grid"></div>
+    </div>
+
+    <!-- Game Board Container -->
+    <div class="game-container">
+        <div id="board" class="game-board"></div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="control-panel">
+        <button class="control-btn undo" id="undo-btn" disabled>
+            <i class="fas fa-undo"></i>
+            <span data-i18n="sokoban.undo">撤销 (Ctrl+Z)</span>
+        </button>
+        <button class="control-btn restart" id="restart-btn">
+            <i class="fas fa-redo"></i>
+            <span data-i18n="common.restart">重新开始</span>
+        </button>
+        <button class="control-btn levels" id="levels-btn">
+            <i class="fas fa-list"></i>
+            <span data-i18n="sokoban.selectLevel">选择关卡</span>
+        </button>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div class="mobile-controls" id="mobile-controls">
+        <button class="mobile-btn" data-dir="up"><i class="fas fa-chevron-up"></i></button>
+        <button class="mobile-btn" data-dir="left"><i class="fas fa-chevron-left"></i></button>
+        <button class="mobile-btn" data-dir="down"><i class="fas fa-chevron-down"></i></button>
+        <button class="mobile-btn" data-dir="right"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Rules Sidebar -->
+    <div id="rules" class="rules">
+        <button class="close-btn" id="close-rules-btn">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="rules-content">
+            <h2><i class="fas fa-book"></i> <span data-i18n="ui.rulesTitle">游戏规则</span></h2>
+            <div class="rule-item">
+                <i class="fas fa-bullseye"></i>
+                <div>
+                    <h3 data-i18n="ui.goal">游戏目标</h3>
+                    <p data-i18n="sokoban.ruleGoal">将所有箱子推到目标点上即可过关</p>
+                </div>
+            </div>
+            <div class="rule-item">
+                <i class="fas fa-hand-paper"></i>
+                <div>
+                    <h3 data-i18n="ui.controls">操作方式</h3>
+                    <p data-i18n="sokoban.ruleControls">使用方向键或 WASD 移动玩家</p>
+                    <p data-i18n="sokoban.ruleMobile">移动端：点击屏幕方向按钮</p>
+                </div>
+            </div>
+            <div class="rule-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h3 data-i18n="sokoban.rulePushTitle">推箱规则</h3>
+                    <p data-i18n="sokoban.rulePush1">只能推箱子，不能拉箱子</p>
+                    <p data-i18n="sokoban.rulePush2">不能同时推两个或更多箱子</p>
+                    <p data-i18n="sokoban.rulePush3">不能将箱子推入墙壁或其他箱子</p>
+                </div>
+            </div>
+            <div class="rule-item">
+                <i class="fas fa-keyboard"></i>
+                <div>
+                    <h3 data-i18n="ui.keyboard">快捷键</h3>
+                    <p><kbd>R</kbd> - <span data-i18n="common.restart">重新开始</span></p>
+                    <p><kbd>Ctrl+Z</kbd> - <span data-i18n="sokoban.undo">撤销</span></p>
+                    <p><kbd>Esc</kbd> - <span data-i18n="sokoban.closeLevelSelect">关闭关卡选择</span></p>
+                </div>
+            </div>
+            <div class="rule-item">
+                <i class="fas fa-lightbulb"></i>
+                <div>
+                    <h3 data-i18n="ui.tipsTitle">游戏技巧</h3>
+                    <p data-i18n="sokoban.tip1">角落里的箱子很难推出来，尽量避免</p>
+                    <p data-i18n="sokoban.tip2">先规划好路线再行动</p>
+                    <p data-i18n="sokoban.tip3">善用撤销功能尝试不同策略</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory Modal -->
+    <div class="modal" id="victory-modal">
+        <div class="modal-content">
+            <div class="modal-icon win">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 class="modal-title" data-i18n="common.victory">恭喜获胜！</h2>
+            <p class="modal-message" data-i18n="sokoban.victoryMsg">成功完成本关！</p>
+            <div class="modal-stats">
+                <div class="modal-stat">
+                    <span data-i18n="sokoban.steps">步数</span>
+                    <strong id="victory-steps">0</strong>
+                </div>
+                <div class="modal-stat">
+                    <span data-i18n="sokoban.bestRecord">最优记录</span>
+                    <strong id="victory-best">0</strong>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" id="replay-btn">
+                    <i class="fas fa-redo"></i>
+                    <span data-i18n="sokoban.replay">重玩本关</span>
+                </button>
+                <button class="modal-btn primary" id="next-level-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    <span data-i18n="common.nextLevel">下一关</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Levels Complete Modal -->
+    <div class="modal" id="complete-modal">
+        <div class="modal-content">
+            <div class="modal-icon win">
+                <i class="fas fa-crown"></i>
+            </div>
+            <h2 class="modal-title" data-i18n="sokoban.allComplete">全部通关！</h2>
+            <p class="modal-message" data-i18n="sokoban.allCompleteMsg">恭喜你完成了所有关卡！</p>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" id="back-to-first-btn">
+                    <i class="fas fa-home"></i>
+                    <span data-i18n="sokoban.backToFirst">回到第一关</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+
+    <!-- 游戏国际化脚本 -->
+    <script src="../../../game-i18n.js"></script>
+
+    <script>
+        const gameI18n = new GameI18n();
+        gameI18n.init();
+    </script>
+</body>
+</html>

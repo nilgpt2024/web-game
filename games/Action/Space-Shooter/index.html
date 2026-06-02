@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="太空射击游戏 - 驾驶战斗机穿越星海，击败外星舰队和终极Boss！">
+  <meta name="keywords" content="太空射击,Space Shooter,射击游戏,飞船游戏,Boss战,街机游戏">
+  <meta name="author" content="Game Developer">
+  <title>Space Shooter | 太空射击</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+  <link rel="stylesheet" href="../../game-shared.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="game-container">
+    <header class="header">
+      <h1 class="title">🚀 Space Shooter</h1>
+      <p class="subtitle" data-i18n="spaceShooter.subtitle">太空射击 - 穿越星海，击败强敌！</p>
+    </header>
+
+    <div class="info-bar">
+      <div class="info-item score-item">
+        <span class="info-label">🎯 <span data-i18n="common.score">SCORE</span></span>
+        <span class="info-value" id="score">0</span>
+      </div>
+      <div class="info-item lives-item">
+        <span class="info-label">❤️ HP</span>
+        <div class="lives-display">
+          <span class="info-value" id="lives">100</span>
+          <div class="hp-bar-container">
+            <div class="hp-bar" id="hpBar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="info-item wave-item">
+        <span class="info-label">🌊 WAVE</span>
+        <span class="info-value" id="wave">1</span>
+      </div>
+      <div class="info-item powerup-item">
+        <span class="info-label">⚡ POWER</span>
+        <span class="info-value" id="powerLevel">LV.1</span>
+      </div>
+      <div class="info-item highscore-item">
+        <span class="info-label">🏆 <span data-i18n="common.highScore">HIGH</span></span>
+        <span class="info-value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="start-overlay" id="startOverlay">
+        <div class="start-content">
+          <div class="game-logo">
+            <span class="logo-ship">🚀</span>
+            <h2 class="logo-text">SPACE SHOOTER</h2>
+          </div>
+          <div class="control-guide">
+            <div class="guide-item">
+              <span class="guide-key">W A S D / ↑←↓→</span>
+              <span class="guide-desc" data-i18n="spaceShooter.moveShip">移动飞船</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-key">SPACE</span>
+              <span class="guide-desc" data-i18n="spaceShooter.fireBullet">发射子弹</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-key">P</span>
+              <span class="guide-desc" data-i18n="common.pause">暂停游戏</span>
+            </div>
+          </div>
+          <button class="start-btn" id="startBtn">
+            <span class="btn-icon-large">🚀</span>
+            <span data-i18n="spaceShooter.startMission">START MISSION</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="pause-overlay hidden" id="pauseOverlay">
+        <div class="pause-content">
+          <div class="pause-icon">⏸️</div>
+          <h2 data-i18n="common.pause">GAME PAUSED</h2>
+          <p class="pause-hint" data-i18n="spaceShooter.pausedHint">任务暂停中...</p>
+          <div class="pause-controls">
+            <button class="pause-control-btn" id="resumeBtn">
+              <span>▶️</span>
+              <span data-i18n="common.resume">继续游戏</span>
+            </button>
+            <button class="pause-control-btn" id="quitBtn">
+              <span>🏠</span>
+              <span data-i18n="spaceShooter.backToHangar">返回机库</span>
+            </button>
+          </div>
+          <p class="pause-tips"><kbd>P</kbd> <span data-i18n="spaceShooter.quickResume">键快速继续</span></p>
+        </div>
+      </div>
+
+      <div class="wave-announce hidden" id="waveAnnounce">
+        <div class="wave-text" id="waveText"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="control-btn" id="pauseBtn">
+        <span class="btn-icon">⏸️</span>
+        <span class="btn-text" data-i18n="common.pause">暂停</span>
+      </button>
+      <button class="control-btn" id="restartBtn">
+        <span class="btn-icon">🔄</span>
+        <span class="btn-text" data-i18n="common.restart">重新开始</span>
+      </button>
+      <button class="control-btn" id="soundBtn">
+        <span class="btn-icon">🔊</span>
+        <span class="btn-text" data-i18n="common.soundOn">音效</span>
+      </button>
+    </div>
+
+    <div class="instructions">
+      <h3 class="instructions-title">
+        <span class="title-icon">📖</span>
+        <span data-i18n="ui.howToPlayTitle">GAME RULES</span>
+      </h3>
+      <div class="instructions-grid">
+        <div class="instruction-card">
+          <span class="card-icon">🎮</span>
+          <h4 data-i18n="ui.controls">操作控制</h4>
+          <p><kbd>WASD</kbd> 或 <kbd>方向键</kbd> 移动，<kbd>空格</kbd> 射击</p>
+        </div>
+        <div class="instruction-card">
+          <span class="card-icon">👾</span>
+          <h4 data-i18n="spaceShooter.enemyTypes">敌人类型</h4>
+          <p data-i18n="spaceShooter.enemyDesc">侦察机、战斗机、重装舰、精英单位各有不同属性</p>
+        </div>
+        <div class="instruction-card">
+          <span class="card-icon">💎</span>
+          <h4 data-i18n="spaceShooter.powerups">道具系统</h4>
+          <p data-i18n="spaceShower.powerupDesc">火力增强、护盾保护、生命恢复、全屏清敌</p>
+        </div>
+        <div class="instruction-card">
+          <span class="card-icon">👹</span>
+          <h4 data-i18n="spaceShooter.bossBattle">Boss战</h4>
+          <p data-i18n="spaceShooter.bossDesc">每5波遭遇Boss，击败它获得巨额奖励！</p>
+        </div>
+      </div>
+      <div class="score-info">
+        <h4>💎 <span data-i18n="spaceShooter.scoreRules">得分规则</span></h4>
+        <div class="score-table">
+          <div class="score-row">
+            <span class="enemy-preview scout">🛸</span>
+            <span class="score-value" data-i18n="spaceShooter.scoutPoints">= 100 分</span>
+          </div>
+          <div class="score-row">
+            <span class="enemy-preview fighter">🔺</span>
+            <span class="score-value" data-i18n="spaceShooter.fighterPoints">= 200 分</span>
+          </div>
+          <div class="score-row">
+            <span class="enemy-preview heavy">⬢</span>
+            <span class="score-value" data-i18n="spaceShooter.heavyPoints">= 350 分</span>
+          </div>
+          <div class="score-row">
+            <span class="enemy-preview elite">💀</span>
+            <span class="score-value" data-i18n="spaceShooter.elitePoints">= 500 分</span>
+          </div>
+          <div class="score-row boss-row">
+            <span class="enemy-preview boss">👹</span>
+            <span class="score-value" data-i18n="spaceShooter.bossPoints">= 2000+ 分</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="gameOverModal">
+    <div class="modal-content">
+      <div class="game-over-content">
+        <div class="game-over-icon" id="gameOverIcon">💥</div>
+        <h2 id="gameOverTitle" data-i18n="common.gameOver">MISSION FAILED</h2>
+        <p class="game-over-subtitle" id="gameOverSubtitle" data-i18n="spaceShooter.missionFailed">任务失败... 飞船已坠毁</p>
+        <div class="game-over-stats">
+          <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-info">
+              <span class="stat-label">FINAL SCORE</span>
+              <span class="stat-value" id="finalScore">0</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🌊</div>
+            <div class="stat-info">
+              <span class="stat-label">WAVE REACHED</span>
+              <span class="stat-value" id="finalWave">1</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">👾</div>
+            <div class="stat-info">
+              <span class="stat-label">ENEMIES DESTROYED</span>
+              <span class="stat-value" id="finalKills">0</span>
+            </div>
+          </div>
+          <div class="stat-card highscore-card" id="newHighScoreCard" style="display: none;">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+              <span class="stat-label">NEW HIGH SCORE!</span>
+              <span class="stat-value" id="finalHighScore">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-buttons">
+          <button class="modal-btn primary" id="playAgainBtn">
+            <span>🔄</span>
+            <span data-i18n="spaceShooter.tryAgain">TRY AGAIN</span>
+          </button>
+          <button class="modal-btn secondary" id="backToMenuBtn">
+            <span>🏠</span>
+            <span data-i18n="spaceShooter.hangar">HANGAR</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="../../../game-i18n.js"></script>
+  <script>
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # GameHub - robots.txt
 # https://github.com/SinceraXY/GameHub
-# 
+#
 # 部署时请将此文件中的 YOUR_DOMAIN 替换为你的实际域名
 # When deploying, replace YOUR_DOMAIN with your actual domain
 
@@ -12,6 +12,10 @@ Allow: /games/
 Allow: /index.html
 Allow: /style.css
 Allow: /script.js
+Allow: /privacy-policy.html
+Allow: /terms-of-service.html
+Allow: /about.html
+Allow: /contact.html
 
 # 禁止抓取的文件
 Disallow: /node_modules/
@@ -19,8 +23,8 @@ Disallow: /.git/
 Disallow: /.github/
 Disallow: /docs/
 
-# 站点地图（部署时取消注释并修改域名）
-# Sitemap: https://YOUR_DOMAIN/sitemap.xml
+# 站点地图
+Sitemap: https://YOUR_DOMAIN/sitemap.xml
 
 # 抓取延迟（秒）
 Crawl-delay: 1

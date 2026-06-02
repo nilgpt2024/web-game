@@ -15,9 +15,33 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='52' font-size='48'%3E🐛%3C/text%3E%3C/svg%3E" type="image/svg+xml" />
   
   <!-- Stylesheet -->
+  <link rel="stylesheet" href="../../game-shared.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+<!-- Navigation -->
+  
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+    </nav>
+
   <!-- Start Screen -->
   <div class="screen start-screen" data-screen="start">
     <div class="screen-content">
@@ -222,5 +246,16 @@
   </div>
 
   <script src="script.js"></script>
+
+  <!-- Font Awesome (for icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+  
+  <script>
+    // 初始化游戏国际化
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
 </body>
 </html>

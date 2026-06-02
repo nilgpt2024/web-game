@@ -9,15 +9,41 @@
   <meta name="author" content="Game Developer">
   <title>Space Invaders | 太空入侵者</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👾</text></svg>">
-  <link rel="stylesheet" href="style.css">
+    <!-- 共享样式 -->
+  <link rel="stylesheet" href="../../game-shared.css">
+
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
+  
+  <!-- Navigation -->
+  <nav class="game-nav-fixed">
+<!-- Navigation -->
+  
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+    </nav>
+
   <!-- 游戏容器 -->
   <div class="game-container">
     <!-- 头部 -->
     <header class="header">
-      <h1 class="title">👾 Space Invaders</h1>
-      <p class="subtitle">太空入侵者 - 保卫地球！</p>
+      <h1 class="title" data-i18n="spaceinvaders.title">👾 Space Invaders</h1>
+      <p class="subtitle" data-i18n="spaceinvaders.subtitle">太空入侵者 - 保卫地球！</p>
     </header>
 
     <!-- 游戏信息栏 -->
@@ -57,20 +83,20 @@
           <div class="control-guide">
             <div class="guide-item">
               <span class="guide-key">← →</span>
-              <span class="guide-desc">移动飞船</span>
+              <span class="guide-desc" data-i18n="spaceinvaders.moveShip">移动飞船</span>
             </div>
             <div class="guide-item">
               <span class="guide-key">SPACE</span>
-              <span class="guide-desc">发射子弹</span>
+              <span class="guide-desc" data-i18n="spaceinvaders.shoot">发射子弹</span>
             </div>
             <div class="guide-item">
               <span class="guide-key">P</span>
-              <span class="guide-desc">暂停游戏</span>
+              <span class="guide-desc" data-i18n="spaceinvaders.pauseGame">暂停游戏</span>
             </div>
           </div>
           <button class="start-btn" id="startBtn">
             <span class="btn-icon-large">🚀</span>
-            <span>START GAME</span>
+            <span data-i18n="spaceinvaders.startGame">START GAME</span>
           </button>
         </div>
       </div>
@@ -79,19 +105,19 @@
       <div class="pause-overlay hidden" id="pauseOverlay">
         <div class="pause-content">
           <div class="pause-icon">⏸️</div>
-          <h2>GAME PAUSED</h2>
-          <p class="pause-hint">游戏已暂停</p>
+          <h2 data-i18n="spaceinvaders.gamePaused">GAME PAUSED</h2>
+          <p class="pause-hint" data-i18n="spaceinvaders.pausedHint">游戏已暂停</p>
           <div class="pause-controls">
             <button class="pause-control-btn" id="resumeBtn">
               <span>▶️</span>
-              <span>继续游戏</span>
+              <span data-i18n="common.resume">继续游戏</span>
             </button>
             <button class="pause-control-btn" id="quitBtn">
               <span>🏠</span>
-              <span>返回主菜单</span>
+              <span data-i18n="spaceinvaders.backToMenu">返回主菜单</span>
             </button>
           </div>
-          <p class="pause-tips">按 <kbd>P</kbd> 键快速继续</p>
+          <p class="pause-tips" data-i18n="spaceinvaders.quickResume">按 <kbd>P</kbd> 键快速继续</p>
         </div>
       </div>
     </div>
@@ -100,15 +126,15 @@
     <div class="controls">
       <button class="control-btn" id="pauseBtn">
         <span class="btn-icon">⏸️</span>
-        <span class="btn-text">暂停</span>
+        <span class="btn-text" data-i18n="common.pause">暂停</span>
       </button>
       <button class="control-btn" id="restartBtn">
         <span class="btn-icon">🔄</span>
-        <span class="btn-text">重新开始</span>
+        <span class="btn-text" data-i18n="common.restart">重新开始</span>
       </button>
       <button class="control-btn" id="soundBtn">
         <span class="btn-icon">🔊</span>
-        <span class="btn-text">音效</span>
+        <span class="btn-text" data-i18n="spaceinvaders.sound">音效</span>
       </button>
     </div>
 
@@ -116,33 +142,33 @@
     <div class="instructions">
       <h3 class="instructions-title">
         <span class="title-icon">📖</span>
-        <span>GAME RULES</span>
+        <span data-i18n="spaceinvaders.gameRules">GAME RULES</span>
       </h3>
       <div class="instructions-grid">
         <div class="instruction-card">
           <span class="card-icon">🎮</span>
-          <h4>操作控制</h4>
-          <p>使用 <kbd>←</kbd> <kbd>→</kbd> 方向键控制飞船左右移动</p>
+          <h4 data-i18n="spaceinvaders.controls">操作控制</h4>
+          <p data-i18n="spaceinvaders.controlsDesc">使用 <kbd>←</kbd> <kbd>→</kbd> 方向键控制飞船左右移动</p>
         </div>
         <div class="instruction-card">
           <span class="card-icon">🔫</span>
-          <h4>射击攻击</h4>
-          <p>按 <kbd>空格</kbd> 键发射子弹消灭外星入侵者</p>
+          <h4 data-i18n="spaceinvaders.shooting">射击攻击</h4>
+          <p data-i18n="spaceinvaders.shootingDesc">按 <kbd>空格</kbd> 键发射子弹消灭外星入侵者</p>
         </div>
         <div class="instruction-card">
           <span class="card-icon">🎯</span>
-          <h4>游戏目标</h4>
-          <p>消灭所有外星人进入下一关，获得更高分数</p>
+          <h4 data-i18n="spaceinvaders.goal">游戏目标</h4>
+          <p data-i18n="spaceinvaders.goalDesc">消灭所有外星人进入下一关，获得更高分数</p>
         </div>
         <div class="instruction-card">
           <span class="card-icon">⚠️</span>
-          <h4>注意事项</h4>
-          <p>不要让外星人到达底部，避开外星人的攻击</p>
+          <h4 data-i18n="spaceinvaders.warning">注意事项</h4>
+          <p data-i18n="spaceinvaders.warningDesc">不要让外星人到达底部，避开外星人的攻击</p>
 <!-- Project: GameHub -->
         </div>
       </div>
       <div class="score-info">
-        <h4>💎 得分规则</h4>
+        <h4 data-i18n="spaceinvaders.scoreRules">💎 得分规则</h4>
         <div class="score-table">
           <div class="score-row">
             <span class="alien-preview" style="background: #ff00ff;">👾</span>
@@ -171,20 +197,20 @@
       <div class="game-over-content">
         <div class="game-over-icon" id="gameOverIcon">👾</div>
 <!-- GitHub: https://github.com/SinceraXY/GameHub -->
-        <h2 id="gameOverTitle">GAME OVER</h2>
-        <p class="game-over-subtitle" id="gameOverSubtitle">游戏结束</p>
+        <h2 id="gameOverTitle" data-i18n="spaceinvaders.gameOver">GAME OVER</h2>
+        <p class="game-over-subtitle" id="gameOverSubtitle" data-i18n="spaceinvaders.gameOverSubtitle">游戏结束</p>
         <div class="game-over-stats">
           <div class="stat-card">
             <div class="stat-icon">🎯</div>
             <div class="stat-info">
-              <span class="stat-label">FINAL SCORE</span>
+              <span class="stat-label" data-i18n="spaceinvaders.finalScore">FINAL SCORE</span>
               <span class="stat-value" id="finalScore">0</span>
             </div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">📊</div>
             <div class="stat-info">
-              <span class="stat-label">REACHED LEVEL</span>
+              <span class="stat-label" data-i18n="spaceinvaders.reachedLevel">REACHED LEVEL</span>
               <span class="stat-value" id="finalLevel">1</span>
             </div>
           </div>
@@ -194,7 +220,7 @@
 <!-- Developer: SinceraXY from CUPB -->
 
             <div class="stat-info">
-              <span class="stat-label">NEW HIGH SCORE!</span>
+              <span class="stat-label" data-i18n="spaceinvaders.newHighScore">NEW HIGH SCORE!</span>
               <span class="stat-value" id="finalHighScore">0</span>
             </div>
           </div>
@@ -202,11 +228,11 @@
         <div class="modal-buttons">
           <button class="modal-btn primary" id="playAgainBtn">
             <span>🔄</span>
-            <span>PLAY AGAIN</span>
+            <span data-i18n="spaceinvaders.playAgain">PLAY AGAIN</span>
           </button>
           <button class="modal-btn secondary" id="backToMenuBtn">
             <span>🏠</span>
-            <span>MAIN MENU</span>
+            <span data-i18n="spaceinvaders.mainMenu">MAIN MENU</span>
           </button>
         </div>
       </div>
@@ -214,5 +240,16 @@
   </div>
 
   <script src="script.js"></script>
+
+  <!-- Font Awesome (for icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 游戏国际化脚本 -->
+  <script src="../../../game-i18n.js"></script>
+  
+  <script>
+    // 初始化游戏国际化
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
 </body>
 </html>

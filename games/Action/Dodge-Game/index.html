@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="躲避障碍游戏 - 控制角色左右移动避开下落的障碍物！">
+  <title>Dodge Game - 躲避障碍</title>
+  
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎮</text></svg>">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <link rel="stylesheet" href="../../game-shared.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="game-container">
+    <header class="game-header">
+      <h1 class="game-title">
+        <span class="icon">🎮</span>
+        <span data-i18n="specific.Dodge-Game.title">Dodge Game</span>
+      </h1>
+      <p class="game-subtitle" data-i18n="specific.Dodge-Game.desc">控制角色左右移动，躲避从天而降的障碍物！</p>
+    </header>
+
+    <main class="game-main">
+      <div class="score-panel">
+        <div class="score-item">
+          <i class="fas fa-star"></i>
+          <span data-i18n="ui.score">分数</span>
+          <strong id="currentScore">0</strong>
+        </div>
+        <div class="score-item high-score">
+          <i class="fas fa-trophy"></i>
+          <span data-i18n="ui.highScore">最高分</span>
+          <strong id="highScore">0</strong>
+        </div>
+        <div class="score-item level">
+          <i class="fas fa-layer-group"></i>
+          <span data-i18n="ui.level">等级</span>
+          <strong id="currentLevel">1</strong>
+        </div>
+      </div>
+
+      <div class="game-card-shell">
+        <div class="game-card-core">
+          <canvas id="gameCanvas" width="600" height="550" aria-label="Dodge Game游戏画布">
+            您的浏览器不支持Canvas，请升级浏览器！
+          </canvas>
+        </div>
+      </div>
+
+      <div class="game-controls-hint">
+        <div class="control-key">
+          <kbd>⬅</kbd><kbd>➡</kbd>
+          <span data-i18n="specific.Dodge-Game.keyboard">键盘方向键 / A D</span>
+        </div>
+        <div class="control-key touch-only">
+          <kbd>👆</kbd>
+          <span data-i18n="specific.Dodge-Game.touch">触摸屏幕左右两侧</span>
+        </div>
+        <button id="startBtn" class="start-btn">
+          <i class="fas fa-play"></i>
+          <span data-i18n="ui.startGame">开始游戏</span>
+        </button>
+      </div>
+    </main>
+
+    <footer class="game-footer">
+      <div class="game-info">
+        <div class="info-item">
+          <span class="info-icon">⚡</span>
+          <span class="info-text" data-i18n="specific.Dodge-Game.feature1">难度递增机制</span>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">💥</span>
+          <span class="info-text" data-i18n="specific.Dodge-Game.feature2">碰撞粒子爆炸特效</span>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">🌟</span>
+          <span class="info-text" data-i18n="specific.Dodge-Game.feature3">3D透视视角效果</span>
+        </div>
+      </div>
+      
+      <div class="game-features">
+        <h3 class="features-title" data-i18n="ui.features">✨ 游戏特色</h3>
+        <div class="features-grid">
+          <div class="feature-tag" data-i18n="ui.realTimeScore">📊 实时计分</div>
+          <div class="feature-tag" data-i18n="ui.highScoreRecord">🏆 最高分记录</div>
+          <div class="feature-tag" data-i18n="ui.difficultyRamp">📈 难度递增</div>
+          <div class="feature-tag" data-i18n="ui.localSave">💾 本地存储</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="../../../game-i18n.js"></script>
+  <script src="script.js"></script>
+  
+  <script>
+    const gameI18n = new GameI18n({ gameName: 'Dodge-Game' });
+    gameI18n.init();
+  </script>
+</body>
+</html>

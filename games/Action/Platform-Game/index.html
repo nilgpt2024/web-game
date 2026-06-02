@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Platform Game - 平台跳跃冒险游戏，穿越多个关卡收集宝藏！">
+  <meta name="keywords" content="平台跳跃,Platformer,跳跃游戏,冒险游戏,横版过关,收集游戏">
+  <meta name="author" content="Game Developer">
+  <title>Platform Game | 平台跳跃</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+  <link rel="stylesheet" href="../../game-shared.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="game-container">
+    <header class="header">
+      <h1 class="title">🎮 Platform Game</h1>
+      <p class="subtitle" data-i18n="platformGame.subtitle">平台跳跃 - 跳跃冒险，收集宝藏！</p>
+    </header>
+
+    <div class="info-bar">
+      <div class="info-item score-item">
+        <span class="info-label">🪙 <span data-i18n="common.score">SCORE</span></span>
+        <span class="info-value" id="score">0</span>
+      </div>
+      <div class="info-item lives-item">
+        <span class="info-label">❤️ HP</span>
+        <div class="lives-display">
+          <span class="info-value" id="lives">3</span>
+          <div class="hp-bar-container">
+            <div class="hp-bar" id="hpBar"></div>
+          </div>
+        </div>
+      </div>
+      <div class="info-item level-item">
+        <span class="info-label">🏔️ <span data-i18n="common.level">LEVEL</span></span>
+        <span class="info-value" id="level">1</span>
+      </div>
+      <div class="info-item coins-item">
+        <span class="info-label">💰 COINS</span>
+        <span class="info-value" id="coins">0/0</span>
+      </div>
+      <div class="info-item highscore-item">
+        <span class="info-label">🏆 <span data-i18n="common.highScore">HIGH</span></span>
+        <span class="info-value" id="highScore">0</span>
+      </div>
+    </div>
+
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas"></canvas>
+
+      <div class="start-overlay" id="startOverlay">
+        <div class="start-content">
+          <div class="game-logo">
+            <span class="logo-character">🏃</span>
+            <h2 class="logo-text">PLATFORM GAME</h2>
+          </div>
+          <div class="control-guide">
+            <div class="guide-item">
+              <span class="guide-key">A / D or ← / →</span>
+              <span class="guide-desc" data-i18n="platformGame.moveLeftRight">左右移动</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-key">SPACE / W / ↑</span>
+              <span class="guide-desc" data-i18n="platformGame.jump">跳跃（支持二段跳）</span>
+            </div>
+            <div class="guide-item">
+              <span class="guide-key">P</span>
+              <span class="guide-desc" data-i18n="common.pause">暂停游戏</span>
+            </div>
+          </div>
+          <button class="start-btn" id="startBtn">
+            <span class="btn-icon-large">🎮</span>
+            <span data-i18n="platformGame.startAdventure">START ADVENTURE</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="pause-overlay hidden" id="pauseOverlay">
+        <div class="pause-content">
+          <div class="pause-icon">⏸️</div>
+          <h2 data-i18n="common.pause">GAME PAUSED</h2>
+          <p class="pause-hint" data-i18n="platformGame.pausedHint">冒险暂停中...</p>
+          <div class="pause-controls">
+            <button class="pause-control-btn" id="resumeBtn">
+              <span>▶️</span>
+              <span data-i18n="common.resume">继续游戏</span>
+            </button>
+            <button class="pause-control-btn" id="quitBtn">
+              <span>🏠</span>
+              <span data-i18n="platformGame.backToMenu">返回菜单</span>
+            </button>
+          </div>
+          <p class="pause-tips"><kbd>P</kbd> <span data-i18n="platformGame.quickResume">键快速继续</span></p>
+        </div>
+      </div>
+
+      <div class="level-complete-overlay hidden" id="levelCompleteOverlay">
+        <div class="level-complete-content">
+          <div class="complete-icon">🎉</div>
+          <h2 data-i18n="platformGame.levelComplete">LEVEL COMPLETE!</h2>
+          <div class="complete-stats">
+            <div class="stat-row">
+              <span class="stat-label">⭐ <span data-i18n="platformGame.starsEarned">获得星星</span>:</span>
+              <span class="stat-value" id="starsEarned">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">🪙 <span data-i18n="platformGame.coinsCollected">收集金币</span>:</span>
+              <span class="stat-value" id="coinsCollected">0/0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">⏱️ <span data-i18n="platformGame.timeUsed">用时</span>:</span>
+              <span class="stat-value" id="timeUsed">00:00</span>
+            </div>
+          </div>
+          <button class="next-level-btn" id="nextLevelBtn">
+            <span>➡️</span>
+            <span data-i18n="common.nextLevel">下一关</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="game-over-overlay hidden" id="gameOverOverlay">
+        <div class="game-over-content">
+          <div class="game-over-icon" id="gameOverIcon">💀</div>
+          <h2 id="gameOverTitle" data-i18n="common.gameOver">GAME OVER</h2>
+          <p class="game-over-subtitle" id="gameOverSubtitle" data-i18n="platformGame.adventureEnded">冒险结束了...</p>
+          <div class="game-over-stats">
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-info">
+                <span class="stat-label">FINAL SCORE</span>
+                <span class="stat-value" id="finalScore">0</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🏔️</div>
+              <div class="stat-info">
+                <span class="stat-label">LEVEL REACHED</span>
+                <span class="stat-value" id="finalLevel">1</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🪙</div>
+              <div class="stat-info">
+                <span class="stat-label">COINS COLLECTED</span>
+                <span class="stat-value" id="finalCoins">0</span>
+              </div>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button class="modal-btn primary" id="retryBtn">
+              <span>🔄</span>
+              <span data-i18n="common.tryAgain">再试一次</span>
+            </button>
+            <button class="modal-btn secondary" id="backToMenuBtn2">
+              <span>🏠</span>
+              <span data-i18n="platformGame.menu">MENU</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="victory-overlay hidden" id="victoryOverlay">
+        <div class="victory-content">
+          <div class="victory-icon">👑</div>
+          <h2 data-i18n="platformGame.victory">VICTORY!</h2>
+          <p class="victory-subtitle" data-i18n="platformGame.allLevelsComplete">恭喜通关所有关卡！</p>
+          <div class="victory-stats">
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-info">
+                <span class="stat-label">TOTAL SCORE</span>
+                <span class="stat-value" id="victoryTotalScore">0</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🪙</div>
+              <div class="stat-info">
+                <span class="stat-label">TOTAL COINS</span>
+                <span class="stat-value" id="victoryTotalCoins">0</span>
+              </div>
+            </div>
+          </div>
+          <button class="modal-btn primary" id="playAgainBtn">
+            <span>🎮</span>
+            <span data-i18n="platformGame.playAgain">再玩一次</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="control-btn" id="pauseBtn">
+        <span class="btn-icon">⏸️</span>
+        <span class="btn-text" data-i18n="common.pause">暂停</span>
+      </button>
+      <button class="control-btn" id="restartBtn">
+        <span class="btn-icon">🔄</span>
+        <span class="btn-text" data-i18n="common.restart">重新开始</span>
+      </button>
+      <button class="control-btn" id="soundBtn">
+        <span class="btn-icon">🔊</span>
+        <span class="btn-text" data-i18n="common.soundOn">音效</span>
+      </button>
+    </div>
+
+    <div class="mobile-controls" id="mobileControls">
+      <button class="mobile-btn mobile-left" id="mobileLeft">
+        <span>←</span>
+      </button>
+      <button class="mobile-btn mobile-jump" id="mobileJump">
+        <span>JUMP</span>
+      </button>
+      <button class="mobile-btn mobile-right" id="mobileRight">
+        <span>→</span>
+      </button>
+    </div>
+
+    <div class="instructions">
+      <h3 class="instructions-title">
+        <span class="title-icon">📖</span>
+        <span data-i18n="ui.howToPlayTitle">GAME RULES</span>
+      </h3>
+      <div class="instructions-grid">
+        <div class="instruction-card">
+          <span class="card-icon">🎮</span>
+          <h4 data-i18n="ui.controls">操作控制</h4>
+          <p><kbd>A/D</kbd> 或 <kbd>←/→</kbd> 移动，<kbd>空格/W/↑</kbd> 跳跃（支持二段跳）</p>
+        </div>
+        <div class="instruction-card">
+          <span class="card-icon">🏗️</span>
+          <h4 data-i18n="platformGame.platformTypes">平台类型</h4>
+          <p data-i18n="platformGame.platformDesc">普通、移动、消失三种平台各有特色</p>
+        </div>
+        <div class="instruction-card">
+          <span class="card-icon">💎</span>
+          <h4 data-i18n="platformGame.collectibles">收集物品</h4>
+          <p data-i18n="platformGame.collectiblesDesc">金币、星星、宝石增加分数和奖励</p>
+        </div>
+        <div class="instruction-card">
+          <span class="card-icon">👾</span>
+          <h4 data-i18n="platformGame.enemies">敌人与障碍</h4>
+          <p data-i18n="platformGame.enemiesDesc">躲避巡逻敌人，到达终点旗帜</p>
+        </div>
+      </div>
+      <div class="score-info">
+        <h4>💎 <span data-i18n="platformGame.scoreRules">得分规则</span></h4>
+        <div class="score-table">
+          <div class="score-row">
+            <span class="item-preview coin">🪙</span>
+            <span class="score-value" data-i18n="platformGame.coinPoints">= 10 分</span>
+          </div>
+          <div class="score-row">
+            <span class="item-preview star">⭐</span>
+            <span class="score-value" data-i18n="platformGame.starPoints">= 50 分</span>
+          </div>
+          <div class="score-row">
+            <span class="item-preview gem">💎</span>
+            <span class="score-value" data-i18n="platformGame.gemPoints">= 100 分</span>
+          </div>
+          <div class="score-row">
+            <span class="item-preview flag">🚩</span>
+            <span class="score-value" data-i18n="platformGame.levelBonus">= 关卡奖励分</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="../../../game-i18n.js"></script>
+  <script>
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
+</body>
+</html>

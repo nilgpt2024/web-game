@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-i18n="[lang]lang">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="title">黑白棋 - Reversi</title>
+    <link rel="stylesheet" href="../../game-shared.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome (for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="game-body">
+    <nav class="game-nav-fixed">
+        <a href="../../index.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            <span data-i18n="common.backToHub">返回游戏大厅</span>
+        </a>
+        <div class="nav-right">
+            <div class="lang-switcher">
+                <button class="lang-btn active" data-lang="zh-CN" title="中文">
+                    <span class="lang-flag">🇨🇳</span>
+                    <span class="lang-text">中文</span>
+                </button>
+                <button class="lang-btn" data-lang="en" title="English">
+                    <span class="lang-flag">🇺🇸</span>
+                    <span class="lang-text">EN</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="game-container">
+        <div class="game-header">
+            <div class="player-info player-black">
+                <div class="piece-preview black-piece"></div>
+                <span data-i18n="blackPlayer">黑棋 (你)</span>
+                <span class="score" id="blackScore">2</span>
+            </div>
+            <div class="turn-indicator" id="turnIndicator">
+                <span data-i18n="yourTurn">你的回合</span>
+            </div>
+            <div class="player-info player-white">
+                <div class="piece-preview white-piece"></div>
+                <span data-i18n="whitePlayer">白棋 (AI)</span>
+                <span class="score" id="whiteScore">2</span>
+            </div>
+        </div>
+
+        <div class="board-wrapper">
+            <div class="board" id="board"></div>
+        </div>
+
+        <div class="controls">
+            <button id="newGameBtn" class="btn btn-primary" data-i18n="newGame">新游戏</button>
+            <button id="undoBtn" class="btn btn-secondary" data-i18n="undo">悔棋</button>
+            <label class="toggle-label">
+                <input type="checkbox" id="showHints" checked>
+                <span data-i18n="showHints">显示提示</span>
+            </label>
+            <select id="difficultySelect" class="difficulty-select">
+                <option value="easy" data-i18n="easyMode">简单</option>
+                <option value="medium" selected data-i18n="mediumMode">中等</option>
+                <option value="hard" data-i18n="hardMode">困难</option>
+            </select>
+        </div>
+
+        <div class="game-status" id="gameStatus"></div>
+    </main>
+
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <h2 data-i18n="rulesTitle">游戏规则</h2>
+            <div class="rules-content" data-i18n="rulesContent">
+                <p><strong>目标：</strong>在游戏结束时拥有更多己方颜色的棋子。</p>
+                <p><strong>规则：</strong></p>
+                <ul>
+                    <li>必须将棋子放在能夹住对方棋子的位置</li>
+                    <li>被夹住的对方棋子会翻转成你的颜色</li>
+                    <li>可以横向、纵向或斜向夹住</li>
+                    <li>如果没有合法移动，则跳过该回合</li>
+                    <li>当双方都无法移动时，游戏结束</li>
+                </ul>
+                <p><strong>操作：</strong>点击高亮的位置放置棋子。</p>
+            </div>
+            <button class="btn btn-primary modal-close" data-i18n="close">关闭</button>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h2 data-i18n="settingsTitle">设置</h2>
+            <div class="setting-item">
+                <label data-i18n="soundEffect">音效</label>
+                <input type="checkbox" id="soundToggle" checked>
+            </div>
+            <div class="setting-item">
+                <label data-i18n="animationSpeed">动画速度</label>
+                <select id="animationSpeed">
+                    <option value="fast" data-i18n="speedFast">快</option>
+                    <option value="normal" selected data-i18n="speedNormal">正常</option>
+                    <option value="slow" data-i18n="speedSlow">慢</option>
+                </select>
+            </div>
+            <button class="btn btn-primary modal-close" data-i18n="close">关闭</button>
+        </div>
+    </div>
+
+    <script src="../../../game-i18n.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

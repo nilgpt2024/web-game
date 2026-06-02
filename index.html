@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Primary Meta Tags -->
     <title>GameHub - 精品小游戏合集 | 42款HTML5游戏免费在线玩</title>
     <meta name="title" content="GameHub - 精品小游戏合集 | 42款HTML5游戏免费在线玩">
     <meta name="description" content="GameHub提供42款精心分类的HTML5小游戏，包括益智解谜、动作反应、经典街机等7大类别。无需下载，即点即玩，完美支持移动端和桌面端。">
@@ -13,295 +11,330 @@
     <meta name="robots" content="index, follow">
     <meta name="language" content="Chinese">
     <meta name="revisit-after" content="7 days">
-    
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://github.com/SinceraXY/GameHub">
     <meta property="og:title" content="GameHub - 精品小游戏合集 | 42款HTML5游戏">
     <meta property="og:description" content="开源的HTML5游戏合集，包含42款精心分类的小游戏。支持本地运行，无需安装。包括益智解谜、动作反应、经典街机等7大类别。">
     <meta property="og:site_name" content="GameHub">
     <meta property="og:locale" content="zh_CN">
-    
-    <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://github.com/SinceraXY/GameHub">
     <meta property="twitter:title" content="GameHub - 精品小游戏合集 | 42款HTML5游戏">
     <meta property="twitter:description" content="开源的HTML5游戏合集，包含42款精心分类的小游戏。支持本地运行，无需安装。包括益智解谜、动作反应、经典街机等7大类别。">
-    
-    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎮</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎮</text></svg>">
-    
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="cookie-consent.css">
 </head>
 <body>
-    <!-- 动态背景 -->
+    <a href="#main" class="skip-link" data-i18n="a11y.skip_nav">跳转到主要内容</a>
+
     <div class="animated-bg">
         <div class="gradient-orb orb-1"></div>
         <div class="gradient-orb orb-2"></div>
         <div class="gradient-orb orb-3"></div>
     </div>
 
-    <!-- Author: SinceraXY | GitHub: https://github.com/SinceraXY/GameHub -->
+    <div class="noise-overlay"></div>
 
-    <!-- 导航栏 -->
-    <nav class="navbar">
-        <div class="container">
-            <div class="nav-content">
-                <div class="logo">
-                    <i class="fas fa-gamepad"></i>
-                    <span>GameHub</span>
-                </div>
-                <div class="nav-links">
-                    <a href="#home" class="nav-link active">首页</a>
-                    <a href="#games" class="nav-link">游戏</a>
-                    <a href="#stats" class="nav-link">统计</a>
+    <nav class="navbar" aria-label="主导航">
+        <div class="nav-content">
+            <a href="#home" class="logo">
+                <span class="logo-icon"><i class="fas fa-gamepad"></i></span>
+                <span>GameHub</span>
+            </a>
+            <div class="nav-links">
+                <a href="#home" class="nav-link active" data-i18n="nav.home">首页</a>
+                <a href="#games" class="nav-link" data-i18n="nav.games">游戏</a>
+                <a href="#stats" class="nav-link" data-i18n="nav.stats">统计</a>
+            </div>
+            <div class="nav-right">
+                <div class="lang-switcher">
+                    <button class="lang-btn active" data-lang="zh-CN" title="中文">
+                        <span class="lang-flag">🇨🇳</span>
+                        <span class="lang-text">中文</span>
+                    </button>
+                    <button class="lang-btn" data-lang="en" title="English">
+                        <span class="lang-flag">🇺🇸</span>
+                        <span class="lang-text">EN</span>
+                    </button>
                 </div>
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="搜索游戏...">
+                    <input type="text" id="searchInput" data-i18n="games.search_placeholder" data-i18n-attr="placeholder" placeholder="搜索游戏..." aria-label="搜索游戏">
                 </div>
+                <button class="mobile-menu-btn" id="mobileMenuBtn" data-i18n="a11y.open_menu" data-i18n-attr="aria-label" aria-label="打开菜单" aria-expanded="false">
+                    <div class="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- Developer: SinceraXY - 中国石油大学（北京） -->
+    <div class="mobile-overlay" id="mobileOverlay">
+        <div class="mobile-overlay-content">
+            <a href="#home" class="mobile-nav-link" data-i18n="nav.home">首页</a>
+            <a href="#games" class="mobile-nav-link" data-i18n="nav.games">游戏</a>
+            <a href="#stats" class="mobile-nav-link" data-i18n="nav.stats">统计</a>
+            <div class="mobile-search-wrap">
+                <input type="text" id="mobileSearchInput" data-i18n="games.search_placeholder" data-i18n-attr="placeholder" placeholder="搜索游戏..." aria-label="搜索游戏">
+            </div>
+        </div>
+    </div>
 
-    <!-- 英雄区域 -->
-    <section id="home" class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    <span class="gradient-text">42款精品小游戏</span>
-                    <span class="subtitle">随时随地，畅玩无限</span>
-                </h1>
-                <p class="hero-description">
-                    从经典街机到创新益智，从动作冒险到休闲放松<br>
-                    精选42款HTML5游戏，无需下载，即刻畅玩！
-                </p>
-                <div class="hero-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-gamepad"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-number">42</span>
-                            <span class="stat-label">游戏总数</span>
+    <main id="main">
+        <section id="home" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-eyebrow">
+                        <span class="hero-eyebrow-dot"></span>
+                        <span data-i18n="hero.eyebrow">42 games · free to play</span>
+                    </div>
+                    <h1 class="hero-title">
+                        <span class="line-accent" data-i18n="hero.title">42款精品小游戏</span>
+                        <span class="line-sub" data-i18n="hero.subtitle">随时随地，畅玩无限</span>
+                    </h1>
+                    <p class="hero-description" data-i18n="hero.description">
+                        从经典街机到创新益智，从动作冒险到休闲放松，精选42款HTML5游戏，无需下载，即刻畅玩。
+                    </p>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">54</div>
+                            <div class="hero-stat-label" data-i18n="hero.stats.games">游戏总数</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">7</div>
+                            <div class="hero-stat-label" data-i18n="hero.stats.categories">游戏分类</div>
+                        </div>
+                        <div class="hero-stat">
+                            <div class="hero-stat-value">100%</div>
+                            <div class="hero-stat-label" data-i18n="hero.stats.free">免费畅玩</div>
                         </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-number">7</span>
-                            <span class="stat-label">游戏分类</span>
-                        </div>
-<!-- QQ: 2952671670 -->
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-infinity"></i></div>
-                        <div class="stat-info">
-                            <span class="stat-number">100%</span>
-                            <span class="stat-label">免费畅玩</span>
-                        </div>
-                    </div>
+                    <a href="#games" class="cta-button">
+                        <span class="cta-button-text" data-i18n="hero.cta">开始游戏</span>
+                        <span class="cta-button-icon"><i class="fas fa-arrow-right"></i></span>
+                    </a>
                 </div>
-                <a href="#games" class="cta-button">
-                    <span>开始游戏</span>
-                    <i class="fas fa-arrow-right"></i>
-                </a>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Contact: 2952671670@qq.com | QQ: 2952671670 -->
+        <section id="games" class="games-section">
+            <div class="container">
+                <div class="section-header reveal">
+                    <div class="section-eyebrow">
+                        <i class="fas fa-gamepad"></i>
+                        <span data-i18n="games.section_eyebrow">GAME LIBRARY</span>
+                    </div>
+                    <h2 class="section-title" data-i18n="games.title">游戏大厅</h2>
+                    <p class="section-subtitle" data-i18n="games.subtitle">选择你喜欢的类别，开始畅玩</p>
+                </div>
 
-    <!-- 游戏分类区域 -->
-    <section id="games" class="games-section">
-        <div class="container">
-            <h2 class="section-title">
-                <span class="title-icon"><i class="fas fa-th-large"></i></span>
-                游戏大厅
-            </h2>
-
-            <!-- 分类过滤器 -->
-            <div class="category-filter">
-                <button class="filter-btn active" data-category="all">
-                    <i class="fas fa-border-all"></i>
-                    <span>全部</span>
-                    <span class="count">42</span>
-                </button>
-                <button class="filter-btn" data-category="Puzzle">
-                    <i class="fas fa-puzzle-piece"></i>
-                    <span>益智解谜</span>
-                    <span class="count">8</span>
-                </button>
-                <button class="filter-btn" data-category="Action">
-                    <i class="fas fa-bolt"></i>
-                    <span>动作反应</span>
-                    <span class="count">11</span>
-                </button>
-                <button class="filter-btn" data-category="Arcade">
-                    <i class="fas fa-crown"></i>
-                    <span>经典街机</span>
-                    <span class="count">8</span>
-                </button>
-                <button class="filter-btn" data-category="Board">
-                    <i class="fas fa-chess"></i>
-                    <span>棋牌策略</span>
-                    <span class="count">3</span>
-                </button>
-                <button class="filter-btn" data-category="Memory">
-                    <i class="fas fa-brain"></i>
-                    <span>记忆训练</span>
-                    <span class="count">4</span>
-                </button>
-                <button class="filter-btn" data-category="Typing">
-                    <i class="fas fa-keyboard"></i>
-                    <span>打字练习</span>
-                    <span class="count">4</span>
-                </button>
-                <button class="filter-btn" data-category="Casual">
-                    <i class="fas fa-smile"></i>
-                    <span>休闲娱乐</span>
-                    <span class="count">4</span>
-                </button>
-            </div>
-
-            <!-- 游戏网格 -->
-            <div class="games-grid" id="gamesGrid">
-                <!-- 游戏卡片将通过 JavaScript 动态生成 -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Made with ❤️ by SinceraXY -->
-
-    <!-- 统计区域 -->
-    <section id="stats" class="stats-section">
-        <div class="container">
-            <h2 class="section-title">
-                <span class="title-icon"><i class="fas fa-chart-pie"></i></span>
-                分类统计
-            </h2>
-            <div class="stats-grid">
-                <div class="stat-box puzzle-stat">
-                    <div class="stat-header">
+                <div class="category-filter reveal" role="tablist" aria-label="游戏分类">
+                    <button class="filter-btn active" data-category="all" role="tab" aria-selected="true">
+                        <i class="fas fa-border-all"></i>
+                        <span data-i18n="games.filter.all">全部</span>
+                        <span class="count">54</span>
+                    </button>
+                    <button class="filter-btn" data-category="Puzzle" role="tab" aria-selected="false">
                         <i class="fas fa-puzzle-piece"></i>
-<!-- Dedicated to my girlfriend -->
-                        <h3>益智解谜</h3>
-                    </div>
-                    <div class="stat-number">8</div>
-                    <div class="stat-bar">
-                        <div class="stat-fill" style="width: 19%"></div>
-                    </div>
-                    <p class="stat-desc">逻辑思维 · 策略规划</p>
-                </div>
-                <div class="stat-box action-stat">
-                    <div class="stat-header">
+                        <span data-i18n="games.filter.puzzle">益智解谜</span>
+                        <span class="count">10</span>
+                    </button>
+                    <button class="filter-btn" data-category="Action" role="tab" aria-selected="false">
                         <i class="fas fa-bolt"></i>
-                        <h3>动作反应</h3>
-                    </div>
-                    <div class="stat-number">11</div>
-                    <div class="stat-bar">
-                        <div class="stat-fill" style="width: 26%"></div>
-                    </div>
-                    <p class="stat-desc">快速反应 · 手眼协调</p>
-                </div>
-                <div class="stat-box arcade-stat">
-                    <div class="stat-header">
+                        <span data-i18n="games.filter.action">动作反应</span>
+                        <span class="count">15</span>
+                    </button>
+                    <button class="filter-btn" data-category="Arcade" role="tab" aria-selected="false">
                         <i class="fas fa-crown"></i>
-                        <h3>经典街机</h3>
-                    </div>
-                    <div class="stat-number">8</div>
-                    <div class="stat-bar">
-                        <div class="stat-fill" style="width: 19%"></div>
-                    </div>
-                    <p class="stat-desc">经典玩法 · 怀旧元素</p>
-                </div>
-                <div class="stat-box board-stat">
-                    <div class="stat-header">
+                        <span data-i18n="games.filter.arcade">经典街机</span>
+                        <span class="count">8</span>
+                    </button>
+                    <button class="filter-btn" data-category="Board" role="tab" aria-selected="false">
                         <i class="fas fa-chess"></i>
-                        <h3>棋牌策略</h3>
-                    </div>
-                    <div class="stat-number">3</div>
-                    <div class="stat-bar">
-                        <div class="stat-fill" style="width: 7%"></div>
-                    </div>
-                    <p class="stat-desc">策略对战 · 规则博弈</p>
-                </div>
-<!-- Developer: SinceraXY - CUPB -->
-                <div class="stat-box memory-stat">
-                    <div class="stat-header">
+                        <span data-i18n="games.filter.board">棋牌策略</span>
+                        <span class="count">6</span>
+                    </button>
+                    <button class="filter-btn" data-category="Memory" role="tab" aria-selected="false">
                         <i class="fas fa-brain"></i>
-                        <h3>记忆训练</h3>
-                    </div>
-                    <div class="stat-number">4</div>
-                    <div class="stat-bar">
-                        <div class="stat-fill" style="width: 10%"></div>
-                    </div>
-                    <p class="stat-desc">记忆力 · 观察力</p>
-                </div>
-                <div class="stat-box typing-stat">
-                    <div class="stat-header">
+                        <span data-i18n="games.filter.memory">记忆训练</span>
+                        <span class="count">4</span>
+                    </button>
+                    <button class="filter-btn" data-category="Typing" role="tab" aria-selected="false">
                         <i class="fas fa-keyboard"></i>
-                        <h3>打字练习</h3>
-                    </div>
-                    <div class="stat-number">4</div>
-                    <div class="stat-bar">
-                        <div class="stat-fill" style="width: 10%"></div>
-                    </div>
-                    <p class="stat-desc">打字速度 · 准确度</p>
-                </div>
-                <div class="stat-box casual-stat">
-                    <div class="stat-header">
+                        <span data-i18n="games.filter.typing">打字练习</span>
+                        <span class="count">4</span>
+                    </button>
+                    <button class="filter-btn" data-category="Casual" role="tab" aria-selected="false">
                         <i class="fas fa-smile"></i>
-                        <h3>休闲娱乐</h3>
-                    </div>
-                    <div class="stat-number">4</div>
-                    <div class="stat-bar">
-                        <div class="stat-fill" style="width: 10%"></div>
-                    </div>
-                    <p class="stat-desc">轻松休闲 · 简单有趣</p>
+                        <span data-i18n="games.filter.casual">休闲娱乐</span>
+                        <span class="count">6</span>
+                    </button>
+                </div>
+
+                <div class="games-grid" id="gamesGrid" role="tabpanel">
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- 我的女朋友是小肥羊宝宝 ❤️ -->
+        <section id="stats" class="stats-section">
+            <div class="container">
+                <div class="section-header reveal">
+                    <div class="section-eyebrow">
+                        <i class="fas fa-chart-bar"></i>
+                        <span data-i18n="stats.section_eyebrow">CATEGORY STATS</span>
+                    </div>
+                    <h2 class="section-title" data-i18n="stats.title">分类统计</h2>
+                    <p class="section-subtitle" data-i18n="stats.subtitle">7大类别，各有精彩</p>
+                </div>
+                <div class="stats-grid">
+                    <article class="stat-box puzzle-stat reveal">
+                        <div class="stat-shell">
+                            <div class="stat-core">
+                                <div class="stat-header">
+                                    <i class="fas fa-puzzle-piece"></i>
+                                    <h3 data-i18n="stats.puzzle">益智解谜</h3>
+                                </div>
+                                <div class="stat-number">8</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width: 19%"></div></div>
+                                <p class="stat-desc" data-i18n="games.filter.puzzle">逻辑思维 · 策略规划</p>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="stat-box action-stat reveal">
+                        <div class="stat-shell">
+                            <div class="stat-core">
+                                <div class="stat-header">
+                                    <i class="fas fa-bolt"></i>
+                                    <h3 data-i18n="stats.action">动作反应</h3>
+                                </div>
+                                <div class="stat-number">11</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width: 26%"></div></div>
+                                <p class="stat-desc" data-i18n="games.filter.action">快速反应 · 手眼协调</p>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="stat-box arcade-stat reveal">
+                        <div class="stat-shell">
+                            <div class="stat-core">
+                                <div class="stat-header">
+                                    <i class="fas fa-crown"></i>
+                                    <h3 data-i18n="stats.arcade">经典街机</h3>
+                                </div>
+                                <div class="stat-number">8</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width: 19%"></div></div>
+                                <p class="stat-desc" data-i18n="games.filter.arcade">经典玩法 · 怀旧元素</p>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="stat-box board-stat reveal">
+                        <div class="stat-shell">
+                            <div class="stat-core">
+                                <div class="stat-header">
+                                    <i class="fas fa-chess"></i>
+                                    <h3 data-i18n="stats.board">棋牌策略</h3>
+                                </div>
+                                <div class="stat-number">3</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width: 7%"></div></div>
+                                <p class="stat-desc" data-i18n="games.filter.board">策略对战 · 规则博弈</p>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="stat-box memory-stat reveal">
+                        <div class="stat-shell">
+                            <div class="stat-core">
+                                <div class="stat-header">
+                                    <i class="fas fa-brain"></i>
+                                    <h3 data-i18n="stats.memory">记忆训练</h3>
+                                </div>
+                                <div class="stat-number">4</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width: 10%"></div></div>
+                                <p class="stat-desc" data-i18n="games.filter.memory">记忆力 · 观察力</p>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="stat-box typing-stat reveal">
+                        <div class="stat-shell">
+                            <div class="stat-core">
+                                <div class="stat-header">
+                                    <i class="fas fa-keyboard"></i>
+                                    <h3 data-i18n="stats.typing">打字练习</h3>
+                                </div>
+                                <div class="stat-number">4</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width: 10%"></div></div>
+                                <p class="stat-desc" data-i18n="games.filter.typing">打字速度 · 准确度</p>
+                            </div>
+                        </div>
+                    </article>
+                    <article class="stat-box casual-stat reveal">
+                        <div class="stat-shell">
+                            <div class="stat-core">
+                                <div class="stat-header">
+                                    <i class="fas fa-smile"></i>
+                                    <h3 data-i18n="stats.casual">休闲娱乐</h3>
+                                </div>
+                                <div class="stat-number">4</div>
+                                <div class="stat-bar"><div class="stat-fill" style="width: 10%"></div></div>
+                                <p class="stat-desc" data-i18n="games.filter.casual">轻松休闲 · 简单有趣</p>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
 
-    <!-- 页脚 -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-logo">
-                    <i class="fas fa-gamepad"></i>
-                    <span>GameHub</span>
+                <div class="footer-left">
+                    <div class="footer-logo">
+                        <span class="footer-logo-icon"><i class="fas fa-gamepad"></i></span>
+                        <span>GameHub</span>
+                    </div>
+                    <p class="footer-text" data-i18n="footer.description">54款精品HTML5游戏，随时随地畅玩无限</p>
                 </div>
-                <p class="footer-text">42款精品HTML5游戏，随时随地畅玩无限</p>
+                <div class="footer-links">
+                    <a href="about.html" data-i18n="nav.about">关于我们</a>
+                    <a href="contact.html" data-i18n="nav.contact">联系我们</a>
+                    <a href="privacy-policy.html" data-i18n="nav.privacy">隐私政策</a>
+                    <a href="terms-of-service.html" data-i18n="nav.terms">服务条款</a>
+                    <button id="cookieSettingsBtn" data-i18n="nav.cookie_settings">Cookie设置</button>
+                </div>
                 <div class="footer-social">
-                    <a href="https://github.com/SinceraXY/GameHub" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub">
+                    <a href="https://github.com/SinceraXY/GameHub" target="_blank" rel="noopener noreferrer" class="social-link" title="GitHub" aria-label="GitHub">
                         <i class="fab fa-github"></i>
                     </a>
-                    <a href="mailto:2952671670@qq.com" class="social-link" title="Email: 2952671670@qq.com">
+                    <a href="mailto:2952671670@qq.com" class="social-link" title="Email" aria-label="发送邮件">
                         <i class="fas fa-envelope"></i>
                     </a>
-                    <a href="tencent://message/?uin=2952671670" class="social-link" title="QQ: 2952671670">
+                    <a href="tencent://message/?uin=2952671670" class="social-link" title="QQ" aria-label="QQ联系">
                         <i class="fab fa-qq"></i>
                     </a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2025 GameHub. Made with <i class="fas fa-heart"></i> for gamers</p>
+                <p data-i18n="footer.copyright">&copy; 2025 GameHub. Made with <i class="fas fa-heart"></i> for gamers</p>
             </div>
         </div>
     </footer>
 
-    <!-- Project: GameHub | https://github.com/SinceraXY/GameHub -->
+    <button class="back-to-top" id="backToTop" data-i18n="back_to_top" data-i18n-attr="aria-label" aria-label="回到顶部">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
+    <script src="i18n.js"></script>
+    <script src="cookie-consent.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

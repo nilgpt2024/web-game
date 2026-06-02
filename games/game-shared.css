@@ -1,0 +1,96 @@
+/* 游戏子页面共享样式 - 固定导航栏 */
+.game-nav-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 确保页面内容不被固定导航栏遮挡 */
+body {
+    padding-top: 60px !important;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.lang-switcher {
+    display: flex;
+    background: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    padding: 3px;
+    gap: 3px;
+}
+
+.lang-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    color: #666;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.lang-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #333;
+}
+
+.lang-btn.active {
+    background: #0d9488;
+    color: white;
+}
+
+.lang-flag {
+    font-size: 13px;
+}
+
+.lang-text {
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(13, 148, 136, 0.08);
+    color: #0d9488;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.back-btn:hover {
+    background: #0d9488;
+    color: white;
+    transform: translateX(-2px);
+    border-color: #0d9488;
+}
+
+.back-btn i {
+    font-size: 12px;
+}

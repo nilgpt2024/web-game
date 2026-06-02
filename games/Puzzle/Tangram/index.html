@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="tangram.title">Tangram | 七巧板</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧩</text></svg>">
+  <link rel="stylesheet" href="../../game-shared.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="game-container">
+    <header class="header">
+      <h1 class="title">🧩 Tangram</h1>
+      <p class="subtitle" data-i18n="tangram.subtitle">七巧板 - 用7块拼板拼出美丽图案</p>
+    </header>
+
+    <div class="info-bar">
+      <div class="info-item">
+        <span class="info-label" data-i18n="common.time">⏱️ 时间</span>
+        <span class="info-value" id="timer">00:00</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label" data-i18n="tangram.moves">👆 步数</span>
+        <span class="info-value" id="moves">0</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label" data-i18n="common.level">📋 关卡</span>
+        <span class="info-value" id="levelDisplay">1 / 12</span>
+      </div>
+    </div>
+
+    <div class="level-selector">
+      <button class="level-nav-btn" id="prevLevelBtn" data-i18n="common.prevLevel">◀ 上一关</button>
+      <div class="level-thumbnails" id="levelThumbnails"></div>
+      <button class="level-nav-btn" id="nextLevelBtn" data-i18n="common.nextLevel">下一关 ▶</button>
+    </div>
+
+    <div class="game-area">
+      <div class="target-area" id="targetArea">
+        <svg id="targetSvg" viewBox="0 0 400 400"></svg>
+        <div class="target-label" data-i18n="tangram.targetPattern">目标图案</div>
+      </div>
+      <div class="play-area" id="playArea">
+        <div class="tangram-piece" data-piece="large-tri-1" id="piece-0"></div>
+        <div class="tangram-piece" data-piece="large-tri-2" id="piece-1"></div>
+        <div class="tangram-piece" data-piece="medium-tri" id="piece-2"></div>
+        <div class="tangram-piece" data-piece="small-tri-1" id="piece-3"></div>
+        <div class="tangram-piece" data-piece="small-tri-2" id="piece-4"></div>
+        <div class="tangram-piece" data-piece="square" id="piece-5"></div>
+        <div class="tangram-piece" data-piece="parallelogram" id="piece-6"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="control-btn" id="hintBtn">
+        <span class="btn-icon">💡</span>
+        <span class="btn-text" data-i18n="tangram.hint">提示</span>
+      </button>
+      <button class="control-btn" id="resetBtn">
+        <span class="btn-icon">🔄</span>
+        <span class="btn-text" data-i18n="common.restart">重置</span>
+      </button>
+      <button class="control-btn" id="flipBtn">
+        <span class="btn-icon">🔃</span>
+        <span class="btn-text" data-i18n="tangram.flip">翻转</span>
+      </button>
+      <button class="control-btn" id="freePlayBtn">
+        <span class="btn-icon">✨</span>
+        <span class="btn-text" data-i18n="tangram.freePlay">自由模式</span>
+      </button>
+    </div>
+
+    <div class="instructions">
+      <h3 data-i18n="ui.howToTitle">📖 游戏说明</h3>
+      <ul>
+        <li data-i18n="tangram.rule1">拖拽拼图块移动位置，点击拼图块旋转45°</li>
+        <li data-i18n="tangram.rule2">滚轮或双击可快速旋转拼图块</li>
+        <li data-i18n="tangram.rule3">将7块拼图放到正确位置完成图案</li>
+        <li data-i18n="tangram.rule4">靠近目标位置时自动吸附对齐</li>
+        <li data-i18n="tangram.rule5">点击"提示"显示目标轮廓</li>
+        <li data-i18n="tangram.rule6">平行四边形支持翻转（镜像）操作</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="modal" id="victoryModal">
+    <div class="modal-content victory-content">
+      <div class="victory-icon">🎉</div>
+      <h2 data-i18n="common.victory">恭喜完成！</h2>
+      <div class="victory-stats">
+        <div class="stat-item">
+          <span class="stat-label" data-i18n="common.time">用时</span>
+          <span class="stat-value" id="finalTime">00:00</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label" data-i18n="tangram.totalMoves">总步数</span>
+          <span class="stat-value" id="finalMoves">0</span>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn secondary" id="replayBtn" data-i18n="common.tryAgain">再玩一次</button>
+        <button class="modal-btn primary" id="nextLevelModalBtn" data-i18n="common.nextLevel">下一关</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="../../../game-i18n.js"></script>
+  <script>
+    const gameI18n = new GameI18n();
+    gameI18n.init();
+  </script>
+</body>
+</html>

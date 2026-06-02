@@ -1,5 +1,5 @@
 # GameHub - robots.txt
-# https://github.com/SinceraXY/GameHub
+# https://github.com/nilgpt2024/web-game
 #
 # 部署时请将此文件中的 YOUR_DOMAIN 替换为你的实际域名
 # When deploying, replace YOUR_DOMAIN with your actual domain

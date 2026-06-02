@@ -7,7 +7,7 @@ var Stage = /** @class */ (function () {
       this.renderer.render(this.scene, this.camera);
     };
 
-// GameHub Project - https://github.com/SinceraXY/GameHub
+// GameHub Project - https://github.com/nilgpt2024/web-game
     this.add = function (elem) {
       this.scene.add(elem);
     };

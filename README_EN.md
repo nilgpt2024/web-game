@@ -2,17 +2,17 @@
 
 # 🎮 GameHub - Premium Game Collection
 
-[![GitHub stars](https://img.shields.io/github/stars/SinceraXY/GameHub?style=social)](https://github.com/SinceraXY/GameHub/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/SinceraXY/GameHub?style=social)](https://github.com/SinceraXY/GameHub/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/SinceraXY/GameHub)](https://github.com/SinceraXY/GameHub/issues)
-[![GitHub license](https://img.shields.io/github/license/SinceraXY/GameHub)](https://github.com/SinceraXY/GameHub/blob/main/LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/SinceraXY/GameHub/pulls)
+[![GitHub stars](https://img.shields.io/github/stars/SinceraXY/GameHub?style=social)](https://github.com/nilgpt2024/web-game/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/SinceraXY/GameHub?style=social)](https://github.com/nilgpt2024/web-game/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/SinceraXY/GameHub)](https://github.com/nilgpt2024/web-game/issues)
+[![GitHub license](https://img.shields.io/github/license/SinceraXY/GameHub)](https://github.com/nilgpt2024/web-game/blob/main/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/nilgpt2024/web-game/pulls)
 
 **[中文](README.md) | [English](README_EN.md)**
 
 A beautiful and cool HTML5 game collection homepage featuring 42 carefully categorized mini-games.
 
-[⚡ Quick Start](QUICKSTART.md) | [📖 Documentation](https://github.com/SinceraXY/GameHub#readme) | [🚀 Deployment Guide](docs/DEPLOYMENT.md) | [🐛 Report Issue](https://github.com/SinceraXY/GameHub/issues)
+[⚡ Quick Start](QUICKSTART.md) | [📖 Documentation](https://github.com/nilgpt2024/web-game#readme) | [🚀 Deployment Guide](docs/DEPLOYMENT.md) | [🐛 Report Issue](https://github.com/nilgpt2024/web-game/issues)
 
 </div>
 
@@ -24,7 +24,7 @@ A beautiful and cool HTML5 game collection homepage featuring 42 carefully categ
 
 1. **Clone the project**
    ```bash
-   git clone https://github.com/SinceraXY/GameHub.git
+   git clone https://github.com/nilgpt2024/web-game.git
    cd GameHub
    ```
 
@@ -298,7 +298,7 @@ Thanks to all game developers for their hard work!
 
 If you have any questions or suggestions, feel free to reach out!
 
-- 🐙 **GitHub**: [SinceraXY/GameHub](https://github.com/SinceraXY/GameHub)
+- 🐙 **GitHub**: [SinceraXY/GameHub](https://github.com/nilgpt2024/web-game)
 - 📧 **Email**: 2952671670@qq.com
 - 💬 **QQ**: 2952671670
 

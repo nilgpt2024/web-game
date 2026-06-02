@@ -20,7 +20,7 @@ GameHub是一个包含42款精品HTML5游戏的开源项目，无需安装，本
 
 1. 克隆或下载项目
    ```bash
-   git clone https://github.com/SinceraXY/GameHub.git
+   git clone https://github.com/nilgpt2024/web-game.git
    cd GameHub
    ```
 
@@ -92,7 +92,7 @@ php -S localhost:8000
 | 🛠️ 开发指南 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
 | 🚀 部署指南 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
 | 📝 更新日志 | [CHANGELOG.md](CHANGELOG.md) |
-| 🐛 报告问题 | [GitHub Issues](https://github.com/SinceraXY/GameHub/issues) |
+| 🐛 报告问题 | [GitHub Issues](https://github.com/nilgpt2024/web-game/issues) |
 
 ---
 
@@ -194,7 +194,7 @@ GameHub is an open-source project containing 42 premium HTML5 games that can run
 
 1. Clone or download the project
    ```bash
-   git clone https://github.com/SinceraXY/GameHub.git
+   git clone https://github.com/nilgpt2024/web-game.git
    cd GameHub
    ```
 
@@ -266,7 +266,7 @@ Then visit: `http://localhost:8000`
 | 🛠️ Development guide | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
 | 🚀 Deployment guide | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
 | 📝 Changelog | [CHANGELOG.md](CHANGELOG.md) |
-| 🐛 Report issues | [GitHub Issues](https://github.com/SinceraXY/GameHub/issues) |
+| 🐛 Report issues | [GitHub Issues](https://github.com/nilgpt2024/web-game/issues) |
 
 ---
 
@@ -307,6 +307,6 @@ If you like this project:
 
 **Have fun and happy gaming! 🚀**
 
-[🏠 Home](https://sincerapxy.github.io/GameHub/) | [📖 Docs](README.md) | [🐛 Issues](https://github.com/SinceraXY/GameHub/issues)
+[🏠 Home](https://sincerapxy.github.io/GameHub/) | [📖 Docs](README.md) | [🐛 Issues](https://github.com/nilgpt2024/web-game/issues)
 
 </div>

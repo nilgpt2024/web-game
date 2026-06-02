@@ -2,17 +2,17 @@
 
 # 🎮 GameHub - 精品小游戏合集
 
-[![GitHub stars](https://img.shields.io/github/stars/SinceraXY/GameHub?style=social)](https://github.com/SinceraXY/GameHub/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/SinceraXY/GameHub?style=social)](https://github.com/SinceraXY/GameHub/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/SinceraXY/GameHub)](https://github.com/SinceraXY/GameHub/issues)
-[![GitHub license](https://img.shields.io/github/license/SinceraXY/GameHub)](https://github.com/SinceraXY/GameHub/blob/main/LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/SinceraXY/GameHub/pulls)
+[![GitHub stars](https://img.shields.io/github/stars/SinceraXY/GameHub?style=social)](https://github.com/nilgpt2024/web-game/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/SinceraXY/GameHub?style=social)](https://github.com/nilgpt2024/web-game/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/SinceraXY/GameHub)](https://github.com/nilgpt2024/web-game/issues)
+[![GitHub license](https://img.shields.io/github/license/SinceraXY/GameHub)](https://github.com/nilgpt2024/web-game/blob/main/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/nilgpt2024/web-game/pulls)
 
 **[中文](README.md)** **|** **[English](README_EN.md)**
 
 一个精美炫酷的HTML5游戏合集主页，包含42款精心分类的小游戏。
 
-[⚡ 快速开始](QUICKSTART.md) | [📖 完整文档](https://github.com/SinceraXY/GameHub#readme) | [🚀 部署指南](docs/DEPLOYMENT.md) | [🐛 报告问题](https://github.com/SinceraXY/GameHub/issues)
+[⚡ 快速开始](QUICKSTART.md) | [📖 完整文档](https://github.com/nilgpt2024/web-game#readme) | [🚀 部署指南](docs/DEPLOYMENT.md) | [🐛 报告问题](https://github.com/nilgpt2024/web-game/issues)
 
 </div>
 
@@ -24,7 +24,7 @@
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/SinceraXY/GameHub.git
+   git clone https://github.com/nilgpt2024/web-game.git
    cd GameHub
    ```
 2. **打开主页**
@@ -479,7 +479,7 @@ Apache License
 
 如有问题或建议，欢迎反馈！
 
-- 🐙 **GitHub**: [SinceraXY/GameHub](https://github.com/SinceraXY/GameHub)
+- 🐙 **GitHub**: [SinceraXY/GameHub](https://github.com/nilgpt2024/web-game)
 - 📧 **Email**: <2952671670@qq.com>
 - 💬 **QQ**: 2952671670
 

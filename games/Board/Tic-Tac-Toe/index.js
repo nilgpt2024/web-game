@@ -375,7 +375,7 @@ function findBestMove(player) {
     }
 
 // Project: GameHub
-// Project: https://github.com/SinceraXY/GameHub
+// Project: https://github.com/nilgpt2024/web-game
   }
   return -1;
 }

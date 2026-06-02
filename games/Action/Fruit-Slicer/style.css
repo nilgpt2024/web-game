@@ -116,7 +116,7 @@ body {
   border-radius: var(--border-radius);
   padding: 25px;
 
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
 
   text-align: center;
   box-shadow: 0 4px 15px var(--card-shadow);
@@ -546,7 +546,7 @@ body {
   margin-top: 10px;
   border-left: 4px solid var(--warning-color);
   box-shadow: 0 2px 10px var(--card-shadow);
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
   animation: slideDown 0.3s ease-out;
 }
 

@@ -286,7 +286,7 @@ function generateRound() {
   colorOptionsEl.innerHTML = '';
   colorOptionsEl.setAttribute('data-count', colorCount);
   selectedColors.forEach(color => {
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
     const colorBtn = document.createElement('div');
     colorBtn.className = 'color-option';
     colorBtn.style.background = color.hex;

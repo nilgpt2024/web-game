@@ -60,7 +60,7 @@ Instances of abusive, harassing, or otherwise unacceptable behavior may be repor
 
 - 📧 Email: 2952671670@qq.com
 - 💬 QQ: 2952671670
-- 🐙 GitHub: [SinceraXY/GameHub/issues](https://github.com/SinceraXY/GameHub/issues)
+- 🐙 GitHub: [SinceraXY/GameHub/issues](https://github.com/nilgpt2024/web-game/issues)
 
 所有投诉都将被审查和调查，并将导致被认为必要和适合情况的回应。项目团队有义务对事件报告者保密。具体执行政策的更多细节可能会单独公布。
 

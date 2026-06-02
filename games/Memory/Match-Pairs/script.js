@@ -728,7 +728,7 @@ function showHint() {
         const path = findPath(activeTiles[i], activeTiles[j]);
         if (path) {
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
           // 找到可消除的配对
           if (activeTiles[i].element && activeTiles[j].element) {

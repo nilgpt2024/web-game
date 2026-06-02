@@ -191,7 +191,7 @@ function resetGame() {
   if (game.timer) {
     clearTimeout(game.timer);
     game.timer = null;
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
   }
   
   // 重置显示

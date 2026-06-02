@@ -114,7 +114,7 @@ function updateCanvasSize() {
     } else if (window.innerWidth <= 768) {
       TILE_HEIGHT = 100;
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
     } else {
       TILE_HEIGHT = 125;

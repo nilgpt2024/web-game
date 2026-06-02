@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // 获取一行的四个值
         let row = [
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
           parseInt(squares[i].innerHTML) || 0,
           parseInt(squares[i + 1].innerHTML) || 0,

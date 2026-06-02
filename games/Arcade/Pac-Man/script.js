@@ -407,7 +407,7 @@ function update() {
     nextLevel();
   }
 
-// GameHub Project - https://github.com/SinceraXY/GameHub
+// GameHub Project - https://github.com/nilgpt2024/web-game
 }
 
 function updatePacman() {

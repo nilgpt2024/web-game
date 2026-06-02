@@ -13,7 +13,7 @@ Thank you for your interest in contributing to GameHub! We welcome all kinds of 
 ### 📋 贡献方式
 
 #### 1. 报告问题 (Bug Reports)
-- 使用 [Issues](https://github.com/SinceraXY/GameHub/issues) 报告 bug
+- 使用 [Issues](https://github.com/nilgpt2024/web-game/issues) 报告 bug
 - 请提供详细的复现步骤
 - 包含浏览器版本、操作系统等信息
 - 如果可能，提供截图或视频
@@ -177,7 +177,7 @@ CategoryName: [
 
 如有问题，可以通过以下方式联系：
 
-- GitHub Issues: [SinceraXY/GameHub/issues](https://github.com/SinceraXY/GameHub/issues)
+- GitHub Issues: [SinceraXY/GameHub/issues](https://github.com/nilgpt2024/web-game/issues)
 - Email: 2952671670@qq.com
 - QQ: 2952671670
 
@@ -188,7 +188,7 @@ CategoryName: [
 ### 📋 Ways to Contribute
 
 #### 1. Bug Reports
-- Use [Issues](https://github.com/SinceraXY/GameHub/issues) to report bugs
+- Use [Issues](https://github.com/nilgpt2024/web-game/issues) to report bugs
 - Provide detailed reproduction steps
 - Include browser version, OS information
 - If possible, provide screenshots or videos
@@ -352,7 +352,7 @@ Before submitting PR, ensure:
 
 For questions, contact via:
 
-- GitHub Issues: [SinceraXY/GameHub/issues](https://github.com/SinceraXY/GameHub/issues)
+- GitHub Issues: [SinceraXY/GameHub/issues](https://github.com/nilgpt2024/web-game/issues)
 - Email: 2952671670@qq.com
 - QQ: 2952671670
 

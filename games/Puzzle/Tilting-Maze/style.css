@@ -129,7 +129,7 @@ body {
   }
 }
 
-/* GameHub Project - https://github.com/SinceraXY/GameHub */
+/* GameHub Project - https://github.com/nilgpt2024/web-game */
 
 /* ==================== Joystick Control ==================== */
 #joystick {
@@ -147,7 +147,7 @@ body {
     0 8px 20px rgba(0, 0, 0, 0.3),
     inset 0 2px 5px rgba(255, 255, 255, 0.1);
   transition: transform 0.2s ease;
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
 }
 
 #joystick:hover {

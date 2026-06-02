@@ -112,7 +112,7 @@ GameHub/
 #### 1. 克隆项目
 
 ```bash
-git clone https://github.com/SinceraXY/GameHub.git
+git clone https://github.com/nilgpt2024/web-game.git
 cd GameHub
 ```
 
@@ -562,7 +562,7 @@ button.addEventListener('click', () => {
 
 遇到问题？
 - 📖 查看文档
-- 🐛 搜索 [Issues](https://github.com/SinceraXY/GameHub/issues)
+- 🐛 搜索 [Issues](https://github.com/nilgpt2024/web-game/issues)
 - 💬 创建新Issue
 - 📧 发送邮件：2952671670@qq.com
 

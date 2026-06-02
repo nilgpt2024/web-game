@@ -215,7 +215,7 @@ function displayQuestion() {
 
 function checkAnswer() {
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
   const selectedOption = document.querySelector('input[name="quiz"]:checked');
   if (selectedOption) {

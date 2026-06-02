@@ -357,7 +357,7 @@ function renderBoard() {
       
       const value = board[row][col];
       
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
       if (value !== 0) {
         cell.textContent = value;
         // 如果是初始数字（固定的），添加fixed类

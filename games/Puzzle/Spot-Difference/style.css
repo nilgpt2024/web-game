@@ -345,7 +345,7 @@ canvas {
   font-size: 1.1rem;
 }
 
-/* GameHub Project - https://github.com/SinceraXY/GameHub */
+/* GameHub Project - https://github.com/nilgpt2024/web-game */
 
 .difficulty-buttons {
   display: flex;
@@ -439,7 +439,7 @@ canvas {
 
 .stat-item {
   text-align: center;
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
   padding: 15px;
   background: linear-gradient(to bottom, #f5f7fa 0%, #c3cfe2 100%);
   border-radius: 12px;
@@ -452,7 +452,7 @@ canvas {
   margin-bottom: 8px;
 }
 
-/* Project: https://github.com/SinceraXY/GameHub */
+/* Project: https://github.com/nilgpt2024/web-game */
 
 .stat-value {
   display: block;

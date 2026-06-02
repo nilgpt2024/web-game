@@ -173,10 +173,10 @@ Want to become a contributor? Check [CONTRIBUTING.md](CONTRIBUTING.md)
 
 If you have suggestions or found a bug, please:
 
-- 🐛 [报告问题](https://github.com/SinceraXY/GameHub/issues/new?template=bug_report.md)
-- 🚀 [提出功能建议](https://github.com/SinceraXY/GameHub/issues/new?template=feature_request.md)
-- 🎮 [提交游戏](https://github.com/SinceraXY/GameHub/issues/new?template=game_submission.md)
-- 💬 [发起讨论](https://github.com/SinceraXY/GameHub/discussions)
+- 🐛 [报告问题](https://github.com/nilgpt2024/web-game/issues/new?template=bug_report.md)
+- 🚀 [提出功能建议](https://github.com/nilgpt2024/web-game/issues/new?template=feature_request.md)
+- 🎮 [提交游戏](https://github.com/nilgpt2024/web-game/issues/new?template=game_submission.md)
+- 💬 [发起讨论](https://github.com/nilgpt2024/web-game/discussions)
 
 ---
 

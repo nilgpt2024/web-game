@@ -556,7 +556,7 @@ function checkLevelComplete() {
         levelTransition = false;
       }
 
-// GameHub Project - https://github.com/SinceraXY/GameHub
+// GameHub Project - https://github.com/nilgpt2024/web-game
     }, 2000);
   }
 }

@@ -362,7 +362,7 @@ body {
   color: var(--success-color);
 }
 
-/* GameHub Project - https://github.com/SinceraXY/GameHub */
+/* GameHub Project - https://github.com/nilgpt2024/web-game */
 
 .game-status.status-draw {
   color: var(--warning-color);
@@ -385,7 +385,7 @@ body {
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);

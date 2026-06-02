@@ -40,7 +40,7 @@ let hintsUsed = 0;
 let visitedCells = new Set();
 
 // 粒子系统
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
 let particles = [];
 class Particle {
   constructor(x, y, color) {

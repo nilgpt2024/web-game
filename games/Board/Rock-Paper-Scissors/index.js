@@ -97,7 +97,7 @@ function updateRoundInfo() {
   } else {
     const modeConfig = gameModes[gameMode];
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
     roundInfoEl.textContent = `Round ${currentRound} of ${modeConfig.maxRounds}`;
   }

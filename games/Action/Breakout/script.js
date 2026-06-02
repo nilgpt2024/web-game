@@ -231,7 +231,7 @@ function moveBall() {
                     increaseScore();
                 }
 
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
 // Developer: SinceraXY
             }
         });

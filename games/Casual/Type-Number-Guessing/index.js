@@ -35,7 +35,7 @@ let currentDifficulty = 'medium';
 // ==================== Difficulty Configuration ====================
 const difficultyConfig = {
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
   easy: {
     min: 1,

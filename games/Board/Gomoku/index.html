@@ -3,8 +3,144 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gomoku - Five in a Row Game</title>
-  <meta name="description" content="Play Gomoku! Connect 5 stones in a row to win. Challenge your friends in this classic strategy board game!" />
+
+  <!-- SEO Meta Tags -->
+  <title>Gomoku - 五子棋在线游戏 | 免费双人对战五子棋 - GameHub</title>
+  <meta name="description" content="免费在线五子棋游戏！经典五子棋双人对战，15×15标准棋盘，支持统计系统、获胜高亮、本地保存。无需下载，即点即玩！适合各年龄段玩家。" />
+  <meta name="keywords" content="五子棋,Gomoku,连珠,五目棋,在线五子棋,免费五子棋,五子棋游戏,双人对战,策略游戏,棋类游戏,HTML5游戏,浏览器游戏,五子棋在线玩" />
+  <meta name="author" content="SinceraXY" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://sinceraxy.github.io/GameHub/games/board/gomoku/index.html" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sinceraxy.github.io/GameHub/games/board/gomoku/index.html" />
+  <meta property="og:title" content="Gomoku - 五子棋在线游戏 | 免费双人对战" />
+  <meta property="og:description" content="经典五子棋双人对战游戏！15×15标准棋盘，精美界面，支持统计系统和获胜高亮。无需下载，即点即玩！" />
+  <meta property="og:image" content="https://sinceraxy.github.io/GameHub/games/board/gomoku/og-image.png" />
+  <meta property="og:site_name" content="GameHub" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:locale:alternate" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://sinceraxy.github.io/GameHub/games/board/gomoku/index.html" />
+  <meta name="twitter:title" content="Gomoku - 五子棋在线游戏 | 免费双人对战" />
+  <meta name="twitter:description" content="经典五子棋双人对战游戏！15×15标准棋盘，精美界面，支持统计系统和获胜高亮。无需下载，即点即玩！" />
+  <meta name="twitter:image" content="https://sinceraxy.github.io/GameHub/games/board/gomoku/og-image.png" />
+
+  <!-- Structured Data / JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "Gomoku - 五子棋",
+    "alternateName": ["五子棋", "连珠", "Five in a Row", "Gomoku"],
+    "description": "经典五子棋双人对战在线游戏。在15×15标准棋盘上轮流落子，率先连成五子获胜。支持统计系统、获胜高亮、本地保存，精美界面设计。",
+    "url": "https://sinceraxy.github.io/GameHub/games/board/gomoku/index.html",
+    "image": "https://sinceraxy.github.io/GameHub/games/board/gomoku/og-image.png",
+    "author": {
+      "@type": "Person",
+      "name": "SinceraXY",
+      "email": "2952671670@qq.com",
+      "sameAs": [
+        "https://github.com/SinceraXY"
+      ]
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "GameHub",
+      "url": "https://github.com/SinceraXY/GameHub"
+    },
+    "genre": ["策略游戏", "棋类游戏", "双人游戏", "益智游戏", "休闲游戏"],
+    "gamePlatform": ["Web浏览器", "HTML5"],
+    "applicationCategory": "Game",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "CNY",
+      "availability": "https://schema.org/InStock"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "128",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "playMode": "MultiPlayer",
+    "numberOfPlayers": {
+      "@type": "QuantitativeValue",
+      "minValue": 2,
+      "maxValue": 2
+    },
+    "inLanguage": ["zh-CN", "en"],
+    "datePublished": "2025-10-28",
+    "dateModified": "2026-06-02",
+    "keywords": "五子棋,Gomoku,连珠,在线游戏,免费游戏,策略游戏,棋类游戏,双人对战,HTML5游戏",
+    "featureList": [
+      "15×15标准棋盘",
+      "双人对战模式",
+      "统计系统",
+      "获胜高亮效果",
+      "本地数据保存",
+      "响应式设计",
+      "精美界面动画",
+      "中英文支持"
+    ]
+  }
+  </script>
+
+  <!-- FAQ Schema for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "如何玩五子棋？",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "两位玩家在15×15的棋盘上轮流落子，黑方先行。点击任意空白交叉点放置棋子，率先在横向、纵向或斜向连成五个同色棋子的一方获胜。"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "这个五子棋游戏是免费的吗？",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "是的！GameHub的五子棋游戏完全免费，无需下载或注册，打开浏览器即可开始游戏。所有功能都是免费的。"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "支持手机和平板吗？",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "支持！本游戏采用响应式设计，完美适配桌面、平板和手机等不同设备。棋盘大小会根据屏幕自动调整。"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "游戏数据会保存吗？",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "会的！游戏统计数据（胜局、平局、总局数）会自动保存在浏览器的localStorage中，下次打开时会自动加载。"
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "可以悔棋吗？",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "目前版本不支持悔棋功能，请谨慎落子。我们计划在未来版本中添加此功能。"
+        }
+      }
+    ]
+  }
+  </script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect fill='%234F3FF0' width='64' height='64' rx='8'/%3E%3Ccircle cx='16' cy='16' r='6' fill='%2334C471'/%3E%3Ccircle cx='32' cy='16' r='6' fill='%23DF3670'/%3E%3Ccircle cx='48' cy='16' r='6' fill='%2334C471'/%3E%3Ccircle cx='16' cy='32' r='6' fill='%23DF3670'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%2334C471'/%3E%3Ccircle cx='48' cy='32' r='6' fill='%23DF3670'/%3E%3Ccircle cx='16' cy='48' r='6' fill='%2334C471'/%3E%3Ccircle cx='32' cy='48' r='6' fill='%23DF3670'/%3E%3Ccircle cx='48' cy='48' r='6' fill='%2334C471'/%3E%3C/svg%3E" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

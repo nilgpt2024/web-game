@@ -61,7 +61,7 @@ const rightPaddle = {
     y: canvas.height / 2 - CONFIG.PADDLE_HEIGHT / 2,
     width: CONFIG.PADDLE_WIDTH,
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
     height: CONFIG.PADDLE_HEIGHT,
     speed: CONFIG.PADDLE_SPEED,

@@ -325,7 +325,7 @@ uglifyjs script.js -o script.min.js -c -m
 ### 📞 获取帮助
 
 如果遇到部署问题：
-- 查看 [Issues](https://github.com/SinceraXY/GameHub/issues)
+- 查看 [Issues](https://github.com/nilgpt2024/web-game/issues)
 - 创建新issue
 - 发送邮件：2952671670@qq.com
 
@@ -417,7 +417,7 @@ GameHub is a pure static website that doesn't require a backend server. You only
 ### 📞 Get Help
 
 If you encounter deployment issues:
-- Check [Issues](https://github.com/SinceraXY/GameHub/issues)
+- Check [Issues](https://github.com/nilgpt2024/web-game/issues)
 - Create a new issue
 - Email: 2952671670@qq.com
 

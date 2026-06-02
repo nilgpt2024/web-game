@@ -712,7 +712,7 @@ function showDirectionIndicators(block, possibleMoves) {
       clearDirectionIndicators();
       selectedBlockForMove = null;
       availableDirections = [];
-/* GitHub: https://github.com/SinceraXY/GameHub */
+/* GitHub: https://github.com/nilgpt2024/web-game */
     });
     
     gameBoard.appendChild(indicator);

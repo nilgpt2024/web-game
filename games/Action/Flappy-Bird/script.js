@@ -300,7 +300,7 @@ function display_game_over() {
   ctx.font = "22px Arial";
   ctx.fillStyle = isNewRecord ? "#FF1493" : "#FFF";
 
-// GitHub: https://github.com/SinceraXY/GameHub
+// GitHub: https://github.com/nilgpt2024/web-game
 
   var recordText = isNewRecord ? "🎉 NEW RECORD! 🎉" : "🏆 High Score: " + high_score;
   ctx.fillText(recordText, myCanvas.width / 2, 250);

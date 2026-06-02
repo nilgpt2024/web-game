@@ -105,7 +105,7 @@ function handleStartResetClick() {
     startGame();
   }
 
-/* GameHub Project - https://github.com/SinceraXY/GameHub */
+/* GameHub Project - https://github.com/nilgpt2024/web-game */
 }
 
 /**
@@ -454,7 +454,7 @@ function loadStats() {
       stats.gamesPlayed = data.gamesPlayed || 0;
     }
 
-// Project: https://github.com/SinceraXY/GameHub
+// Project: https://github.com/nilgpt2024/web-game
   } catch (error) {
     console.error('加载数据失败:', error);
   }

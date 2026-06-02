@@ -487,7 +487,7 @@ function Lane(index) {
       break;
     }
 
-// Project: https://github.com/SinceraXY/GameHub
+// Project: https://github.com/nilgpt2024/web-game
     case "forest": {
       this.mesh = new Grass();
 
@@ -625,7 +625,7 @@ window.addEventListener("keydown", (event) => {
     move("right");
   }
 
-/* GameHub Project - https://github.com/SinceraXY/GameHub */
+/* GameHub Project - https://github.com/nilgpt2024/web-game */
 });
 
 function move(direction) {

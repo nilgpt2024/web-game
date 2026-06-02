@@ -636,7 +636,7 @@ function main(timestamp) {
               }
             }
 
-/* Project: https://github.com/SinceraXY/GameHub */
+/* Project: https://github.com/nilgpt2024/web-game */
           }
         });
 

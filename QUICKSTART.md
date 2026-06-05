@@ -1,8 +1,8 @@
 # ⚡ 快速开始 | Quick Start
 
-快速上手GameHub项目！
+快速上手WebGameHub项目！
 
-Get started with GameHub quickly!
+Get started with WebGameHub quickly!
 
 **[中文](#中文) | [English](#english)**
 
@@ -12,7 +12,7 @@ Get started with GameHub quickly!
 
 ### 🎮 项目介绍
 
-GameHub是一个包含42款精品HTML5游戏的开源项目，无需安装，本地即可运行。
+WebGameHub是一个包含42款精品HTML5游戏的开源项目，无需安装，本地即可运行。
 
 ### 💻 本地运行
 
@@ -21,7 +21,7 @@ GameHub是一个包含42款精品HTML5游戏的开源项目，无需安装，本
 1. 克隆或下载项目
    ```bash
    git clone https://github.com/nilgpt2024/web-game.git
-   cd GameHub
+   cd WebGameHub
    ```
 
 2. 双击打开 `index.html`
@@ -155,11 +155,11 @@ A: 支持所有现代浏览器的桌面、平板和手机设备。
 
 ### 📱 分享给朋友
 
-喜欢GameHub？分享给朋友吧！
+喜欢WebGameHub？分享给朋友吧！
 
 **分享链接：**
 ```
-https://sincerapxy.github.io/GameHub/
+https://sincerapxy.github.io/WebGameHub/
 ```
 
 **社交媒体：**
@@ -186,7 +186,7 @@ https://sincerapxy.github.io/GameHub/
 
 ### 🎮 Project Introduction
 
-GameHub is an open-source project containing 42 premium HTML5 games that can run locally without installation.
+WebGameHub is an open-source project containing 42 premium HTML5 games that can run locally without installation.
 
 ### 💻 Run Locally
 
@@ -195,7 +195,7 @@ GameHub is an open-source project containing 42 premium HTML5 games that can run
 1. Clone or download the project
    ```bash
    git clone https://github.com/nilgpt2024/web-game.git
-   cd GameHub
+   cd WebGameHub
    ```
 
 2. Double-click `index.html`
@@ -307,6 +307,6 @@ If you like this project:
 
 **Have fun and happy gaming! 🚀**
 
-[🏠 Home](https://sincerapxy.github.io/GameHub/) | [📖 Docs](README.md) | [🐛 Issues](https://github.com/nilgpt2024/web-game/issues)
+[🏠 Home](https://sincerapxy.github.io/WebGameHub/) | [📖 Docs](README.md) | [🐛 Issues](https://github.com/nilgpt2024/web-game/issues)
 
 </div>

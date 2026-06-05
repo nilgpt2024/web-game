@@ -170,7 +170,7 @@ const TRANSLATIONS = {
         },
         "footer": {
             "description": "42款精品HTML5游戏，随时随地畅玩无限",
-            "copyright": "© 2025 GameHub. Made with ❤️ for gamers"
+            "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "回到顶部",
         "a11y": {
@@ -365,7 +365,7 @@ const TRANSLATIONS = {
         },
         "footer": {
             "description": "54 Premium HTML5 Games, Play Anywhere, Anytime",
-            "copyright": "© 2025 GameHub. Made with ❤️ for gamers"
+            "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "Back to Top",
         "a11y": {
@@ -395,7 +395,7 @@ const TRANSLATIONS = {
 
 class I18n {
     constructor() {
-        this.currentLang = localStorage.getItem('gamehub-lang') || this.detectLanguage();
+        this.currentLang = localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
         this.translations = TRANSLATIONS;
         this.availableLangs = ['zh-CN', 'en'];
     }
@@ -437,7 +437,7 @@ class I18n {
         }
         
         this.currentLang = lang;
-        localStorage.setItem('gamehub-lang', lang);
+        localStorage.setItem('WebGameHub-lang', lang);
         this.render();
         
         // Dispatch custom event for language change

@@ -129,7 +129,7 @@ function resetStats() {
   }
 }
 
-/* Project: GameHub */
+/* Project: WebGameHub */
 // ==================== Game Functions ====================
 function initGame() {
   snakeX = 15;

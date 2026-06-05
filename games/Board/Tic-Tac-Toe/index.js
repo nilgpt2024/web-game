@@ -374,7 +374,7 @@ function findBestMove(player) {
       if (board[c] === '') return c;
     }
 
-// Project: GameHub
+// Project: WebGameHub
 // Project: https://github.com/nilgpt2024/web-game
   }
   return -1;

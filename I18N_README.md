@@ -13,7 +13,7 @@
 ## 📁 文件结构
 
 ```
-GameHub/
+WebGameHub/
 ├── i18n.js                  # 主页国际化模块
 ├── game-i18n.js            # 游戏页面通用国际化模块
 ├── games/game-shared.css    # 游戏页面共享样式（含语言切换按钮）
@@ -165,4 +165,4 @@ py update_game_pages.py
 
 ## 📄 License
 
-与GameHub项目使用相同的开源协议
+与WebGameHub项目使用相同的开源协议

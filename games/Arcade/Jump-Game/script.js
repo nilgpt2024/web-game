@@ -317,7 +317,7 @@ function initGameObjects() {
     y: CONFIG.groundY,
     width: CONFIG.player.width,
     height: CONFIG.player.height,
-/* Project: GameHub */
+/* Project: WebGameHub */
     velocityY: 0,
     isJumping: false
   };

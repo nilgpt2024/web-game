@@ -39,7 +39,7 @@ const ReactionGame = (() => {
     const $$ = (sel) => document.querySelectorAll(sel);
 
     function getLang() {
-        return localStorage.getItem('gamehub-lang') || 'zh-CN';
+        return localStorage.getItem('WebGameHub-lang') || 'zh-CN';
     }
 
     function t(key) {

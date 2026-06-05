@@ -108,7 +108,7 @@ function checkMatchWinner() {
   
   const modeConfig = gameModes[gameMode];
   const winsNeeded = modeConfig.winsNeeded;
-// Project: GameHub
+// Project: WebGameHub
   
   // Check if someone reached the winning score
   if (playerScore >= winsNeeded) {

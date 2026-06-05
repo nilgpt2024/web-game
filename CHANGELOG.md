@@ -1,8 +1,8 @@
 # 📝 更新日志 | Changelog
 
-所有关于GameHub项目的重要更改都会记录在此文件中。
+所有关于WebGameHub项目的重要更改都会记录在此文件中。
 
-All notable changes to the GameHub project will be documented in this file.
+All notable changes to the WebGameHub project will be documented in this file.
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
@@ -148,9 +148,9 @@ Format: `MAJOR.MINOR.PATCH`
 
 ## 贡献者 | Contributors
 
-感谢所有为GameHub做出贡献的开发者！
+感谢所有为WebGameHub做出贡献的开发者！
 
-Thanks to all contributors who have helped improve GameHub!
+Thanks to all contributors who have helped improve WebGameHub!
 
 ### 核心团队 | Core Team
 - [@SinceraXY](https://github.com/SinceraXY) - 项目创建者和维护者 | Creator & Maintainer
@@ -190,9 +190,9 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 <div align="center">
 
-**🎮 GameHub - 让游戏更有趣！**
+**🎮 WebGameHub - 让游戏更有趣！**
 
-**GameHub - Make Gaming More Fun!**
+**WebGameHub - Make Gaming More Fun!**
 
 Made with ❤️ by [SinceraXY](https://github.com/SinceraXY)
 

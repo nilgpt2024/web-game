@@ -625,7 +625,7 @@ window.addEventListener("keydown", (event) => {
     move("right");
   }
 
-/* GameHub Project - https://github.com/nilgpt2024/web-game */
+/* WebGameHub Project - https://github.com/nilgpt2024/web-game */
 });
 
 function move(direction) {

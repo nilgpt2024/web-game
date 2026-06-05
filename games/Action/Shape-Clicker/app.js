@@ -250,7 +250,7 @@ function saveGameData() {
     localStorage.setItem('shapeClickerData', JSON.stringify(data));
   } catch (error) {
     console.error('保存数据失败:', error);
-// Project: GameHub
+// Project: WebGameHub
   }
 
 /* Created by SinceraXY */

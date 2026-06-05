@@ -16,7 +16,7 @@ const instructionsToggle = document.getElementById("instructions-toggle");
 const instructionsEl = document.getElementById("instructions");
 
 // ==================== 游戏数据 ====================
-// Project: GameHub
+// Project: WebGameHub
 const game = {
   targetNumber: null,
   attempts: 0,

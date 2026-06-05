@@ -1,6 +1,6 @@
 ---
 name: 🎮 Game Submission | 游戏提交
-about: Submit a new game to GameHub | 向GameHub提交新游戏
+about: Submit a new game to WebGameHub | 向WebGameHub提交新游戏
 title: '[GAME] '
 labels: game, enhancement
 assignees: ''

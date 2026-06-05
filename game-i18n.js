@@ -728,7 +728,7 @@ const GAME_TRANSLATIONS = {
 
 class GameI18n {
     constructor(options = {}) {
-        this.currentLang = localStorage.getItem('gamehub-lang') || this.detectLanguage();
+        this.currentLang = localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
         this.translations = GAME_TRANSLATIONS;
         this.availableLangs = ['zh-CN', 'en'];
         this.gameName = options.gameName || '';
@@ -761,7 +761,7 @@ class GameI18n {
         }
         
         this.currentLang = lang;
-        localStorage.setItem('gamehub-lang', lang);
+        localStorage.setItem('WebGameHub-lang', lang);
         this.render();
     }
 

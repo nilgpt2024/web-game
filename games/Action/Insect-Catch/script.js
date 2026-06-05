@@ -188,7 +188,7 @@ function updateTime() {
   const secs = gameState.seconds % 60;
   timeEl.textContent = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   
-// Project: GameHub
+// Project: WebGameHub
   // Increase difficulty over time
   if (gameState.seconds % 30 === 0) {
     gameState.difficulty += 0.1;

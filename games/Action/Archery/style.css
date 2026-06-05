@@ -244,7 +244,7 @@ svg#game #target {
     transform: translateX(-50%);
     display: flex;
     gap: 1rem;
-/* Project: GameHub */
+/* Project: WebGameHub */
     z-index: 90;
 }
 

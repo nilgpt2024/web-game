@@ -1,8 +1,8 @@
 # 🤝 贡献指南 | Contributing Guide
 
-感谢您对 GameHub 项目的关注！我们欢迎各种形式的贡献。
+感谢您对 WebGameHub 项目的关注！我们欢迎各种形式的贡献。
 
-Thank you for your interest in contributing to GameHub! We welcome all kinds of contributions.
+Thank you for your interest in contributing to WebGameHub! We welcome all kinds of contributions.
 
 **[中文](#中文) | [English](#english)**
 
@@ -42,8 +42,8 @@ Thank you for your interest in contributing to GameHub! We welcome all kinds of 
 
 #### Step 2: 克隆到本地
 ```bash
-git clone https://github.com/YOUR_USERNAME/GameHub.git
-cd GameHub
+git clone https://github.com/YOUR_USERNAME/WebGameHub.git
+cd WebGameHub
 ```
 
 #### Step 3: 创建新分支
@@ -177,7 +177,7 @@ CategoryName: [
 
 如有问题，可以通过以下方式联系：
 
-- GitHub Issues: [SinceraXY/GameHub/issues](https://github.com/nilgpt2024/web-game/issues)
+- GitHub Issues: [SinceraXY/WebGameHub/issues](https://github.com/nilgpt2024/web-game/issues)
 - Email: 2952671670@qq.com
 - QQ: 2952671670
 
@@ -217,8 +217,8 @@ Click the Fork button at the top right of the repository
 
 #### Step 2: Clone Locally
 ```bash
-git clone https://github.com/YOUR_USERNAME/GameHub.git
-cd GameHub
+git clone https://github.com/YOUR_USERNAME/WebGameHub.git
+cd WebGameHub
 ```
 
 #### Step 3: Create New Branch
@@ -352,7 +352,7 @@ Before submitting PR, ensure:
 
 For questions, contact via:
 
-- GitHub Issues: [SinceraXY/GameHub/issues](https://github.com/nilgpt2024/web-game/issues)
+- GitHub Issues: [SinceraXY/WebGameHub/issues](https://github.com/nilgpt2024/web-game/issues)
 - Email: 2952671670@qq.com
 - QQ: 2952671670
 
@@ -360,6 +360,6 @@ For questions, contact via:
 
 <div align="center">
 
-**Thank you for contributing to GameHub! 🎮**
+**Thank you for contributing to WebGameHub! 🎮**
 
 </div>

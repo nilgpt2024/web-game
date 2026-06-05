@@ -150,7 +150,7 @@ function make_bird_slow_and_fall() {
   
   // 检查是否飞出顶部
   if (bird.y < 0 - bird.MyImg.height) {
-// Project: GameHub
+// Project: WebGameHub
     bird.velocity_y = 0;
     if (game_mode !== "over") {
       final_score = calculateScore(); // 锁定最终分数

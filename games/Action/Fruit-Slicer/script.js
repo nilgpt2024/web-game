@@ -105,7 +105,7 @@ function handleStartResetClick() {
     startGame();
   }
 
-/* GameHub Project - https://github.com/nilgpt2024/web-game */
+/* WebGameHub Project - https://github.com/nilgpt2024/web-game */
 }
 
 /**

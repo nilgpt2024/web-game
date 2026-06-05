@@ -368,7 +368,7 @@ function updateProgress() {
   progressFillEl.style.width = progress + "%";
 }
 
-/* Project: GameHub */
+/* Project: WebGameHub */
 // ==================== 统计功能 ====================
 /**
  * 加载统计数据

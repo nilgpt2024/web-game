@@ -2,7 +2,7 @@
 # This file is used to verify ownership of this site for Google AdSense
 # Learn more: https://support.google.com/adsense/answer/92527
 
-google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+google.com, pub-7457140883364636, DIRECT, f08c47fec0942fa0
 
 # Note: Replace pub-0000000000000000 with your actual publisher ID
 # You can find your publisher ID in your Google AdSense account

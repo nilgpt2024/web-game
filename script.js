@@ -92,7 +92,7 @@ function initializeApp() {
     setupScrollReveal();
     setupNavbarScroll();
     
-    console.log('%c🎮 GameHub v2.0', 'font-size: 20px; font-weight: bold; color: #0d9488;');
+    console.log('%c🎮 WebGameHub v2.0', 'font-size: 20px; font-weight: bold; color: #0d9488;');
     console.log(`%c${window.i18n?.t('hero.stats.games') || 'Total games'}: ${allGames.length}`, 'color: #ea580c;');
 }
 

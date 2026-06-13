@@ -13,10 +13,10 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie设置"
         },
         "hero": {
-            "eyebrow": "54款游戏 · 免费畅玩",
-            "title": "54款精品小游戏",
+            "eyebrow": "53款游戏 · 免费畅玩",
+            "title": "53款精品小游戏",
             "subtitle": "随时随地，畅玩无限",
-            "description": "从经典街机到创新益智，从动作冒险到休闲放松，精选54款HTML5游戏，无需下载，即刻畅玩。",
+            "description": "从经典街机到创新益智，从动作冒险到休闲放松，精选53款HTML5游戏，无需下载，即刻畅玩。",
             "stats": {
                 "games": "游戏总数",
                 "categories": "游戏分类",
@@ -169,7 +169,7 @@ const TRANSLATIONS = {
             "casual": "休闲娱乐"
         },
         "footer": {
-            "description": "42款精品HTML5游戏，随时随地畅玩无限",
+            "description": "53款精品HTML5游戏，随时随地畅玩无限",
             "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "回到顶部",
@@ -208,10 +208,10 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie Settings"
         },
         "hero": {
-            "eyebrow": "54 Games · Free to Play",
-            "title": "54 Premium Games",
+            "eyebrow": "53 Games · Free to Play",
+            "title": "53 Premium Games",
             "subtitle": "Play Anywhere, Anytime",
-            "description": "From classic arcade to innovative puzzles, from action adventures to casual relaxation, curated 42 HTML5 games, no download required, play instantly.",
+            "description": "From classic arcade to innovative puzzles, from action adventures to casual relaxation, curated 53 HTML5 games, no download required, play instantly.",
             "stats": {
                 "games": "Total Games",
                 "categories": "Categories",
@@ -364,7 +364,7 @@ const TRANSLATIONS = {
             "casual": "Casual"
         },
         "footer": {
-            "description": "54 Premium HTML5 Games, Play Anywhere, Anytime",
+            "description": "53 Premium HTML5 Games, Play Anywhere, Anytime",
             "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "Back to Top",

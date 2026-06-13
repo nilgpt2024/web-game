@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "cli-hub-meta-skill": {
+      "source": "HKUDS/CLI-Anything",
+      "sourceType": "github",
+      "skillPath": "cli-hub-meta-skill/SKILL.md",
+      "computedHash": "2cc7740641fd08a3270676c91f3d2e85139869aa70977ec4bc3d16cdac26d547"
+    }
+  }
+}

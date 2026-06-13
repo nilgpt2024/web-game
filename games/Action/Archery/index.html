@@ -56,7 +56,7 @@
                 <div class="stat-item">
                     <i class="fas fa-trophy"></i>
                     <div class="stat-info">
-                        <span class="stat-label">得分</span>
+                        <span class="stat-label" data-i18n="specific.Archery.score">得分</span>
                         <span class="stat-value" id="score">0</span>
                     </div>
                 </div>
@@ -80,7 +80,7 @@
                 <div class="stat-item">
                     <i class="fas fa-percentage"></i>
                     <div class="stat-info">
-                        <span class="stat-label">命中率</span>
+                        <span class="stat-label" data-i18n="specific.Archery.accuracy">命中率</span>
                         <span class="stat-value" id="accuracy">0%</span>
                     </div>
                 </div>
@@ -95,12 +95,12 @@
             <i class="fas fa-question-circle"></i>
         </div>
         <div class="instruction-panel" id="instructionPanel">
-            <h3><i class="fas fa-gamepad"></i> 游戏说明</h3>
+            <h3><i class="fas fa-gamepad"></i> <span data-i18n="specific.Archery.instructionsTitle"></span>游戏说明</span></h3>
             <ul>
-                <li><i class="fas fa-mouse-pointer"></i> 按住鼠标左键拉弓</li>
-                <li><i class="fas fa-hand-pointer"></i> 移动鼠标调整角度和力度</li>
-                <li><i class="fas fa-bullseye"></i> 松开鼠标发射箭矢</li>
-                <li><i class="fas fa-star"></i> 靶心得10分，命中得5分</li>
+                <li><i class="fas fa-mouse-pointer"></i> <span data-i18n="specific.Archery.rule1">按住鼠标左键拉弓</span></li>
+                <li><i class="fas fa-hand-pointer"></i> <span data-i18n="specific.Archery.rule2">移动鼠标调整角度和力度</span></li>
+                <li><i class="fas fa-bullseye"></i> <span data-i18n="specific.Archery.rule3">松开鼠标发射箭矢</span></li>
+                <li><i class="fas fa-star"></i> <span data-i18n="specific.Archery.rule4">靶心得10分，命中得5分</span></li>
             </ul>
         </div>
     </div>
@@ -171,11 +171,11 @@
     <div class="game-controls">
         <button class="control-btn" id="resetBtn">
             <i class="fas fa-redo"></i>
-            <span>重新开始</span>
+            <span data-i18n="specific.Archery.restart">重新开始</span>
         </button>
         <button class="control-btn" id="clearBtn">
             <i class="fas fa-eraser"></i>
-            <span>清除箭矢</span>
+            <span data-i18n="specific.Archery.clearArrows">清除箭矢</span>
         </button>
     </div>
 

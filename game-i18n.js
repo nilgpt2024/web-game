@@ -359,6 +359,21 @@ const GAME_TRANSLATIONS = {
                 maxComboLabel: '最大连击',
                 newRecordText: '新纪录！',
                 playAgain: '再玩一次'
+            },
+            'Archery': {
+                title: 'Archery Game',
+                score: '得分',
+                bullseyes: '靶心',
+                shots: '射击',
+                accuracy: '命中率',
+                instructionsTitle: '游戏说明',
+                rule1: '按住鼠标左键拉弓',
+                rule2: '移动鼠标调整角度和力度',
+                rule3: '松开鼠标发射箭矢',
+                rule4: '靶心得10分，命中得5分',
+                hint: '按住鼠标拉弓，松开发射！',
+                restart: '重新开始',
+                clearArrows: '清除箭矢'
             }
         }
     },
@@ -721,6 +736,21 @@ const GAME_TRANSLATIONS = {
                 maxComboLabel: 'Max Combo',
                 newRecordText: 'New Record!',
                 playAgain: 'Play Again'
+            },
+            'Archery': {
+                title: 'Archery Game',
+                score: 'Score',
+                bullseyes: 'Bullseyes',
+                shots: 'Shots',
+                accuracy: 'Accuracy',
+                instructionsTitle: 'How to Play',
+                rule1: 'Hold mouse button to draw bow',
+                rule2: 'Move mouse to adjust angle and power',
+                rule3: 'Release mouse to shoot arrow',
+                rule4: 'Bullseye = 10 pts, Hit = 5 pts',
+                hint: 'Hold mouse to draw, release to shoot!',
+                restart: 'Restart',
+                clearArrows: 'Clear Arrows'
             }
         }
     }

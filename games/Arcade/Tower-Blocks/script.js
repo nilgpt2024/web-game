@@ -291,19 +291,21 @@ var Game = /** @class */ (function () {
         _this.onAction();
       }
     });
-    document.addEventListener("click", function (e) {
-      // Don't trigger game action if clicking on header buttons or rules
-      if (!e.target.closest(".game-header") && !e.target.closest(".rules")) {
+    var touchFired = false;
+    document.addEventListener("touchstart", function (e) {
+      if (!e.target.closest(".rules") && !e.target.closest(".game-nav-fixed")) {
+        touchFired = true;
         _this.onAction();
       }
     });
-    document.addEventListener("touchstart", function (e) {
-      if (!e.target.closest(".rules") && !e.target.closest(".game-header")) {
-        e.preventDefault();
+    document.addEventListener("click", function (e) {
+      if (touchFired) {
+        touchFired = false;
+        return;
+      }
+      if (!e.target.closest(".game-nav-fixed") && !e.target.closest(".rules")) {
         _this.onAction();
       }
-
-/* Developer: SinceraXY */
     });
     
     // UI Event Listeners

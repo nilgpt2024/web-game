@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f0f1a" />
+    <title>说服大师 3D - 从零到领袖</title>
+  </head>
+  <body>
+    <main id="app">
+      <canvas id="game-canvas" aria-label="说服大师3D游戏画布"></canvas>
+
+      <!-- Title Screen -->
+      <div id="title-screen" class="overlay">
+        <div class="title-content">
+          <div class="title-icon">🏗️</div>
+          <h1 class="title-main">从零到领袖</h1>
+          <p class="title-sub">3D 说服力人生模拟</p>
+          <div class="title-story">
+            从一间书房开始 —<br>
+            学习7个说服原理 → 打工磨练 → 抓住机遇 → 创立公司 → 成为行业领袖
+          </div>
+          <button id="start-btn" class="btn-primary">开始你的人生</button>
+        </div>
+      </div>
+
+      <!-- HUD -->
+      <section id="hud" aria-live="polite">
+        <div class="hud-top">
+          <div class="hud-left">
+            <span class="hud-phase" id="phase-badge">📚 学习</span>
+            <span class="hud-day">第 <span id="day-num">0</span> 天</span>
+          </div>
+          <div class="hud-right">
+            <span class="hud-stat">💰 <strong id="stat-money">0</strong></span>
+            <span class="hud-stat">⭐ <strong id="stat-rep">0</strong></span>
+          </div>
+        </div>
+        <div id="status-line">探索场景，点击原理光球学习</div>
+      </section>
+
+      <!-- Choice Panel (3D交互弹窗) -->
+      <div id="choice-panel" class="hidden">
+        <div class="choice-backdrop"></div>
+        <div class="choice-card">
+          <div class="cc-icon" id="cc-icon">📖</div>
+          <div class="cc-title" id="cc-title">标题</div>
+          <div class="cc-desc" id="cc-desc">描述</div>
+          <div class="cc-buttons" id="cc-buttons"></div>
+        </div>
+      </div>
+
+      <!-- Result Toast -->
+      <div id="result-toast" class="hidden">
+        <span id="rt-icon">✅</span>
+        <span id="rt-text">成功</span>
+      </div>
+
+      <!-- Touch Controls -->
+      <div id="touch-controls" aria-hidden="true">
+        <div id="touch-stick"><div id="touch-knob"></div></div>
+        <button id="dash-button" type="button">Dash</button>
+      </div>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

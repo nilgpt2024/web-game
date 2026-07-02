@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="说服大师 - 从学技能到成为行业领袖">
+  <title>说服大师 - 从零到领袖</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <link rel="stylesheet" href="../../game-shared.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN"><span class="lang-flag">🇨🇳</span><span class="lang-text">中文</span></button>
+        <button class="lang-btn" data-lang="en"><span class="lang-flag">🇺🇸</span><span class="lang-text">EN</span></button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="game-container" id="app">
+    <div id="title-screen" class="screen active">
+      <div class="title-bg"></div>
+      <div class="title-content">
+        <div class="title-icon">🏗️</div>
+        <h1 class="title-main">从零到领袖</h1>
+        <p class="title-sub">一条完整的人生成长之路</p>
+        <div class="title-story">
+          <strong>你不是天生的说服大师。</strong><br><br>
+          你从零开始 ——<br>
+          📚 先<strong>学习</strong>七个说服原理<br>
+          💼 然后去<strong>打工</strong>，在实践中磨练<br>
+          💡 等待<strong>机遇</strong>降临，抓住它<br>
+          🏢 拿到<strong>第一桶金</strong>，创办自己的公司<br>
+          👑 最终成为行业<strong>领袖</strong>
+        </div>
+        <button id="start-btn" class="btn-primary btn-glow">开始你的人生</button>
+      </div>
+    </div>
+
+    <div id="game-screen" class="screen">
+      <div class="top-bar">
+        <div class="top-left">
+          <div class="day-display">第 <span id="day-num">0</span> 天</div>
+          <span id="phase-badge" class="phase-badge">📚 学习</span>
+        </div>
+        <div class="top-stats">
+          <div class="ms"><span>💰</span><span id="stat-money">0</span></div>
+          <div class="ms"><span>⭐</span><span id="stat-rep">0</span></div>
+        </div>
+      </div>
+
+      <div id="phase-content" class="phase-content"></div>
+
+      <div class="bottom-row">
+        <div class="log-area" id="log-area">
+          <div class="log-line log-info">点击「从零开始」开启你的人生。</div>
+        </div>
+        <div class="side-panel" id="side-panel"></div>
+      </div>
+    </div>
+
+    <div id="result-modal" class="modal">
+      <div class="modal-content" style="text-align:center;">
+        <div class="modal-icon" id="rm-icon" style="font-size:3rem;">✅</div>
+        <h3 id="rm-title" style="color:var(--text);font-size:1.2rem;margin-bottom:6px;">成功</h3>
+        <p id="rm-text" style="font-size:.85rem;color:var(--text-dim);line-height:1.5;margin-bottom:14px;"></p>
+        <button id="rm-btn" class="start-btn">继续</button>
+      </div>
+    </div>
+
+    <div id="milestone-modal" class="modal">
+      <div class="modal-content" style="text-align:center;">
+        <div class="modal-icon" style="font-size:3rem;">🎉</div>
+        <h3 id="ms-title" style="color:var(--text);font-size:1.2rem;margin-bottom:6px;">里程碑</h3>
+        <p id="ms-text" style="font-size:.85rem;color:var(--text-dim);line-height:1.5;margin-bottom:14px;"></p>
+        <button id="ms-btn" class="start-btn">继续</button>
+      </div>
+    </div>
+  </div>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

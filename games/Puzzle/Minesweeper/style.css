@@ -32,59 +32,55 @@ body {
     overflow-x: hidden;
 }
 
-/* ==================== Header ==================== */
-.game-header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1.5rem 2rem;
-    box-shadow: var(--shadow-sm);
+/* ==================== Merged Header & Nav ==================== */
+.game-nav-fixed {
+    height: 70px;
+    padding: 12px 24px;
 }
 
-.header-content {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.game-title {
+.game-nav-fixed .game-title {
     font-family: 'Fredoka One', cursive;
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-size: 1.5rem;
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.6rem;
+    margin: 0;
 }
 
-.game-title i {
+.game-nav-fixed .game-title i {
     color: #667eea;
-    font-size: 2.5rem;
+    font-size: 1.8rem;
 }
 
-.rules-btn {
+.game-nav-fixed .nav-right {
+    gap: 16px;
+}
+
+.game-nav-fixed .rules-btn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.8rem 1.5rem;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
     background: var(--primary-gradient);
     color: white;
     border: none;
     border-radius: 50px;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     font-family: 'Poppins', sans-serif;
 }
 
-.rules-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
+.game-nav-fixed .rules-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stats-panel {
+    margin-top: 90px !important;
 }
 
 /* ==================== Stats Panel ==================== */
@@ -512,16 +508,32 @@ body {
 
 /* ==================== Responsive Design ==================== */
 @media (max-width: 768px) {
-    .game-header {
-        padding: 1rem;
+    .game-nav-fixed {
+        padding: 10px 12px;
+        height: auto;
+        min-height: 60px;
+        gap: 12px;
     }
     
-    .header-content {
-        flex-direction: column;
-        align-items: flex-start;
+    .game-nav-fixed .game-title {
+        font-size: 1.1rem;
+    }
+    
+    .game-nav-fixed .game-title i {
+        font-size: 1.3rem;
+    }
+    
+    .game-nav-fixed .rules-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.8rem;
+    }
+    
+    .game-nav-fixed .back-btn span {
+        display: none;
     }
     
     .stats-panel {
+        margin-top: 80px !important;
         grid-template-columns: 1fr;
         gap: 1rem;
         padding: 0 1rem;

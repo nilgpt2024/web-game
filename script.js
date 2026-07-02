@@ -9,7 +9,8 @@ const gamesData = {
         { name: 'Sudoku', path: 'games/Puzzle/Sudoku/index.html', icon: 'fas fa-table-cells', desc: '数独逻辑游戏' },
         { name: 'Tilting Maze', path: 'games/Puzzle/Tilting-Maze/index.html', icon: 'fas fa-compass', desc: '重力迷宫' },
         { name: 'Sokoban', path: 'games/Puzzle/Sokoban/index.html', icon: 'fas fa-box', desc: '3D推箱子解谜' },
-        { name: 'Tangram', path: 'games/Puzzle/Tangram/index.html', icon: 'fas fa-shapes', desc: '七巧板拼图' }
+        { name: 'Tangram', path: 'games/Puzzle/Tangram/index.html', icon: 'fas fa-shapes', desc: '七巧板拼图' },
+        { name: 'Cialdini-Persuasion-Lab', path: 'games/Puzzle/Cialdini-Persuasion-Lab/index.html', icon: 'fas fa-brain', desc: '西奥迪尼影响力原理说服力训练' }
     ],
     Action: [
         { name: 'Archery', path: 'games/Action/Archery/index.html', icon: 'fas fa-bullseye', desc: '射箭竞技' },

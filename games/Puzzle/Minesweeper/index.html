@@ -23,15 +23,21 @@
 </head>
 <body>
   
-  <!-- Navigation -->
+  <!-- Navigation / Header -->
   <nav class="game-nav-fixed">
-<!-- Navigation -->
-  
     <a href="../../../index.html" class="back-btn">
       <i class="fas fa-arrow-left"></i>
       <span data-i18n="common.backToHub">返回游戏大厅</span>
     </a>
+    <h1 class="game-title">
+      <i class="fas fa-bomb"></i>
+      Minesweeper Game
+    </h1>
     <div class="nav-right">
+      <button id="rules-btn" class="rules-btn">
+        <i class="fas fa-question-circle"></i>
+        <span>游戏规则</span>
+      </button>
       <div class="lang-switcher">
         <button class="lang-btn active" data-lang="zh-CN" title="中文">
           <span class="lang-flag">🇨🇳</span>
@@ -43,22 +49,7 @@
         </button>
       </div>
     </div>
-    </nav>
-
-    <!-- Game Header -->
-    <header class="game-header">
-        <div class="header-content">
-            <h1 class="game-title">
-                <i class="fas fa-bomb"></i>
-<!-- GitHub: https://github.com/nilgpt2024/web-game -->
-                Minesweeper Game
-            </h1>
-            <button id="rules-btn" class="rules-btn">
-                <i class="fas fa-question-circle"></i>
-                <span>游戏规则</span>
-            </button>
-        </div>
-    </header>
+  </nav>
 
     <!-- Game Stats Panel -->
     <div class="stats-panel">

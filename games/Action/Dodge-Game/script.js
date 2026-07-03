@@ -270,7 +270,7 @@
   function drawObstacle(obs) {
     ctx.save();
 
-    const progress = Math.min(1, (obs.y - HORIZON_Y) / (GROUND_Y - HORIZON_Y));
+    const progress = Math.max(0, Math.min(1, (obs.y - HORIZON_Y) / (GROUND_Y - HORIZON_Y)));
     obs.scale = 0.25 + progress * 0.75;
     obs.alpha = 0.3 + progress * 0.7;
 
@@ -563,11 +563,16 @@
     return Math.max(25, 70 - level * 4);
   }
 
-  setInterval(() => {
-    if (gameState === 'playing' && obstacles.length < 8 + level) {
-      obstacles.push(createObstacle());
-    }
-  }, getSpawnInterval());
+  function scheduleSpawn() {
+    setTimeout(() => {
+      if (gameState === 'playing' && obstacles.length < 8 + level) {
+        obstacles.push(createObstacle());
+      }
+      scheduleSpawn();
+    }, getSpawnInterval());
+  }
+
+  scheduleSpawn();
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;

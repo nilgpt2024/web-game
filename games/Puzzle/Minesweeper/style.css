@@ -34,53 +34,76 @@ body {
 
 /* ==================== Merged Header & Nav ==================== */
 .game-nav-fixed {
-    height: 70px;
-    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 64px;
+    padding: 10px 24px;
+    gap: 16px;
+}
+
+.game-nav-fixed .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.game-nav-fixed .back-btn {
+    flex-shrink: 0;
 }
 
 .game-nav-fixed .game-title {
     font-family: 'Fredoka One', cursive;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .game-nav-fixed .game-title i {
     color: #667eea;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
+    flex-shrink: 0;
 }
 
 .game-nav-fixed .nav-right {
-    gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
 }
 
 .game-nav-fixed .rules-btn {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.6rem 1rem;
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
+    gap: 0.35rem;
+    padding: 0.5rem 0.9rem;
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    border: 1px solid rgba(102, 126, 234, 0.2);
     border-radius: 50px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-    box-shadow: var(--shadow-sm);
     font-family: 'Poppins', sans-serif;
 }
 
 .game-nav-fixed .rules-btn:hover {
+    background: #667eea;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    border-color: #667eea;
 }
 
 .stats-panel {
-    margin-top: 90px !important;
+    margin-top: 84px !important;
 }
 
 /* ==================== Stats Panel ==================== */
@@ -511,21 +534,25 @@ body {
     .game-nav-fixed {
         padding: 10px 12px;
         height: auto;
-        min-height: 60px;
-        gap: 12px;
+        min-height: 56px;
+        gap: 8px;
     }
     
     .game-nav-fixed .game-title {
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
     
     .game-nav-fixed .game-title i {
-        font-size: 1.3rem;
+        font-size: 1.2rem;
     }
     
     .game-nav-fixed .rules-btn {
-        padding: 0.5rem 0.8rem;
-        font-size: 0.8rem;
+        padding: 0.45rem 0.7rem;
+        font-size: 0.75rem;
+    }
+    
+    .game-nav-fixed .rules-btn span {
+        display: none;
     }
     
     .game-nav-fixed .back-btn span {
@@ -533,7 +560,7 @@ body {
     }
     
     .stats-panel {
-        margin-top: 80px !important;
+        margin-top: 72px !important;
         grid-template-columns: 1fr;
         gap: 1rem;
         padding: 0 1rem;

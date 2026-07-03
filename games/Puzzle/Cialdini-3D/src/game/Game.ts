@@ -261,6 +261,13 @@ export class Game {
     const ndc = this.input.consumeClick();
     if (!ndc || !this.interactable) return;
 
+    // Prefer hovered orb (center-screen raycast, updated each frame)
+    if (this.hoveredOrb) {
+      this.openChallenge(this.hoveredOrb);
+      return;
+    }
+
+    // Fallback: click-to-raycast on orbs
     this.raycaster.setFromCamera(ndc, this.camera);
     const targets = this.orbs.map(o => o.core);
     const hits = this.raycaster.intersectObjects(targets);
@@ -269,12 +276,6 @@ export class Game {
     const hitObj = hits[0].object;
     const orb = this.orbs.find(o => o.core === hitObj);
     if (!orb) return;
-
-    const dist = orb.getPosition().distanceTo(this.player.group.position);
-    if (dist > ORB_INTERACT_DIST) {
-      this.setStatus('靠近一些再点击光球');
-      return;
-    }
 
     this.openChallenge(orb);
   }

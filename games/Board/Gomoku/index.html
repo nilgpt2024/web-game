@@ -172,6 +172,41 @@
     </div>
     </nav>
 
+  <!-- 面包屑导航 -->
+  <nav class="breadcrumb" aria-label="面包屑导航">
+    <a href="../../../index.html">首页</a>
+    <span class="separator">›</span>
+    <a href="../../../board-games.html">棋牌游戏</a>
+    <span class="separator">›</span>
+    <span class="current">Gomoku</span>
+  </nav>
+  
+  <style>
+    .breadcrumb {
+      padding: 80px 20px 10px;
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    .breadcrumb a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    .breadcrumb .separator {
+      margin: 0 8px;
+      color: var(--text-muted);
+    }
+    .breadcrumb .current {
+      color: var(--text);
+      font-weight: 500;
+    }
+  </style>
+
+
 
   <!-- Game Header -->
   <header class="game-header">

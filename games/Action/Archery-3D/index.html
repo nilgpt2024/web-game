@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description" content="骑马与砍杀 - 3D马上战场混战，骑射与挥砍，击败敌方将领！" />
+  <title>骑马与砍杀 | Mount & Blade | WebGameHub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="title" content="骑马与砍杀 | Mount & Blade | WebGameHub">
+  <meta name="keywords" content="骑马与砍杀 | Mount & Blade,动作游戏,在线游戏,免费游戏,HTML5游戏">
+  <meta name="author" content="SinceraXY">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="Chinese">
+  <link rel="canonical" href="https://game.suipce.com/games/Action/Archery-3D/index.html">
+  
+  <!-- Open Graph 社交分享 -->
+  <meta property="og:type" content="game">
+  <meta property="og:url" content="https://game.suipce.com/games/Action/Archery-3D/index.html">
+  <meta property="og:title" content="骑马与砍杀 | Mount & Blade">
+  <meta property="og:description" content="骑马与砍杀 - 3D马上战场混战，骑射与挥砍，击败敌方将领！">
+  <meta property="og:site_name" content="WebGameHub">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:image" content="https://game.suipce.com/og-image.png">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://game.suipce.com/games/Action/Archery-3D/index.html">
+  <meta name="twitter:title" content="骑马与砍杀 | Mount & Blade">
+  <meta name="twitter:description" content="骑马与砍杀 - 3D马上战场混战，骑射与挥砍，击败敌方将领！">
+  <meta name="twitter:image" content="https://game.suipce.com/og-image.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+
+  <!-- JSON-LD 结构化数据 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "VideoGame",
+        "name": "骑马与砍杀 | Mount & Blade",
+        "description": "骑马与砍杀 - 3D马上战场混战，骑射与挥砍，击败敌方将领！",
+        "url": "https://game.suipce.com/games/Action/Archery-3D/index.html",
+        "genre": "动作游戏",
+        "gamePlatform": "Web浏览器",
+        "operatingSystem": "Any",
+        "applicationCategory": "GameApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "CNY"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "SinceraXY"
+        },
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "WebGameHub",
+          "url": "https://game.suipce.com/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "首页", "item": "https://game.suipce.com/" },
+          { "@type": "ListItem", "position": 2, "name": "动作游戏", "item": "https://game.suipce.com/#games" },
+          { "@type": "ListItem", "position": 3, "name": "骑马与砍杀 | Mount & Blade", "item": "https://game.suipce.com/games/Action/Archery-3D/index.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+</head>
+<body>
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Crosshair -->
+    <div id="crosshair" class="crosshair">
+      <div class="crosshair-dot"></div>
+      <div class="crosshair-ring"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="game-nav-fixed">
+      <a id="back-btn" class="back-btn" href="../../index.html">
+        <i class="fas fa-arrow-left"></i>
+        <span data-i18n="common.backToHub">返回游戏大厅</span>
+      </a>
+      <div class="nav-right">
+        <div class="lang-switcher">
+          <button class="lang-btn active" data-lang="zh-CN" title="中文">
+            <span class="lang-flag">🇨🇳</span>
+            <span class="lang-text">中文</span>
+          </button>
+          <button class="lang-btn" data-lang="en" title="English">
+            <span class="lang-flag">🇺🇸</span>
+            <span class="lang-text">EN</span>
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HUD -->
+    <div id="hud" class="hud">
+      <div class="hud-panel">
+        <div class="hud-item hp-item">
+          <i class="fas fa-heart"></i>
+          <div>
+            <span class="hud-label" data-i18n="specific.MountBlade.hp">生命值</span>
+            <div class="hp-bar">
+              <div id="hp-fill" class="hp-fill"></div>
+            </div>
+            <span id="hp-text" class="hud-value">150/150</span>
+          </div>
+        </div>
+        <div class="hud-item">
+          <i class="fas fa-skull"></i>
+          <div>
+            <span class="hud-label" data-i18n="specific.MountBlade.kills">击杀</span>
+            <span id="kills" class="hud-value">0</span>
+          </div>
+        </div>
+        <div class="hud-item">
+          <i class="fas fa-khanda"></i>
+          <div>
+            <span class="hud-label" data-i18n="specific.MountBlade.weapon">武器</span>
+            <span id="weapon" class="hud-value">弓</span>
+          </div>
+        </div>
+        <div class="hud-item">
+          <i class="fas fa-users"></i>
+          <div>
+            <span class="hud-label" data-i18n="specific.MountBlade.allies">友军</span>
+            <span id="allies" class="hud-value">0</span>
+          </div>
+        </div>
+        <div class="hud-item">
+          <i class="fas fa-user-slash"></i>
+          <div>
+            <span class="hud-label" data-i18n="specific.MountBlade.enemies">敌军</span>
+            <span id="enemies" class="hud-value">0</span>
+          </div>
+        </div>
+        <div class="hud-item leader-item">
+          <i class="fas fa-crown"></i>
+          <div>
+            <span id="leader-hp" class="hud-label" data-i18n="specific.MountBlade.leader">敌方将领</span>
+            <div class="leader-bar">
+              <div id="leader-hp-fill" class="leader-hp-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weapon switch hint -->
+    <div class="weapon-hint">
+      <span class="key">1</span> <span data-i18n="specific.MountBlade.bow">弓</span>
+      <span class="sep">|</span>
+      <span class="key">2</span> <span data-i18n="specific.MountBlade.sword">剑</span>
+    </div>
+
+    <!-- Message overlay -->
+    <div id="message" class="message hidden"></div>
+
+    <!-- Instructions overlay -->
+    <div id="instructions" class="overlay">
+      <div class="overlay-content">
+        <div class="overlay-icon">⚔️</div>
+        <h1 data-i18n="specific.MountBlade.title">骑马与砍杀</h1>
+        <p class="overlay-subtitle" data-i18n="specific.MountBlade.hint">骑上马背，拉弓挥剑，击败敌方将领！</p>
+        <ul class="overlay-rules">
+          <li><i class="fas fa-keyboard"></i> <span data-i18n="specific.MountBlade.rule1"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 控制马匹移动，<kbd>Shift</kbd> 冲刺</span></li>
+          <li><i class="fas fa-mouse"></i> <span data-i18n="specific.MountBlade.rule2">移动鼠标瞄准，左键拉弓/挥剑</span></li>
+          <li><i class="fas fa-exchange-alt"></i> <span data-i18n="specific.MountBlade.rule3">按 <kbd>1</kbd>/<kbd>2</kbd> 切换弓与剑</span></li>
+          <li><i class="fas fa-crown"></i> <span data-i18n="specific.MountBlade.rule4">击败敌方将领即可获胜</span></li>
+          <li class="mobile-rule"><i class="fas fa-mobile-alt"></i> <span data-i18n="specific.MountBlade.rule5">移动端：左侧摇杆控制马头方向，镜头自动跟随，按钮射击/挥砍；滑动右侧可临时转视角</span></li>
+        </ul>
+        <button id="start-btn" class="btn-primary">
+          <span data-i18n="common.start">开始</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Game over overlay -->
+    <div id="game-over" class="overlay hidden">
+      <div class="overlay-content">
+        <div class="overlay-icon" id="result-icon">🏆</div>
+        <h1 id="result-title" data-i18n="specific.MountBlade.victory">胜利！</h1>
+        <p id="result-desc" class="overlay-subtitle" data-i18n="specific.MountBlade.winDesc">敌方将领已被击败！</p>
+        <div class="game-controls">
+          <button id="restart-btn" class="control-btn">
+            <i class="fas fa-redo"></i>
+            <span data-i18n="common.restart">重新开始</span>
+          </button>
+          <a id="menu-restart-btn" class="control-btn" href="../../index.html">
+            <i class="fas fa-arrow-left"></i>
+            <span data-i18n="common.backToHub">返回大厅</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Forward direction HUD arrow -->
+    <div id="forward-hud-arrow" class="forward-hud-arrow hidden">
+      <i class="fas fa-chevron-up"></i>
+    </div>
+
+    <!-- Touch controls -->
+    <div id="touch-controls" class="touch-controls hidden">
+      <div id="joystick" class="joystick">
+        <div class="joystick-ring"></div>
+        <div id="joystick-knob" class="joystick-knob"></div>
+      </div>
+      <div id="look-area" class="look-area"></div>
+      <div class="action-buttons">
+        <div class="mobile-weapon-hint">
+          <i class="fas fa-khanda"></i>
+          <span data-i18n="specific.MountBlade.mobileWeapon">当前武器</span>:
+          <span id="mobile-weapon-name" data-i18n="specific.MountBlade.bow">弓</span>
+        </div>
+        <button id="btn-camera" class="touch-btn camera" type="button" title="镜头回正">
+          <i class="fas fa-video"></i>
+        </button>
+        <button id="btn-sprint" class="touch-btn sprint" type="button" data-i18n="specific.MountBlade.sprint">冲刺</button>
+        <button id="btn-weapon" class="touch-btn weapon" type="button" data-i18n="specific.MountBlade.bow">弓</button>
+        <button id="btn-attack" class="touch-btn attack" type="button" data-i18n="specific.MountBlade.attack">射击</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+
+  <script>
+    // 动态计算返回大厅与国际化脚本的路径（兼容 dev 入口与 dist 产物）
+    (function () {
+      const backBtn = document.getElementById('back-btn');
+      const menuRestartBtn = document.getElementById('menu-restart-btn');
+      const inDist = location.pathname.includes('/dist/');
+      const depth = inDist ? 4 : 3;
+      const hubPath = Array(depth).fill('..').join('/') + '/index.html';
+      if (backBtn) backBtn.href = hubPath;
+      if (menuRestartBtn) menuRestartBtn.href = hubPath;
+
+      const i18nScript = document.createElement('script');
+      i18nScript.src = Array(depth).fill('..').join('/') + '/game-i18n.js';
+      i18nScript.onload = function () {
+        if (typeof GameI18n !== 'undefined') {
+          const gameI18n = new GameI18n();
+          gameI18n.init();
+        }
+      };
+      document.body.appendChild(i18nScript);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "gameId": "ink-raiders",
+  "displayName": "墨水突击 Ink Raiders",
+  "version": "1.0.0",
+  "roundTime": 60,
+  "arena": {
+    "halfWidth": 12,
+    "halfDepth": 12
+  },
+  "player": {
+    "speed": 6.4,
+    "dashMultiplier": 1.6,
+    "acceleration": 14,
+    "fireCooldown": 0.16
+  },
+  "camera": {
+    "lag": 0.14,
+    "exposure": 1.1,
+    "maxDpr": 2
+  },
+  "combat": {
+    "targetCount": 7,
+    "comboWindowSeconds": 2.4,
+    "killScore": 120,
+    "coverageScorePerPercent": 10
+  },
+  "ink": {
+    "colors": ["#818cf8", "#f472b6", "#22d3ee", "#a3e635", "#fb923c", "#e879f9"],
+    "splatRadius": 30,
+    "killSplatRadius": 46
+  }
+}

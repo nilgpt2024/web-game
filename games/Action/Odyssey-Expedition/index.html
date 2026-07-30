@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1622">
+  <title>奥德赛远征 - Odyssey Expedition | WebGameHub</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>⛵</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Pirata+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../game-shared.css">
+  <link rel="stylesheet" href="style.css">
+  <meta name="title" content="奥德赛远征 - Odyssey Expedition | WebGameHub">
+  <meta name="keywords" content="奥德赛远征 - Odyssey Expedition,动作游戏,在线游戏,免费游戏,HTML5游戏">
+  <meta name="author" content="SinceraXY">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="Chinese">
+  <link rel="canonical" href="https://game.suipce.com/games/Action/Odyssey-Expedition/index.html">
+  
+  <!-- Open Graph 社交分享 -->
+  <meta property="og:type" content="game">
+  <meta property="og:url" content="https://game.suipce.com/games/Action/Odyssey-Expedition/index.html">
+  <meta property="og:title" content="奥德赛远征 - Odyssey Expedition">
+  <meta property="og:description" content="在线玩奥德赛远征 - Odyssey Expedition游戏">
+  <meta property="og:site_name" content="WebGameHub">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:image" content="https://game.suipce.com/og-image.png">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://game.suipce.com/games/Action/Odyssey-Expedition/index.html">
+  <meta name="twitter:title" content="奥德赛远征 - Odyssey Expedition">
+  <meta name="twitter:description" content="在线玩奥德赛远征 - Odyssey Expedition游戏">
+  <meta name="twitter:image" content="https://game.suipce.com/og-image.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+
+  <!-- JSON-LD 结构化数据 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "VideoGame",
+        "name": "奥德赛远征 - Odyssey Expedition",
+        "description": "在线玩奥德赛远征 - Odyssey Expedition游戏",
+        "url": "https://game.suipce.com/games/Action/Odyssey-Expedition/index.html",
+        "genre": "动作游戏",
+        "gamePlatform": "Web浏览器",
+        "operatingSystem": "Any",
+        "applicationCategory": "GameApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "CNY"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "SinceraXY"
+        },
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "WebGameHub",
+          "url": "https://game.suipce.com/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "首页", "item": "https://game.suipce.com/" },
+          { "@type": "ListItem", "position": 2, "name": "动作游戏", "item": "https://game.suipce.com/#games" },
+          { "@type": "ListItem", "position": 3, "name": "奥德赛远征 - Odyssey Expedition", "item": "https://game.suipce.com/games/Action/Odyssey-Expedition/index.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+</head>
+<body>
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn"><i class="fas fa-arrow-left"></i> <span>返回 GameHub</span></a>
+    <div class="nav-title"><i class="fas fa-compass"></i> 奥德赛远征</div>
+    <a href="../../../index.html" class="home-btn"><i class="fas fa-home"></i></a>
+  </nav>
+
+  <div id="app">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Title Screen -->
+    <div id="title-screen" class="overlay">
+      <div class="title-content">
+        <div class="logo-ship">⛵</div>
+        <h1 class="title-main">奥德赛远征</h1>
+        <p class="title-sub">ODYSSEY EXPEDITION</p>
+        <p class="title-tag">— 致敬《奥德赛》与《刺客信条：黑旗》的史诗远航 —</p>
+        <div class="controls-info">
+          <div class="ctrl-row"><kbd>← →</kbd> / <kbd>A D</kbd> 调整航向</div>
+          <div class="ctrl-row"><kbd>↑ ↓</kbd> / <kbd>W S</kbd> 加减速</div>
+          <div class="ctrl-row"><kbd>空格</kbd> 开始 / 暂停</div>
+          <div class="ctrl-row">收集 <span class="coin">⭐</span> 宝藏，躲开 <span class="rock">🪨</span> 礁石</div>
+        </div>
+        <button id="start-btn" class="btn-primary">启航远征 ⚓</button>
+      </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" class="hud-hidden">
+      <div class="hud-top">
+        <div class="hud-left">
+          <span class="hud-score">⭐ <strong id="score">0</strong></span>
+          <div class="hp-container">
+            <div class="hp-bar" id="hp-bar"></div>
+            <span class="hp-text" id="hp-text">100</span>
+          </div>
+        </div>
+        <div class="hud-center">
+          <span class="hud-wave">📏 航程 <strong id="distance">0</strong> m</span>
+        </div>
+        <div class="hud-right">
+          <span class="hud-ammo">⏱ <strong id="time">0</strong>s</span>
+        </div>
+      </div>
+      <div class="hud-bottom">
+        <span class="hud-hint" id="hud-hint">向右收集宝藏，避开礁石！</span>
+      </div>
+    </div>
+
+    <!-- Game Over -->
+    <div id="gameover-screen" class="overlay hidden">
+      <div class="title-content">
+        <div class="logo-ship" id="end-icon">🌅</div>
+        <h1 class="title-main" id="end-title">远征结束</h1>
+        <p class="title-sub" id="end-sub">你的航船抵达了已知世界的边缘</p>
+        <div class="result-stats">
+          <div class="stat"><span class="stat-num" id="end-score">0</span><span class="stat-label">收集宝藏</span></div>
+          <div class="stat"><span class="stat-num" id="end-distance">0</span><span class="stat-label">航行距离(m)</span></div>
+          <div class="stat"><span class="stat-num" id="end-time">0</span><span class="stat-label">用时(s)</span></div>
+        </div>
+        <button id="restart-btn" class="btn-primary">再次远征 🔁</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

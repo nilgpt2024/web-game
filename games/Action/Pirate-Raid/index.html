@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="description" content="海盗突袭 - 驾驶帆船在加勒比海迎战敌舰，用炮弹击沉它们！ inspired by Assassin's Creed Black Flag">
+  <title>海盗突袭 - Pirate Raid | WebGameHub</title>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🏴‍☠️</text></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="../../game-shared.css">
+  <link rel="stylesheet" href="style.css">
+  <meta name="title" content="海盗突袭 - Pirate Raid | WebGameHub">
+  <meta name="keywords" content="海盗突袭 - Pirate Raid,动作游戏,在线游戏,免费游戏,HTML5游戏">
+  <meta name="author" content="SinceraXY">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="Chinese">
+  <link rel="canonical" href="https://game.suipce.com/games/Action/Pirate-Raid/index.html">
+  
+  <!-- Open Graph 社交分享 -->
+  <meta property="og:type" content="game">
+  <meta property="og:url" content="https://game.suipce.com/games/Action/Pirate-Raid/index.html">
+  <meta property="og:title" content="海盗突袭 - Pirate Raid">
+  <meta property="og:description" content="海盗突袭 - 驾驶帆船在加勒比海迎战敌舰，用炮弹击沉它们！ inspired by Assassin's Creed Black Flag">
+  <meta property="og:site_name" content="WebGameHub">
+  <meta property="og:locale" content="zh_CN">
+  <meta property="og:image" content="https://game.suipce.com/og-image.png">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://game.suipce.com/games/Action/Pirate-Raid/index.html">
+  <meta name="twitter:title" content="海盗突袭 - Pirate Raid">
+  <meta name="twitter:description" content="海盗突袭 - 驾驶帆船在加勒比海迎战敌舰，用炮弹击沉它们！ inspired by Assassin's Creed Black Flag">
+  <meta name="twitter:image" content="https://game.suipce.com/og-image.png">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎮</text></svg>">
+
+  <!-- JSON-LD 结构化数据 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "VideoGame",
+        "name": "海盗突袭 - Pirate Raid",
+        "description": "海盗突袭 - 驾驶帆船在加勒比海迎战敌舰，用炮弹击沉它们！ inspired by Assassin's Creed Black Flag",
+        "url": "https://game.suipce.com/games/Action/Pirate-Raid/index.html",
+        "genre": "动作游戏",
+        "gamePlatform": "Web浏览器",
+        "operatingSystem": "Any",
+        "applicationCategory": "GameApplication",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "CNY"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "SinceraXY"
+        },
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "WebGameHub",
+          "url": "https://game.suipce.com/"
+        }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "首页", "item": "https://game.suipce.com/" },
+          { "@type": "ListItem", "position": 2, "name": "动作游戏", "item": "https://game.suipce.com/#games" },
+          { "@type": "ListItem", "position": 3, "name": "海盗突袭 - Pirate Raid", "item": "https://game.suipce.com/games/Action/Pirate-Raid/index.html" }
+        ]
+      }
+    ]
+  }
+  </script>
+
+</head>
+<body>
+
+  <nav class="game-nav-fixed">
+    <a href="../../../index.html" class="back-btn">
+      <i class="fas fa-arrow-left"></i>
+      <span data-i18n="common.backToHub">返回游戏大厅</span>
+    </a>
+    <div class="nav-right">
+      <div class="lang-switcher">
+        <button class="lang-btn active" data-lang="zh-CN" title="中文">
+          <span class="lang-flag">🇨🇳</span>
+          <span class="lang-text">中文</span>
+        </button>
+        <button class="lang-btn" data-lang="en" title="English">
+          <span class="lang-flag">🇺🇸</span>
+          <span class="lang-text">EN</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="game-container">
+    <header class="game-header">
+      <h1 class="game-title">
+        <span class="icon">🏴‍☠️</span>
+        <span data-i18n="specific.Pirate-Raid.title">海盗突袭</span>
+      </h1>
+      <p class="game-subtitle" data-i18n="specific.Pirate-Raid.desc">驾驶你的海盗帆船，在加勒比海击沉来犯的敌舰！</p>
+    </header>
+
+    <main class="game-main">
+      <div class="score-panel">
+        <div class="score-item">
+          <i class="fas fa-skull-crossbones"></i>
+          <span data-i18n="ui.score">击沉</span>
+          <strong id="currentScore">0</strong>
+        </div>
+        <div class="score-item high-score">
+          <i class="fas fa-trophy"></i>
+          <span data-i18n="ui.highScore">最高击沉</span>
+          <strong id="highScore">0</strong>
+        </div>
+        <div class="score-item level">
+          <i class="fas fa-heart"></i>
+          <span data-i18n="ui.health">船体</span>
+          <strong id="hpValue">100</strong>
+        </div>
+      </div>
+
+      <div class="game-card-shell">
+        <div class="game-card-core">
+          <canvas id="gameCanvas" width="640" height="560" aria-label="Pirate Raid 游戏画布">
+            您的浏览器不支持Canvas，请升级浏览器！
+          </canvas>
+        </div>
+      </div>
+
+      <div class="game-controls-hint">
+        <div class="control-key">
+          <kbd>⬅</kbd><kbd>➡</kbd>
+          <span data-i18n="specific.Pirate-Raid.keyboard">方向键 / A D 转向</span>
+        </div>
+        <div class="control-key">
+          <kbd>⬆</kbd><kbd>⬇</kbd>
+          <span data-i18n="specific.Pirate-Raid.speed">加速 / 减速</span>
+        </div>
+        <div class="control-key touch-only">
+          <kbd>👆</kbd>
+          <span data-i18n="specific.Pirate-Raid.touch">屏幕左侧转向，右侧开炮</span>
+        </div>
+        <button id="startBtn" class="start-btn">
+          <i class="fas fa-play"></i>
+          <span data-i18n="ui.startGame">开始游戏</span>
+        </button>
+      </div>
+    </main>
+
+    <footer class="game-footer">
+      <div class="game-info">
+        <div class="info-item">
+          <span class="info-icon">⚓</span>
+          <span class="info-text" data-i18n="specific.Pirate-Raid.feature1">真实3D帆船与海浪</span>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">💥</span>
+          <span class="info-text" data-i18n="specific.Pirate-Raid.feature2">炮弹命中爆炸特效</span>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">🌊</span>
+          <span class="info-text" data-i18n="specific.Pirate-Raid.feature3">动态海洋与浪花</span>
+        </div>
+      </div>
+
+      <div class="game-features">
+        <h3 class="features-title" data-i18n="ui.features">✨ 游戏特色</h3>
+        <div class="features-grid">
+          <div class="feature-tag" data-i18n="ui.realTimeScore">📊 实时计分</div>
+          <div class="feature-tag" data-i18n="ui.highScoreRecord">🏆 最高记录</div>
+          <div class="feature-tag" data-i18n="ui.difficultyRamp">📈 难度递增</div>
+          <div class="feature-tag" data-i18n="ui.localSave">💾 本地存储</div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+    }
+  }
+  </script>
+  <script src="../../../game-i18n.js"></script>
+  <script type="module" src="script.js"></script>
+
+  <script>
+    if (window.GameI18n) {
+      const gameI18n = new GameI18n({ gameName: 'Pirate-Raid' });
+      gameI18n.init();
+    }
+  </script>
+</body>
+</html>

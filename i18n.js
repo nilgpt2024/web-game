@@ -13,10 +13,10 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie设置"
         },
         "hero": {
-            "eyebrow": "53款游戏 · 免费畅玩",
-            "title": "53款精品小游戏",
+            "eyebrow": "55款游戏 · 免费畅玩",
+            "title": "55款精品小游戏",
             "subtitle": "随时随地，畅玩无限",
-            "description": "从经典街机到创新益智，从动作冒险到休闲放松，精选53款HTML5游戏，无需下载，即刻畅玩。",
+            "description": "从经典街机到创新益智，从动作冒险到休闲放松，精选55款HTML5游戏，无需下载，即刻畅玩。",
             "stats": {
                 "games": "游戏总数",
                 "categories": "游戏分类",
@@ -63,6 +63,8 @@ const TRANSLATIONS = {
             "Tilting Maze_desc": "重力迷宫",
             "Archery": "射箭",
             "Archery_desc": "射箭竞技",
+            "Mount & Blade": "骑马与砍杀",
+            "Mount & Blade_desc": "3D马上战场混战，骑射与挥砍",
             "Breakout": "打砖块",
             "Breakout_desc": "打砖块游戏",
             "Crossy Road": "过马路",
@@ -169,7 +171,7 @@ const TRANSLATIONS = {
             "casual": "休闲娱乐"
         },
         "footer": {
-            "description": "53款精品HTML5游戏，随时随地畅玩无限",
+            "description": "55款精品HTML5游戏，随时随地畅玩无限",
             "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "回到顶部",
@@ -208,10 +210,10 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie Settings"
         },
         "hero": {
-            "eyebrow": "53 Games · Free to Play",
-            "title": "53 Premium Games",
+            "eyebrow": "55 Games · Free to Play",
+            "title": "55 Premium Games",
             "subtitle": "Play Anywhere, Anytime",
-            "description": "From classic arcade to innovative puzzles, from action adventures to casual relaxation, curated 53 HTML5 games, no download required, play instantly.",
+            "description": "From classic arcade to innovative puzzles, from action adventures to casual relaxation, curated 55 HTML5 games, no download required, play instantly.",
             "stats": {
                 "games": "Total Games",
                 "categories": "Categories",
@@ -258,6 +260,8 @@ const TRANSLATIONS = {
             "Tilting Maze_desc": "Gravity maze",
             "Archery": "Archery",
             "Archery_desc": "Archery competition",
+            "Mount & Blade": "Mount & Blade",
+            "Mount & Blade_desc": "3D mounted battlefield with bow and blade",
             "Breakout": "Breakout",
             "Breakout_desc": "Break bricks game",
             "Crossy Road": "Crossy Road",
@@ -364,7 +368,7 @@ const TRANSLATIONS = {
             "casual": "Casual"
         },
         "footer": {
-            "description": "53 Premium HTML5 Games, Play Anywhere, Anytime",
+            "description": "55 Premium HTML5 Games, Play Anywhere, Anytime",
             "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "Back to Top",

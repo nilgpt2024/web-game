@@ -14,6 +14,7 @@ const gamesData = {
     ],
     Action: [
         { name: 'Archery', path: 'games/Action/Archery/index.html', icon: 'fas fa-bullseye', desc: '射箭竞技' },
+        { name: 'Mount & Blade', path: 'games/Action/Archery-3D/dist/index.html', icon: 'fas fa-horse-head', desc: '骑马与砍杀：3D马上战场混战' },
         { name: 'Breakout', path: 'games/Action/Breakout/index.html', icon: 'fas fa-cube', desc: '打砖块游戏' },
         { name: 'Crossy Road', path: 'games/Action/Crossy-Road/index.html', icon: 'fas fa-road', desc: '过马路挑战' },
         { name: 'Emoji Catcher', path: 'games/Action/Emoji-Catcher/index.html', icon: 'fas fa-smile', desc: '表情符号捕捉' },
@@ -27,7 +28,9 @@ const gamesData = {
         { name: 'Dodge Game', path: 'games/Action/Dodge-Game/index.html', icon: 'fas fa-running', desc: '3D躲避障碍' },
         { name: 'Space Shooter', path: 'games/Action/Space-Shooter/index.html', icon: 'fas fa-rocket', desc: '太空射击' },
         { name: 'Platform Game', path: 'games/Action/Platform-Game/index.html', icon: 'fas fa-person-running', desc: '平台跳跃冒险' },
-        { name: 'Reaction Test', path: 'games/Action/Reaction-Test/index.html', icon: 'fas fa-bolt', desc: '反应速度测试' }
+        { name: 'Reaction Test', path: 'games/Action/Reaction-Test/index.html', icon: 'fas fa-bolt', desc: '反应速度测试' },
+        { name: 'Ink Raiders', path: 'games/Action/Ink-Raiders/dist/index.html', icon: 'fas fa-fill-drip', desc: '墨水突击：3D竞技场喷射涂地击杀' },
+        { name: 'Odyssey Expedition', path: 'games/Action/Odyssey-Expedition/index.html', icon: 'fas fa-compass', desc: '奥德赛远征：3D海盗远航冒险' }
     ],
     Arcade: [
         { name: 'Bubble Shooter', path: 'games/Arcade/Bubble-Shooter/index.html', icon: 'fas fa-circle', desc: '泡泡龙射击' },

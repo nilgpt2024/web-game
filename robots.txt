@@ -22,6 +22,7 @@ Disallow: /docs/
 
 # 站点地图
 Sitemap: https://game.suipce.com/sitemap.xml
+Sitemap: https://game.suipce.com/sitemap-games.xml
 
 # 抓取延迟（秒）
 Crawl-delay: 1

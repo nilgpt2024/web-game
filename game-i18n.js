@@ -816,7 +816,8 @@ const GAME_TRANSLATIONS = {
 
 class GameI18n {
     constructor(options = {}) {
-        this.currentLang = localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
+        const urlLang = new URLSearchParams(window.location.search).get('lang');
+        this.currentLang = urlLang || localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
         this.translations = GAME_TRANSLATIONS;
         this.availableLangs = ['zh-CN', 'en'];
         this.gameName = options.gameName || '';

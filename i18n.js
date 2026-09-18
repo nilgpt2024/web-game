@@ -399,7 +399,8 @@ const TRANSLATIONS = {
 
 class I18n {
     constructor() {
-        this.currentLang = localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
+        const urlLang = new URLSearchParams(window.location.search).get('lang');
+        this.currentLang = urlLang || localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
         this.translations = TRANSLATIONS;
         this.availableLangs = ['zh-CN', 'en'];
     }

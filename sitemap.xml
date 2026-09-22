@@ -3,49 +3,49 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://game.suipce.com/</loc>
-        <lastmod>2026-08-27</lastmod>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>
     <url>
-        <loc>https://game.suipce.com/arcade-games.html</loc>
-        <lastmod>2026-08-27</lastmod>
+        <loc>https://game.suipce.com/arcade-games</loc>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://game.suipce.com/action-games.html</loc>
-        <lastmod>2026-08-27</lastmod>
+        <loc>https://game.suipce.com/action-games</loc>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://game.suipce.com/puzzle-games.html</loc>
-        <lastmod>2026-08-27</lastmod>
+        <loc>https://game.suipce.com/puzzle-games</loc>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://game.suipce.com/board-games.html</loc>
-        <lastmod>2026-08-27</lastmod>
+        <loc>https://game.suipce.com/board-games</loc>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://game.suipce.com/memory-games.html</loc>
-        <lastmod>2026-08-27</lastmod>
+        <loc>https://game.suipce.com/memory-games</loc>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://game.suipce.com/typing-games.html</loc>
-        <lastmod>2026-08-27</lastmod>
+        <loc>https://game.suipce.com/typing-games</loc>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>
     <url>
-        <loc>https://game.suipce.com/casual-games.html</loc>
-        <lastmod>2026-08-27</lastmod>
+        <loc>https://game.suipce.com/casual-games</loc>
+        <lastmod>2026-09-22</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.9</priority>
     </url>

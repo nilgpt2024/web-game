@@ -303,6 +303,7 @@ setInterval(function() { // random step for mobs, attack hero
 }, 200);
 
 floor.canvas.onclick=function(e) {
+    if(restartIfDead()) return;
     var scx=floor.canvas.clientWidth>0?floor.canvas.width/floor.canvas.clientWidth:1;
     var scy=floor.canvas.clientHeight>0?floor.canvas.height/floor.canvas.clientHeight:1;
     var mx=((e.offsetX==undefined?e.layerX:e.offsetX)*scx) - floor.w/2;
@@ -330,11 +331,39 @@ window.onkeydown=function(e){
         showMap=!showMap;
         return false;
     }
+    if(e.keyCode==82){
+        if(dead){ location.reload(); return false; }
+    }
 }
 
 var showMap=false;
+var dead=false;
+function drawDeathScreen(){
+    floor.save();
+    floor.fillStyle="rgba(0,0,0,0.68)";
+    floor.fillRect(0,0,floor.w,floor.h);
+    floor.textAlign="center";
+    floor.fillStyle="#c0392b";
+    floor.font="bold 66px 'Poppins',sans-serif";
+    floor.fillText("YOU DIED", floor.w/2, floor.h/2-24);
+    floor.fillStyle="#e8e6e3";
+    floor.font="20px 'Poppins',sans-serif";
+    floor.fillText("Click or press R to restart", floor.w/2, floor.h/2+34);
+    floor.textAlign="left";
+    floor.restore();
+}
+function restartIfDead(){
+    if(dead){ location.reload(); return true; }
+    return false;
+}
 setInterval(function() {
     if(imageCount>0) return;
+    if(dead){
+        floor.fillStyle="black";floor.fillRect(0,0, floor.w,floor.h);
+        renderFloor();
+        drawDeathScreen();
+        return;
+    }
     if(touchUI.joystickActive && (touchUI.joyDX!==0 || touchUI.joyDY!==0)){
         hero.to_x=hero.x+touchUI.joyDX*2000;
         hero.to_y=hero.y+touchUI.joyDY*2000;
@@ -343,10 +372,22 @@ setInterval(function() {
     for(var i in monsters) monsters[i].nextStep();
     floor.fillStyle="black";floor.fillRect(0,0, floor.w,floor.h);
     renderFloor();
-    renderHeroHealth()
+    renderHeroHealth();
     renderHeroBelt();
+    renderCoins();
     if(showMap) renderMap();
+    if(hero.health<=0) dead=true;
 }, 66);
+
+function renderCoins(){
+    floor.save();
+    floor.fillStyle="rgba(0,0,0,0.55)";
+    floor.fillRect(18, floor.h-64, 170, 44);
+    floor.fillStyle="#ffd700";
+    floor.font="bold 20px 'Poppins',sans-serif";
+    floor.fillText("Gold: "+hero.coins, 34, floor.h-34);
+    floor.restore();
+}
 
 function renderHeroHealth(){
     var radius=80, padding=20;
@@ -728,6 +769,7 @@ function HeroBarbarian(x,y){
     this.attackOffset=40;
     this.normalOffset=10;
     this.health=this.origin_health=1000;
+    this.coins=0;
     this.belt={items:[], size:10};
     this.st=16;
     this.addToBelt=function(potion){
@@ -799,6 +841,7 @@ var touchUI = {
     }
     on(touchUI.attackBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
+        if(restartIfDead()) return;
         floor.click_x=hero.x; floor.click_y=hero.y;
         processClick();
     });
@@ -821,6 +864,7 @@ var touchUI = {
     var cv=floor.canvas;
     on(cv, 'touchstart', function(e){
         e.preventDefault(); // suppress the synthetic click so attacks do not double-fire
+        if(restartIfDead()) return;
         var t=e.touches[0];
         var r=cv.getBoundingClientRect();
         var scx=floor.w/r.width, scy=floor.h/r.height;

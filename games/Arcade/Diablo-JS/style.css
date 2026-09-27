@@ -159,3 +159,17 @@ body{
   #btn-potion{right:28%;bottom:6%;width:58px;height:58px;font-size:24px;}
   #btn-map{right:4%;top:6%;width:50px;height:50px;font-size:20px;}
 }
+
+/* ---------- Related games ---------- */
+.game-info.related h2{display:flex;align-items:center;gap:10px;}
+.game-info.related h2 i{color:var(--accent);}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:16px;}
+.related-card{
+  display:flex;align-items:center;gap:12px;
+  background:var(--panel-2);border:1px solid rgba(255,255,255,.08);
+  border-radius:10px;padding:12px 14px;text-decoration:none;color:inherit;transition:.2s;
+}
+.related-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.rel-icon{font-size:24px;width:36px;text-align:center;}
+.related-card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:2px;}
+.related-card p{font-size:12px;color:var(--muted);}

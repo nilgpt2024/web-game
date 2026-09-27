@@ -179,6 +179,31 @@ var level = {
         }
     }
 };
+
+// ===== Generated larger dungeon map (31x21, rooms + corridors with door gaps) =====
+(function(){
+    var W=31,H=21;
+    function blank(){var a=[];for(var y=0;y<H;y++){a.push([]);for(var x=0;x<W;x++)a[y].push(0);}return a;}
+    level.floor.map=blank(); level.wall.map=blank(); level.object.map=blank();
+    var x,y;
+    // open ground
+    for(y=2;y<H-2;y++) for(x=2;x<W-2;x++) level.floor.map[y][x]=756;
+    // perimeter walls: top/bottom rows, left/right columns
+    for(x=1;x<W-1;x++){ level.wall.map[1][x]=(x===1||x===W-2)?948:372; level.wall.map[H-2][x]=(x===1||x===W-2)?948:372; }
+    for(y=2;y<H-2;y++){ level.wall.map[y][1]=468; level.wall.map[y][W-2]=468; }
+    // interior dividers with door gaps
+    function hDivider(row,cols,skip){for(var c=0;c<cols.length;c++) if(skip.indexOf(cols[c])<0) level.wall.map[row][cols[c]]=372;}
+    function vDivider(col,rows,skip){for(var r=0;r<rows.length;r++) if(skip.indexOf(rows[r])<0) level.wall.map[rows[r]][col]=468;}
+    var cols=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28];
+    var rows=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+    hDivider(5, cols, [5,10,19,25]);
+    hDivider(11, cols, [8,21]);
+    hDivider(16, cols, [5,13,25]);
+    vDivider(9, rows, [6,14]);
+    vDivider(20, rows, [9,17]);
+    // keep spawn cell clear
+    level.wall.map[10][8]=0; level.wall.map[10][9]=0;
+})();
 for(var l in level){
     level[l].tiles={};  
     for(i in level[l].header) if(!level[l].tiles[i]) level[l].tiles[i]=loadImage(level[l].prefix+i+".png");
@@ -192,6 +217,52 @@ var tw=160, th=tw/2, s=tw*0.705, a=Math.PI/4, visible=7, asin=acos=Math.sin(a);
 var barrelSprite=loadImage("sprite/barrel64.png");
 var coinSprite=loadImage("sprite/coins10.png");
 var potionSprite=loadImage("sprite/potions.png");
+
+
+// ===== Sound effects (Web Audio API, no external files) =====
+var audioCtx=null, deathSfxPlayed=false;
+function initAudio(){
+    if(!audioCtx){
+        try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+    }
+    if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume(); }
+}
+function sfx(type){
+    if(!audioCtx) return;
+    var t=audioCtx.currentTime, master=0.5;
+    function osc(f0,f1,dur,wave,vol,when){
+        var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+        o.type=wave||'square';
+        o.frequency.setValueAtTime(Math.max(1,f0), t+when);
+        o.frequency.exponentialRampToValueAtTime(Math.max(1,f1), t+when+dur);
+        g.gain.setValueAtTime(vol*master, t+when);
+        g.gain.exponentialRampToValueAtTime(0.0001, t+when+dur);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t+when); o.stop(t+when+dur+0.05);
+    }
+    function noise(dur,vol,when,freq){
+        var n=audioCtx.createBufferSource();
+        var buf=audioCtx.createBuffer(1, Math.max(1,Math.floor(audioCtx.sampleRate*dur)), audioCtx.sampleRate);
+        var d=buf.getChannelData(0);
+        for(var i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+        n.buffer=buf;
+        var f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq||1200;
+        var g=audioCtx.createGain(); g.gain.setValueAtTime(vol*master,t+when);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+when+dur);
+        n.connect(f); f.connect(g); g.connect(audioCtx.destination);
+        n.start(t+when); n.stop(t+when+dur+0.05);
+    }
+    switch(type){
+        case 'attack':     noise(0.12,0.16,0,2600); osc(220,70,0.12,'sawtooth',0.12,0); break;
+        case 'hit':        osc(340,130,0.1,'square',0.14,0); break;
+        case 'heroHurt':   osc(190,55,0.28,'sawtooth',0.18,0); noise(0.16,0.12,0,700); break;
+        case 'coin':       osc(950,1900,0.12,'sine',0.16,0); osc(1420,1900,0.1,'sine',0.1,0.06); break;
+        case 'potion':     osc(500,920,0.12,'sine',0.14,0); osc(760,1240,0.12,'sine',0.1,0.08); break;
+        case 'drink':      osc(300,720,0.16,'triangle',0.14,0); osc(450,900,0.14,'triangle',0.08,0.07); break;
+        case 'death':      osc(320,38,0.9,'sawtooth',0.16,0); noise(0.6,0.14,0,450); break;
+        case 'monsterDie': osc(240,45,0.4,'square',0.12,0); noise(0.2,0.08,0,900); break;
+    }
+}
 
 function isWayWall(x,y){
     var block_x = Math.floor(x/s),
@@ -249,18 +320,18 @@ var monsterMap={
     }
 };
 
-var hero=new HeroBarbarian(s*3,s*3);
+var hero=new HeroBarbarian(8*s,10*s);
 setInterval(function(){
     hero.health=Math.min(hero.health+10, hero.origin_health);
 },2000);
 
 // aggresive mobs
 var monsters=[],deathmobs=[],barrels=[],coins=[],potions=[],walls=[];
-for(var i=0;i<2;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'SK'));
-for(var i=0;i<2;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'FS'));
-for(var i=0;i<2;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'SI'));
+for(var i=0;i<5;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'SK'));
+for(var i=0;i<5;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'FS'));
+for(var i=0;i<5;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'SI'));
 //for(var i=0;i<2;i++) barrels.push(new Barrel(randomx(),randomy()));
-for(var i=0;i<2;i++) potions.push(new PotionHealth(randomx(), randomy()));
+for(var i=0;i<6;i++) potions.push(new PotionHealth(randomx(), randomy()));
 
 for(var y in level.wall.map){
     for(var x in level.wall.map[y]){
@@ -303,6 +374,7 @@ setInterval(function() { // random step for mobs, attack hero
 }, 200);
 
 floor.canvas.onclick=function(e) {
+    initAudio();
     if(restartIfDead()) return;
     var scx=floor.canvas.clientWidth>0?floor.canvas.width/floor.canvas.clientWidth:1;
     var scy=floor.canvas.clientHeight>0?floor.canvas.height/floor.canvas.clientHeight:1;
@@ -318,6 +390,7 @@ floor.canvas.onclick=function(e) {
 }
 
 window.onkeydown=function(e){
+    initAudio();
     var beltKeys=[49,50,51,52,53,54,55,56,57,48];
     var beltIndex = beltKeys.indexOf(e.keyCode);
     if(beltIndex>=0){
@@ -551,8 +624,8 @@ function renderMap() {
 }
 
 function remove(ar,v){var i=ar.indexOf(v);if(i>=0)ar.splice(i,1);}
-function randomx(){return Math.floor(Math.random()*(level.floor.map[0].length)*s);}
-function randomy(){return Math.floor(Math.random()*(level.floor.map.length)*s);}
+function randomx(){return s*(2+Math.floor(Math.random()*(level.floor.map[0].length-4)));}
+function randomy(){return s*(2+Math.floor(Math.random()*(level.floor.map.length-4)));}
 
 function Shape(sprite,x,y){
     this.x=x;
@@ -643,6 +716,7 @@ function Coin(x,y){
     this.use=function(mob){
         remove(coins,this);
         mob.coins+=this.coins;
+        sfx('coin');
     }
 }
 
@@ -651,7 +725,7 @@ function Potion(x,y){
     this.sprite.steps=6;
     this.sprite.angles=4;
     this.use=function(mob){
-        if(mob.addToBelt(this)) remove(potions,this);
+        if(mob.addToBelt(this)){ sfx('potion'); remove(potions,this); }
     }
 }
 
@@ -662,6 +736,7 @@ function PotionHealth(x,y){
     this.health=1000;
     this.drink=function(mob){
         mob.health=Math.min(mob.origin_health, mob.health+this.health);
+        sfx('drink');
     }
 }
 
@@ -714,12 +789,14 @@ function Mob(x,y,name){
     this.origin_health=this.health=1000;
     this.resistance=10; // damage resistance, less than 1000
     this.use = function(mob){
-        if(mob.doAttack) mob.doAttack(this);
+        if(mob.doAttack){ sfx('attack'); mob.doAttack(this); }
     };
     this.damage=function(damage){
         var health=this.health - damage * 1000/(1000-this.resistance);
         if(health<=0){
             this.health=0;
+            if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
+            else sfx('monsterDie');
             remove(monsters,this);
             if(this.death) deathmobs.push(new DeathMob(this));
         }else{
@@ -741,6 +818,7 @@ function AgressiveMob(x,y,name){
                 this.currentState=this.stay;
                 this.step=-1;
                 if(this.attacked){
+                    if(this.attacked instanceof HeroBarbarian) sfx('heroHurt'); else sfx('hit');
                     this.attacked.damage(this.getDamage());
                     this.attacked=null;
                 }
@@ -841,12 +919,14 @@ var touchUI = {
     }
     on(touchUI.attackBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
+        initAudio();
         if(restartIfDead()) return;
         floor.click_x=hero.x; floor.click_y=hero.y;
         processClick();
     });
     on(touchUI.potionBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
+        initAudio();
         var it=hero.belt.items;
         for(var i=0;i<it.length;i++){
             if(it[i] instanceof PotionHealth){
@@ -858,12 +938,14 @@ var touchUI = {
     });
     on(touchUI.mapBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
+        initAudio();
         showMap=!showMap;
     });
     // mobile tap on canvas: synthesize the same click handler with scaled coords
     var cv=floor.canvas;
     on(cv, 'touchstart', function(e){
         e.preventDefault(); // suppress the synthetic click so attacks do not double-fire
+        initAudio();
         if(restartIfDead()) return;
         var t=e.touches[0];
         var r=cv.getBoundingClientRect();

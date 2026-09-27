@@ -212,7 +212,7 @@ for(var l in level){
 var floor=document.getElementById("floor").getContext("2d");
 floor.w=floor.canvas.width;
 floor.h=floor.canvas.height;
-var tw=160, th=tw/2, s=tw*0.705, a=Math.PI/4, visible=7, asin=acos=Math.sin(a);
+var tw=160, th=tw/2, s=tw*0.705, a=Math.PI/4, visible=11, asin=acos=Math.sin(a);
 
 var barrelSprite=loadImage("sprite/barrel64.png");
 var coinSprite=loadImage("sprite/coins10.png");

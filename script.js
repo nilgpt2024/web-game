@@ -40,7 +40,8 @@ const gamesData = {
         { name: 'Snake', path: 'games/Arcade/Snake/index.html', icon: 'fas fa-worm', desc: '贪吃蛇' },
         { name: 'Space Invaders', path: 'games/Arcade/Space-Invaders/index.html', icon: 'fas fa-space-shuttle', desc: '太空入侵者' },
         { name: 'Tetris', path: 'games/Arcade/Tetris/index.html', icon: 'fas fa-square', desc: '俄罗斯方块' },
-        { name: 'Tower Blocks', path: 'games/Arcade/Tower-Blocks/index.html', icon: 'fas fa-layer-group', desc: '叠叠乐' }
+        { name: 'Tower Blocks', path: 'games/Arcade/Tower-Blocks/index.html', icon: 'fas fa-layer-group', desc: '叠叠乐' },
+        { name: 'DiabloJS', path: 'games/Arcade/Diablo-JS/index.html', icon: 'fas fa-sword', desc: '暗黑风格动作RPG' }
     ],
     Board: [
         { name: 'Gomoku', path: 'games/Board/Gomoku/index.html', icon: 'fas fa-circle-dot', desc: '五子棋对战' },

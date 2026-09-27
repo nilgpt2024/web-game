@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="description" content="Play DiabloJS online free — a classic isometric hack-and-slash action RPG in your browser. Fight monsters, collect potions and coins, survive the dungeon. No download, works on mobile & desktop.">
+<title>Play DiabloJS Online Free — Isometric Action RPG | WebGameHub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta name="title" content="Play DiabloJS Online Free — Isometric Action RPG | WebGameHub">
+<meta name="keywords" content="diablojs, diablo style game, action rpg online, hack and slash browser game, isometric rpg free, dungeon crawler online, play diablo online">
+<meta name="author" content="SinceraXY">
+<meta name="robots" content="index,follow">
+<meta name="language" content="English">
+<link rel="canonical" href="https://game.suipce.com/games/Arcade/Diablo-JS/">
+<!-- OpenGraph -->
+<meta property="og:type" content="game">
+<meta property="og:url" content="https://game.suipce.com/games/Arcade/Diablo-JS/">
+<meta property="og:title" content="Play DiabloJS Online Free — Isometric Action RPG">
+<meta property="og:description" content="Play DiabloJS online free — a classic isometric hack-and-slash action RPG in your browser. Fight monsters, collect potions and coins. No download, works on mobile & desktop.">
+<meta property="og:site_name" content="WebGameHub">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://game.suipce.com/og-image.png">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://game.suipce.com/games/Arcade/Diablo-JS/">
+<meta name="twitter:title" content="Play DiabloJS Online Free — Isometric Action RPG">
+<meta name="twitter:description" content="Play DiabloJS online free — a classic isometric hack-and-slash action RPG in your browser. Fight monsters, collect potions and coins. No download, works on mobile & desktop.">
+<meta name="twitter:image" content="https://game.suipce.com/og-image.png">
+<!-- JSON-LD -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"VideoGame","name":"DiabloJS","description":"Play DiabloJS online free — a classic isometric hack-and-slash action RPG in your browser. Fight monsters, collect potions and coins, survive the dungeon. No download, works on mobile & desktop.","url":"https://game.suipce.com/games/Arcade/Diablo-JS/","genre":"Action RPG","gamePlatform":"Web Browser","operatingSystem":"Any","applicationCategory":"GameApplication","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"SinceraXY"},"isPartOf":{"@type":"WebSite","name":"WebGameHub","url":"https://game.suipce.com/"}},
+{"@type":"BreadcrumbList","itemListElement":[
+{"@type":"ListItem","position":1,"name":"Home","item":"https://game.suipce.com/"},
+{"@type":"ListItem","position":2,"name":"Arcade Games","item":"https://game.suipce.com/arcade-games.html"},
+{"@type":"ListItem","position":3,"name":"DiabloJS","item":"https://game.suipce.com/games/Arcade/Diablo-JS/"}]}
+]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I play DiabloJS?","acceptedAnswer":{"@type":"Answer","text":"Click anywhere on the map to move your hero. Click near your hero to attack nearby monsters or pick up potions and coins. Use number keys 1-0 to drink health potions from your belt and Tab to open the map. On mobile, use the virtual joystick on the left side of the screen to move, and the attack button to fight."}},
+{"@type":"Question","name":"Is DiabloJS free to play?","acceptedAnswer":{"@type":"Answer","text":"Yes! DiabloJS is 100% free. No signup or download is required — everything runs directly in your web browser."}},
+{"@type":"Question","name":"Can I play DiabloJS on my phone?","acceptedAnswer":{"@type":"Answer","text":"Yes. DiabloJS is fully optimized for touch screens with a virtual joystick, on-screen attack button, potion button and map toggle, so you can play on any phone or tablet."}}]}
+</script>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="game-nav">
+  <a href="../../../index.html" class="back-btn"><i class="fas fa-arrow-left"></i><span>Back to Hub</span></a>
+  <h1 class="game-title"><i class="fas fa-sword"></i> DiabloJS</h1>
+  <div class="nav-right">
+    <button id="rules-btn" class="header-btn"><i class="fas fa-question-circle"></i><span>How to Play</span></button>
+  </div>
+</nav>
+
+<!-- Game -->
+<div id="game-wrap">
+  <div id="game-frame">
+    <canvas id="floor" width="980" height="661">Your browser does not support HTML5 canvas.</canvas>
+    <!-- Mobile touch controls -->
+    <div id="touch-joystick" aria-hidden="true"><div id="joystick-knob"></div></div>
+    <button id="btn-attack" class="tbtn" aria-label="Attack">⚔️</button>
+    <button id="btn-potion" class="tbtn" aria-label="Drink health potion">🧪</button>
+    <button id="btn-map" class="tbtn" aria-label="Toggle map">🗺️</button>
+    <!-- Control hints -->
+    <div id="hint-pc">🖱️ Click to move · Click near your hero to attack · 1-0 drink potions · Tab = map</div>
+    <div id="hint-mobile">🕹️ Left: joystick · ⚔️ attack · 🧪 potion · 🗺️ map</div>
+  </div>
+
+  <!-- SEO description -->
+  <section class="game-info">
+    <h2>DiabloJS — Free Isometric Action RPG</h2>
+    <p>DiabloJS is a classic <strong>isometric hack-and-slash action RPG</strong> that runs entirely in your browser — no download, no install. Guide your barbarian hero through a dark dungeon, hunt aggressive monsters, grab health potions and gold, and stay alive as long as you can.</p>
+    <ul class="feature-list">
+      <li><i class="fas fa-gamepad"></i> <strong>Touch optimized:</strong> virtual joystick + on-screen buttons for mobile play</li>
+      <li><i class="fas fa-desktop"></i> <strong>Desktop ready:</strong> click-to-move controls with keyboard shortcuts</li>
+      <li><i class="fas fa-tint"></i> <strong>Survival RPG:</strong> manage your health, drink potions, defeat monsters for loot</li>
+      <li><i class="fas fa-bolt"></i> <strong>Instant play:</strong> works on any modern browser</li>
+    </ul>
+  </section>
+</div>
+
+<!-- Rules -->
+<div id="rules" class="rules">
+  <button class="close-btn" id="close-btn"><i class="fas fa-times"></i></button>
+  <div class="rules-content">
+    <h2><i class="fas fa-book"></i> How to Play DiabloJS</h2>
+    <div class="rule-item"><i class="fas fa-bullseye"></i><div><h3>Goal</h3><p>Stay alive! Defeat monsters to earn gold and potions, keep your health up and explore the dungeon.</p></div></div>
+    <div class="rule-item"><i class="fas fa-mouse-pointer"></i><div><h3>Desktop Controls</h3><p>Click anywhere to move. Click close to your hero to attack or pick up items. Press 1-0 to drink potions from your belt. Press Tab to toggle the map.</p></div></div>
+    <div class="rule-item"><i class="fas fa-mobile-alt"></i><div><h3>Mobile Controls</h3><p>Use the virtual joystick (left side) to move. Tap the ⚔️ button to attack or interact, the 🧪 button to drink a potion, and the 🗺️ button to open the map. You can also tap directly on the map to move or interact.</p></div></div>
+    <div class="rule-item"><i class="fas fa-heart"></i><div><h3>Health</h3><p>Your health slowly regenerates. Pick up red potions and drink them when your health bar gets low. Monsters will chase and attack you — keep your distance or fight back.</p></div></div>
+  </div>
+</div>
+
+<script src="diablo.js"></script>
+<script>
+(function(){
+  var rules=document.getElementById('rules');
+  document.getElementById('rules-btn').addEventListener('click',function(){rules.classList.add('open');});
+  document.getElementById('close-btn').addEventListener('click',function(){rules.classList.remove('open');});
+})();
+</script>
+</body>
+</html>

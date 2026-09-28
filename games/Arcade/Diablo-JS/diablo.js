@@ -201,18 +201,79 @@ function buildMap(idx){
     for(y=2;y<H-2;y++) for(x=2;x<W-2;x++) level.floor.map[y][x]=756;
     for(x=1;x<W-1;x++){ level.wall.map[1][x]=(x===1||x===W-2)?948:372; level.wall.map[H-2][x]=(x===1||x===W-2)?948:372; }
     for(y=2;y<H-2;y++){ level.wall.map[y][1]=468; level.wall.map[y][W-2]=468; }
-    function hDiv(row,cols,skip){for(var c=0;c<cols.length;c++) if(skip.indexOf(cols[c])<0) level.wall.map[row][cols[c]]=372;}
-    function vDiv(col,rows,skip){for(var r=0;r<rows.length;r++) if(skip.indexOf(rows[r])<0) level.wall.map[rows[r]][col]=468;}
-    var cols=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28];
-    var rows=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
-    for(var hr in cfg.doors.h){ hDiv(+hr, cols, cfg.doors.h[hr]); }
-    for(var vc in cfg.doors.v){ vDiv(+vc, rows, cfg.doors.v[vc]); }
+    function hw(row,cols,opens){for(var c=0;c<cols.length;c++) if(opens.indexOf(cols[c])<0) level.wall.map[row][cols[c]]=372;}
+    function vw(col,rows,opens){for(var r=0;r<rows.length;r++) if(opens.indexOf(rows[r])<0) level.wall.map[rows[r]][col]=468;}
+    var allc=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28];
+    var allr=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+    // ---- per-level architectural skeleton ----
+    if(idx===0){ // Cellar: central great hall + 4 corner chambers
+        vw(9,allr,[5,11,16]); vw(21,allr,[5,11,16]);
+        hw(6,allc,[3,11,17,25]); hw(15,allc,[3,11,17,25]);
+    }else if(idx===1){ // Crypt: rows of burial chambers + side corridor
+        hw(5,allc,[4,10,16,22,26]); hw(10,allc,[6,13,20,25]);
+        vw(8,allr,[4,9,15]); vw(14,allr,[4,9,15]);
+        vw(20,allr,[4,9,15]); vw(26,allr,[4,9,15]);
+    }else{ // Demon Lair: central altar room + surrounding ring
+        vw(11,[6,7,8,9,10,11,12,13,14],[10]); vw(18,[6,7,8,9,10,11,12,13,14],[10]);
+        hw(6,[11,12,13,14,15,16,17,18],[14]); hw(14,[11,12,13,14,15,16,17,18],[15]);
+        level.wall.map[4][6]=468; level.wall.map[4][24]=468; level.wall.map[16][6]=468; level.wall.map[16][24]=468;
+    }
     level.wall.map[10][8]=0; level.wall.map[10][9]=0;
-    for(var d=0; d<cfg.decor.length; d++){ level.object.map[cfg.decor[d][0]][cfg.decor[d][1]]=cfg.decor[d][2]; }
+    // ---- BFS connectivity repair ----
+    function isFloor(yy,xx){ return yy>0 && yy<H-1 && xx>0 && xx<W-1 && level.wall.map[yy][xx]===0 && level.object.map[yy][xx]===0; }
+    var dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+    function reachable(){
+        var seen={}, q=[[10,8]], k=function(yy,xx){return yy+','+xx;};
+        seen[k(10,8)]=1;
+        while(q.length){
+            var c=q.shift(), yy=c[0], xx=c[1];
+            for(var d=0;d<4;d++){ var ny=yy+dirs[d][0], nx=xx+dirs[d][1];
+                if(isFloor(ny,nx) && !seen[k(ny,nx)]){ seen[k(ny,nx)]=1; q.push([ny,nx]); }
+            }
+        }
+        return seen;
+    }
+    for(var guard=0; guard<200; guard++){
+        var seen=reachable();
+        var un=null;
+        outer1: for(var fy=1; fy<H-1; fy++) for(var fx=1; fx<W-1; fx++)
+            if(isFloor(fy,fx) && !seen[fy+','+fx]){ un=[fy,fx]; break outer1; }
+        if(!un) break;
+        var opened=false;
+        outer2: for(var wy2=1; wy2<H-1; wy2++) for(var wx2=1; wx2<W-1; wx2++){
+            if(level.wall.map[wy2][wx2]>0){
+                var hs=false, hu=false;
+                for(var d=0;d<4;d++){ var ny=wy2+dirs[d][0], nx=wx2+dirs[d][1];
+                    if(isFloor(ny,nx)){ if(seen[ny+','+nx]) hs=true; else hu=true; }
+                }
+                if(hs && hu){ level.wall.map[wy2][wx2]=0; opened=true; break outer2; }
+            }
+        }
+        if(!opened){ level.wall.map[un[0]][un[1]]=0; }
+    }
     // stairs marker (rendered as a statue + portal glow)
     var sy=cfg.stair[0], sx=cfg.stair[1];
     stairX=sx*s+s/2; stairY=sy*s+s/2;
     level.object.map[sy][sx]=1524;
+    // ---- procedural wall-adjacent decor (connectivity-safe) ----
+    var decoTiles=[564,660,372,4116,4212,5748,5844,5652,3828];
+    var placed=0, maxDec=40, tries=0;
+    while(placed<maxDec && tries<600){
+        tries++;
+        var ry=2+Math.floor(Math.random()*17), rx=2+Math.floor(Math.random()*27);
+        if(level.wall.map[ry][rx]>0 || level.object.map[ry][rx]>0) continue;
+        if((rx===8||rx===9)&&ry===10) continue; // keep spawn clear
+        var adj = (level.wall.map[ry-1]&&level.wall.map[ry-1][rx]>0)||(level.wall.map[ry+1]&&level.wall.map[ry+1][rx]>0)||level.wall.map[ry][rx-1]>0||level.wall.map[ry][rx+1]>0;
+        if(!adj) continue;
+        level.wall.map[ry][rx]=999; // tentatively block
+        var s2=reachable(), ok=true;
+        for(var fy2=1; fy2<H-1 && ok; fy2++) for(var fx2=1; fx2<W-1; fx2++)
+            if(isFloor(fy2,fx2) && !s2[fy2+','+fx2]){ ok=false; }
+        level.wall.map[ry][rx]=0;
+        if(!ok) continue;
+        level.object.map[ry][rx]=decoTiles[Math.floor(Math.random()*decoTiles.length)];
+        placed++;
+    }
 }
 
 for(var l in level){
@@ -1302,6 +1363,7 @@ function pickHero(cls){
     loadLevel(0);
 }
 window.selectHero=pickHero;
+window.loadLevel=loadLevel;
 
 // ===== Mobile touch controls (virtual joystick + action buttons) =====
 var touchUI = {

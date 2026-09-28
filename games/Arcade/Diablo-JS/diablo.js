@@ -715,6 +715,21 @@ function processClick(){
     return false;
 }
 
+var _tintCache=[];
+function getTinted(img,color){
+    for(var i=0;i<_tintCache.length;i++) if(_tintCache[i].img===img && _tintCache[i].color===color) return _tintCache[i].t;
+    var c=document.createElement('canvas');
+    c.width=img.width; c.height=img.height;
+    var g=c.getContext('2d');
+    g.drawImage(img,0,0);
+    g.globalCompositeOperation='source-atop';
+    g.globalAlpha=0.62;
+    g.fillStyle=color;
+    g.fillRect(0,0,c.width,c.height);
+    g.globalAlpha=1; g.globalCompositeOperation='source-over';
+    _tintCache.push({img:img,color:color,t:c});
+    return c;
+}
 function renderObjects(){
     var zb=loadZb(false);
     for(z in zb){
@@ -723,6 +738,7 @@ function renderObjects(){
         var sx=(m.x - m.y)*acos+m.offset_x,
             sy=(m.x + m.y)/2*asin+m.offset_y;
         var tile=m.sprite;
+        if(m===hero && hero.tint) tile=getTinted(tile, hero.tint);
         // render sprite
         var tw = tile.width;
         var th = tile.height

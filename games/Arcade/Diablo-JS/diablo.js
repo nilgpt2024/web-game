@@ -395,6 +395,7 @@ var monsterMap={
 };
 
 var hero=new HeroBarbarian(8*s,10*s);
+window._dbgCnt=0;
 setInterval(function(){
     hero.health=Math.min(hero.health+10, hero.origin_health);
 },2000);
@@ -775,6 +776,7 @@ function renderObjects(){
         if(m.isHero && hero.tint) _tc=hero.tint;
         else if(m.tint) _tc=m.tint;
         if(_tc) tile=getTinted(tile, _tc);
+        if(window._dbgCnt<8){console.log('DBG',(m.name||m.constructor&&m.constructor.name||'?'),'isHero='+!!m.isHero,'tint='+m.tint,'tileSteps='+tile.steps,'tileAngles='+tile.angles,'branch='+((tile.steps&&tile.angles)?'sheet':'full'));window._dbgCnt++;}
         // render sprite
         var tw = tile.width;
         var th = tile.height

@@ -730,7 +730,7 @@ function getTinted(img,color){
     var g=c.getContext('2d');
     g.drawImage(img,0,0);
     g.globalCompositeOperation='source-atop';
-    g.globalAlpha=0.62;
+    g.globalAlpha=0.22;
     g.fillStyle=color;
     g.fillRect(0,0,c.width,c.height);
     g.globalAlpha=1; g.globalCompositeOperation='source-over';

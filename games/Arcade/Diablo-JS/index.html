@@ -94,6 +94,7 @@
     <button id="btn-attack" class="tbtn" aria-label="Attack">⚔️</button>
     <button id="btn-potion" class="tbtn" aria-label="Drink health potion">🧪</button>
     <button id="btn-map" class="tbtn" aria-label="Toggle map">🗺️</button>
+    <button id="btn-shop" class="tbtn" aria-label="Open shop">🛒</button>
     <button id="btn-w1" class="tbtn" aria-label="Blade">🗡️</button>
     <button id="btn-w2" class="tbtn" aria-label="War Axe">🪓</button>
     <button id="btn-w3" class="tbtn" aria-label="Fire Staff">🪄</button>
@@ -135,6 +136,15 @@
   </section>
 </div>
 
+<!-- Shop -->
+<div id="shop" class="shop-overlay">
+  <div class="shop-box">
+    <div class="shop-head"><h2><i class="fas fa-store"></i> Trader's Shop</h2><span id="shop-gold" class="shop-gold"></span><button id="shop-close" class="shop-x" aria-label="Close">✕</button></div>
+    <div id="shop-items" class="shop-items"></div>
+    <p class="shop-hint">Buy with gold — upgrades get pricier each time</p>
+  </div>
+</div>
+
 <!-- Rules -->
 <div id="rules" class="rules">
   <button class="close-btn" id="close-btn"><i class="fas fa-times"></i></button>
@@ -156,6 +166,31 @@
   var rules=document.getElementById('rules');
   document.getElementById('rules-btn').addEventListener('click',function(){rules.classList.add('open');});
   document.getElementById('close-btn').addEventListener('click',function(){rules.classList.remove('open');});
+  // ---- Shop ----
+  var shop=document.getElementById('shop');
+  function renderShop(){
+    var g=document.getElementById('shop-gold');
+    if(g) g.textContent='💰 '+(typeof hero!=='undefined'&&hero?hero.coins:0);
+    var box=document.getElementById('shop-items'); if(!box) return;
+    box.innerHTML='';
+    var items=(window.SHOP_ITEMS||[]);
+    for(var i=0;i<items.length;i++){
+      (function(it){
+        var d=document.createElement('button');
+        d.className='shop-item';
+        var afford=(typeof hero!=='undefined'&&hero && hero.coins>=it.price);
+        d.innerHTML='<span class="si-icon">'+it.icon+'</span><span class="si-txt"><b>'+it.name+'</b><small>'+it.desc+'</small></span><span class="si-price'+(afford?'':' si-off')+'">'+it.price+' 💰</span>';
+        d.onclick=function(){ if(window.buyShop) window.buyShop(it.id); renderShop(); };
+        box.appendChild(d);
+      })(items[i]);
+    }
+  }
+  function openShop(){ shop.classList.add('open'); renderShop(); }
+  function closeShop(){ shop.classList.remove('open'); }
+  window.openShop=openShop; window.closeShop=closeShop; window.renderShop=renderShop;
+  document.getElementById('shop-close').addEventListener('click',closeShop);
+  var sb=document.getElementById('btn-shop');
+  if(sb) sb.addEventListener('click',function(){ if(typeof hero!=='undefined'&&hero) openShop(); });
 })();
 </script>
 </body>

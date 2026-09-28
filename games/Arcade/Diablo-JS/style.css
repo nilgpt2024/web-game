@@ -267,3 +267,27 @@ body{
 .rel-icon{font-size:24px;width:36px;text-align:center;}
 .related-card h3{font-size:14px;font-weight:600;color:#fff;margin-bottom:2px;}
 .related-card p{font-size:12px;color:var(--muted);}
+
+/* ---------- Shop ---------- */
+#btn-shop{right:5%;top:124px;width:54px;height:54px;font-size:22px;background:rgba(212,160,23,.4);border-color:rgba(255,255,255,.5);}
+.shop-overlay{position:fixed;inset:0;z-index:150;display:none;align-items:center;justify-content:center;background:rgba(8,8,12,.82);backdrop-filter:blur(4px);}
+.shop-overlay.open{display:flex;}
+.shop-box{width:92%;max-width:460px;max-height:88vh;overflow-y:auto;background:var(--panel);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:22px;}
+.shop-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.shop-head h2{font-size:20px;color:#fff;display:flex;align-items:center;gap:10px;}
+.shop-head h2 i{color:var(--accent);}
+.shop-gold{margin-left:auto;font-weight:700;color:var(--accent);font-size:15px;}
+.shop-x{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:15px;cursor:pointer;}
+.shop-x:hover{background:rgba(255,255,255,.16);}
+.shop-items{display:grid;gap:10px;}
+.shop-item{display:flex;align-items:center;gap:12px;background:var(--panel-2);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.2s;text-align:left;color:inherit;}
+.shop-item:hover{border-color:var(--accent);transform:translateY(-2px);}
+.si-icon{font-size:26px;width:40px;text-align:center;}
+.si-txt{flex:1;display:flex;flex-direction:column;gap:2px;}
+.si-txt b{font-size:15px;color:#fff;}
+.si-txt small{font-size:12px;color:var(--muted);}
+.si-price{font-weight:700;font-size:15px;color:var(--accent);white-space:nowrap;}
+.si-off{opacity:.45;color:var(--muted);}
+.shop-hint{margin-top:14px;font-size:12px;color:var(--muted);text-align:center;}
+@media (pointer:coarse){ #btn-shop{right:5%;top:124px;} }
+@media (orientation:landscape) and (pointer:coarse){ #btn-shop{top:92px;} }

@@ -495,6 +495,7 @@ window.onkeydown=function(e){
     if(e.keyCode==90){ hero.weaponIndex=0; return false; } // Z = Blade
     if(e.keyCode==88){ hero.weaponIndex=1; return false; } // X = War Axe
     if(e.keyCode==67){ hero.weaponIndex=2; return false; } // C = Fire Staff
+    if(e.keyCode==66){ if(window.openShop) window.openShop(); return false; } // B = Shop
     if(e.keyCode==81){ castSkill(0); return false; } // Q = Fireball
     if(e.keyCode==87){ castSkill(1); return false; } // W = Dash
     if(e.keyCode==69){ castSkill(2); return false; } // E = Heal
@@ -762,7 +763,8 @@ function renderObjects(){
         var sx=(m.x - m.y)*acos+m.offset_x,
             sy=(m.x + m.y)/2*asin+m.offset_y;
         var tile=m.sprite;
-        if(m===hero && hero.tint) tile=getTinted(tile, hero.tint);
+        var _tc=(m===hero)?(hero.tint||null):(m.tint||null);
+        if(_tc) tile=getTinted(tile, _tc);
         // render sprite
         var tw = tile.width;
         var th = tile.height
@@ -983,7 +985,7 @@ function Barrel(x, y){
 
 function Coin(x,y){
     Shape.call(this,coinSprite,x,y);
-    this.coins=Math.floor(Math.random()*1000);
+    this.coins=5+Math.floor(Math.random()*26);
     this.use=function(mob){
         remove(coins,this);
         mob.coins+=this.coins;
@@ -1005,6 +1007,7 @@ function PotionHealth(x,y){
     this.step=0;
     this.angle=0;
     this.health=1000;
+    this.tint='#e74c3c';
     this.drink=function(mob){
         mob.health=Math.min(mob.origin_health, mob.health+this.health);
         sfx('drink');
@@ -1071,13 +1074,21 @@ function Mob(x,y,name){
             if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
             else {
                 sfx('monsterDie');
-                // drop loot
+                // drop loot (varied, tinted)
                 if(!this.isBoss){
-                    if(Math.random()<0.25) potions.push(new PotionHealth(this.x,this.y));
-                    if(Math.random()<0.08) drops.push(new PowerPotion(this.x,this.y));
-                    if(Math.random()<0.08) drops.push(new HastePotion(this.x,this.y));
+                    if(Math.random()<0.5) coins.push(new Coin(this.x,this.y));
+                    if(Math.random()<0.2) potions.push(new PotionHealth(this.x,this.y));
+                    if(Math.random()<0.07) drops.push(new PowerPotion(this.x,this.y));
+                    if(Math.random()<0.07) drops.push(new HastePotion(this.x,this.y));
+                    if(Math.random()<0.07) drops.push(new Gem(this.x,this.y));
+                    if(Math.random()<0.03) drops.push(new HealthUp(this.x,this.y));
+                    if(Math.random()<0.03) drops.push(new DamageUp(this.x,this.y));
+                }else{
+                    coins.push(new Coin(this.x,this.y)); coins.push(new Coin(this.x,this.y));
+                    for(var bi=0;bi<3;bi++) potions.push(new PotionHealth(this.x,this.y));
+                    drops.push(new Gem(this.x,this.y)); drops.push(new HealthUp(this.x,this.y));
+                    bossDead=true;
                 }
-                if(this.isBoss) bossDead=true;
             }
             remove(monsters,this);
             if(this.death) deathmobs.push(new DeathMob(this));
@@ -1224,14 +1235,51 @@ function castSkill(i){
 }
 function PowerPotion(x,y){
     Shape.call(this, potionSprite, x, y);
-    this.used=false;
+    this.used=false; this.tint='#e67e22';
     this.use=function(mob){ if(!this.used){ this.used=true; mob.powerTimer=20; sfx('potion'); } };
 }
 function HastePotion(x,y){
     Shape.call(this, potionSprite, x, y);
-    this.used=false;
+    this.used=false; this.tint='#3498db';
     this.use=function(mob){ if(!this.used){ this.used=true; mob.hasteTimer=10; sfx('potion'); } };
 }
+function Gem(x,y){
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#9b59b6';
+    this.coins=60+Math.floor(Math.random()*61);
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.coins+=this.coins; sfx('coin'); } };
+}
+function HealthUp(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false; this.tint='#2ecc71';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.origin_health+=150; mob.health=Math.min(mob.health+150, mob.origin_health); sfx('potion'); } };
+}
+function DamageUp(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false; this.tint='#f1c40f';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.damageMult=(mob.damageMult||1)*1.08; sfx('potion'); } };
+}
+var SHOP_ITEMS=[
+    {id:'potion',name:'Health Potion',desc:'+1000 HP to your belt',price:60,icon:'\uD83E\uDDEA'},
+    {id:'power', name:'Power Elixir', desc:'1.5x damage for 20s',price:80,icon:'\u26A1'},
+    {id:'haste', name:'Haste Elixir', desc:'+movement speed 10s',price:80,icon:'\uD83D\uDCA8'},
+    {id:'dmg',   name:'Damage Upgrade',desc:'+15% permanent damage (price rises)',price:100,icon:'\uD83D\uDDE1\uFE0F'},
+    {id:'hp',    name:'Vitality',     desc:'+200 max HP permanent (price rises)',price:150,icon:'\u2764\uFE0F'}
+];
+function buyShop(id){
+    var it=null; for(var i=0;i<SHOP_ITEMS.length;i++) if(SHOP_ITEMS[i].id===id) it=SHOP_ITEMS[i];
+    if(!it || !hero) return;
+    if(hero.coins < it.price){ sfx('error'); return; }
+    hero.coins -= it.price;
+    if(id==='potion') hero.addToBelt(new PotionHealth(0,0));
+    else if(id==='power') hero.powerTimer=20;
+    else if(id==='haste') hero.hasteTimer=10;
+    else if(id==='dmg'){ hero.damageMult=(hero.damageMult||1)*1.15; it.price=Math.round(it.price*2); }
+    else if(id==='hp'){ hero.origin_health+=200; hero.health+=200; it.price=Math.round(it.price*2); }
+    sfx('potion');
+    if(window.renderShop) window.renderShop();
+}
+window.SHOP_ITEMS=SHOP_ITEMS; window.buyShop=buyShop;
 function BossMob(x,y){
     AgressiveMob.call(this,x,y,'SI');
     this.isBoss=true;
@@ -1284,6 +1332,7 @@ function HeroBarbarian(x,y){
         var w=this.getWeapon();
         var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
         if(this.powerTimer>0) d*=1.5;
+        if(this.damageMult) d*=this.damageMult;
         return Math.round(d);
     };
     this.doAttack=function(mob){
@@ -1317,6 +1366,7 @@ function heroCombatInit(h){
         var w=this.getWeapon();
         var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
         if(this.powerTimer>0) d*=1.5;
+        if(this.damageMult) d*=this.damageMult;
         return Math.round(d);
     };
     h.doAttack=function(mob){

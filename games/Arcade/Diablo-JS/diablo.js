@@ -733,6 +733,9 @@ function getTinted(img,color){
     g.fillStyle=color;
     g.fillRect(0,0,c.width,c.height);
     g.globalAlpha=1; g.globalCompositeOperation='source-over';
+    if(img.steps) c.steps=img.steps;
+    if(img.angles) c.angles=img.angles;
+    if(img.offsetX) c.offsetX=img.offsetX;
     _tintCache.push({img:img,color:color,t:c});
     return c;
 }
@@ -768,7 +771,9 @@ function renderObjects(){
         var sx=(m.x - m.y)*acos+m.offset_x,
             sy=(m.x + m.y)/2*asin+m.offset_y;
         var tile=m.sprite;
-        var _tc=(m===hero)?(hero.tint||null):(m.tint||null);
+        var _tc=null;
+        if(m.isHero && hero.tint) _tc=hero.tint;
+        else if(m.tint) _tc=m.tint;
         if(_tc) tile=getTinted(tile, _tc);
         // render sprite
         var tw = tile.width;
@@ -1297,6 +1302,7 @@ function BossMob(x,y){
 }
 function HeroBarbarian(x,y){
     AgressiveMob.call(this,x,y,"BA");
+    this.isHero=true;
     this.name='Barbarian';
     this.tint='#dc4632';
     this.attackOffset=40;
@@ -1401,6 +1407,7 @@ function heroCombatInit(h){
 }
 function HeroRogue(x,y){
     AgressiveMob.call(this,x,y,"BA");
+    this.isHero=true;
     this.name='Rogue';
     this.tint='#46be50';
     this.attackOffset=40; this.normalOffset=10;
@@ -1425,6 +1432,7 @@ function HeroRogue(x,y){
 }
 function HeroSorceress(x,y){
     AgressiveMob.call(this,x,y,"BA");
+    this.isHero=true;
     this.name='Sorceress';
     this.tint='#aa6ef0';
     this.attackOffset=40; this.normalOffset=10;

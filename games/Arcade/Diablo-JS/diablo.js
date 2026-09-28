@@ -391,6 +391,18 @@ var monsterMap={
         A1: loadImage("monsters/BA/A1/map.png",16,9,true),
         NU: loadImage("monsters/BA/NU/map.png",16,8,true),
         WL: loadImage("monsters/BA/WL/map.png",16,8,true),
+    },
+    RO: {
+        A1: loadImage("monsters/rogue_bow_A1.png",1,8),
+        NU: loadImage("monsters/rogue_bow_NU.png",1,8),
+        WL: loadImage("monsters/rogue_bow_WL.png",1,8),
+        attackOffset:30,
+    },
+    SO: {
+        A1: loadImage("monsters/sorcerer_staff_A1.png",1,8),
+        NU: loadImage("monsters/sorcerer_staff_NU.png",1,8),
+        WL: loadImage("monsters/sorcerer_staff_WL.png",1,8),
+        attackOffset:30,
     }
 };
 
@@ -805,7 +817,7 @@ function renderObjects(){
             floor.restore();
         }
         // class weapon overlay
-        if(m===hero){ drawHeroWeapon(floor, hero, sx, sy-th/2); }
+        if(m===hero && hero.name==='Barbarian'){ drawHeroWeapon(floor, hero, sx, sy-th/2); }
         // hero class name tag
         if(m===hero && hero.name){
             floor.save();
@@ -1407,11 +1419,10 @@ function heroCombatInit(h){
     };
 }
 function HeroRogue(x,y){
-    AgressiveMob.call(this,x,y,"BA");
+    AgressiveMob.call(this,x,y,"RO");
     this.isHero=true;
     this.name='Rogue';
-    this.tint='#46be50';
-    this.attackOffset=40; this.normalOffset=10;
+    this.attackOffset=30; this.normalOffset=10;
     this.health=this.origin_health=800;
     this.coins=0; this.belt={items:[],size:10}; this.st=20;
     this.addToBelt=function(potion){ for(var i=0;i<this.belt.size;i++){ if(typeof this.belt.items[i]=="undefined"){ this.belt.items[i]=potion; return true; } } return false; };
@@ -1432,11 +1443,10 @@ function HeroRogue(x,y){
     heroCombatInit(this);
 }
 function HeroSorceress(x,y){
-    AgressiveMob.call(this,x,y,"BA");
+    AgressiveMob.call(this,x,y,"SO");
     this.isHero=true;
     this.name='Sorceress';
-    this.tint='#aa6ef0';
-    this.attackOffset=40; this.normalOffset=10;
+    this.attackOffset=30; this.normalOffset=10;
     this.health=this.origin_health=750;
     this.coins=0; this.belt={items:[],size:10}; this.st=15;
     this.addToBelt=function(potion){ for(var i=0;i<this.belt.size;i++){ if(typeof this.belt.items[i]=="undefined"){ this.belt.items[i]=potion; return true; } } return false; };

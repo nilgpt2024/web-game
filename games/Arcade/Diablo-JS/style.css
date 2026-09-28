@@ -110,6 +110,7 @@ body{
   pointer-events:none;backdrop-filter:blur(4px);
 }
 #hint-mobile{display:none;white-space:normal;max-width:52%;left:6%;bottom:14px;transform:none;text-align:left;font-size:11px;}
+#rotate-hint{display:none;} /* hidden on desktop; shown only in the mobile fullscreen block */
 
 /* Show touch layer only on touch-capable / narrow screens */
 @media (pointer:coarse){
@@ -173,11 +174,12 @@ body{
 }
 
 /* ============================================================
-   MOBILE IMMERSIVE FULLSCREEN
-   On touch devices the game fills the whole screen — canvas
-   stretches (its internal coords are remapped via canvas.width/clientWidth,
-   so touch/click stay accurate), buttons float over the canvas.
-   Desktop + SEO text remain untouched below.
+   MOBILE IMMERSIVE FULLSCREEN (no distortion)
+   On touch devices the game fills the whole screen. The canvas
+   keeps its true aspect ratio — centered by flex, portrait uses
+   full width, landscape uses full height — so nothing is stretched.
+   Buttons + joystick float over the frame and fill the leftover
+   margins. Desktop + SEO text remain untouched below.
    ============================================================ */
 @media (pointer:coarse){
   #game-wrap{padding:0;max-width:none;margin:0;}
@@ -186,8 +188,14 @@ body{
     width:100%;height:100dvh;height:100%;
     max-width:none;border-radius:0;
     box-shadow:none;background:#000;
+    display:flex;align-items:center;justify-content:center;
   }
-  #floor{width:100%;height:100%;}
+  /* portrait: fill width, keep ratio */
+  #floor{width:100%;height:auto;max-height:100%;flex-shrink:0;}
+  /* landscape: fill height, keep ratio */
+  @media (orientation:landscape){
+    #floor{width:auto;height:100%;max-width:100%;}
+  }
   /* nav floats over the fullscreen canvas */
   .game-nav{
     position:fixed;z-index:70;padding:6px 10px;
@@ -196,25 +204,34 @@ body{
   }
   .game-nav .back-btn,.header-btn{background:rgba(0,0,0,.35);padding:7px 11px;font-size:13px;}
   .game-title{font-size:16px;}
+  /* rotate hint shown only in portrait */
+  #rotate-hint{
+    position:absolute;top:70px;left:50%;transform:translateX(-50%);z-index:8;
+    display:flex;align-items:center;gap:8px;
+    background:rgba(0,0,0,.55);color:#ffd479;
+    font-size:12px;padding:7px 14px;border-radius:20px;
+    pointer-events:none;border:1px solid rgba(255,255,255,.15);
+  }
+  @media (orientation:landscape){ #rotate-hint{display:none;} }
   /* buttons sized for fullscreen touch */
-  #btn-attack{right:7%;bottom:11%;width:96px;height:96px;font-size:42px;}
-  #btn-potion{right:27%;bottom:6%;width:66px;height:66px;font-size:28px;}
+  #btn-attack{right:7%;bottom:10%;width:96px;height:96px;font-size:42px;}
+  #btn-potion{right:26%;bottom:5%;width:66px;height:66px;font-size:28px;}
   #btn-map{right:5%;top:64px;width:54px;height:54px;font-size:22px;}
-  #btn-w1{right:25%;bottom:28%;width:58px;height:58px;font-size:24px;}
-  #btn-w2{right:13%;bottom:28%;width:58px;height:58px;font-size:24px;}
+  #btn-w1{right:24%;bottom:28%;width:58px;height:58px;font-size:24px;}
+  #btn-w2{right:12%;bottom:28%;width:58px;height:58px;font-size:24px;}
   #btn-w3{right:4%;bottom:28%;width:58px;height:58px;font-size:24px;}
-  #btn-s1{right:5%;top:26%;width:54px;height:54px;font-size:22px;}
-  #btn-s2{right:5%;top:39%;width:54px;height:54px;font-size:22px;}
-  #btn-s3{right:5%;top:52%;width:54px;height:54px;font-size:22px;}
+  #btn-s1{right:5%;top:30%;width:54px;height:54px;font-size:22px;}
+  #btn-s2{right:5%;top:43%;width:54px;height:54px;font-size:22px;}
+  #btn-s3{right:5%;top:56%;width:54px;height:54px;font-size:22px;}
   #touch-joystick{width:52%;height:100%;}
   #joystick-knob{width:72px;height:72px;}
   #hint-mobile{max-width:46%;left:5%;bottom:12px;font-size:11px;}
   #hint-pc{display:none;}
   /* landscape adjustments */
   @media (orientation:landscape){
-    #btn-s1{top:14%;} #btn-s2{top:30%;} #btn-s3{top:46%;}
+    #btn-s1{top:12%;} #btn-s2{top:30%;} #btn-s3{top:48%;}
     #btn-map{top:52px;}
-    #btn-w1,#btn-w2,#btn-w3{bottom:20%;}
+    #btn-w1,#btn-w2,#btn-w3{bottom:18%;}
     #hint-mobile{left:5%;bottom:8px;}
   }
 }

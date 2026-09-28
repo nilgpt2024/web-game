@@ -794,8 +794,9 @@ function renderObjects(){
         if(tile.steps && tile.angles){
             tw/=tile.steps;
             th/=tile.angles;
+            var _ang=(tile.angles>1)?(m.angle%tile.angles):0;
             floor.drawImage(tile, 
-                tw*m.step, th*m.angle, tw, th,
+                tw*m.step, th*_ang, tw, th,
                 Math.round(sx-tw/2-tile.offsetX), Math.round(sy-th), tw, th);
         }else{
             floor.drawImage(tile, Math.round(sx-tile.width/2)+1, Math.round(sy-tile.height)+1);

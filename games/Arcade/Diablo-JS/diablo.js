@@ -776,7 +776,7 @@ function renderObjects(){
         if(m.isHero && hero.tint) _tc=hero.tint;
         else if(m.tint) _tc=m.tint;
         if(_tc) tile=getTinted(tile, _tc);
-        if(window._dbgCnt<8){console.log('DBG',(m.name||m.constructor&&m.constructor.name||'?'),'isHero='+!!m.isHero,'tint='+m.tint,'tileSteps='+tile.steps,'tileAngles='+tile.angles,'branch='+((tile.steps&&tile.angles)?'sheet':'full'));window._dbgCnt++;}
+        if(!window._dbgLog)window._dbgLog=[];if(window._dbgLog.length<10){window._dbgLog.push({n:(m.name||m.constructor&&m.constructor.name||'?'),hero:!!m.isHero,tint:m.tint,ts:tile.steps,ta:tile.angles,br:(tile.steps&&tile.angles)?'sheet':'full',w:tile.width,h:tile.height});}
         // render sprite
         var tw = tile.width;
         var th = tile.height

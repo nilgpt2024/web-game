@@ -403,7 +403,7 @@ setInterval(function(){
 var monsters=[],deathmobs=[],barrels=[],coins=[],potions=[],walls=[];
 
 var LEVELS=[
-    {sk:5,fs:5,si:5,pots:6,dmg:30},
+    {sk:4,fs:4,si:4,pots:6,dmg:30},
     {sk:7,fs:7,si:7,pots:7,dmg:45},
     {sk:9,fs:9,si:9,pots:8,dmg:60}
 ];
@@ -416,9 +416,10 @@ function loadLevel(idx){
     for(var y in level.object.map) for(var x in level.object.map[y]){ var v=level.object.map[y][x]; if(v>0) walls.push(new WallObject(v,x*s,y*s)); }
     monsters=[]; deathmobs=[]; barrels=[]; coins=[]; potions=[]; drops=[];
     var L=LEVELS[idx];
-    for(var i=0;i<L.sk;i++) monsters.push(new AgressiveMob(randomx(),randomy(),'SK'));
-    for(var i=0;i<L.fs;i++) monsters.push(new AgressiveMob(randomx(),randomy(),'FS'));
-    for(var i=0;i<L.si;i++) monsters.push(new AgressiveMob(randomx(),randomy(),'SI'));
+    function safePos(){var x,y,t=0;do{x=randomx();y=randomy();t++;}while(t<25&&(Math.abs(x-s*8)+Math.abs(y-s*10))<5*s);return [x,y];}
+    for(var i=0;i<L.sk;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'SK'));}
+    for(var i=0;i<L.fs;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'FS'));}
+    for(var i=0;i<L.si;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'SI'));}
     for(var i=0;i<L.pots;i++) potions.push(new PotionHealth(randomx(),randomy()));
     // boss guards the stairs
     if(idx<MAX_LEVEL) monsters.push(new BossMob(stairX+s*0.5, stairY-s*0.2));

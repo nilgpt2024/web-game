@@ -172,6 +172,53 @@ body{
   #btn-s3{right:6%;top:44%;width:44px;height:44px;font-size:18px;}
 }
 
+/* ============================================================
+   MOBILE IMMERSIVE FULLSCREEN
+   On touch devices the game fills the whole screen — canvas
+   stretches (its internal coords are remapped via canvas.width/clientWidth,
+   so touch/click stay accurate), buttons float over the canvas.
+   Desktop + SEO text remain untouched below.
+   ============================================================ */
+@media (pointer:coarse){
+  #game-wrap{padding:0;max-width:none;margin:0;}
+  #game-frame{
+    position:fixed;top:0;left:0;z-index:40;
+    width:100%;height:100dvh;height:100%;
+    max-width:none;border-radius:0;
+    box-shadow:none;background:#000;
+  }
+  #floor{width:100%;height:100%;}
+  /* nav floats over the fullscreen canvas */
+  .game-nav{
+    position:fixed;z-index:70;padding:6px 10px;
+    background:linear-gradient(180deg,rgba(0,0,0,.75),rgba(0,0,0,0));
+    border-bottom:none;backdrop-filter:none;
+  }
+  .game-nav .back-btn,.header-btn{background:rgba(0,0,0,.35);padding:7px 11px;font-size:13px;}
+  .game-title{font-size:16px;}
+  /* buttons sized for fullscreen touch */
+  #btn-attack{right:7%;bottom:11%;width:96px;height:96px;font-size:42px;}
+  #btn-potion{right:27%;bottom:6%;width:66px;height:66px;font-size:28px;}
+  #btn-map{right:5%;top:64px;width:54px;height:54px;font-size:22px;}
+  #btn-w1{right:25%;bottom:28%;width:58px;height:58px;font-size:24px;}
+  #btn-w2{right:13%;bottom:28%;width:58px;height:58px;font-size:24px;}
+  #btn-w3{right:4%;bottom:28%;width:58px;height:58px;font-size:24px;}
+  #btn-s1{right:5%;top:26%;width:54px;height:54px;font-size:22px;}
+  #btn-s2{right:5%;top:39%;width:54px;height:54px;font-size:22px;}
+  #btn-s3{right:5%;top:52%;width:54px;height:54px;font-size:22px;}
+  #touch-joystick{width:52%;height:100%;}
+  #joystick-knob{width:72px;height:72px;}
+  #hint-mobile{max-width:46%;left:5%;bottom:12px;font-size:11px;}
+  #hint-pc{display:none;}
+  /* landscape adjustments */
+  @media (orientation:landscape){
+    #btn-s1{top:14%;} #btn-s2{top:30%;} #btn-s3{top:46%;}
+    #btn-map{top:52px;}
+    #btn-w1,#btn-w2,#btn-w3{bottom:20%;}
+    #hint-mobile{left:5%;bottom:8px;}
+  }
+}
+
 /* ---------- Character select ---------- */
 .char-select{
   position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;

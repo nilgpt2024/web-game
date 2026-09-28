@@ -443,14 +443,18 @@ setInterval(function() { // random step for mobs, attack hero
     for(var i in monsters){
         var m=monsters[i], attackDist=100;
         if(m.attack && m.isAboveHero()){
-            if(Math.abs(hero.x-m.x)<attackDist &&
-               Math.abs(hero.y-m.y)<attackDist){
-               m.doAttack(hero);
-               m.to_x = m.x;
-               m.to_y = m.y;
-            }else{
-                m.to_x=hero.x;
-                m.to_y=hero.y;
+            var chaseDist=(m.isBoss?9999:8*s);
+            var mdist=Math.abs(hero.x-m.x)+Math.abs(hero.y-m.y);
+            if(mdist<chaseDist){
+                if(Math.abs(hero.x-m.x)<attackDist &&
+                   Math.abs(hero.y-m.y)<attackDist){
+                   m.doAttack(hero);
+                   m.to_x = m.x;
+                   m.to_y = m.y;
+                }else{
+                    m.to_x=hero.x;
+                    m.to_y=hero.y;
+                }
             }
         }
     }

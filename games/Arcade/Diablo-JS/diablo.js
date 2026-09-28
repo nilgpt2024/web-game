@@ -180,30 +180,41 @@ var level = {
     }
 };
 
-// ===== Generated larger dungeon map (31x21, rooms + corridors with door gaps) =====
-(function(){
+// ===== Generated larger dungeon map: 3 levels, each 100% connected, with decor & stairs =====
+var LEVEL_CFG=[
+    {doors:{h:{5:[5,10,19,25],11:[8,21],16:[5,13,25]},v:{9:[6,14],20:[9,17]}},decor:[[2,7,4116],[2,25,4212],[6,14,5844],[17,12,5748],[17,2,5652],[12,13,5652],[12,10,564],[2,13,564],[2,28,372],[6,17,5748],[6,6,5748],[12,24,4116],[2,10,5652],[16,13,3828],[2,3,372],[18,19,4212],[12,21,660],[2,6,4212],[12,22,372],[15,10,3828],[12,5,4116],[6,7,564],[4,19,4116],[2,11,5652],[14,28,4116],[6,3,372],[9,8,4212],[12,17,5652],[18,8,4212],[14,21,660],[18,28,4212],[17,27,4212],[18,2,660],[6,13,4212],[13,8,4212],[12,3,564],[11,21,660],[6,9,5748],[17,19,5844],[9,28,4212],[12,28,4212],[4,21,660],[3,10,660],[13,2,660],[15,28,4116],[17,11,5844],[12,15,4212]],stair:[2,28]},
+    {doors:{h:{5:[6,12,21,27],11:[2,10],16:[7,15,26]},v:{9:[7,16],20:[10,18]}},decor:[[3,2,660],[3,8,4116],[2,7,372],[12,28,5844],[9,8,4116],[4,2,3828],[17,4,5748],[6,28,5748],[12,18,372],[12,15,4212],[12,26,5844],[17,6,5748],[2,23,5844],[2,25,5844],[17,2,5748],[13,28,4212],[9,10,660],[7,9,564],[6,13,372],[2,12,5844],[3,19,4212],[2,10,5652],[17,19,5844],[2,3,4116],[3,28,4212],[12,4,5748],[9,28,4212],[2,28,4116],[12,21,5652],[2,16,4212],[12,3,4212],[5,27,3828],[12,24,4116],[6,22,5652],[9,19,4116],[12,13,5652],[2,22,5748],[2,6,5748],[12,22,5844],[12,14,4212],[8,21,660],[4,8,4212],[6,17,5844]],stair:[2,28]},
+    {doors:{h:{5:[8,16,24],11:[6,14,23],16:[2,11,19,27]},v:{9:[5,15],20:[8,17]}},decor:[[2,5,5652],[3,28,4212],[12,13,5652],[2,17,5652],[12,28,4116],[3,10,3828],[12,27,4212],[14,8,4116],[6,18,372],[13,21,3828],[6,17,564],[12,17,564],[6,28,5748],[2,11,4212],[16,11,660],[18,21,660],[6,23,5652],[17,22,5844],[12,5,5748],[12,25,4212],[2,14,5844],[18,10,660],[2,18,372],[3,8,4212],[8,28,4212],[10,2,660],[11,6,660],[2,27,5652],[12,2,5844],[6,26,4212],[12,16,4212],[13,28,4212],[6,19,564],[12,21,372],[2,22,564],[17,12,5844],[8,2,660],[7,8,4212],[18,2,3828],[2,19,5844],[12,15,372],[2,25,5652],[9,19,4116],[2,12,5844],[17,17,5748]],stair:[2,28]}
+];
+
+var MAX_LEVEL=LEVEL_CFG.length;
+var currentLevel=0, stairX=-1, stairY=-1, gameWon=false, questTitle="", questGoal="";
+var LEVEL_NAMES=['Cellar','Crypt','Demon Lair'];
+var LEVEL_GOALS=['Find the stairs to the Crypt','Find the stairs to the Demon Lair','Slay all demons to win'];
+
+function buildMap(idx){
+    var cfg=LEVEL_CFG[idx];
     var W=31,H=21;
     function blank(){var a=[];for(var y=0;y<H;y++){a.push([]);for(var x=0;x<W;x++)a[y].push(0);}return a;}
     level.floor.map=blank(); level.wall.map=blank(); level.object.map=blank();
     var x,y;
-    // open ground
     for(y=2;y<H-2;y++) for(x=2;x<W-2;x++) level.floor.map[y][x]=756;
-    // perimeter walls: top/bottom rows, left/right columns
     for(x=1;x<W-1;x++){ level.wall.map[1][x]=(x===1||x===W-2)?948:372; level.wall.map[H-2][x]=(x===1||x===W-2)?948:372; }
     for(y=2;y<H-2;y++){ level.wall.map[y][1]=468; level.wall.map[y][W-2]=468; }
-    // interior dividers with door gaps
-    function hDivider(row,cols,skip){for(var c=0;c<cols.length;c++) if(skip.indexOf(cols[c])<0) level.wall.map[row][cols[c]]=372;}
-    function vDivider(col,rows,skip){for(var r=0;r<rows.length;r++) if(skip.indexOf(rows[r])<0) level.wall.map[rows[r]][col]=468;}
+    function hDiv(row,cols,skip){for(var c=0;c<cols.length;c++) if(skip.indexOf(cols[c])<0) level.wall.map[row][cols[c]]=372;}
+    function vDiv(col,rows,skip){for(var r=0;r<rows.length;r++) if(skip.indexOf(rows[r])<0) level.wall.map[rows[r]][col]=468;}
     var cols=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28];
     var rows=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
-    hDivider(5, cols, [5,10,19,25]);
-    hDivider(11, cols, [8,21]);
-    hDivider(16, cols, [5,13,25]);
-    vDivider(9, rows, [6,14]);
-    vDivider(20, rows, [9,17]);
-    // keep spawn cell clear
+    for(var hr in cfg.doors.h){ hDiv(+hr, cols, cfg.doors.h[hr]); }
+    for(var vc in cfg.doors.v){ vDiv(+vc, rows, cfg.doors.v[vc]); }
     level.wall.map[10][8]=0; level.wall.map[10][9]=0;
-})();
+    for(var d=0; d<cfg.decor.length; d++){ level.object.map[cfg.decor[d][0]][cfg.decor[d][1]]=cfg.decor[d][2]; }
+    // stairs marker (rendered as a statue + portal glow)
+    var sy=cfg.stair[0], sx=cfg.stair[1];
+    stairX=sx*s+s/2; stairY=sy*s+s/2;
+    level.object.map[sy][sx]=1524;
+}
+
 for(var l in level){
     level[l].tiles={};  
     for(i in level[l].header) if(!level[l].tiles[i]) level[l].tiles[i]=loadImage(level[l].prefix+i+".png");
@@ -261,6 +272,8 @@ function sfx(type){
         case 'drink':      osc(300,720,0.16,'triangle',0.14,0); osc(450,900,0.14,'triangle',0.08,0.07); break;
         case 'death':      osc(320,38,0.9,'sawtooth',0.16,0); noise(0.6,0.14,0,450); break;
         case 'monsterDie': osc(240,45,0.4,'square',0.12,0); noise(0.2,0.08,0,900); break;
+        case 'fire':  noise(0.18,0.16,0,2200); osc(520,150,0.16,'sawtooth',0.12,0); break;
+        case 'dash':  osc(300,760,0.18,'sawtooth',0.14,0); noise(0.2,0.1,0,1400); break;
     }
 }
 
@@ -327,28 +340,36 @@ setInterval(function(){
 
 // aggresive mobs
 var monsters=[],deathmobs=[],barrels=[],coins=[],potions=[],walls=[];
-for(var i=0;i<5;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'SK'));
-for(var i=0;i<5;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'FS'));
-for(var i=0;i<5;i++) monsters.push(new AgressiveMob(randomx(),randomy(), 'SI'));
-//for(var i=0;i<2;i++) barrels.push(new Barrel(randomx(),randomy()));
-for(var i=0;i<6;i++) potions.push(new PotionHealth(randomx(), randomy()));
 
-for(var y in level.wall.map){
-    for(var x in level.wall.map[y]){
-        var index = level.wall.map[y][x];
-        if(index>0){
-            walls.push(new Wall(index,x*s,y*s));
-        }
-    }
+var LEVELS=[
+    {sk:5,fs:5,si:5,pots:6,dmg:30},
+    {sk:7,fs:7,si:7,pots:7,dmg:45},
+    {sk:9,fs:9,si:9,pots:8,dmg:60}
+];
+
+function loadLevel(idx){
+    currentLevel=idx;
+    buildMap(idx);
+    walls=[];
+    for(var y in level.wall.map) for(var x in level.wall.map[y]){ var v=level.wall.map[y][x]; if(v>0) walls.push(new Wall(v,x*s,y*s)); }
+    for(var y in level.object.map) for(var x in level.object.map[y]){ var v=level.object.map[y][x]; if(v>0) walls.push(new WallObject(v,x*s,y*s)); }
+    monsters=[]; deathmobs=[]; barrels=[]; coins=[]; potions=[]; drops=[];
+    var L=LEVELS[idx];
+    for(var i=0;i<L.sk;i++) monsters.push(new AgressiveMob(randomx(),randomy(),'SK'));
+    for(var i=0;i<L.fs;i++) monsters.push(new AgressiveMob(randomx(),randomy(),'FS'));
+    for(var i=0;i<L.si;i++) monsters.push(new AgressiveMob(randomx(),randomy(),'SI'));
+    for(var i=0;i<L.pots;i++) potions.push(new PotionHealth(randomx(),randomy()));
+    // boss guards the stairs
+    if(idx<MAX_LEVEL) monsters.push(new BossMob(stairX+s*0.5, stairY-s*0.2));
+    hero.x=s*8; hero.y=s*10; hero.to_x=hero.x; hero.to_y=hero.y;
+    hero.health=hero.origin_health=1000;
+    hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
+    dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0;
+    questTitle='Level '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[idx];
+    questGoal=LEVEL_GOALS[idx];
 }
-for(var y in level.object.map){
-    for(var x in level.object.map[y]){
-        var index = level.object.map[y][x];
-        if(index>0){
-            walls.push(new WallObject(index,x*s,y*s));
-        }
-    }
-}
+
+loadLevel(0);
 
 setInterval(function() { // random step for mobs, attack hero
     if(monsters.length==0)return;
@@ -404,6 +425,12 @@ window.onkeydown=function(e){
         showMap=!showMap;
         return false;
     }
+    if(e.keyCode==90){ hero.weaponIndex=0; return false; } // Z = Blade
+    if(e.keyCode==88){ hero.weaponIndex=1; return false; } // X = War Axe
+    if(e.keyCode==67){ hero.weaponIndex=2; return false; } // C = Fire Staff
+    if(e.keyCode==81){ castSkill(0); return false; } // Q = Fireball
+    if(e.keyCode==87){ castSkill(1); return false; } // W = Dash
+    if(e.keyCode==69){ castSkill(2); return false; } // E = Heal
     if(e.keyCode==82){
         if(dead){ location.reload(); return false; }
     }
@@ -443,15 +470,99 @@ setInterval(function() {
     }
     hero.nextStep();
     for(var i in monsters) monsters[i].nextStep();
+    // buffs + move speed
+    if(hero.powerTimer>0) hero.powerTimer-=0.066;
+    if(hero.hasteTimer>0) hero.hasteTimer-=0.066;
+    hero.st = hero.hasteTimer>0 ? 26 : 16;
+    // projectiles
+    updateProjectiles(0.066);
+    // pick up power/haste drops
+    for(var di=drops.length-1; di>=0; di--){
+        var dd=drops[di];
+        if(Math.abs(hero.x-dd.x)<s*0.8 && Math.abs(hero.y-dd.y)<s*0.8){ dd.use(hero); }
+        if(dd.used) drops.splice(di,1);
+    }
+    // boss slam attack
+    for(var bi in monsters){
+        var bm=monsters[bi];
+        if(bm.isBoss && performance.now()/1000 - bm.slamAt > 4){
+            bm.slamAt=performance.now()/1000;
+            if(Math.abs(hero.x-bm.x)<s*2 && Math.abs(hero.y-bm.y)<s*2){
+                hero.damage(bm.getDamage()*0.5); sfx('heroHurt');
+                hero.to_x=hero.x+(hero.x-bm.x)/2; hero.to_y=hero.y+(hero.y-bm.y)/2;
+            }
+        }
+    }
     floor.fillStyle="black";floor.fillRect(0,0, floor.w,floor.h);
     renderFloor();
     renderHeroHealth();
     renderHeroBelt();
     renderCoins();
     if(showMap) renderMap();
+    // ---- level / quest system ----
+    if(!gameWon && currentLevel<MAX_LEVEL-1 && bossDead &&
+       Math.abs(hero.x-stairX)<s*0.95 && Math.abs(hero.y-stairY)<s*0.95){
+        sfx('coin'); loadLevel(currentLevel+1);
+    }
+    if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; sfx('coin'); }
+    renderQuest();
     if(hero.health<=0) dead=true;
 }, 66);
 
+function renderQuest(){
+    // top quest bar
+    floor.save();
+    floor.fillStyle="rgba(0,0,0,0.62)";
+    floor.fillRect(floor.w/2-300, 12, 600, 50);
+    floor.strokeStyle="#ffd700"; floor.lineWidth=2; floor.strokeRect(floor.w/2-300, 12, 600, 50);
+    floor.fillStyle="#fff";
+    floor.font="bold 17px 'Poppins',sans-serif";
+    floor.textAlign="center";
+    floor.fillText(questTitle, floor.w/2, 34);
+    floor.fillStyle="#d9f7d9";
+    floor.font="13px 'Poppins',sans-serif";
+    floor.fillText("Quest: "+questGoal, floor.w/2, 52);
+    floor.textAlign="left";
+    floor.restore();
+    // weapon + skills HUD
+    var w=hero.getWeapon();
+    var nowS=performance.now()/1000;
+    function skLabel(sk){ var r=Math.max(0, Math.ceil(sk.cd-(nowS-sk.last))); return sk.name+(r>0?'['+r+'s]':''); }
+    floor.save();
+    floor.fillStyle="rgba(0,0,0,0.55)";
+    floor.fillRect(floor.w/2-300, 66, 600, 26);
+    floor.fillStyle="#fff";
+    floor.font="13px 'Poppins',sans-serif";
+    floor.textAlign="center";
+    floor.fillText("Wpn: "+w.name+"   ·   Q "+skLabel(hero.skills[0])+"   ·   W "+skLabel(hero.skills[1])+"   ·   E "+skLabel(hero.skills[2]), floor.w/2, 84);
+    floor.textAlign="left";
+    floor.restore();
+    if(currentLevel<MAX_LEVEL-1 && !bossDead){
+        floor.save();
+        floor.fillStyle="#ff3b30";
+        floor.font="bold 14px 'Poppins',sans-serif";
+        floor.textAlign="center";
+        floor.fillText("☠ Defeat the BOSS to open the stairs", floor.w/2, 108);
+        floor.textAlign="left";
+        floor.restore();
+    }
+    // victory overlay
+    if(gameWon){
+        floor.save();
+        floor.fillStyle="rgba(0,0,0,0.8)";
+        floor.fillRect(0,0,floor.w,floor.h);
+        floor.textAlign="center";
+        floor.fillStyle="#ffd700";
+        floor.font="bold 58px 'Poppins',sans-serif";
+        floor.fillText("VICTORY!", floor.w/2, floor.h/2-20);
+        floor.fillStyle="#e8e6e3";
+        floor.font="19px 'Poppins',sans-serif";
+        floor.fillText("You cleared the Demon Lair.", floor.w/2, floor.h/2+24);
+        floor.fillText("Click or press R to play again", floor.w/2, floor.h/2+52);
+        floor.textAlign="left";
+        floor.restore();
+    }
+}
 function renderCoins(){
     floor.save();
     floor.fillStyle="rgba(0,0,0,0.55)";
@@ -505,7 +616,7 @@ function renderHeroBelt(){
 
 function loadZb(order,click){
     var tmp_zb=[], zb=[];
-    var all=[monsters,potions,barrels,click?[]:[hero],click?[]:walls];
+    var all=[monsters,potions,drops,barrels,click?[]:[hero],click?[]:walls];
     for(var t in all) 
         for(var m in all[t]) 
             if(all[t][m].isAboveHero()) 
@@ -558,6 +669,21 @@ function renderObjects(){
             floor.drawImage(tile, Math.round(sx-tile.width/2)+1, Math.round(sy-tile.height)+1);
         }
         floor.restore()
+        // stairs portal glow
+        if(typeof WallObject!=='undefined' && m instanceof WallObject && m.tile===1524){
+            var pulse=0.45+0.3*Math.sin(Date.now()/180);
+            floor.save();
+            floor.globalAlpha=pulse;
+            floor.fillStyle="#39ff14";
+            floor.beginPath();
+            floor.arc(sx, sy-70, 30, 0, Math.PI*2);
+            floor.fill();
+            floor.globalAlpha=0.9;
+            floor.strokeStyle="#fff";
+            floor.lineWidth=3;
+            floor.stroke();
+            floor.restore();
+        }
         // health line
         if(m.health && m.origin_health && m != hero){
             floor.save()
@@ -571,6 +697,30 @@ function renderObjects(){
             floor.fillRect(sx-lm/2, sy+1, lr, 4);
             floor.restore()
         }
+        // boss indicator
+        if(m.isBoss){
+            floor.save();
+            floor.globalAlpha=0.75;
+            floor.strokeStyle="#ff3b30"; floor.lineWidth=3;
+            floor.beginPath(); floor.arc(sx, sy-70, 50, 0, Math.PI*2); floor.stroke();
+            floor.font="bold 16px 'Poppins',sans-serif";
+            floor.textAlign="center";
+            floor.fillStyle="#ff3b30"; floor.fillText("☠ BOSS", sx, sy-150);
+            floor.textAlign="left";
+            var bw=150; var bh=10;
+            floor.fillStyle="#111"; floor.fillRect(sx-bw/2-1, sy-142, bw+2, bh+2);
+            floor.fillStyle="#ff3b30"; floor.fillRect(sx-bw/2, sy-141, bw*Math.max(0,m.health/m.origin_health), bh);
+            floor.restore();
+        }
+    }
+    // projectiles
+    for(var pi=0; pi<projectiles.length; pi++){
+        var p=projectiles[pi];
+        var psx=(p.x - p.y)*acos, psy=(p.x + p.y)/2*asin;
+        floor.save();
+        floor.fillStyle="#ff8833"; floor.beginPath(); floor.arc(psx, psy, p.r, 0, Math.PI*2); floor.fill();
+        floor.fillStyle="#ffff77"; floor.beginPath(); floor.arc(psx, psy, p.r*0.5, 0, Math.PI*2); floor.fill();
+        floor.restore();
     }
 }
 
@@ -796,7 +946,16 @@ function Mob(x,y,name){
         if(health<=0){
             this.health=0;
             if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
-            else sfx('monsterDie');
+            else {
+                sfx('monsterDie');
+                // drop loot
+                if(!this.isBoss){
+                    if(Math.random()<0.25) potions.push(new PotionHealth(this.x,this.y));
+                    if(Math.random()<0.08) drops.push(new PowerPotion(this.x,this.y));
+                    if(Math.random()<0.08) drops.push(new HastePotion(this.x,this.y));
+                }
+                if(this.isBoss) bossDead=true;
+            }
             remove(monsters,this);
             if(this.death) deathmobs.push(new DeathMob(this));
         }else{
@@ -828,7 +987,7 @@ function AgressiveMob(x,y,name){
         }else this._nextStep();
         this.offset_y=this.currentState==this.attack?this.attackOffset:this.normalOffset;
     }
-    this.currentDamage=30;
+    this.currentDamage=(typeof LEVELS!=='undefined')?LEVELS[currentLevel].dmg:30;
     this.getDamage=function(){
         return this.currentDamage;
     }
@@ -842,6 +1001,94 @@ function AgressiveMob(x,y,name){
     }
 }
 
+var projectiles=[], drops=[], bossDead=false;
+
+function fireProjectile(hero, target, dmg){
+    var ang=Math.atan2(target.y-hero.y, target.x-hero.x);
+    var spd=380;
+    projectiles.push({x:hero.x, y:hero.y, dx:Math.cos(ang)*spd, dy:Math.sin(ang)*spd, dmg:dmg, life:1.0, r:12});
+    sfx('fire');
+}
+function explodeProjectile(i,p){
+    projectiles.splice(i,1);
+    sfx('hit');
+}
+function updateProjectiles(dt){
+    for(var i=projectiles.length-1;i>=0;i--){
+        var p=projectiles[i];
+        p.life-=dt;
+        if(p.life<=0){ explodeProjectile(i,p); continue; }
+        var nx=p.x+p.dx*dt, ny=p.y+p.dy*dt;
+        if(isWayWall(nx,ny)){ explodeProjectile(i,p); continue; }
+        p.x=nx; p.y=ny;
+        var hit=false;
+        for(var j in monsters){
+            var m=monsters[j];
+            if(Math.abs(m.x-p.x)<s*0.6 && Math.abs(m.y-p.y)<s*0.6){ hit=true; m.damage(p.dmg); break; }
+        }
+        if(hit) explodeProjectile(i,p);
+    }
+}
+function nearestMonster(){
+    var best=null, bd=1e9;
+    for(var i in monsters){
+        var m=monsters[i];
+        if(!m.isAboveHero()) continue;
+        var d=Math.abs(m.x-hero.x)+Math.abs(m.y-hero.y);
+        if(d<bd){ bd=d; best=m; }
+    }
+    return best;
+}
+function castSkill(i){
+    var sk=hero.skills[i];
+    var now=performance.now()/1000;
+    if(now-sk.last < sk.cd) return false;
+    if(sk.name==='Fireball'){
+        var t=nearestMonster();
+        if(!t) return false;
+        sk.last=now;
+        fireProjectile(hero, t, 140);
+        sfx('fire');
+        return true;
+    }
+    if(sk.name==='Dash'){
+        sk.last=now;
+        var dx=hero.to_x-hero.x, dy=hero.to_y-hero.y;
+        var len=Math.sqrt(dx*dx+dy*dy)||1;
+        var nx=hero.x+dx/len*2*s, ny=hero.y+dy/len*2*s;
+        for(var st=0; st<2*s; st+=4){ var tx=hero.x+dx/len*st, ty=hero.y+dy/len*st; if(isWayWall(tx,ty)){ nx=tx; ny=ty; break; } }
+        hero.x=nx; hero.y=ny; hero.to_x=nx; hero.to_y=ny;
+        sfx('dash');
+        return true;
+    }
+    if(sk.name==='Heal'){
+        sk.last=now;
+        hero.health=Math.min(hero.origin_health, hero.health+400);
+        sfx('drink');
+        return true;
+    }
+    return false;
+}
+function PowerPotion(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false;
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.powerTimer=20; sfx('potion'); } };
+}
+function HastePotion(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false;
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.hasteTimer=10; sfx('potion'); } };
+}
+function BossMob(x,y){
+    AgressiveMob.call(this,x,y,'SI');
+    this.isBoss=true;
+    this.origin_health=this.health=3000+currentLevel*1500;
+    this.currentDamage=LEVELS[currentLevel].dmg*2;
+    this.scale=1.6;
+    this.st=5;
+    this.slamAt=performance.now()/1000;
+    this.name='BOSS';
+}
 function HeroBarbarian(x,y){
     AgressiveMob.call(this,x,y,"BA");
     this.attackOffset=40;
@@ -861,9 +1108,51 @@ function HeroBarbarian(x,y){
     }
     this.criticalDamage=0.4;
     this.currentDamage=120;
+    // ---- weapon system (switch: Z/X/C on desktop, buttons on mobile) ----
+    this.weaponIndex=0;
+    this.weapons=[
+        {name:'Blade',       dmg:120, cd:0.0, type:'melee',  aoe:0},
+        {name:'War Axe',     dmg:250, cd:1.1, type:'melee',  aoe:110},
+        {name:'Fire Staff',  dmg:95,  cd:0.6, type:'ranged', aoe:0}
+    ];
+    this.lastAttackAt=0;
+    this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
+    // ---- skills (Q/W/E) with cooldowns ----
+    this.skills=[
+        {name:'Fireball', cd:3, last:0},
+        {name:'Dash',     cd:5, last:0},
+        {name:'Heal',     cd:8, last:0}
+    ];
+    // ---- temporary buffs ----
+    this.powerTimer=0; this.hasteTimer=0;
     this.getDamage=function(){
-        return this.currentDamage * ( Math.random() <= this.criticalDamage ? 4 : 1 );
-    }
+        var w=this.getWeapon();
+        var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
+        if(this.powerTimer>0) d*=1.5;
+        return Math.round(d);
+    };
+    this.doAttack=function(mob){
+        this.rotateTo(mob);
+        this.setState(this.attack);
+        var w=this.getWeapon();
+        var now=performance.now()/1000;
+        if(now-this.lastAttackAt < (w.cd||0)) return; // weapon cooldown
+        this.lastAttackAt=now;
+        if(w.type==='ranged'){
+            fireProjectile(this, mob, this.getDamage());
+        }else{
+            mob.damage(this.getDamage()); sfx('hit');
+            if(w.aoe){
+                for(var i in monsters){
+                    var m=monsters[i];
+                    if(m!==mob && m.isAboveHero() &&
+                       Math.abs(m.x-mob.x)<w.aoe && Math.abs(m.y-mob.y)<w.aoe){
+                        m.damage(Math.round(this.getDamage()*0.6));
+                    }
+                }
+            }
+        }
+    };
 }
 
 // ===== Mobile touch controls (virtual joystick + action buttons) =====
@@ -872,6 +1161,12 @@ var touchUI = {
     attackBtn: document.getElementById('btn-attack'),
     potionBtn: document.getElementById('btn-potion'),
     mapBtn: document.getElementById('btn-map'),
+    w1: document.getElementById('btn-w1'),
+    w2: document.getElementById('btn-w2'),
+    w3: document.getElementById('btn-w3'),
+    s1: document.getElementById('btn-s1'),
+    s2: document.getElementById('btn-s2'),
+    s3: document.getElementById('btn-s3'),
     joystickActive: false,
     joyDX: 0,
     joyDY: 0
@@ -941,6 +1236,12 @@ var touchUI = {
         initAudio();
         showMap=!showMap;
     });
+    on(touchUI.w1,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); hero.weaponIndex=0; });
+    on(touchUI.w2,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); hero.weaponIndex=1; });
+    on(touchUI.w3,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); hero.weaponIndex=2; });
+    on(touchUI.s1,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(0); });
+    on(touchUI.s2,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(1); });
+    on(touchUI.s3,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(2); });
     // mobile tap on canvas: synthesize the same click handler with scaled coords
     var cv=floor.canvas;
     on(cv, 'touchstart', function(e){

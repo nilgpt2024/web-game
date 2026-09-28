@@ -47,10 +47,10 @@ body{
 .header-btn:hover{background:rgba(255,255,255,.14);}
 
 /* ---------- Game frame ---------- */
-#game-wrap{padding:74px 12px 40px;max-width:1020px;margin:0 auto;}
+#game-wrap{padding:56px 10px 28px;max-width:1400px;margin:0 auto;}
 #game-frame{
   position:relative;
-  max-width:980px;margin:0 auto;
+  max-width:1360px;margin:0 auto;
   border-radius:10px;overflow:hidden;
   background:#000;
   box-shadow:0 20px 60px rgba(0,0,0,.6);

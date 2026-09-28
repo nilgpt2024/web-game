@@ -206,14 +206,14 @@ function buildMap(idx){
     var allc=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28];
     var allr=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
     // ---- per-level architectural skeleton ----
-    if(idx===0){ // Cellar: central great hall + 4 corner chambers
-        vw(9,allr,[5,11,16]); vw(21,allr,[5,11,16]);
-        hw(6,allc,[3,11,17,25]); hw(15,allc,[3,11,17,25]);
-    }else if(idx===1){ // Crypt: rows of burial chambers + side corridor
-        hw(5,allc,[4,10,16,22,26]); hw(10,allc,[6,13,20,25]);
-        vw(8,allr,[4,9,15]); vw(14,allr,[4,9,15]);
-        vw(20,allr,[4,9,15]); vw(26,allr,[4,9,15]);
-    }else{ // Demon Lair: central altar room + surrounding ring
+    if(idx===0){ // Cellar: two open great halls + pillars
+        hw(8,allc,[4,11,17,24]);
+        level.wall.map[4][8]=468; level.wall.map[4][16]=468; level.wall.map[15][8]=468; level.wall.map[15][16]=468;
+    }else if(idx===1){ // Crypt: open burial hall + short colonnade
+        hw(9,allc,[3,10,16,24]);
+        vw(14,allr,[4]); vw(14,[11,12,13,14,15,16,17],[15]);
+        level.wall.map[3][14]=468; level.wall.map[17][14]=468;
+    }else{ // Demon Lair: central altar room + open ring, corner pillars
         vw(11,[6,7,8,9,10,11,12,13,14],[10]); vw(18,[6,7,8,9,10,11,12,13,14],[10]);
         hw(6,[11,12,13,14,15,16,17,18],[14]); hw(14,[11,12,13,14,15,16,17,18],[15]);
         level.wall.map[4][6]=468; level.wall.map[4][24]=468; level.wall.map[16][6]=468; level.wall.map[16][24]=468;

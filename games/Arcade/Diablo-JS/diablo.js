@@ -730,6 +730,30 @@ function getTinted(img,color){
     _tintCache.push({img:img,color:color,t:c});
     return c;
 }
+function drawHeroWeapon(g, hero, cx, cy){
+    g.save();
+    g.translate(cx, cy);
+    g.lineWidth=3; g.lineCap='round'; g.lineJoin='round';
+    if(hero.name==='Barbarian'){
+        // war axe: handle + blade
+        g.strokeStyle='#8a8a8a'; g.beginPath(); g.moveTo(-10,11); g.lineTo(9,-7); g.stroke();
+        g.fillStyle='#c0392b'; g.beginPath(); g.moveTo(9,-7); g.lineTo(20,-3); g.lineTo(15,6); g.closePath(); g.fill();
+        g.strokeStyle='#7f8c8d'; g.beginPath(); g.moveTo(9,-7); g.lineTo(15,6); g.stroke();
+    }else if(hero.name==='Rogue'){
+        // bow: arc + string + nocked arrow
+        g.strokeStyle='#7b5b3a'; g.lineWidth=3.5; g.beginPath(); g.arc(0,0,15,Math.PI*0.85,Math.PI*2.05); g.stroke();
+        g.strokeStyle='rgba(240,240,240,.85)'; g.lineWidth=1.6; g.beginPath(); g.moveTo(-5,14); g.lineTo(11,9); g.stroke();
+        g.fillStyle='#c9a227'; g.beginPath(); g.moveTo(11,9); g.lineTo(24,2); g.lineTo(11,-5); g.closePath(); g.fill();
+        g.fillStyle='#e74c3c'; g.beginPath(); g.moveTo(11,9); g.lineTo(13,5); g.lineTo(9,5); g.closePath(); g.fill();
+    }else{
+        // staff: pole + glowing orb
+        g.strokeStyle='#6b4a2b'; g.lineWidth=3.5; g.beginPath(); g.moveTo(0,11); g.lineTo(0,-11); g.stroke();
+        g.fillStyle='#8e44ad'; g.beginPath(); g.arc(0,-14,8,0,Math.PI*2); g.fill();
+        g.fillStyle='rgba(255,255,255,.9)'; g.beginPath(); g.arc(0,-14,3.4,0,Math.PI*2); g.fill();
+        g.strokeStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(0,-14,12,0,Math.PI*2); g.stroke();
+    }
+    g.restore();
+}
 function renderObjects(){
     var zb=loadZb(false);
     for(z in zb){
@@ -767,6 +791,8 @@ function renderObjects(){
             floor.stroke();
             floor.restore();
         }
+        // class weapon overlay
+        if(m===hero){ drawHeroWeapon(floor, hero, sx, sy-th/2); }
         // hero class name tag
         if(m===hero && hero.name){
             floor.save();

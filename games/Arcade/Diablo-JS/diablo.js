@@ -362,7 +362,7 @@ function loadLevel(idx){
     // boss guards the stairs
     if(idx<MAX_LEVEL) monsters.push(new BossMob(stairX+s*0.5, stairY-s*0.2));
     hero.x=s*8; hero.y=s*10; hero.to_x=hero.x; hero.to_y=hero.y;
-    hero.health=hero.origin_health=1000;
+    hero.health=hero.origin_health;
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
     dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0;
     questTitle='Level '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[idx];
@@ -412,6 +412,12 @@ floor.canvas.onclick=function(e) {
 
 window.onkeydown=function(e){
     initAudio();
+    if(!hero){
+        if(e.keyCode===49) pickHero('barbarian');
+        else if(e.keyCode===50) pickHero('rogue');
+        else if(e.keyCode===51) pickHero('sorceress');
+        return false;
+    }
     var beltKeys=[49,50,51,52,53,54,55,56,57,48];
     var beltIndex = beltKeys.indexOf(e.keyCode);
     if(beltIndex>=0){
@@ -469,7 +475,7 @@ setInterval(function() {
         hero.to_y=hero.y+touchUI.joyDY*2000;
     }
     hero.nextStep();
-    for(var i in monsters) monsters[i].nextStep();
+    for(var i in monsters){ monsters[i].nextStep(); if(monsters[i].slow>0) monsters[i].slow-=0.066; }
     // buffs + move speed
     if(hero.powerTimer>0) hero.powerTimer-=0.066;
     if(hero.hasteTimer>0) hero.hasteTimer-=0.066;
@@ -518,7 +524,7 @@ function renderQuest(){
     floor.fillStyle="#fff";
     floor.font="bold 17px 'Poppins',sans-serif";
     floor.textAlign="center";
-    floor.fillText(questTitle, floor.w/2, 34);
+    floor.fillText(hero.name+" \u2014 "+questTitle, floor.w/2, 34);
     floor.fillStyle="#d9f7d9";
     floor.font="13px 'Poppins',sans-serif";
     floor.fillText("Quest: "+questGoal, floor.w/2, 52);
@@ -684,6 +690,16 @@ function renderObjects(){
             floor.stroke();
             floor.restore();
         }
+        // hero class name tag
+        if(m===hero && hero.name){
+            floor.save();
+            floor.font="bold 13px 'Poppins',sans-serif";
+            floor.textAlign="center";
+            floor.fillStyle="#111"; floor.fillRect(sx-46, sy-120, 92, 16);
+            floor.fillStyle=hero.tint; floor.fillText(hero.name, sx, sy-107);
+            floor.textAlign="left";
+            floor.restore();
+        }
         // health line
         if(m.health && m.origin_health && m != hero){
             floor.save()
@@ -718,8 +734,10 @@ function renderObjects(){
         var p=projectiles[pi];
         var psx=(p.x - p.y)*acos, psy=(p.x + p.y)/2*asin;
         floor.save();
-        floor.fillStyle="#ff8833"; floor.beginPath(); floor.arc(psx, psy, p.r, 0, Math.PI*2); floor.fill();
-        floor.fillStyle="#ffff77"; floor.beginPath(); floor.arc(psx, psy, p.r*0.5, 0, Math.PI*2); floor.fill();
+        var pcol = p.type==='ice' ? '#66ccff' : p.type==='bolt' ? '#b06dff' : p.type==='arrow' ? '#d8c878' : '#ff8833';
+        var pcol2= p.type==='ice' ? '#e0f7ff' : p.type==='bolt' ? '#ffffff' : p.type==='arrow' ? '#f5edc8' : '#ffff77';
+        floor.fillStyle=pcol; floor.beginPath(); floor.arc(psx, psy, p.r, 0, Math.PI*2); floor.fill();
+        floor.fillStyle=pcol2; floor.beginPath(); floor.arc(psx, psy, p.r*0.5, 0, Math.PI*2); floor.fill();
         floor.restore();
     }
 }
@@ -900,6 +918,7 @@ function Mob(x,y,name){
     this.step=0;
     this.angle=0;
     this.st=8;
+    this.slow=0;
     Shape.call(this, this.currentState, x, y);
     this.rotate = function(sx,sy){
         var l=this.currentState.angles;
@@ -917,16 +936,17 @@ function Mob(x,y,name){
     this.nextStep=function(){
         var dx=(this.to_x - this.x),
             dy=(this.to_y - this.y);
-        if((Math.sqrt((dx*dx)+(dy*dy)))>this.st){ // run
+        var eSt=(this.slow>0)?this.st*2:this.st;
+        if((Math.sqrt((dx*dx)+(dy*dy)))>eSt){ // run
             var tx=0;ty=0;
-            for(var st=0;st<this.st;st+=0.01){
+            for(var st=0;st<eSt;st+=0.01){
                 var sx=st * dx / Math.sqrt((dx*dx) + (dy*dy));
                 var sy=sx * dy / dx;
                 if(isWayWall(this.x+sx,this.y+sy)){tx=sx;ty=sy;}
                 else break;
             }
             this.rotate(tx, ty);
-            if(Math.sqrt((tx*tx)+(ty*ty))>=this.st/2){
+            if(Math.sqrt((tx*tx)+(ty*ty))>=eSt/2){
                 this.x+=tx;
                 this.y+=ty;
                 this.setState(this.run);
@@ -1003,10 +1023,10 @@ function AgressiveMob(x,y,name){
 
 var projectiles=[], drops=[], bossDead=false;
 
-function fireProjectile(hero, target, dmg){
+function fireProjectile(hero, target, dmg, type){
     var ang=Math.atan2(target.y-hero.y, target.x-hero.x);
     var spd=380;
-    projectiles.push({x:hero.x, y:hero.y, dx:Math.cos(ang)*spd, dy:Math.sin(ang)*spd, dmg:dmg, life:1.0, r:12});
+    projectiles.push({x:hero.x, y:hero.y, dx:Math.cos(ang)*spd, dy:Math.sin(ang)*spd, dmg:dmg, life:1.0, r:(type==='arrow'?8:12), type:type||'fire'});
     sfx('fire');
 }
 function explodeProjectile(i,p){
@@ -1026,7 +1046,10 @@ function updateProjectiles(dt){
             var m=monsters[j];
             if(Math.abs(m.x-p.x)<s*0.6 && Math.abs(m.y-p.y)<s*0.6){ hit=true; m.damage(p.dmg); break; }
         }
-        if(hit) explodeProjectile(i,p);
+        if(hit){
+            if(p.type==='ice'){ var tm=monsters[j]; if(tm) tm.slow=1.5; }
+            explodeProjectile(i,p);
+        }
     }
 }
 function nearestMonster(){
@@ -1067,6 +1090,33 @@ function castSkill(i){
         sfx('drink');
         return true;
     }
+    if(sk.name==='MultiShot'){
+        var t0=nearestMonster(); if(!t0) return false;
+        sk.last=now;
+        var base=Math.atan2(t0.y-hero.y, t0.x-hero.x);
+        for(var oa=-0.25; oa<=0.25; oa+=0.25){
+            var spd=380;
+            projectiles.push({x:hero.x,y:hero.y,dx:Math.cos(base+oa)*spd,dy:Math.sin(base+oa)*spd,dmg:hero.getDamage(),life:0.9,r:8,type:'arrow'});
+        }
+        sfx('fire'); return true;
+    }
+    if(sk.name==='FrostNova'){
+        sk.last=now;
+        var done=false;
+        for(var i in monsters){ var m=monsters[i];
+            if(m.isAboveHero() && Math.abs(m.x-hero.x)<s*3.5 && Math.abs(m.y-hero.y)<s*3.5){ m.damage(90); m.slow=2; done=true; }
+        }
+        if(done) sfx('hit'); return done;
+    }
+    if(sk.name==='Teleport'){
+        sk.last=now;
+        var tdx=hero.to_x-hero.x, tdy=hero.to_y-hero.y;
+        var tl=Math.sqrt(tdx*tdx+tdy*tdy)||1;
+        var nx=hero.x+tdx/tl*4*s, ny=hero.y+tdy/tl*4*s;
+        for(var stp=0; stp<4*s; stp+=4){ var tx2=hero.x+tdx/tl*stp, ty2=hero.y+tdy/tl*stp; if(isWayWall(tx2,ty2)){ nx=tx2; ny=ty2; break; } }
+        hero.x=nx; hero.y=ny; hero.to_x=nx; hero.to_y=ny;
+        sfx('dash'); return true;
+    }
     return false;
 }
 function PowerPotion(x,y){
@@ -1091,6 +1141,8 @@ function BossMob(x,y){
 }
 function HeroBarbarian(x,y){
     AgressiveMob.call(this,x,y,"BA");
+    this.name='Barbarian';
+    this.tint='#dc4632';
     this.attackOffset=40;
     this.normalOffset=10;
     this.health=this.origin_health=1000;
@@ -1154,6 +1206,102 @@ function HeroBarbarian(x,y){
         }
     };
 }
+// ===== Character classes =====
+function heroCombatInit(h){
+    h.criticalDamage=0.4;
+    h.powerTimer=0; h.hasteTimer=0;
+    h.getDamage=function(){
+        var w=this.getWeapon();
+        var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
+        if(this.powerTimer>0) d*=1.5;
+        return Math.round(d);
+    };
+    h.doAttack=function(mob){
+        this.rotateTo(mob);
+        this.setState(this.attack);
+        var w=this.getWeapon();
+        var now=performance.now()/1000;
+        if(now-this.lastAttackAt < (w.cd||0)) return;
+        this.lastAttackAt=now;
+        if(w.type==='ranged'){
+            fireProjectile(this, mob, this.getDamage(), w.ptype||'fire');
+        }else{
+            var hitDmg=this.getDamage();
+            mob.damage(hitDmg); sfx('hit');
+            if(w.dot) mob.slow=1.5;
+            if(w.aoe){
+                for(var i in monsters){
+                    var m=monsters[i];
+                    if(m!==mob && m.isAboveHero() &&
+                       Math.abs(m.x-mob.x)<w.aoe && Math.abs(m.y-mob.y)<w.aoe){
+                        m.damage(Math.round(this.getDamage()*0.6));
+                    }
+                }
+            }
+        }
+    };
+}
+function HeroRogue(x,y){
+    AgressiveMob.call(this,x,y,"BA");
+    this.name='Rogue';
+    this.tint='#46be50';
+    this.attackOffset=40; this.normalOffset=10;
+    this.health=this.origin_health=800;
+    this.coins=0; this.belt={items:[],size:10}; this.st=20;
+    this.addToBelt=function(potion){ for(var i=0;i<this.belt.size;i++){ if(typeof this.belt.items[i]=="undefined"){ this.belt.items[i]=potion; return true; } } return false; };
+    this.currentDamage=70;
+    this.weaponIndex=0;
+    this.weapons=[
+        {name:'Short Bow',   dmg:70,  cd:0.25, type:'ranged', aoe:0, ptype:'arrow'},
+        {name:'Long Bow',    dmg:165, cd:0.9,  type:'ranged', aoe:0, ptype:'arrow'},
+        {name:'Venom Dagger',dmg:45,  cd:0.35, type:'melee',  aoe:0, dot:true}
+    ];
+    this.lastAttackAt=0;
+    this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
+    this.skills=[
+        {name:'MultiShot', cd:4, last:0},
+        {name:'Dash',      cd:5, last:0},
+        {name:'Heal',      cd:10,last:0}
+    ];
+    heroCombatInit(this);
+}
+function HeroSorceress(x,y){
+    AgressiveMob.call(this,x,y,"BA");
+    this.name='Sorceress';
+    this.tint='#aa6ef0';
+    this.attackOffset=40; this.normalOffset=10;
+    this.health=this.origin_health=750;
+    this.coins=0; this.belt={items:[],size:10}; this.st=15;
+    this.addToBelt=function(potion){ for(var i=0;i<this.belt.size;i++){ if(typeof this.belt.items[i]=="undefined"){ this.belt.items[i]=potion; return true; } } return false; };
+    this.currentDamage=95;
+    this.weaponIndex=0;
+    this.weapons=[
+        {name:'Fire Staff', dmg:95,  cd:0.6, type:'ranged', aoe:0, ptype:'fire'},
+        {name:'Frost Wand', dmg:70,  cd:0.5, type:'ranged', aoe:0, ptype:'ice'},
+        {name:'Arcane Rod', dmg:155, cd:1.0, type:'ranged', aoe:0, ptype:'bolt'}
+    ];
+    this.lastAttackAt=0;
+    this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
+    this.skills=[
+        {name:'Fireball',  cd:3, last:0},
+        {name:'FrostNova', cd:6, last:0},
+        {name:'Teleport',  cd:4, last:0}
+    ];
+    heroCombatInit(this);
+}
+function createHero(cls){
+    if(cls==='rogue') return new HeroRogue(8*s,10*s);
+    if(cls==='sorceress') return new HeroSorceress(8*s,10*s);
+    return new HeroBarbarian(8*s,10*s);
+}
+function pickHero(cls){
+    hero=createHero(cls);
+    var sel=document.getElementById('char-select');
+    if(sel) sel.style.display='none';
+    initAudio();
+    loadLevel(0);
+}
+window.selectHero=pickHero;
 
 // ===== Mobile touch controls (virtual joystick + action buttons) =====
 var touchUI = {

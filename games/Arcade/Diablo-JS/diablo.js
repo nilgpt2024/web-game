@@ -448,6 +448,7 @@ function loadLevel(idx){
 }
 
 loadLevel(0);
+gameState='title';
 
 setInterval(function() { // random step for mobs, attack hero
     if(monsters.length==0)return;

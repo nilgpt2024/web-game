@@ -709,6 +709,7 @@ setInterval(function() {
     }
     // projectiles
     updateProjectiles(0.066);
+    updateFx(0.066);
     // pick up power/haste drops
     for(var di=drops.length-1; di>=0; di--){
         var dd=drops[di];
@@ -727,12 +728,16 @@ setInterval(function() {
         }
     }
     floor.fillStyle="black";floor.fillRect(0,0, floor.w,floor.h);
+    var shaking=Fx.shake>0;
+    if(shaking){ Fx.shake-=0.066; floor.save(); floor.translate((Math.random()-0.5)*8,(Math.random()-0.5)*8); }
     renderFloor();
+    renderFx();
     renderHeroHealth();
     renderHeroRage();
     renderHeroBelt();
     renderCoins();
     if(showMap) renderMap();
+    if(shaking) floor.restore();
     // ---- level / quest system ----
     if(!gameWon && currentLevel<MAX_LEVEL-1 && bossDead &&
        Math.abs(hero.x-stairX)<s*0.95 && Math.abs(hero.y-stairY)<s*0.95){
@@ -1322,7 +1327,22 @@ function Mob(x,y,name){
     };
     this.damage=function(damage){
         var health=this.health - damage * 1000/(1000-this.resistance);
-        if(this.isHero && health>0) this.gainRage(RAGE.hurtGain);
+        if(this.isHero){
+            if(health>0) this.gainRage(RAGE.hurtGain);
+            Fx.shake=0.15;
+            spawnDamageText(this.x,this.y,Math.round(damage*1000/(1000-this.resistance)),'#ff5050');
+            spawnParticles(this.x,this.y,'#ff8080',0,0);
+        }else{
+            this.flashUntil=performance.now()+90;
+            spawnDamageText(this.x,this.y,Math.round(damage*1000/(1000-this.resistance)),'#ffffff');
+            spawnParticles(this.x,this.y,'#ffd76e',this.x-hero.x,this.y-hero.y);
+            // knockback 10px away from hero (never through walls, never on killing blow)
+            if(health>0){
+                var kx=this.x-hero.x, ky=this.y-hero.y, kl=Math.sqrt(kx*kx+ky*ky)||1;
+                var nx2=this.x+kx/kl*10, ny2=this.y+ky/kl*10;
+                if(isWayWall(nx2,ny2)){ this.x=nx2; this.y=ny2; }
+            }
+        }
         if(health<=0){
             this.health=0;
             if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
@@ -1435,6 +1455,50 @@ function updateProjectiles(dt){
         }else if(!dead && Math.abs(hero.x-p.x)<s*0.6 && Math.abs(hero.y-p.y)<s*0.6){ // monster projectile: hits hero
             hero.damage(p.dmg); sfx('heroHurt');
             explodeProjectile(i,p);
+        }
+    }
+}
+// ===== combat feedback (damage numbers, particles, hit flash, screen shake) =====
+var Fx={parts:[], texts:[], shake:0};
+function spawnParticles(x,y,color,dx,dy){
+    for(var i=0;i<5;i++){
+        if(Fx.parts.length>=40) Fx.parts.shift();
+        var a=(dx===0&&dy===0)?Math.random()*Math.PI*2:Math.atan2(dy,dx)+(Math.random()-0.5)*1.6;
+        var sp=60+Math.random()*120;
+        Fx.parts.push({x:x,y:y,dx:Math.cos(a)*sp,dy:Math.sin(a)*sp,life:0.25+Math.random()*0.25,color:color});
+    }
+}
+function spawnDamageText(x,y,txt,color){
+    if(Fx.texts.length>=20) Fx.texts.shift();
+    Fx.texts.push({x:x+(Math.random()-0.5)*20,y:y,txt:txt,color:color,life:0.7});
+}
+function updateFx(dt){
+    for(var i=Fx.parts.length-1;i>=0;i--){ var p=Fx.parts[i]; p.life-=dt; p.x+=p.dx*dt; p.y+=p.dy*dt; if(p.life<=0) Fx.parts.splice(i,1); }
+    for(var j=Fx.texts.length-1;j>=0;j--){ var t=Fx.texts[j]; t.life-=dt; t.y-=40*dt; if(t.life<=0) Fx.texts.splice(j,1); }
+}
+function renderFx(){
+    var i, m;
+    for(i=0;i<Fx.parts.length;i++){ var p=Fx.parts[i];
+        floor.globalAlpha=Math.max(0,Math.min(1,p.life*3));
+        floor.fillStyle=p.color;
+        floor.fillRect((p.x-p.y)*acos-2, (p.x+p.y)/2*asin-2, 4, 4);
+    }
+    floor.textAlign="center";
+    for(i=0;i<Fx.texts.length;i++){ var t=Fx.texts[i];
+        floor.globalAlpha=Math.max(0,Math.min(1,t.life*2.5));
+        floor.fillStyle=t.color;
+        floor.font="bold 15px Arial";
+        floor.fillText(t.txt, (t.x-t.y)*acos, (t.x+t.y)/2*asin-30);
+    }
+    floor.globalAlpha=1;
+    for(i in monsters){ m=monsters[i];
+        if(m.flashUntil && performance.now()<m.flashUntil && m.isAboveHero()){
+            floor.globalAlpha=0.4;
+            floor.fillStyle="white";
+            floor.beginPath();
+            floor.arc((m.x-m.y)*acos, (m.x+m.y)/2*asin-30, 22, 0, Math.PI*2);
+            floor.fill();
+            floor.globalAlpha=1;
         }
     }
 }

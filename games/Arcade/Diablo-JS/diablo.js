@@ -567,6 +567,8 @@ setInterval(function() { // random step for mobs, attack hero
     }
     for(var i in monsters){
         var m=monsters[i], attackDist=(m.attackRange&&m.attackRange>0)?m.attackRange:100;
+        if(m.castUntil && performance.now()/1000<m.castUntil){ m.to_x=m.x; m.to_y=m.y; continue; } // boss casting: hold
+        if(m.staggerUntil && performance.now()<m.staggerUntil) continue; // hit stagger
         if(m.attack && m.isAboveHero()){
             var chaseDist=(m.isBoss?9999:10*s);
             var mdist=Math.abs(hero.x-m.x)+Math.abs(hero.y-m.y);
@@ -578,8 +580,9 @@ setInterval(function() { // random step for mobs, attack hero
                             m.rotateTo(hero); m.setState(m.attack);
                             fireProjectile(m, hero, m.currentDamage, m.name==='FS'?'fire':'arrow');
                         }
-                        if(mdist<s*2){ m.to_x=m.x-(hero.x-m.x)*0.5; m.to_y=m.y-(hero.y-m.y)*0.5; }
-                        else { m.to_x=m.x; m.to_y=m.y; }
+                        if(mdist<s*1.6){ m.to_x=m.x-(hero.x-m.x)*0.5; m.to_y=m.y-(hero.y-m.y)*0.5; } // too close: retreat
+                        else if(mdist<=s*2.3){ m.to_x=m.x; m.to_y=m.y; } // kite band: hold and shoot
+                        else { m.to_x=hero.x; m.to_y=hero.y; }
                     }else{ m.to_x=hero.x; m.to_y=hero.y; }
                 }else if(Math.abs(hero.x-m.x)<attackDist &&
                    Math.abs(hero.y-m.y)<attackDist){
@@ -589,6 +592,13 @@ setInterval(function() { // random step for mobs, attack hero
                 }else{
                     m.to_x=hero.x;
                     m.to_y=hero.y;
+                    // separation: spread out instead of stacking
+                    for(var j in monsters){
+                        var o=monsters[j];
+                        if(o!==m && Math.abs(o.x-m.x)<40 && Math.abs(o.y-m.y)<40){
+                            m.to_x+=m.x-o.x; m.to_y+=m.y-o.y; break;
+                        }
+                    }
                 }
             }
         }
@@ -1334,6 +1344,7 @@ function Mob(x,y,name){
             spawnParticles(this.x,this.y,'#ff8080',0,0);
         }else{
             this.flashUntil=performance.now()+90;
+            if(!this.isBoss) this.staggerUntil=performance.now()+250; // hit stagger (bosses immune)
             spawnDamageText(this.x,this.y,Math.round(damage*1000/(1000-this.resistance)),'#ffffff');
             spawnParticles(this.x,this.y,'#ffd76e',this.x-hero.x,this.y-hero.y);
             // knockback 10px away from hero (never through walls, never on killing blow)
@@ -1393,6 +1404,13 @@ function AgressiveMob(x,y,name){
     this._nextStep=this.nextStep;
     this.nextStep=function(){
         if(!this.isAboveHero())return;
+        if(this.staggerUntil && performance.now()<this.staggerUntil){ // hit stagger: stunned
+            this.attacked=null;
+            this.setState(this.stay);
+            this.sprite=this.currentState;
+            this.offset_y=this.normalOffset;
+            return;
+        }
         if(this.currentState == this.attack){
             if(this.step==(this.attack.steps-1)){
                 this.currentState=this.stay;
@@ -1478,6 +1496,19 @@ function updateFx(dt){
 }
 function renderFx(){
     var i, m;
+    // boss telegraph circles (rendered under particles)
+    for(i in monsters){ m=monsters[i];
+        if(m.castUntil && performance.now()/1000<m.castUntil){
+            var tr=m.bossType.skill==='whirlwind'?s*2.5:(m.bossType.skill==='firerain'?s*2.4:s*1.8);
+            var prog=1-(m.castUntil-performance.now()/1000)/0.8;
+            floor.globalAlpha=0.18+0.25*prog;
+            floor.fillStyle="red";
+            floor.beginPath();
+            floor.arc((m.castCx-m.castCy)*acos, (m.castCx+m.castCy)/2*asin, tr, 0, Math.PI*2);
+            floor.fill();
+            floor.globalAlpha=1;
+        }
+    }
     for(i=0;i<Fx.parts.length;i++){ var p=Fx.parts[i];
         floor.globalAlpha=Math.max(0,Math.min(1,p.life*3));
         floor.fillStyle=p.color;
@@ -1656,19 +1687,31 @@ function BossMob(x,y){
         if(!this.enraged && this.health<this.origin_health*0.3){
             this.enraged=true; this.st*=1.5; this.currentDamage=Math.round(this.currentDamage*1.3);
         }
+        if(this.castUntil){ // casting phase: telegraph shown, resolve when done
+            if(now>=this.castUntil){
+                var skill=this.bossType.skill;
+                this.castUntil=0;
+                if(skill==='whirlwind'){
+                    if(Math.abs(hero.x-this.castCx)<s*2.5 && Math.abs(hero.y-this.castCy)<s*2.5){ hero.damage(this.currentDamage*1.5); }
+                    for(var a=0;a<8;a++){ var ang=a*Math.PI/4; projectiles.push({x:this.x,y:this.y,dx:Math.cos(ang)*200,dy:Math.sin(ang)*200,dmg:Math.round(this.currentDamage*0.6),life:0.6,r:14,type:'fire',owner:this}); }
+                    sfx('hit');
+                }else if(skill==='summon'){
+                    for(var si=0;si<2;si++){ var sx=this.castCx+(Math.random()-0.5)*s*2.4, sy=this.castCy+(Math.random()-0.5)*s*2.4; if(isWayWall(sx,sy)) monsters.push(new AgressiveMob(sx,sy,'SK')); }
+                    sfx('fire');
+                }else if(skill==='firerain'){
+                    for(var fi=0;fi<5;fi++){ var fx=this.castCx+(Math.random()-0.5)*s*4, fy=this.castCy+(Math.random()-0.5)*s*4; projectiles.push({x:this.x,y:this.y,dx:(fx-this.x)*2,dy:(fy-this.y)*2,dmg:this.currentDamage,life:0.8,r:16,type:'fire',owner:this}); }
+                    sfx('fire');
+                }
+            }
+            return; // hold position while casting
+        }
         if(now-this.skillAt>5 && this.isAboveHero()){
             this.skillAt=now;
-            if(this.bossType.skill==='whirlwind'){
-                if(Math.abs(hero.x-this.x)<s*2.5 && Math.abs(hero.y-this.y)<s*2.5){ hero.damage(this.currentDamage*1.5); }
-                for(var a=0;a<8;a++){ var ang=a*Math.PI/4; projectiles.push({x:this.x,y:this.y,dx:Math.cos(ang)*200,dy:Math.sin(ang)*200,dmg:Math.round(this.currentDamage*0.6),life:0.6,r:14,type:'fire',owner:this}); }
-                sfx('hit');
-            }else if(this.bossType.skill==='summon'){
-                for(var si=0;si<2;si++){ var sx=this.x+(Math.random()-0.5)*s*3, sy=this.y+(Math.random()-0.5)*s*3; if(isWayWall(sx,sy)) monsters.push(new AgressiveMob(sx,sy,'SK')); }
-                sfx('fire');
-            }else if(this.bossType.skill==='firerain'){
-                for(var fi=0;fi<5;fi++){ var fx=hero.x+(Math.random()-0.5)*s*4, fy=hero.y+(Math.random()-0.5)*s*4; projectiles.push({x:this.x,y:this.y,dx:(fx-this.x)*2,dy:(fy-this.y)*2,dmg:this.currentDamage,life:0.8,r:16,type:'fire',owner:this}); }
-                sfx('fire');
-            }
+            this.castUntil=now+0.8; // 0.8s telegraph before damage lands
+            this.to_x=this.x; this.to_y=this.y;
+            if(this.bossType.skill==='firerain'){ this.castCx=hero.x; this.castCy=hero.y; }
+            else{ this.castCx=this.x; this.castCy=this.y; }
+            sfx('attack');
         }
     };
 }

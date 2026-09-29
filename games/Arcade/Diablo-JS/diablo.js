@@ -507,6 +507,8 @@ var monsterMap={
     },
 };
 
+// rage resource (combat rework)
+var RAGE={max:100, hitGain:12, hurtGain:6, dashGain:8, fireballCost:35, shoutCost:40, decayDelay:3000, decayRate:8};
 var hero=new HeroBarbarian(8*s,10*s);
 
 setInterval(function(){
@@ -701,6 +703,10 @@ setInterval(function() {
     if(hero.powerTimer>0) hero.powerTimer-=0.066;
     if(hero.hasteTimer>0) hero.hasteTimer-=0.066;
     hero.st = hero.hasteTimer>0 ? 26 : 16;
+    // rage decays out of combat
+    if(hero.rage>0 && performance.now()-hero.lastCombatAt>RAGE.decayDelay){
+        hero.rage=Math.max(0, hero.rage-RAGE.decayRate*0.066);
+    }
     // projectiles
     updateProjectiles(0.066);
     // pick up power/haste drops
@@ -723,6 +729,7 @@ setInterval(function() {
     floor.fillStyle="black";floor.fillRect(0,0, floor.w,floor.h);
     renderFloor();
     renderHeroHealth();
+    renderHeroRage();
     renderHeroBelt();
     renderCoins();
     if(showMap) renderMap();
@@ -879,6 +886,21 @@ function renderHeroHealth(){
     floor.arc(radius+padding, floor.h-radius-padding, radius, angleFrom, angleTo);
     floor.closePath();
     floor.fill();
+    floor.restore();
+}
+
+function renderHeroRage(){
+    if(hero.rage<=0) return;
+    var radius=80, padding=20;
+    var pct=hero.rage/RAGE.max;
+    var decaying=performance.now()-hero.lastCombatAt>RAGE.decayDelay;
+    floor.save();
+    floor.globalAlpha=decaying ? 0.5+0.3*Math.sin(performance.now()/120) : 0.9;
+    floor.strokeStyle="#e74c3c";
+    floor.lineWidth=7;
+    floor.beginPath();
+    floor.arc(radius+padding, floor.h-radius-padding, radius+11, -Math.PI/2, -Math.PI/2+Math.PI*2*pct, false);
+    floor.stroke();
     floor.restore();
 }
 
@@ -1300,6 +1322,7 @@ function Mob(x,y,name){
     };
     this.damage=function(damage){
         var health=this.health - damage * 1000/(1000-this.resistance);
+        if(this.isHero && health>0) this.gainRage(RAGE.hurtGain);
         if(health<=0){
             this.health=0;
             if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
@@ -1432,8 +1455,10 @@ function castSkill(i){
     if(i===0){
         var t=nearestMonster();
         if(!t) return false;
+        if(hero.rage<RAGE.fireballCost){ sfx('error'); return false; }
         sk.last=now;
-        fireProjectile(hero, t, hero.getDamage());
+        hero.rage-=RAGE.fireballCost; hero.lastCombatAt=performance.now();
+        fireProjectile(hero, t, Math.round(hero.getDamage()*(hero.getWeapon().fireballMul||1)));
         sfx('fire');
         return true;
     }
@@ -1449,7 +1474,7 @@ function castSkill(i){
             if(dm.isAboveHero()){
                 var ddx=dm.x-ox, ddy=dm.y-oy, dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
                 var proj=ddx*(dx/len)+ddy*(dy/len);
-                if(proj>0 && proj<2.5*s && Math.abs(ddx*(dy/len)-ddy*(dx/len))<s*0.8){ dm.damage(250); }
+                if(proj>0 && proj<2.5*s && Math.abs(ddx*(dy/len)-ddy*(dx/len))<s*0.8){ dm.damage(250); hero.gainRage(RAGE.dashGain); }
             }
         }
         hero.x=nx; hero.y=ny; hero.to_x=nx; hero.to_y=ny;
@@ -1457,7 +1482,9 @@ function castSkill(i){
         return true;
     }
     if(i===2){
+        if(hero.rage<RAGE.shoutCost){ sfx('error'); return false; }
         sk.last=now;
+        hero.rage-=RAGE.shoutCost; hero.lastCombatAt=performance.now();
         var cried=false;
         for(var ci in monsters){
             var cm=monsters[ci];
@@ -1615,12 +1642,15 @@ function HeroBarbarian(x,y){
     this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
     // ---- skills (Q/W/E) with cooldowns ----
     this.skills=[
-        {name:T('skillFireball'), cd:3, last:0},
+        {name:T('skillFireball'), cd:0.5, last:0},
         {name:T('skillDash'),     cd:4, last:0},
-        {name:T('skillWarCry'),   cd:9, last:0}
+        {name:T('skillWarCry'),   cd:8, last:0}
     ];
     // ---- temporary buffs ----
     this.powerTimer=0; this.hasteTimer=0;
+    // ---- rage resource ----
+    this.rage=0; this.lastCombatAt=0;
+    this.gainRage=function(n){ this.rage=Math.min(RAGE.max, this.rage+n); this.lastCombatAt=performance.now(); };
     this.getDamage=function(){
         var w=this.getWeapon();
         var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
@@ -1639,6 +1669,7 @@ function HeroBarbarian(x,y){
             fireProjectile(this, mob, this.getDamage());
         }else{
             mob.damage(this.getDamage()); sfx('hit');
+            this.gainRage(RAGE.hitGain*(w.rageMul||1));
             if(w.aoe){
                 for(var i in monsters){
                     var m=monsters[i];

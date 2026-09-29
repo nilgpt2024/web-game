@@ -397,8 +397,9 @@ var monsterMap={
 var hero=new HeroBarbarian(8*s,10*s);
 
 setInterval(function(){
-    hero.health=Math.min(hero.health+10, hero.origin_health);
-},2000);
+    if(dead) return;
+    hero.health=Math.min(hero.health+25, hero.origin_health);
+},1500);
 
 // aggresive mobs
 var monsters=[],deathmobs=[],barrels=[],coins=[],potions=[],walls=[];
@@ -502,7 +503,7 @@ window.onkeydown=function(e){
     if(e.keyCode==66){ if(window.openShop) window.openShop(); return false; } // B = Shop
     if(e.keyCode==81){ castSkill(0); return false; } // Q = Fireball
     if(e.keyCode==87){ castSkill(1); return false; } // W = Dash
-    if(e.keyCode==69){ castSkill(2); return false; } // E = Heal
+    if(e.keyCode==69){ castSkill(2); return false; } // E = War Cry
     if(e.keyCode==82){
         if(dead){ location.reload(); return false; }
     }

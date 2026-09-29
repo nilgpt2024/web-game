@@ -797,16 +797,19 @@ function renderHeroBelt(){
     floor.save();
     var tile=potionSprite;
     var tw = tile.width / tile.steps;
-    var th = tile.height / tile.angles;        
+    var th = tile.height / tile.angles;
+    var beltW = hero.belt.size * tw;
+    var beltX = (floor.w - beltW) / 2;
+    var beltY = floor.h - th - 16;
     for(var i=0;i<hero.belt.size;i++){
-        floor.drawImage(tile, 
+        floor.drawImage(tile,
             tw*2, th*3, tw, th,
-            200+tw*i, 600, tw, th);
+            beltX+tw*i, beltY, tw, th);
         var p = hero.belt.items[i];
         if(p){
-            floor.drawImage(tile, 
+            floor.drawImage(tile,
                 tw*p.step, th*p.angle, tw, th,
-                200+tw*i, 600, tw, th);
+                beltX+tw*i, beltY, tw, th);
         }
     }
     floor.restore();

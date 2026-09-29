@@ -392,18 +392,6 @@ var monsterMap={
         NU: loadImage("monsters/BA/NU/map.png",16,8,true),
         WL: loadImage("monsters/BA/WL/map.png",16,8,true),
     },
-    RO: {
-        A1: loadImage("monsters/rogue_bow_A1.png?v=3",8,1,true),
-        NU: loadImage("monsters/rogue_bow_NU.png?v=3",8,1,true),
-        WL: loadImage("monsters/rogue_bow_WL.png?v=3",8,1,true),
-        attackOffset:30,
-    },
-    SO: {
-        A1: loadImage("monsters/sorcerer_staff_A1.png?v=3",8,1,true),
-        NU: loadImage("monsters/sorcerer_staff_NU.png?v=3",8,1,true),
-        WL: loadImage("monsters/sorcerer_staff_WL.png?v=3",8,1,true),
-        attackOffset:30,
-    }
 };
 
 var hero=new HeroBarbarian(8*s,10*s);
@@ -492,9 +480,7 @@ floor.canvas.onclick=function(e) {
 window.onkeydown=function(e){
     initAudio();
     if(!hero){
-        if(e.keyCode===49) pickHero('barbarian');
-        else if(e.keyCode===50) pickHero('rogue');
-        else if(e.keyCode===51) pickHero('sorceress');
+        pickHero('barbarian');
         return false;
     }
     var beltKeys=[49,50,51,52,53,54,55,56,57,48];
@@ -756,24 +742,10 @@ function drawHeroWeapon(g, hero, cx, cy){
     g.save();
     g.translate(cx, cy);
     g.lineWidth=3; g.lineCap='round'; g.lineJoin='round';
-    if(hero.name==='Barbarian'){
-        // war axe: handle + blade
-        g.strokeStyle='#8a8a8a'; g.beginPath(); g.moveTo(-10,11); g.lineTo(9,-7); g.stroke();
-        g.fillStyle='#c0392b'; g.beginPath(); g.moveTo(9,-7); g.lineTo(20,-3); g.lineTo(15,6); g.closePath(); g.fill();
-        g.strokeStyle='#7f8c8d'; g.beginPath(); g.moveTo(9,-7); g.lineTo(15,6); g.stroke();
-    }else if(hero.name==='Rogue'){
-        // bow: arc + string + nocked arrow
-        g.strokeStyle='#7b5b3a'; g.lineWidth=3.5; g.beginPath(); g.arc(0,0,15,Math.PI*0.85,Math.PI*2.05); g.stroke();
-        g.strokeStyle='rgba(240,240,240,.85)'; g.lineWidth=1.6; g.beginPath(); g.moveTo(-5,14); g.lineTo(11,9); g.stroke();
-        g.fillStyle='#c9a227'; g.beginPath(); g.moveTo(11,9); g.lineTo(24,2); g.lineTo(11,-5); g.closePath(); g.fill();
-        g.fillStyle='#e74c3c'; g.beginPath(); g.moveTo(11,9); g.lineTo(13,5); g.lineTo(9,5); g.closePath(); g.fill();
-    }else{
-        // staff: pole + glowing orb
-        g.strokeStyle='#6b4a2b'; g.lineWidth=3.5; g.beginPath(); g.moveTo(0,11); g.lineTo(0,-11); g.stroke();
-        g.fillStyle='#8e44ad'; g.beginPath(); g.arc(0,-14,8,0,Math.PI*2); g.fill();
-        g.fillStyle='rgba(255,255,255,.9)'; g.beginPath(); g.arc(0,-14,3.4,0,Math.PI*2); g.fill();
-        g.strokeStyle='rgba(255,255,255,.5)'; g.beginPath(); g.arc(0,-14,12,0,Math.PI*2); g.stroke();
-    }
+    // war axe: handle + blade
+    g.strokeStyle='#8a8a8a'; g.beginPath(); g.moveTo(-10,11); g.lineTo(9,-7); g.stroke();
+    g.fillStyle='#c0392b'; g.beginPath(); g.moveTo(9,-7); g.lineTo(20,-3); g.lineTo(15,6); g.closePath(); g.fill();
+    g.strokeStyle='#7f8c8d'; g.beginPath(); g.moveTo(9,-7); g.lineTo(15,6); g.stroke();
     g.restore();
 }
 function renderObjects(){
@@ -1419,57 +1391,7 @@ function heroCombatInit(h){
         }
     };
 }
-function HeroRogue(x,y){
-    AgressiveMob.call(this,x,y,"RO");
-    this.isHero=true;
-    this.name='Rogue';
-    this.attackOffset=30; this.normalOffset=10;
-    this.health=this.origin_health=800;
-    this.coins=0; this.belt={items:[],size:10}; this.st=20;
-    this.addToBelt=function(potion){ for(var i=0;i<this.belt.size;i++){ if(typeof this.belt.items[i]=="undefined"){ this.belt.items[i]=potion; return true; } } return false; };
-    this.currentDamage=70;
-    this.weaponIndex=0;
-    this.weapons=[
-        {name:'Short Bow',   dmg:70,  cd:0.25, type:'ranged', aoe:0, ptype:'arrow'},
-        {name:'Long Bow',    dmg:165, cd:0.9,  type:'ranged', aoe:0, ptype:'arrow'},
-        {name:'Venom Dagger',dmg:45,  cd:0.35, type:'melee',  aoe:0, dot:true}
-    ];
-    this.lastAttackAt=0;
-    this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
-    this.skills=[
-        {name:'MultiShot', cd:4, last:0},
-        {name:'Dash',      cd:5, last:0},
-        {name:'Heal',      cd:10,last:0}
-    ];
-    heroCombatInit(this);
-}
-function HeroSorceress(x,y){
-    AgressiveMob.call(this,x,y,"SO");
-    this.isHero=true;
-    this.name='Sorceress';
-    this.attackOffset=30; this.normalOffset=10;
-    this.health=this.origin_health=750;
-    this.coins=0; this.belt={items:[],size:10}; this.st=15;
-    this.addToBelt=function(potion){ for(var i=0;i<this.belt.size;i++){ if(typeof this.belt.items[i]=="undefined"){ this.belt.items[i]=potion; return true; } } return false; };
-    this.currentDamage=95;
-    this.weaponIndex=0;
-    this.weapons=[
-        {name:'Fire Staff', dmg:95,  cd:0.6, type:'ranged', aoe:0, ptype:'fire'},
-        {name:'Frost Wand', dmg:70,  cd:0.5, type:'ranged', aoe:0, ptype:'ice'},
-        {name:'Arcane Rod', dmg:155, cd:1.0, type:'ranged', aoe:0, ptype:'bolt'}
-    ];
-    this.lastAttackAt=0;
-    this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
-    this.skills=[
-        {name:'Fireball',  cd:3, last:0},
-        {name:'FrostNova', cd:6, last:0},
-        {name:'Teleport',  cd:4, last:0}
-    ];
-    heroCombatInit(this);
-}
 function createHero(cls){
-    if(cls==='rogue') return new HeroRogue(8*s,10*s);
-    if(cls==='sorceress') return new HeroSorceress(8*s,10*s);
     return new HeroBarbarian(8*s,10*s);
 }
 function pickHero(cls){

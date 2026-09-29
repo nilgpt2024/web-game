@@ -315,50 +315,139 @@ var coinSprite=loadImage("sprite/coins10.png");
 var potionSprite=loadImage("sprite/potions.png");
 
 
-// ===== Sound effects (Web Audio API, no external files) =====
-var audioCtx=null, deathSfxPlayed=false;
+// ===== Sound effects (Web Audio API synthesis, no external files) =====
+var audioCtx=null, deathSfxPlayed=false, sfxOut=null, sfxVerb=null;
 function initAudio(){
     if(!audioCtx){
-        try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){}
+        try{
+            audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+            // master bus: soft limiter so layered sounds never clip
+            var comp=audioCtx.createDynamicsCompressor();
+            comp.threshold.value=-16; comp.knee.value=18; comp.ratio.value=8;
+            comp.attack.value=0.003; comp.release.value=0.18;
+            var master=audioCtx.createGain(); master.gain.value=0.6;
+            comp.connect(master); master.connect(audioCtx.destination);
+            sfxOut=comp;
+            // short dungeon reverb (generated impulse response, no files)
+            var ir=audioCtx.createBuffer(2, Math.floor(audioCtx.sampleRate*0.7), audioCtx.sampleRate);
+            for(var ch=0; ch<2; ch++){
+                var d=ir.getChannelData(ch);
+                for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3);
+            }
+            var conv=audioCtx.createConvolver(); conv.buffer=ir;
+            var vg=audioCtx.createGain(); vg.gain.value=0.3;
+            conv.connect(vg); vg.connect(comp);
+            sfxVerb=conv;
+        }catch(e){ audioCtx=null; }
     }
     if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume(); }
 }
+function sfxTone(o){ // oscillator voice: {f0,f1,dur,wave,vol,when,lp,lp1,verb,atk}
+    if(!audioCtx) return;
+    var t=audioCtx.currentTime+(o.when||0), dur=o.dur;
+    var osc=audioCtx.createOscillator(), g=audioCtx.createGain();
+    osc.type=o.wave||'sine';
+    osc.frequency.setValueAtTime(Math.max(1,o.f0), t);
+    if(o.f1) osc.frequency.exponentialRampToValueAtTime(Math.max(1,o.f1), t+dur);
+    var head=osc;
+    if(o.lp){ var f=audioCtx.createBiquadFilter(); f.type='lowpass';
+        f.frequency.setValueAtTime(o.lp,t);
+        if(o.lp1) f.frequency.exponentialRampToValueAtTime(Math.max(20,o.lp1),t+dur);
+        head.connect(f); head=f; }
+    var atk=o.atk||0.006;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(o.vol,t+atk);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    head.connect(g); g.connect(sfxOut);
+    if(o.verb) g.connect(sfxVerb);
+    osc.start(t); osc.stop(t+dur+0.06);
+}
+function sfxNoise(o){ // shaped noise voice: {dur,vol,when,type,f0,f1,q,verb,atk}
+    if(!audioCtx) return;
+    var t=audioCtx.currentTime+(o.when||0), dur=o.dur;
+    var len=Math.max(64,Math.floor(audioCtx.sampleRate*dur));
+    var buf=audioCtx.createBuffer(1,len,audioCtx.sampleRate), d=buf.getChannelData(0);
+    for(var i=0;i<len;i++) d[i]=Math.random()*2-1;
+    var n=audioCtx.createBufferSource(); n.buffer=buf;
+    var f=audioCtx.createBiquadFilter(); f.type=o.type||'lowpass'; f.Q.value=o.q||0.9;
+    f.frequency.setValueAtTime(o.f0||1200,t);
+    if(o.f1) f.frequency.exponentialRampToValueAtTime(Math.max(20,o.f1),t+dur);
+    var g=audioCtx.createGain(); var atk=o.atk||0.004;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(o.vol,t+atk);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    n.connect(f); f.connect(g); g.connect(sfxOut);
+    if(o.verb) g.connect(sfxVerb);
+    n.start(t); n.stop(t+dur+0.06);
+}
 function sfx(type){
     if(!audioCtx) return;
-    var t=audioCtx.currentTime, master=0.5;
-    function osc(f0,f1,dur,wave,vol,when){
-        var o=audioCtx.createOscillator(), g=audioCtx.createGain();
-        o.type=wave||'square';
-        o.frequency.setValueAtTime(Math.max(1,f0), t+when);
-        o.frequency.exponentialRampToValueAtTime(Math.max(1,f1), t+when+dur);
-        g.gain.setValueAtTime(vol*master, t+when);
-        g.gain.exponentialRampToValueAtTime(0.0001, t+when+dur);
-        o.connect(g); g.connect(audioCtx.destination);
-        o.start(t+when); o.stop(t+when+dur+0.05);
-    }
-    function noise(dur,vol,when,freq){
-        var n=audioCtx.createBufferSource();
-        var buf=audioCtx.createBuffer(1, Math.max(1,Math.floor(audioCtx.sampleRate*dur)), audioCtx.sampleRate);
-        var d=buf.getChannelData(0);
-        for(var i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-        n.buffer=buf;
-        var f=audioCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq||1200;
-        var g=audioCtx.createGain(); g.gain.setValueAtTime(vol*master,t+when);
-        g.gain.exponentialRampToValueAtTime(0.0001,t+when+dur);
-        n.connect(f); f.connect(g); g.connect(audioCtx.destination);
-        n.start(t+when); n.stop(t+when+dur+0.05);
-    }
     switch(type){
-        case 'attack':     noise(0.12,0.16,0,2600); osc(220,70,0.12,'sawtooth',0.12,0); break;
-        case 'hit':        osc(340,130,0.1,'square',0.14,0); break;
-        case 'heroHurt':   osc(190,55,0.28,'sawtooth',0.18,0); noise(0.16,0.12,0,700); break;
-        case 'coin':       osc(950,1900,0.12,'sine',0.16,0); osc(1420,1900,0.1,'sine',0.1,0.06); break;
-        case 'potion':     osc(500,920,0.12,'sine',0.14,0); osc(760,1240,0.12,'sine',0.1,0.08); break;
-        case 'drink':      osc(300,720,0.16,'triangle',0.14,0); osc(450,900,0.14,'triangle',0.08,0.07); break;
-        case 'death':      osc(320,38,0.9,'sawtooth',0.16,0); noise(0.6,0.14,0,450); break;
-        case 'monsterDie': osc(240,45,0.4,'square',0.12,0); noise(0.2,0.08,0,900); break;
-        case 'fire':  noise(0.18,0.16,0,2200); osc(520,150,0.16,'sawtooth',0.12,0); break;
-        case 'dash':  osc(300,760,0.18,'sawtooth',0.14,0); noise(0.2,0.1,0,1400); break;
+        case 'attack': // blade whoosh
+            sfxNoise({dur:0.11,vol:0.3,type:'bandpass',f0:3200,f1:700,q:1.4});
+            sfxNoise({dur:0.05,vol:0.1,type:'highpass',f0:5200,when:0.01});
+            break;
+        case 'hit': // meaty impact: thump + crunch
+            sfxTone({f0:170,f1:52,dur:0.1,wave:'sine',vol:0.55,lp:900});
+            sfxNoise({dur:0.08,vol:0.3,f0:2000,f1:280});
+            sfxTone({f0:420,f1:180,dur:0.05,wave:'triangle',vol:0.16});
+            break;
+        case 'heroHurt': // low painful grunt
+            sfxTone({f0:210,f1:66,dur:0.26,wave:'sawtooth',vol:0.3,lp:1100,lp1:300,verb:1});
+            sfxNoise({dur:0.16,vol:0.2,f0:800,f1:220});
+            break;
+        case 'coin': // classic crisp two-note chime
+            sfxTone({f0:988,dur:0.07,wave:'square',vol:0.13,lp:5200});
+            sfxTone({f0:1319,dur:0.24,wave:'square',vol:0.13,lp:5200,when:0.07,verb:1});
+            break;
+        case 'potion': // bright pickup arpeggio
+            sfxTone({f0:660,dur:0.07,wave:'sine',vol:0.2});
+            sfxTone({f0:990,dur:0.07,wave:'sine',vol:0.2,when:0.06});
+            sfxTone({f0:1320,dur:0.16,wave:'sine',vol:0.2,when:0.12,verb:1});
+            break;
+        case 'drink': // gulp gulp gulp
+            sfxTone({f0:320,f1:150,dur:0.09,wave:'sine',vol:0.3});
+            sfxTone({f0:280,f1:130,dur:0.09,wave:'sine',vol:0.3,when:0.1});
+            sfxTone({f0:360,f1:170,dur:0.12,wave:'sine',vol:0.26,when:0.2});
+            sfxNoise({dur:0.3,vol:0.05,f0:1500,f1:600});
+            break;
+        case 'death': // long low fall with reverb tail
+            sfxTone({f0:200,f1:36,dur:1.2,wave:'sawtooth',vol:0.3,lp:900,lp1:120,verb:1});
+            sfxNoise({dur:0.8,vol:0.16,f0:600,f1:80,verb:1});
+            break;
+        case 'monsterDie': // dying snarl
+            sfxTone({f0:300,f1:70,dur:0.38,wave:'sawtooth',vol:0.22,lp:1400,lp1:250,verb:1});
+            sfxNoise({dur:0.22,vol:0.16,f0:1100,f1:200});
+            break;
+        case 'fire': // fireball launch whoosh
+            sfxNoise({dur:0.24,vol:0.26,type:'bandpass',f0:420,f1:2400,q:1.1});
+            sfxTone({f0:520,f1:130,dur:0.2,wave:'sawtooth',vol:0.1,lp:1200});
+            break;
+        case 'dash': // rushing wind
+            sfxNoise({dur:0.26,vol:0.26,type:'bandpass',f0:500,f1:3200,q:0.9});
+            sfxTone({f0:240,f1:620,dur:0.18,wave:'triangle',vol:0.12});
+            break;
+        case 'error': // dull double-buzz
+            sfxTone({f0:180,dur:0.09,wave:'square',vol:0.13,lp:800});
+            sfxTone({f0:140,dur:0.12,wave:'square',vol:0.13,lp:700,when:0.11});
+            break;
+        case 'levelup': // rising fanfare
+            sfxTone({f0:523,dur:0.1,wave:'triangle',vol:0.22});
+            sfxTone({f0:659,dur:0.1,wave:'triangle',vol:0.22,when:0.09});
+            sfxTone({f0:784,dur:0.1,wave:'triangle',vol:0.22,when:0.18});
+            sfxTone({f0:1047,dur:0.3,wave:'triangle',vol:0.24,when:0.27,verb:1});
+            break;
+        case 'bossdie': // deep layered explosion
+            sfxTone({f0:120,f1:28,dur:0.9,wave:'sine',vol:0.6,verb:1});
+            sfxNoise({dur:0.7,vol:0.4,f0:1400,f1:60,verb:1});
+            sfxTone({f0:98,f1:49,dur:0.8,wave:'sawtooth',vol:0.2,lp:500,when:0.05,verb:1});
+            break;
+        case 'stairs': // mystical portal
+            sfxTone({f0:392,dur:0.12,wave:'sine',vol:0.18,verb:1});
+            sfxTone({f0:523,dur:0.12,wave:'sine',vol:0.18,when:0.1,verb:1});
+            sfxTone({f0:659,dur:0.12,wave:'sine',vol:0.18,when:0.2,verb:1});
+            sfxTone({f0:784,f1:392,dur:0.5,wave:'sine',vol:0.2,when:0.3,verb:1});
+            break;
     }
 }
 
@@ -447,7 +536,7 @@ function loadLevel(idx){
     for(var y in level.object.map) for(var x in level.object.map[y]){ var v=level.object.map[y][x]; if(v>0) walls.push(new WallObject(v,x*s,y*s)); }
     monsters=[]; deathmobs=[]; barrels=[]; coins=[]; potions=[]; drops=[];
     var L=LEVELS[idx];
-    function safePos(){var x,y,t=0;do{x=randomx();y=randomy();t++;}while(t<25&&(Math.abs(x-s*8)+Math.abs(y-s*10))<5*s);return [x,y];}
+    function safePos(){var x,y,t=0;do{x=randomx();y=randomy();t++;}while(t<25&&((Math.abs(x-s*8)+Math.abs(y-s*10))<5*s||!isWayWall(x,y)));return [x,y];}
     for(var i=0;i<L.sk;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'SK'));}
     for(var i=0;i<L.fs;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'FS'));}
     for(var i=0;i<L.si;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'SI'));}
@@ -469,7 +558,7 @@ gameState='title';
 
 setInterval(function() { // random step for mobs, attack hero
     if(monsters.length==0)return;
-    var m=monsters[Math.ceil(Math.random()*(monsters.length-1))];
+    var m=monsters[Math.floor(Math.random()*monsters.length)];
     if(typeof m.attacked != "object"){
         m.to_x=m.x+(Math.random()*s-s/2);
         m.to_y=m.y+(Math.random()*s-s/2);
@@ -506,7 +595,7 @@ setInterval(function() { // random step for mobs, attack hero
 
 floor.canvas.onclick=function(e) {
     initAudio();
-    if(gameState==='title'){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[0]; return; }
+    if(gameState==='title'){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[LANG][0]; return; }
     if(gameState==='dialog'){
         dialogIdx++;
         if(dialogIdx>=STORY[currentLevel].lines[LANG].length){ gameState='playing'; }
@@ -640,9 +729,9 @@ setInterval(function() {
     // ---- level / quest system ----
     if(!gameWon && currentLevel<MAX_LEVEL-1 && bossDead &&
        Math.abs(hero.x-stairX)<s*0.95 && Math.abs(hero.y-stairY)<s*0.95){
-        sfx('coin'); loadLevel(currentLevel+1);
+        sfx('stairs'); loadLevel(currentLevel+1);
     }
-    if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; gameState='victory'; sfx('coin'); }
+    if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; gameState='victory'; sfx('levelup'); }
     renderQuest();
     if(hero.health<=0) dead=true;
 }, 66);
@@ -1180,8 +1269,8 @@ function Mob(x,y,name){
             if(tx===0 && ty===0){
                 var _sx = (dx>0?1:-1) * Math.min(eSt, Math.abs(dx));
                 var _sy = (dy>0?1:-1) * Math.min(eSt, Math.abs(dy));
-                if(!isWayWall(this.x+_sx, this.y)){ tx=_sx; ty=0; }
-                else if(!isWayWall(this.x, this.y+_sy)){ tx=0; ty=_sy; }
+                if(_sx!==0 && isWayWall(this.x+_sx, this.y)){ tx=_sx; ty=0; }
+                else if(_sy!==0 && isWayWall(this.x, this.y+_sy)){ tx=0; ty=_sy; }
             }
             this.rotate(tx, ty);
             if(Math.sqrt((tx*tx)+(ty*ty))>=eSt/2){
@@ -1213,6 +1302,7 @@ function Mob(x,y,name){
                     hero.xp-=hero.xpNext; hero.heroLevel++; hero.xpNext=Math.round(hero.xpNext*1.5);
                     hero.origin_health+=200; hero.health=hero.origin_health;
                     hero.damageMult=(hero.damageMult||1)*1.1;
+                    sfx('levelup');
                 }
                 // drop loot (varied, tinted)
                 if(!this.isBoss){
@@ -1228,6 +1318,7 @@ function Mob(x,y,name){
                     for(var bi=0;bi<3;bi++) potions.push(new PotionHealth(this.x,this.y));
                     drops.push(new Gem(this.x,this.y)); drops.push(new HealthUp(this.x,this.y));
                     bossDead=true;
+                    sfx('bossdie');
                 }
             }
             remove(monsters,this);
@@ -1280,10 +1371,10 @@ function AgressiveMob(x,y,name){
 
 var projectiles=[], drops=[], bossDead=false;
 
-function fireProjectile(hero, target, dmg, type){
-    var ang=Math.atan2(target.y-hero.y, target.x-hero.x);
+function fireProjectile(shooter, target, dmg, type){
+    var ang=Math.atan2(target.y-shooter.y, target.x-shooter.x);
     var spd=380;
-    projectiles.push({x:hero.x, y:hero.y, dx:Math.cos(ang)*spd, dy:Math.sin(ang)*spd, dmg:dmg, life:1.0, r:(type==='arrow'?8:12), type:type||'fire'});
+    projectiles.push({x:shooter.x, y:shooter.y, dx:Math.cos(ang)*spd, dy:Math.sin(ang)*spd, dmg:dmg, life:1.0, r:(type==='arrow'?8:12), type:type||'fire', owner:shooter});
     sfx('fire');
 }
 function explodeProjectile(i,p){
@@ -1296,15 +1387,20 @@ function updateProjectiles(dt){
         p.life-=dt;
         if(p.life<=0){ explodeProjectile(i,p); continue; }
         var nx=p.x+p.dx*dt, ny=p.y+p.dy*dt;
-        if(isWayWall(nx,ny)){ explodeProjectile(i,p); continue; }
+        if(!isWayWall(nx,ny)){ explodeProjectile(i,p); continue; }
         p.x=nx; p.y=ny;
         var hit=false;
-        for(var j in monsters){
-            var m=monsters[j];
-            if(Math.abs(m.x-p.x)<s*0.6 && Math.abs(m.y-p.y)<s*0.6){ hit=true; m.damage(p.dmg); break; }
-        }
-        if(hit){
-            if(p.type==='ice'){ var tm=monsters[j]; if(tm) tm.slow=1.5; }
+        if(p.owner===hero){ // hero projectile: hits monsters
+            for(var j in monsters){
+                var m=monsters[j];
+                if(Math.abs(m.x-p.x)<s*0.6 && Math.abs(m.y-p.y)<s*0.6){ hit=true; m.damage(p.dmg); break; }
+            }
+            if(hit){
+                if(p.type==='ice'){ var tm=monsters[j]; if(tm) tm.slow=1.5; }
+                explodeProjectile(i,p);
+            }
+        }else if(!dead && Math.abs(hero.x-p.x)<s*0.6 && Math.abs(hero.y-p.y)<s*0.6){ // monster projectile: hits hero
+            hero.damage(p.dmg); sfx('heroHurt');
             explodeProjectile(i,p);
         }
     }
@@ -1327,7 +1423,7 @@ function castSkill(i){
         var t=nearestMonster();
         if(!t) return false;
         sk.last=now;
-        fireProjectile(hero, t, 220);
+        fireProjectile(hero, t, hero.getDamage());
         sfx('fire');
         return true;
     }
@@ -1337,7 +1433,7 @@ function castSkill(i){
         var len=Math.sqrt(dx*dx+dy*dy)||1;
         var nx=hero.x+dx/len*2.5*s, ny=hero.y+dy/len*2.5*s;
         var ox=hero.x, oy=hero.y;
-        for(var st=0; st<2.5*s; st+=4){ var tx=hero.x+dx/len*st, ty=hero.y+dy/len*st; if(isWayWall(tx,ty)){ nx=tx; ny=ty; break; } }
+        for(var st=0; st<2.5*s; st+=4){ var tx=hero.x+dx/len*st, ty=hero.y+dy/len*st; if(!isWayWall(tx,ty)){ nx=tx-dx/len*4; ny=ty-dy/len*4; break; } }
         for(var di in monsters){
             var dm=monsters[di];
             if(dm.isAboveHero()){
@@ -1368,7 +1464,7 @@ function castSkill(i){
         var base=Math.atan2(t0.y-hero.y, t0.x-hero.x);
         for(var oa=-0.25; oa<=0.25; oa+=0.25){
             var spd=380;
-            projectiles.push({x:hero.x,y:hero.y,dx:Math.cos(base+oa)*spd,dy:Math.sin(base+oa)*spd,dmg:hero.getDamage(),life:0.9,r:8,type:'arrow'});
+            projectiles.push({x:hero.x,y:hero.y,dx:Math.cos(base+oa)*spd,dy:Math.sin(base+oa)*spd,dmg:hero.getDamage(),life:0.9,r:8,type:'arrow',owner:hero});
         }
         sfx('fire'); return true;
     }
@@ -1385,7 +1481,7 @@ function castSkill(i){
         var tdx=hero.to_x-hero.x, tdy=hero.to_y-hero.y;
         var tl=Math.sqrt(tdx*tdx+tdy*tdy)||1;
         var nx=hero.x+tdx/tl*4*s, ny=hero.y+tdy/tl*4*s;
-        for(var stp=0; stp<4*s; stp+=4){ var tx2=hero.x+tdx/tl*stp, ty2=hero.y+tdy/tl*stp; if(isWayWall(tx2,ty2)){ nx=tx2; ny=ty2; break; } }
+        for(var stp=0; stp<4*s; stp+=4){ var tx2=hero.x+tdx/tl*stp, ty2=hero.y+tdy/tl*stp; if(!isWayWall(tx2,ty2)){ nx=tx2-tdx/tl*4; ny=ty2-tdy/tl*4; break; } }
         hero.x=nx; hero.y=ny; hero.to_x=nx; hero.to_y=ny;
         sfx('dash'); return true;
     }
@@ -1428,9 +1524,9 @@ function buyShop(id){
     var it=null; for(var i=0;i<SHOP_ITEMS.length;i++) if(SHOP_ITEMS[i].id===id) it=SHOP_ITEMS[i];
     if(!it || !hero) return;
     if(hero.coins < it.price){ sfx('error'); return; }
+    if(id==='potion' && !hero.addToBelt(new PotionHealth(0,0))){ sfx('error'); return; } // belt full: no charge
     hero.coins -= it.price;
-    if(id==='potion') hero.addToBelt(new PotionHealth(0,0));
-    else if(id==='power') hero.powerTimer=20;
+    if(id==='power') hero.powerTimer=20;
     else if(id==='haste') hero.hasteTimer=10;
     else if(id==='dmg'){ hero.damageMult=(hero.damageMult||1)*1.15; it.price=Math.round(it.price*2); }
     else if(id==='hp'){ hero.origin_health+=200; hero.health+=200; it.price=Math.round(it.price*2); }
@@ -1448,6 +1544,7 @@ function BossMob(x,y){
     this.scale=1.7;
     this.st=bt.spd;
     this.skillAt=performance.now()/1000+3;
+    this.slamAt=performance.now()/1000;
     this.enraged=false;
     this.name=bt.name;
     this.tint=bt.color;
@@ -1462,13 +1559,13 @@ function BossMob(x,y){
             this.skillAt=now;
             if(this.bossType.skill==='whirlwind'){
                 if(Math.abs(hero.x-this.x)<s*2.5 && Math.abs(hero.y-this.y)<s*2.5){ hero.damage(this.currentDamage*1.5); }
-                for(var a=0;a<8;a++){ var ang=a*Math.PI/4; projectiles.push({x:this.x,y:this.y,dx:Math.cos(ang)*200,dy:Math.sin(ang)*200,dmg:Math.round(this.currentDamage*0.6),life:0.6,r:14,type:'fire'}); }
+                for(var a=0;a<8;a++){ var ang=a*Math.PI/4; projectiles.push({x:this.x,y:this.y,dx:Math.cos(ang)*200,dy:Math.sin(ang)*200,dmg:Math.round(this.currentDamage*0.6),life:0.6,r:14,type:'fire',owner:this}); }
                 sfx('hit');
             }else if(this.bossType.skill==='summon'){
-                for(var si=0;si<2;si++){ var sx=this.x+(Math.random()-0.5)*s*3, sy=this.y+(Math.random()-0.5)*s*3; if(!isWayWall(sx,sy)) monsters.push(new AgressiveMob(sx,sy,'SK')); }
+                for(var si=0;si<2;si++){ var sx=this.x+(Math.random()-0.5)*s*3, sy=this.y+(Math.random()-0.5)*s*3; if(isWayWall(sx,sy)) monsters.push(new AgressiveMob(sx,sy,'SK')); }
                 sfx('fire');
             }else if(this.bossType.skill==='firerain'){
-                for(var fi=0;fi<5;fi++){ var fx=hero.x+(Math.random()-0.5)*s*4, fy=hero.y+(Math.random()-0.5)*s*4; projectiles.push({x:this.x,y:this.y,dx:(fx-this.x)*2,dy:(fy-this.y)*2,dmg:this.currentDamage,life:0.8,r:16,type:'fire'}); }
+                for(var fi=0;fi<5;fi++){ var fx=hero.x+(Math.random()-0.5)*s*4, fy=hero.y+(Math.random()-0.5)*s*4; projectiles.push({x:this.x,y:this.y,dx:(fx-this.x)*2,dy:(fy-this.y)*2,dmg:this.currentDamage,life:0.8,r:16,type:'fire',owner:this}); }
                 sfx('fire');
             }
         }

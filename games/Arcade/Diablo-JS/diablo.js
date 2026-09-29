@@ -405,9 +405,9 @@ setInterval(function(){
 var monsters=[],deathmobs=[],barrels=[],coins=[],potions=[],walls=[];
 
 var LEVELS=[
-    {sk:4,fs:4,si:4,pots:6,dmg:30},
-    {sk:7,fs:7,si:7,pots:7,dmg:45},
-    {sk:9,fs:9,si:9,pots:8,dmg:60}
+    {sk:3,fs:2,si:2,pots:5,dmg:16},
+    {sk:5,fs:3,si:3,pots:6,dmg:24},
+    {sk:6,fs:4,si:4,pots:7,dmg:32}
 ];
 
 function loadLevel(idx){
@@ -443,12 +443,22 @@ setInterval(function() { // random step for mobs, attack hero
         m.to_y=m.y+(Math.random()*s-s/2);
     }
     for(var i in monsters){
-        var m=monsters[i], attackDist=100;
+        var m=monsters[i], attackDist=(m.attackRange&&m.attackRange>0)?m.attackRange:100;
         if(m.attack && m.isAboveHero()){
-            var chaseDist=(m.isBoss?9999:8*s);
+            var chaseDist=(m.isBoss?9999:10*s);
             var mdist=Math.abs(hero.x-m.x)+Math.abs(hero.y-m.y);
             if(mdist<chaseDist){
-                if(Math.abs(hero.x-m.x)<attackDist &&
+                if(m.attackRange&&m.attackRange>0){
+                    if(mdist<attackDist){
+                        if(!m._shotAt||performance.now()/1000-m._shotAt>1.6){
+                            m._shotAt=performance.now()/1000;
+                            m.rotateTo(hero); m.setState(m.attack);
+                            fireProjectile(m, hero, m.currentDamage, m.name==='FS'?'fire':'arrow');
+                        }
+                        if(mdist<s*2){ m.to_x=m.x-(hero.x-m.x)*0.5; m.to_y=m.y-(hero.y-m.y)*0.5; }
+                        else { m.to_x=m.x; m.to_y=m.y; }
+                    }else{ m.to_x=hero.x; m.to_y=hero.y; }
+                }else if(Math.abs(hero.x-m.x)<attackDist &&
                    Math.abs(hero.y-m.y)<attackDist){
                    m.doAttack(hero);
                    m.to_x = m.x;
@@ -1066,7 +1076,7 @@ function Mob(x,y,name){
         this.step=(this.step+1)%(this.currentState.steps);
         this.sprite=this.currentState;
     }
-    this.origin_health=this.health=1000;
+    this.origin_health=this.health=400;
     this.resistance=10; // damage resistance, less than 1000
     this.use = function(mob){
         if(mob.doAttack){ sfx('attack'); mob.doAttack(this); }
@@ -1078,6 +1088,13 @@ function Mob(x,y,name){
             if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
             else {
                 sfx('monsterDie');
+                if(!this.isBoss){ hero.health=Math.min(hero.origin_health, hero.health+30); hero.xp+=25; }
+                else{ hero.xp+=100; }
+                while(hero.xp>=hero.xpNext){
+                    hero.xp-=hero.xpNext; hero.heroLevel++; hero.xpNext=Math.round(hero.xpNext*1.5);
+                    hero.origin_health+=200; hero.health=hero.origin_health;
+                    hero.damageMult=(hero.damageMult||1)*1.1;
+                }
                 // drop loot (varied, tinted)
                 if(!this.isBoss){
                     if(Math.random()<0.5) coins.push(new Coin(this.x,this.y));
@@ -1107,6 +1124,9 @@ function AgressiveMob(x,y,name){
     this.attack=monsterMap[name].A1
     this.attackOffset=monsterMap[name].attackOffset||0;
     this.normalOffset=0;
+    var _MS={SK:{hp:320,dmg:16,rng:0,spd:9},FS:{hp:200,dmg:20,rng:300,spd:6},SI:{hp:280,dmg:18,rng:260,spd:7},BA:{hp:2000,dmg:180,rng:0,spd:16}};
+    var _m=_MS[name]||{hp:400,dmg:25,rng:0,spd:8};
+    this.origin_health=this.health=_m.hp; this.currentDamage=_m.dmg; this.attackRange=_m.rng; this.st=_m.spd;
     this._nextStep=this.nextStep;
     this.nextStep=function(){
         if(!this.isAboveHero())return;
@@ -1125,7 +1145,7 @@ function AgressiveMob(x,y,name){
         }else this._nextStep();
         this.offset_y=this.currentState==this.attack?this.attackOffset:this.normalOffset;
     }
-    this.currentDamage=(typeof LEVELS!=='undefined')?LEVELS[currentLevel].dmg:30;
+    this.currentDamage=Math.round(this.currentDamage*(1+currentLevel*0.25));
     this.getDamage=function(){
         return this.currentDamage;
     }
@@ -1188,7 +1208,7 @@ function castSkill(i){
         var t=nearestMonster();
         if(!t) return false;
         sk.last=now;
-        fireProjectile(hero, t, 140);
+        fireProjectile(hero, t, 220);
         sfx('fire');
         return true;
     }
@@ -1196,16 +1216,31 @@ function castSkill(i){
         sk.last=now;
         var dx=hero.to_x-hero.x, dy=hero.to_y-hero.y;
         var len=Math.sqrt(dx*dx+dy*dy)||1;
-        var nx=hero.x+dx/len*2*s, ny=hero.y+dy/len*2*s;
-        for(var st=0; st<2*s; st+=4){ var tx=hero.x+dx/len*st, ty=hero.y+dy/len*st; if(isWayWall(tx,ty)){ nx=tx; ny=ty; break; } }
+        var nx=hero.x+dx/len*2.5*s, ny=hero.y+dy/len*2.5*s;
+        var ox=hero.x, oy=hero.y;
+        for(var st=0; st<2.5*s; st+=4){ var tx=hero.x+dx/len*st, ty=hero.y+dy/len*st; if(isWayWall(tx,ty)){ nx=tx; ny=ty; break; } }
+        for(var di in monsters){
+            var dm=monsters[di];
+            if(dm.isAboveHero()){
+                var ddx=dm.x-ox, ddy=dm.y-oy, dlen=Math.sqrt(ddx*ddx+ddy*ddy)||1;
+                var proj=ddx*(dx/len)+ddy*(dy/len);
+                if(proj>0 && proj<2.5*s && Math.abs(ddx*(dy/len)-ddy*(dx/len))<s*0.8){ dm.damage(250); }
+            }
+        }
         hero.x=nx; hero.y=ny; hero.to_x=nx; hero.to_y=ny;
         sfx('dash');
         return true;
     }
-    if(sk.name==='Heal'){
+    if(sk.name==='WarCry'){
         sk.last=now;
-        hero.health=Math.min(hero.origin_health, hero.health+400);
-        sfx('drink');
+        var cried=false;
+        for(var ci in monsters){
+            var cm=monsters[ci];
+            if(cm.isAboveHero() && Math.abs(cm.x-hero.x)<s*3.5 && Math.abs(cm.y-hero.y)<s*3.5){ cm.damage(120); cm.slow=2.5; cried=true; }
+        }
+        hero.powerTimer=6;
+        hero.health=Math.min(hero.origin_health, hero.health+200);
+        sfx(cried?'hit':'drink');
         return true;
     }
     if(sk.name==='MultiShot'){
@@ -1284,15 +1319,46 @@ function buyShop(id){
     if(window.renderShop) window.renderShop();
 }
 window.SHOP_ITEMS=SHOP_ITEMS; window.buyShop=buyShop;
+var BOSS_TYPES=[
+    {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c'},
+    {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6'},
+    {name:'Demon Lord',    sprite:'SI', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22'}
+];
 function BossMob(x,y){
-    AgressiveMob.call(this,x,y,'SI');
+    var bt=BOSS_TYPES[currentLevel]||BOSS_TYPES[0];
+    AgressiveMob.call(this,x,y,bt.sprite);
     this.isBoss=true;
-    this.origin_health=this.health=3000+currentLevel*1500;
-    this.currentDamage=LEVELS[currentLevel].dmg*2;
-    this.scale=1.6;
-    this.st=5;
-    this.slamAt=performance.now()/1000;
-    this.name='BOSS';
+    this.bossType=bt;
+    this.origin_health=this.health=bt.hp;
+    this.currentDamage=bt.dmg;
+    this.scale=1.7;
+    this.st=bt.spd;
+    this.skillAt=performance.now()/1000+3;
+    this.enraged=false;
+    this.name=bt.name;
+    this.tint=bt.color;
+    this._bossNextStep=this.nextStep;
+    this.nextStep=function(){
+        this._bossNextStep();
+        var now=performance.now()/1000;
+        if(!this.enraged && this.health<this.origin_health*0.3){
+            this.enraged=true; this.st*=1.5; this.currentDamage=Math.round(this.currentDamage*1.3);
+        }
+        if(now-this.skillAt>5 && this.isAboveHero()){
+            this.skillAt=now;
+            if(this.bossType.skill==='whirlwind'){
+                if(Math.abs(hero.x-this.x)<s*2.5 && Math.abs(hero.y-this.y)<s*2.5){ hero.damage(this.currentDamage*1.5); }
+                for(var a=0;a<8;a++){ var ang=a*Math.PI/4; projectiles.push({x:this.x,y:this.y,dx:Math.cos(ang)*200,dy:Math.sin(ang)*200,dmg:Math.round(this.currentDamage*0.6),life:0.6,r:14,type:'fire'}); }
+                sfx('hit');
+            }else if(this.bossType.skill==='summon'){
+                for(var si=0;si<2;si++){ var sx=this.x+(Math.random()-0.5)*s*3, sy=this.y+(Math.random()-0.5)*s*3; if(!isWayWall(sx,sy)) monsters.push(new AgressiveMob(sx,sy,'SK')); }
+                sfx('fire');
+            }else if(this.bossType.skill==='firerain'){
+                for(var fi=0;fi<5;fi++){ var fx=hero.x+(Math.random()-0.5)*s*4, fy=hero.y+(Math.random()-0.5)*s*4; projectiles.push({x:this.x,y:this.y,dx:(fx-this.x)*2,dy:(fy-this.y)*2,dmg:this.currentDamage,life:0.8,r:16,type:'fire'}); }
+                sfx('fire');
+            }
+        }
+    };
 }
 function HeroBarbarian(x,y){
     AgressiveMob.call(this,x,y,"BA");
@@ -1301,10 +1367,11 @@ function HeroBarbarian(x,y){
     this.tint='#dc4632';
     this.attackOffset=40;
     this.normalOffset=10;
-    this.health=this.origin_health=1000;
+    this.health=this.origin_health=2000;
     this.coins=0;
     this.belt={items:[], size:10};
     this.st=16;
+    this.xp=0; this.xpNext=100; this.heroLevel=1;
     this.addToBelt=function(potion){
         for(var i=0;i<this.belt.size;i++){
             if(typeof this.belt.items[i] == "undefined"){
@@ -1314,22 +1381,22 @@ function HeroBarbarian(x,y){
         }
         return false;
     }
-    this.criticalDamage=0.4;
-    this.currentDamage=120;
+    this.criticalDamage=0.5;
+    this.currentDamage=180;
     // ---- weapon system (switch: Z/X/C on desktop, buttons on mobile) ----
     this.weaponIndex=0;
     this.weapons=[
-        {name:'Blade',       dmg:120, cd:0.0, type:'melee',  aoe:0},
-        {name:'War Axe',     dmg:250, cd:1.1, type:'melee',  aoe:110},
-        {name:'Fire Staff',  dmg:95,  cd:0.6, type:'ranged', aoe:0}
+        {name:'Blade',       dmg:180, cd:0.0, type:'melee',  aoe:0},
+        {name:'War Axe',     dmg:340, cd:1.0, type:'melee',  aoe:130},
+        {name:'Fire Staff',  dmg:140, cd:0.5, type:'ranged', aoe:0}
     ];
     this.lastAttackAt=0;
     this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
     // ---- skills (Q/W/E) with cooldowns ----
     this.skills=[
         {name:'Fireball', cd:3, last:0},
-        {name:'Dash',     cd:5, last:0},
-        {name:'Heal',     cd:8, last:0}
+        {name:'Dash',     cd:4, last:0},
+        {name:'WarCry',   cd:9, last:0}
     ];
     // ---- temporary buffs ----
     this.powerTimer=0; this.hasteTimer=0;

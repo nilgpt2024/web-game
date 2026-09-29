@@ -1629,14 +1629,14 @@ function HeroBarbarian(x,y){
         }
         return false;
     }
-    this.criticalDamage=0.5;
+    this.criticalDamage=0.15;
     this.currentDamage=180;
     // ---- weapon system (switch: Z/X/C on desktop, buttons on mobile) ----
     this.weaponIndex=0;
     this.weapons=[
-        {name:'Blade',       dmg:180, cd:0.0, type:'melee',  aoe:0},
-        {name:'War Axe',     dmg:340, cd:1.0, type:'melee',  aoe:130},
-        {name:'Fire Staff',  dmg:140, cd:0.5, type:'ranged', aoe:0}
+        {name:'Blade',       dmg:180, cd:0.35, type:'melee',  aoe:0, rageMul:1.5},
+        {name:'War Axe',     dmg:340, cd:0.70, type:'melee',  aoe:0, sweep:true},
+        {name:'Fire Staff',  dmg:140, cd:0.50, type:'ranged', aoe:0, fireballMul:2.2}
     ];
     this.lastAttackAt=0;
     this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
@@ -1670,11 +1670,14 @@ function HeroBarbarian(x,y){
         }else{
             mob.damage(this.getDamage()); sfx('hit');
             this.gainRage(RAGE.hitGain*(w.rageMul||1));
-            if(w.aoe){
+            if(w.sweep){ // axe cone: forward radius, wide arc
+                var adx=mob.x-this.x, ady=mob.y-this.y, alen=Math.sqrt(adx*adx+ady*ady)||1;
                 for(var i in monsters){
                     var m=monsters[i];
-                    if(m!==mob && m.isAboveHero() &&
-                       Math.abs(m.x-mob.x)<w.aoe && Math.abs(m.y-mob.y)<w.aoe){
+                    if(m===mob || !m.isAboveHero()) continue;
+                    var wx=m.x-this.x, wy=m.y-this.y;
+                    var proj=wx*(adx/alen)+wy*(ady/alen);
+                    if(proj>0 && proj<1.6*s && Math.abs(wx*(ady/alen)-wy*(adx/alen))<1.1*s){
                         m.damage(Math.round(this.getDamage()*0.6));
                     }
                 }

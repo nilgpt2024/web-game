@@ -190,14 +190,31 @@ var LEVEL_CFG=[
 var MAX_LEVEL=LEVEL_CFG.length;
 var currentLevel=0, stairX=-1, stairY=-1, gameWon=false, questTitle="", questGoal="";
 var gameState="title", kills=0, gameStartTime=0, dialogIdx=0, dialogText="";
+var LANG=(navigator.language||"en").toLowerCase().indexOf("zh")>=0?"zh":"en";
+var I18N={
+  gameTitle:{zh:"暗黑 JS",en:"DIABLO JS"},subtitle:{zh:"黑暗奇幻动作 RPG",en:"A Dark Fantasy Action RPG"},tagline:{zh:"3 关 3 BOSS 一个英雄 拯救荆棘镇",en:"3 levels. 3 bosses. One hero. Save Thornhaven."},
+  helpDesktop:{zh:"电脑：点击移动/攻击 | Z/X/C 切换武器 | Q/W/E 技能 | 1-0 药水",en:"Desktop: Click to move/attack | Z/X/C weapons | Q/W/E skills | 1-0 potions"},
+  helpMobile:{zh:"手机：左侧摇杆移动 | 右侧按钮攻击/技能",en:"Mobile: Left joystick to move | Right buttons to attack/skills"},
+  begin:{zh:"点击 或 按空格 开始",en:"CLICK or PRESS SPACE to BEGIN"},langHint:{zh:"按 L 切换语言",en:"Press L to switch language"},
+  quest:{zh:"任务：",en:"Quest: "},wpn:{zh:"武器：",en:"Wpn: "},bossHint:{zh:"☠ 击败 BOSS 开启楼梯",en:"☠ Defeat the BOSS to open the stairs"},
+  youDied:{zh:"你死了",en:"YOU DIED"},restart:{zh:"点击 或 按 R 重新开始",en:"Click or press R to restart"},
+  victory:{zh:"胜利！",en:"VICTORY!"},victoryText:{zh:"你击败了恶魔领主，光明重返荆棘镇。",en:"You have slain the Demon Lord. Light returns to Thornhaven."},
+  kills:{zh:"击杀",en:"Kills"},level:{zh:"等级",en:"Level"},time:{zh:"用时",en:"Time"},gold:{zh:"金币",en:"Gold"},
+  shareHint:{zh:"按 S 分享成绩 | 点击或 R 再玩一次",en:"Press S to share | Click or R to play again"},
+  storyOf:{zh:"剧情",en:"Story"},continue:{zh:"点击 或 空格 继续",en:"Click or SPACE to continue"},
+  shareTitle:{zh:"暗黑 JS - 通关！",en:"Diablo JS - Victory!"},shareText:{zh:"我通关了暗黑 JS！",en:"I beat Diablo JS!"},
+  shareCopied:{zh:"通关成绩已复制到剪贴板！",en:"Victory stats copied to clipboard!"},shareCopy:{zh:"复制分享：",en:"Copy to share:"},
+  skillFireball:{zh:"火球术",en:"Fireball"},skillDash:{zh:"冲锋",en:"Dash"},skillWarCry:{zh:"战吼",en:"WarCry"}
+};
+function T(k){var v=I18N[k];return v?(v[LANG]||v.en):k;}
+function toggleLang(){LANG=LANG==="zh"?"en":"zh";}
 var STORY=[
-  {title:"The Dark Cellar", lines:["The village of Thornhaven has fallen silent.","Cattle vanish, children scream at night.","You descend into the old cellar to find the source.","Skeletons walk these halls. The Skeleton King commands them.","Slay him, and the path to the Crypt shall open."]},
-  {title:"The Forgotten Crypt", lines:["The Crypt was sealed for a reason.","A Lich has made this place its own, raising the dead.","It seeks to summon something far worse.","Push deeper. End its unholy ritual."]},
-  {title:"The Demon Lair", lines:["The air burns with sulphur.","The Demon Lord awaits in the abyss.","It is the heart of the darkness.","Strike it down, and Thornhaven shall know peace again."]}
+  {title:{zh:"黑暗地窖",en:"The Dark Cellar"}, lines:{zh:["荆棘镇陷入了死寂。","牲畜失踪，孩童在夜里尖叫。","你走下古老的地窖，寻找邪恶的源头。","骷髅在走廊中游荡，骷髅王指挥着它们。","杀死他，通往墓穴的道路就会开启。"],en:["The village of Thornhaven has fallen silent.","Cattle vanish, children scream at night.","You descend into the old cellar to find the source.","Skeletons walk these halls. The Skeleton King commands them.","Slay him, and the path to the Crypt shall open."]}},
+  {title:{zh:"被遗忘的墓穴",en:"The Forgotten Crypt"}, lines:{zh:["墓穴被封印是有原因的。","一个巫妖占据了这里，复活死者。","它企图召唤更可怕的存在。","深入腹地，终结它的邪恶仪式。"],en:["The Crypt was sealed for a reason.","A Lich has made this place its own, raising the dead.","It seeks to summon something far worse.","Push deeper. End its unholy ritual."]}},
+  {title:{zh:"恶魔巢穴",en:"The Demon Lair"}, lines:{zh:["空气中弥漫着硫磺的灼烧味。","恶魔领主在深渊中等候。","它是黑暗的核心。","击倒它，荆棘镇将重获和平。"],en:["The air burns with sulphur.","The Demon Lord awaits in the abyss.","It is the heart of the darkness.","Strike it down, and Thornhaven shall know peace again."]}}
 ];
-var VICTORY_TEXT="You have slain the Demon Lord. Light returns to Thornhaven.";
-var LEVEL_NAMES=['Cellar','Crypt','Demon Lair'];
-var LEVEL_GOALS=['Slay the Skeleton King, then find the stairs','Slay the Crypt Lich, then descend deeper','Slay the Demon Lord to save Thornhaven'];
+var LEVEL_NAMES={zh:["地窖","墓穴","恶魔巢穴"],en:["Cellar","Crypt","Demon Lair"]};
+var LEVEL_GOALS={zh:['击败骷髅王，找到楼梯','击败墓穴巫妖，深入腹地','击败恶魔领主，拯救荆棘镇'],en:['Slay the Skeleton King, then find the stairs','Slay the Crypt Lich, then descend deeper','Slay the Demon Lord to save Thornhaven']};
 
 function buildMap(idx){
     var cfg=LEVEL_CFG[idx];
@@ -442,9 +459,9 @@ function loadLevel(idx){
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
     dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0;
     if(idx===0){ kills=0; gameStartTime=performance.now()/1000; }
-    gameState='dialog'; dialogIdx=0; dialogText=STORY[idx].lines[0];
-    questTitle='Level '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[idx];
-    questGoal=LEVEL_GOALS[idx];
+    gameState='dialog'; dialogIdx=0; dialogText=STORY[idx].lines[LANG][0];
+    questTitle=T('level')+' '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[LANG][idx];
+    questGoal=LEVEL_GOALS[LANG][idx];
 }
 
 loadLevel(0);
@@ -492,8 +509,8 @@ floor.canvas.onclick=function(e) {
     if(gameState==='title'){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[0]; return; }
     if(gameState==='dialog'){
         dialogIdx++;
-        if(dialogIdx>=STORY[currentLevel].lines.length){ gameState='playing'; }
-        else { dialogText=STORY[currentLevel].lines[dialogIdx]; }
+        if(dialogIdx>=STORY[currentLevel].lines[LANG].length){ gameState='playing'; }
+        else { dialogText=STORY[currentLevel].lines[LANG][dialogIdx]; }
         return;
     }
     if(gameState==='victory'){ location.reload(); return; }
@@ -513,12 +530,12 @@ floor.canvas.onclick=function(e) {
 
 window.onkeydown=function(e){
     initAudio();
-    if(gameState==='title'){ if(e.keyCode===32||e.keyCode===13){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[0]; } return; }
+    if(gameState==='title'){ if(e.keyCode===76){ toggleLang(); return; } if(e.keyCode===32||e.keyCode===13){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[LANG][0]; } return; }
     if(gameState==='dialog'){
         if(e.keyCode===32||e.keyCode===13){
             dialogIdx++;
-            if(dialogIdx>=STORY[currentLevel].lines.length){ gameState='playing'; }
-            else { dialogText=STORY[currentLevel].lines[dialogIdx]; }
+            if(dialogIdx>=STORY[currentLevel].lines[LANG].length){ gameState='playing'; }
+            else { dialogText=STORY[currentLevel].lines[LANG][dialogIdx]; }
         }
         return;
     }
@@ -564,10 +581,10 @@ function drawDeathScreen(){
     floor.textAlign="center";
     floor.fillStyle="#c0392b";
     floor.font="bold 66px 'Poppins',sans-serif";
-    floor.fillText("YOU DIED", floor.w/2, floor.h/2-24);
+    floor.fillText(T('youDied'), floor.w/2, floor.h/2-24);
     floor.fillStyle="#e8e6e3";
     floor.font="20px 'Poppins',sans-serif";
-    floor.fillText("Click or press R to restart", floor.w/2, floor.h/2+34);
+    floor.fillText(T('restart'), floor.w/2, floor.h/2+34);
     floor.textAlign="left";
     floor.restore();
 }
@@ -636,21 +653,24 @@ function renderTitleScreen(){
     floor.textAlign="center";
     floor.fillStyle="#c0392b";
     floor.font="bold 72px 'Poppins',sans-serif";
-    floor.fillText("DIABLO JS", floor.w/2, floor.h/2-80);
+    floor.fillText(T('gameTitle'), floor.w/2, floor.h/2-80);
     floor.fillStyle="#ffd700";
     floor.font="bold 22px 'Poppins',sans-serif";
-    floor.fillText("A Dark Fantasy Action RPG", floor.w/2, floor.h/2-40);
+    floor.fillText(T('subtitle'), floor.w/2, floor.h/2-40);
     floor.fillStyle="#bbb";
     floor.font="15px 'Poppins',sans-serif";
-    floor.fillText("3 levels. 3 bosses. One hero. Save Thornhaven.", floor.w/2, floor.h/2-8);
+    floor.fillText(T('tagline'), floor.w/2, floor.h/2-8);
     floor.fillStyle="#888";
     floor.font="13px 'Poppins',sans-serif";
-    floor.fillText("Desktop: Click to move/attack | Z/X/C weapons | Q/W/E skills | 1-0 potions", floor.w/2, floor.h/2+30);
-    floor.fillText("Mobile: Left joystick to move | Right buttons to attack/skills", floor.w/2, floor.h/2+52);
+    floor.fillText(T('helpDesktop'), floor.w/2, floor.h/2+30);
+    floor.fillText(T('helpMobile'), floor.w/2, floor.h/2+52);
     if(Math.floor(performance.now()/500)%2===0){
         floor.fillStyle="#fff";
         floor.font="bold 20px 'Poppins',sans-serif";
-        floor.fillText("CLICK or PRESS SPACE to BEGIN", floor.w/2, floor.h/2+100);
+        floor.fillText(T('begin'), floor.w/2, floor.h/2+100);
+        floor.fillStyle="#666";
+        floor.font="12px 'Poppins',sans-serif";
+        floor.fillText(T('langHint'), floor.w/2, floor.h/2+128);
     }
     floor.textAlign="left";
     floor.restore();
@@ -662,7 +682,7 @@ function renderDialog(){
     floor.textAlign="center";
     floor.fillStyle="#ffd700";
     floor.font="bold 32px 'Poppins',sans-serif";
-    floor.fillText("Level "+(currentLevel+1)+"/3 - "+STORY[currentLevel].title, floor.w/2, floor.h/2-80);
+    floor.fillText(T('level')+" "+(currentLevel+1)+"/3 - "+STORY[currentLevel].title[LANG], floor.w/2, floor.h/2-80);
     floor.fillStyle="#e8e6e3";
     floor.font="17px 'Poppins',sans-serif";
     var words=dialogText.split(' '), line='', lines=[], maxW=floor.w-200;
@@ -676,7 +696,7 @@ function renderDialog(){
     for(var li=0;li<lines.length;li++){ floor.fillText(lines[li], floor.w/2, startY+li*26); }
     floor.fillStyle="#888";
     floor.font="13px 'Poppins',sans-serif";
-    floor.fillText("Story "+(dialogIdx+1)+"/"+STORY[currentLevel].lines.length+"  |  Click or SPACE to continue", floor.w/2, floor.h/2+70);
+    floor.fillText(T('storyOf')+" "+(dialogIdx+1)+"/"+STORY[currentLevel].lines[LANG].length+"  |  "+T('continue'), floor.w/2, floor.h/2+70);
     floor.textAlign="left";
     floor.restore();
 }
@@ -692,7 +712,7 @@ function renderQuest(){
     floor.fillText(hero.name+" \u2014 "+questTitle, floor.w/2, 34);
     floor.fillStyle="#d9f7d9";
     floor.font="13px 'Poppins',sans-serif";
-    floor.fillText("Quest: "+questGoal, floor.w/2, 52);
+    floor.fillText(T('quest')+questGoal, floor.w/2, 52);
     floor.textAlign="left";
     floor.restore();
     // weapon + skills HUD
@@ -705,7 +725,7 @@ function renderQuest(){
     floor.fillStyle="#fff";
     floor.font="13px 'Poppins',sans-serif";
     floor.textAlign="center";
-    floor.fillText("Wpn: "+w.name+"   ·   Q "+skLabel(hero.skills[0])+"   ·   W "+skLabel(hero.skills[1])+"   ·   E "+skLabel(hero.skills[2]), floor.w/2, 84);
+    floor.fillText(T('wpn')+w.name+"   ·   Q "+skLabel(hero.skills[0])+"   ·   W "+skLabel(hero.skills[1])+"   ·   E "+skLabel(hero.skills[2]), floor.w/2, 84);
     floor.textAlign="left";
     floor.restore();
     if(currentLevel<MAX_LEVEL-1 && !bossDead){
@@ -713,7 +733,7 @@ function renderQuest(){
         floor.fillStyle="#ff3b30";
         floor.font="bold 14px 'Poppins',sans-serif";
         floor.textAlign="center";
-        floor.fillText("☠ Defeat the BOSS to open the stairs", floor.w/2, 108);
+        floor.fillText(T('bossHint'), floor.w/2, 108);
         floor.textAlign="left";
         floor.restore();
     }
@@ -725,18 +745,18 @@ function renderQuest(){
         floor.textAlign="center";
         floor.fillStyle="#ffd700";
         floor.font="bold 52px 'Poppins',sans-serif";
-        floor.fillText("VICTORY!", floor.w/2, floor.h/2-100);
+        floor.fillText(T('victory'), floor.w/2, floor.h/2-100);
         floor.fillStyle="#e8e6e3";
         floor.font="17px 'Poppins',sans-serif";
-        floor.fillText(VICTORY_TEXT, floor.w/2, floor.h/2-60);
+        floor.fillText(T('victoryText'), floor.w/2, floor.h/2-60);
         var elapsed=Math.round(performance.now()/1000-gameStartTime);
         var mm=Math.floor(elapsed/60), ss=elapsed%60;
         floor.fillStyle="#ffd700";
         floor.font="bold 20px 'Poppins',sans-serif";
-        floor.fillText("Kills: "+kills+"  |  Level: "+hero.heroLevel+"  |  Time: "+mm+"m"+ss+"s  |  Gold: "+hero.coins, floor.w/2, floor.h/2-10);
+        floor.fillText(T("kills")+": "+kills+"  |  "+T("level")+": "+hero.heroLevel+"  |  "+T("time")+": "+mm+"m"+ss+"s  |  Gold: "+hero.coins, floor.w/2, floor.h/2-10);
         floor.fillStyle="#aaa";
         floor.font="14px 'Poppins',sans-serif";
-        floor.fillText("Press S to share  |  Click or R to play again", floor.w/2, floor.h/2+30);
+        floor.fillText(T('shareHint'), floor.w/2, floor.h/2+30);
         floor.textAlign="left";
         floor.restore();
     }
@@ -1485,9 +1505,9 @@ function HeroBarbarian(x,y){
     this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };
     // ---- skills (Q/W/E) with cooldowns ----
     this.skills=[
-        {name:'Fireball', cd:3, last:0},
-        {name:'Dash',     cd:4, last:0},
-        {name:'WarCry',   cd:9, last:0}
+        {name:T('skillFireball'), cd:3, last:0},
+        {name:T('skillDash'),     cd:4, last:0},
+        {name:T('skillWarCry'),   cd:9, last:0}
     ];
     // ---- temporary buffs ----
     this.powerTimer=0; this.hasteTimer=0;
@@ -1570,9 +1590,9 @@ function pickHero(cls){
 function shareVictory(){
     var elapsed=Math.round(performance.now()/1000-gameStartTime);
     var mm=Math.floor(elapsed/60), ss=elapsed%60;
-    var text='I beat Diablo JS! Kills: '+kills+' | Lv.'+hero.heroLevel+' | Time: '+mm+'m'+ss+'s | Gold: '+hero.coins+' | Play: https://game.suipce.com/games/Arcade/Diablo-JS/';
-    if(navigator.share){ navigator.share({title:'Diablo JS Victory!',text:text,url:'https://game.suipce.com/games/Arcade/Diablo-JS/'}).catch(function(){}); }
-    else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert('Victory stats copied to clipboard!'); }).catch(function(){ prompt('Copy to share:',text); }); }
+    var text=T('shareText')+' '+T('kills')+': '+kills+' | '+T('level')+'.'+hero.heroLevel+' | '+T('time')+': '+mm+'m'+ss+'s | '+T('gold')+': '+hero.coins+' | https://game.suipce.com/games/Arcade/Diablo-JS/';
+    if(navigator.share){ navigator.share({title:T('shareTitle'),text:text,url:'https://game.suipce.com/games/Arcade/Diablo-JS/'}).catch(function(){}); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert(T('shareCopied')); }).catch(function(){ prompt(T('shareCopy'),text); }); }
     else { prompt('Copy to share:',text); }
 }
 window.shareVictory=shareVictory;

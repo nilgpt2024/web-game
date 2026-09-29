@@ -1047,14 +1047,21 @@ function Mob(x,y,name){
                 if(isWayWall(this.x+sx,this.y+sy)){tx=sx;ty=sy;}
                 else break;
             }
+            // 沿墙滑动：直线被墙挡时，尝试只走 x 或只走 y
+            if(tx===0 && ty===0){
+                var _sx = (dx>0?1:-1) * Math.min(eSt, Math.abs(dx));
+                var _sy = (dy>0?1:-1) * Math.min(eSt, Math.abs(dy));
+                if(!isWayWall(this.x+_sx, this.y)){ tx=_sx; ty=0; }
+                else if(!isWayWall(this.x, this.y+_sy)){ tx=0; ty=_sy; }
+            }
             this.rotate(tx, ty);
             if(Math.sqrt((tx*tx)+(ty*ty))>=eSt/2){
                 this.x+=tx;
                 this.y+=ty;
                 this.setState(this.run);
             }
-            else{ this.setState(this.stay); this.x+=tx;this.y+=ty;this.to_x=this.x;this.to_y=this.y;}
-        } else{ this.setState(this.stay); this.to_x=this.x;this.to_y=this.y;}
+            else{ this.setState(this.stay); this.x+=tx;this.y+=ty; }
+        } else{ this.setState(this.stay); }
         this.step=(this.step+1)%(this.currentState.steps);
         this.sprite=this.currentState;
     }

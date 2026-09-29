@@ -393,15 +393,15 @@ var monsterMap={
         WL: loadImage("monsters/BA/WL/map.png",16,8,true),
     },
     RO: {
-        A1: loadImage("monsters/rogue_bow_A1.png?v=2",1,8,true),
-        NU: loadImage("monsters/rogue_bow_NU.png?v=2",1,8,true),
-        WL: loadImage("monsters/rogue_bow_WL.png?v=2",1,8,true),
+        A1: loadImage("monsters/rogue_bow_A1.png?v=3",8,1,true),
+        NU: loadImage("monsters/rogue_bow_NU.png?v=3",8,1,true),
+        WL: loadImage("monsters/rogue_bow_WL.png?v=3",8,1,true),
         attackOffset:30,
     },
     SO: {
-        A1: loadImage("monsters/sorcerer_staff_A1.png?v=2",1,8,true),
-        NU: loadImage("monsters/sorcerer_staff_NU.png?v=2",1,8,true),
-        WL: loadImage("monsters/sorcerer_staff_WL.png?v=2",1,8,true),
+        A1: loadImage("monsters/sorcerer_staff_A1.png?v=3",8,1,true),
+        NU: loadImage("monsters/sorcerer_staff_NU.png?v=3",8,1,true),
+        WL: loadImage("monsters/sorcerer_staff_WL.png?v=3",8,1,true),
         attackOffset:30,
     }
 };

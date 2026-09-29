@@ -1323,7 +1323,7 @@ function castSkill(i){
     var sk=hero.skills[i];
     var now=performance.now()/1000;
     if(now-sk.last < sk.cd) return false;
-    if(sk.name==='Fireball'){
+    if(i===0){
         var t=nearestMonster();
         if(!t) return false;
         sk.last=now;
@@ -1331,7 +1331,7 @@ function castSkill(i){
         sfx('fire');
         return true;
     }
-    if(sk.name==='Dash'){
+    if(i===1){
         sk.last=now;
         var dx=hero.to_x-hero.x, dy=hero.to_y-hero.y;
         var len=Math.sqrt(dx*dx+dy*dy)||1;
@@ -1350,7 +1350,7 @@ function castSkill(i){
         sfx('dash');
         return true;
     }
-    if(sk.name==='WarCry'){
+    if(i===2){
         sk.last=now;
         var cried=false;
         for(var ci in monsters){

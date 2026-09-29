@@ -76,9 +76,9 @@ body{
 #btn-w1{right:28%;bottom:38%;width:50px;height:50px;font-size:20px;background:rgba(52,152,219,.45);}
 #btn-w2{right:16%;bottom:38%;width:50px;height:50px;font-size:20px;background:rgba(52,152,219,.45);}
 #btn-w3{right:4%;bottom:38%;width:50px;height:50px;font-size:20px;background:rgba(52,152,219,.45);}
-#btn-s1{right:4%;top:26%;width:46px;height:46px;font-size:19px;background:rgba(142,68,173,.5);}
-#btn-s2{right:4%;top:38%;width:46px;height:46px;font-size:19px;background:rgba(142,68,173,.5);}
-#btn-s3{right:4%;top:50%;width:46px;height:46px;font-size:19px;background:rgba(142,68,173,.5);}
+#btn-s1{right:4%;top:20%;width:46px;height:46px;font-size:19px;background:rgba(142,68,173,.5);}
+#btn-s2{right:4%;top:30%;width:46px;height:46px;font-size:19px;background:rgba(142,68,173,.5);}
+#btn-s3{right:4%;top:40%;width:46px;height:46px;font-size:19px;background:rgba(142,68,173,.5);}
 
 #touch-joystick{
   position:absolute;left:0;top:0;width:52%;height:100%;z-index:5;display:none;
@@ -168,9 +168,9 @@ body{
   #btn-w1{right:28%;bottom:36%;width:46px;height:46px;font-size:18px;}
   #btn-w2{right:16%;bottom:36%;width:46px;height:46px;font-size:18px;}
   #btn-w3{right:4%;bottom:36%;width:46px;height:46px;font-size:18px;}
-  #btn-s1{right:4%;top:24%;width:44px;height:44px;font-size:18px;}
-  #btn-s2{right:4%;top:36%;width:44px;height:44px;font-size:18px;}
-  #btn-s3{right:4%;top:48%;width:44px;height:44px;font-size:18px;}
+  #btn-s1{right:4%;top:18%;width:44px;height:44px;font-size:18px;}
+  #btn-s2{right:4%;top:28%;width:44px;height:44px;font-size:18px;}
+  #btn-s3{right:4%;top:38%;width:44px;height:44px;font-size:18px;}
 }
 
 /* ============================================================
@@ -220,18 +220,18 @@ body{
   #btn-w1{right:28%;bottom:36%;width:50px;height:50px;font-size:22px;}
   #btn-w2{right:16%;bottom:36%;width:50px;height:50px;font-size:22px;}
   #btn-w3{right:4%;bottom:36%;width:50px;height:50px;font-size:22px;}
-  #btn-s1{right:4%;top:26%;width:46px;height:46px;font-size:20px;}
-  #btn-s2{right:4%;top:38%;width:46px;height:46px;font-size:20px;}
-  #btn-s3{right:4%;top:50%;width:46px;height:46px;font-size:20px;}
+  #btn-s1{right:4%;top:22%;width:46px;height:46px;font-size:20px;}
+  #btn-s2{right:4%;top:33%;width:46px;height:46px;font-size:20px;}
+  #btn-s3{right:4%;top:44%;width:46px;height:46px;font-size:20px;}
   #touch-joystick{width:52%;height:100%;}
   #joystick-knob{width:72px;height:72px;}
   #hint-mobile{max-width:46%;left:5%;bottom:12px;font-size:11px;}
   #hint-pc{display:none;}
   /* landscape adjustments */
   @media (orientation:landscape){
-    #btn-s1{top:12%;} #btn-s2{top:30%;} #btn-s3{top:48%;}
+    #btn-s1{top:24%;} #btn-s2{top:35%;} #btn-s3{top:46%;}
     #btn-map{top:52px;}
-    #btn-w1,#btn-w2,#btn-w3{bottom:30%;}
+    #btn-w1,#btn-w2,#btn-w3{bottom:28%;}
     #hint-mobile{left:5%;bottom:8px;}
   }
 }

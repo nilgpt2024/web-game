@@ -1257,23 +1257,33 @@ function Mob(x,y,name){
         var dx=(this.to_x - this.x),
             dy=(this.to_y - this.y);
         var eSt=(this.slow>0)?this.st*2:this.st;
-        if((Math.sqrt((dx*dx)+(dy*dy)))>eSt){ // run
-            var tx=0;ty=0;
-            for(var st=0;st<eSt;st+=0.01){
-                var sx=st * dx / Math.sqrt((dx*dx) + (dy*dy));
-                var sy=sx * dy / dx;
+        var dist=Math.sqrt((dx*dx)+(dy*dy));
+        if(dist>eSt){ // run
+            var len=dist||1;
+            var tx=0, ty=0;
+            for(var st=0.01; st<=eSt; st+=0.01){
+                var sx=st*dx/len, sy=st*dy/len; // normalized dir, dx=0 safe (no NaN)
                 if(isWayWall(this.x+sx,this.y+sy)){tx=sx;ty=sy;}
                 else break;
             }
-            // 沿墙滑动：直线被墙挡时，尝试只走 x 或只走 y
-            if(tx===0 && ty===0){
-                var _sx = (dx>0?1:-1) * Math.min(eSt, Math.abs(dx));
-                var _sy = (dy>0?1:-1) * Math.min(eSt, Math.abs(dy));
+            var walked=Math.sqrt(tx*tx+ty*ty);
+            if(walked>0 && walked<eSt){
+                // hit a wall mid-step: use remaining distance to slide along x/y, rounds corners
+                var rem=eSt-walked, bx=this.x+tx, by=this.y+ty;
+                var sx2=dx>0?rem:(dx<0?-rem:rem), sy2=dy>0?rem:(dy<0?-rem:-rem);
+                if(isWayWall(bx+sx2, by)){ tx+=sx2; }
+                else if(isWayWall(bx, by+sy2)){ ty+=sy2; }
+            }
+            else if(walked===0){
+                // blocked on first step: try pure x or pure y
+                var _sx=(dx>0?1:-1)*Math.min(eSt,Math.abs(dx));
+                var _sy=(dy>0?1:-1)*Math.min(eSt,Math.abs(dy));
                 if(_sx!==0 && isWayWall(this.x+_sx, this.y)){ tx=_sx; ty=0; }
                 else if(_sy!==0 && isWayWall(this.x, this.y+_sy)){ tx=0; ty=_sy; }
             }
             this.rotate(tx, ty);
-            if(Math.sqrt((tx*tx)+(ty*ty))>=eSt/2){
+            var moved=Math.sqrt(tx*tx+ty*ty);
+            if(moved>=eSt/2){
                 this.x+=tx;
                 this.y+=ty;
                 this.setState(this.run);
@@ -1749,10 +1759,12 @@ var touchUI = {
         });
         on(jz, 'touchend', function(e){
             touchUI.joystickActive=false; touchUI.joyDX=0; touchUI.joyDY=0;
+            if(hero){ hero.to_x=hero.x; hero.to_y=hero.y; } // stop immediately, no runaway to old target
             if(knob){ knob.style.display='none'; knob.style.transform='translate(0,0)'; }
         });
         on(jz, 'touchcancel', function(e){
             touchUI.joystickActive=false; touchUI.joyDX=0; touchUI.joyDY=0;
+            if(hero){ hero.to_x=hero.x; hero.to_y=hero.y; } // stop immediately, no runaway to old target
             if(knob){ knob.style.display='none'; knob.style.transform='translate(0,0)'; }
         });
     }

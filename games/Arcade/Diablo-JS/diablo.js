@@ -189,8 +189,15 @@ var LEVEL_CFG=[
 
 var MAX_LEVEL=LEVEL_CFG.length;
 var currentLevel=0, stairX=-1, stairY=-1, gameWon=false, questTitle="", questGoal="";
+var gameState="title", kills=0, gameStartTime=0, dialogIdx=0, dialogText="";
+var STORY=[
+  {title:"The Dark Cellar", lines:["The village of Thornhaven has fallen silent.","Cattle vanish, children scream at night.","You descend into the old cellar to find the source.","Skeletons walk these halls. The Skeleton King commands them.","Slay him, and the path to the Crypt shall open."]},
+  {title:"The Forgotten Crypt", lines:["The Crypt was sealed for a reason.","A Lich has made this place its own, raising the dead.","It seeks to summon something far worse.","Push deeper. End its unholy ritual."]},
+  {title:"The Demon Lair", lines:["The air burns with sulphur.","The Demon Lord awaits in the abyss.","It is the heart of the darkness.","Strike it down, and Thornhaven shall know peace again."]}
+];
+var VICTORY_TEXT="You have slain the Demon Lord. Light returns to Thornhaven.";
 var LEVEL_NAMES=['Cellar','Crypt','Demon Lair'];
-var LEVEL_GOALS=['Find the stairs to the Crypt','Find the stairs to the Demon Lair','Slay all demons to win'];
+var LEVEL_GOALS=['Slay the Skeleton King, then find the stairs','Slay the Crypt Lich, then descend deeper','Slay the Demon Lord to save Thornhaven'];
 
 function buildMap(idx){
     var cfg=LEVEL_CFG[idx];
@@ -434,6 +441,8 @@ function loadLevel(idx){
     hero.health=hero.origin_health;
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
     dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0;
+    if(idx===0){ kills=0; gameStartTime=performance.now()/1000; }
+    gameState='dialog'; dialogIdx=0; dialogText=STORY[idx].lines[0];
     questTitle='Level '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[idx];
     questGoal=LEVEL_GOALS[idx];
 }
@@ -479,6 +488,14 @@ setInterval(function() { // random step for mobs, attack hero
 
 floor.canvas.onclick=function(e) {
     initAudio();
+    if(gameState==='title'){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[0]; return; }
+    if(gameState==='dialog'){
+        dialogIdx++;
+        if(dialogIdx>=STORY[currentLevel].lines.length){ gameState='playing'; }
+        else { dialogText=STORY[currentLevel].lines[dialogIdx]; }
+        return;
+    }
+    if(gameState==='victory'){ location.reload(); return; }
     if(restartIfDead()) return;
     var scx=floor.canvas.clientWidth>0?floor.canvas.width/floor.canvas.clientWidth:1;
     var scy=floor.canvas.clientHeight>0?floor.canvas.height/floor.canvas.clientHeight:1;
@@ -495,6 +512,19 @@ floor.canvas.onclick=function(e) {
 
 window.onkeydown=function(e){
     initAudio();
+    if(gameState==='title'){ if(e.keyCode===32||e.keyCode===13){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[0]; } return; }
+    if(gameState==='dialog'){
+        if(e.keyCode===32||e.keyCode===13){
+            dialogIdx++;
+            if(dialogIdx>=STORY[currentLevel].lines.length){ gameState='playing'; }
+            else { dialogText=STORY[currentLevel].lines[dialogIdx]; }
+        }
+        return;
+    }
+    if(gameState==='victory'){
+        if(e.keyCode===83){ shareVictory(); return; }
+        if(e.keyCode===82){ location.reload(); return; }
+    }
     if(!hero){
         pickHero('barbarian');
         return false;
@@ -546,6 +576,8 @@ function restartIfDead(){
 }
 setInterval(function() {
     if(imageCount>0) return;
+    if(gameState==='title'){ renderTitleScreen(); return; }
+    if(gameState==='dialog'){ renderFloor(); renderDialog(); return; }
     if(dead){
         floor.fillStyle="black";floor.fillRect(0,0, floor.w,floor.h);
         renderFloor();
@@ -592,11 +624,61 @@ setInterval(function() {
        Math.abs(hero.x-stairX)<s*0.95 && Math.abs(hero.y-stairY)<s*0.95){
         sfx('coin'); loadLevel(currentLevel+1);
     }
-    if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; sfx('coin'); }
+    if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; gameState='victory'; sfx('coin'); }
     renderQuest();
     if(hero.health<=0) dead=true;
 }, 66);
 
+function renderTitleScreen(){
+    floor.save();
+    floor.fillStyle="black"; floor.fillRect(0,0,floor.w,floor.h);
+    floor.textAlign="center";
+    floor.fillStyle="#c0392b";
+    floor.font="bold 72px 'Poppins',sans-serif";
+    floor.fillText("DIABLO JS", floor.w/2, floor.h/2-80);
+    floor.fillStyle="#ffd700";
+    floor.font="bold 22px 'Poppins',sans-serif";
+    floor.fillText("A Dark Fantasy Action RPG", floor.w/2, floor.h/2-40);
+    floor.fillStyle="#bbb";
+    floor.font="15px 'Poppins',sans-serif";
+    floor.fillText("3 levels. 3 bosses. One hero. Save Thornhaven.", floor.w/2, floor.h/2-8);
+    floor.fillStyle="#888";
+    floor.font="13px 'Poppins',sans-serif";
+    floor.fillText("Desktop: Click to move/attack | Z/X/C weapons | Q/W/E skills | 1-0 potions", floor.w/2, floor.h/2+30);
+    floor.fillText("Mobile: Left joystick to move | Right buttons to attack/skills", floor.w/2, floor.h/2+52);
+    if(Math.floor(performance.now()/500)%2===0){
+        floor.fillStyle="#fff";
+        floor.font="bold 20px 'Poppins',sans-serif";
+        floor.fillText("CLICK or PRESS SPACE to BEGIN", floor.w/2, floor.h/2+100);
+    }
+    floor.textAlign="left";
+    floor.restore();
+}
+function renderDialog(){
+    floor.save();
+    floor.fillStyle="rgba(0,0,0,0.78)";
+    floor.fillRect(0,0,floor.w,floor.h);
+    floor.textAlign="center";
+    floor.fillStyle="#ffd700";
+    floor.font="bold 32px 'Poppins',sans-serif";
+    floor.fillText("Level "+(currentLevel+1)+"/3 - "+STORY[currentLevel].title, floor.w/2, floor.h/2-80);
+    floor.fillStyle="#e8e6e3";
+    floor.font="17px 'Poppins',sans-serif";
+    var words=dialogText.split(' '), line='', lines=[], maxW=floor.w-200;
+    for(var wi=0;wi<words.length;wi++){
+        var test=line+words[wi]+' ';
+        if(floor.measureText(test).width>maxW && line.length>0){ lines.push(line); line=words[wi]+' '; }
+        else line=test;
+    }
+    lines.push(line);
+    var startY=floor.h/2-30;
+    for(var li=0;li<lines.length;li++){ floor.fillText(lines[li], floor.w/2, startY+li*26); }
+    floor.fillStyle="#888";
+    floor.font="13px 'Poppins',sans-serif";
+    floor.fillText("Story "+(dialogIdx+1)+"/"+STORY[currentLevel].lines.length+"  |  Click or SPACE to continue", floor.w/2, floor.h/2+70);
+    floor.textAlign="left";
+    floor.restore();
+}
 function renderQuest(){
     // top quest bar
     floor.save();
@@ -635,18 +717,25 @@ function renderQuest(){
         floor.restore();
     }
     // victory overlay
-    if(gameWon){
+    if(gameState==='victory'){
         floor.save();
-        floor.fillStyle="rgba(0,0,0,0.8)";
+        floor.fillStyle="rgba(0,0,0,0.85)";
         floor.fillRect(0,0,floor.w,floor.h);
         floor.textAlign="center";
         floor.fillStyle="#ffd700";
-        floor.font="bold 58px 'Poppins',sans-serif";
-        floor.fillText("VICTORY!", floor.w/2, floor.h/2-20);
+        floor.font="bold 52px 'Poppins',sans-serif";
+        floor.fillText("VICTORY!", floor.w/2, floor.h/2-100);
         floor.fillStyle="#e8e6e3";
-        floor.font="19px 'Poppins',sans-serif";
-        floor.fillText("You cleared the Demon Lair.", floor.w/2, floor.h/2+24);
-        floor.fillText("Click or press R to play again", floor.w/2, floor.h/2+52);
+        floor.font="17px 'Poppins',sans-serif";
+        floor.fillText(VICTORY_TEXT, floor.w/2, floor.h/2-60);
+        var elapsed=Math.round(performance.now()/1000-gameStartTime);
+        var mm=Math.floor(elapsed/60), ss=elapsed%60;
+        floor.fillStyle="#ffd700";
+        floor.font="bold 20px 'Poppins',sans-serif";
+        floor.fillText("Kills: "+kills+"  |  Level: "+hero.heroLevel+"  |  Time: "+mm+"m"+ss+"s  |  Gold: "+hero.coins, floor.w/2, floor.h/2-10);
+        floor.fillStyle="#aaa";
+        floor.font="14px 'Poppins',sans-serif";
+        floor.fillText("Press S to share  |  Click or R to play again", floor.w/2, floor.h/2+30);
         floor.textAlign="left";
         floor.restore();
     }
@@ -1093,6 +1182,7 @@ function Mob(x,y,name){
             if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
             else {
                 sfx('monsterDie');
+                kills++;
                 if(!this.isBoss){ hero.health=Math.min(hero.origin_health, hero.health+30); hero.xp+=25; }
                 else{ hero.xp+=100; }
                 while(hero.xp>=hero.xpNext){
@@ -1476,6 +1566,15 @@ function pickHero(cls){
     initAudio();
     loadLevel(0);
 }
+function shareVictory(){
+    var elapsed=Math.round(performance.now()/1000-gameStartTime);
+    var mm=Math.floor(elapsed/60), ss=elapsed%60;
+    var text='I beat Diablo JS! Kills: '+kills+' | Lv.'+hero.heroLevel+' | Time: '+mm+'m'+ss+'s | Gold: '+hero.coins+' | Play: https://game.suipce.com/games/Arcade/Diablo-JS/';
+    if(navigator.share){ navigator.share({title:'Diablo JS Victory!',text:text,url:'https://game.suipce.com/games/Arcade/Diablo-JS/'}).catch(function(){}); }
+    else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert('Victory stats copied to clipboard!'); }).catch(function(){ prompt('Copy to share:',text); }); }
+    else { prompt('Copy to share:',text); }
+}
+window.shareVictory=shareVictory;
 window.selectHero=pickHero;
 window.loadLevel=loadLevel;
 

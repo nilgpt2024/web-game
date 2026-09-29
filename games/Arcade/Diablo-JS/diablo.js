@@ -795,11 +795,6 @@ function renderObjects(){
             tw/=tile.steps;
             th/=tile.angles;
             var _ang=(tile.angles>1)?(m.angle%tile.angles):0;
-            if(m.isHero && !window._dbgHero){
-                window._dbgHero={w:tile.width,h:tile.height,steps:tile.steps,angles:tile.angles,
-                    offX:tile.offsetX,complete:tile.complete,tw:tw,th:th,ang:_ang,step:m.step,
-                    sx:sx,sy:sy,srcX:tw*m.step,srcY:th*_ang,name:m.name};
-            }
             floor.drawImage(tile, 
                 tw*m.step, th*_ang, tw, th,
                 Math.round(sx-tw/2-tile.offsetX), Math.round(sy-th), tw, th);

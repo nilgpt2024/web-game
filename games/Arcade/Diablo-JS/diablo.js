@@ -409,6 +409,11 @@ var LEVELS=[
     {sk:5,fs:3,si:3,pots:6,dmg:24},
     {sk:6,fs:4,si:4,pots:7,dmg:32}
 ];
+var BOSS_TYPES=[
+    {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c'},
+    {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6'},
+    {name:'Demon Lord',    sprite:'SI', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22'}
+];
 
 function loadLevel(idx){
     currentLevel=idx;
@@ -1319,11 +1324,6 @@ function buyShop(id){
     if(window.renderShop) window.renderShop();
 }
 window.SHOP_ITEMS=SHOP_ITEMS; window.buyShop=buyShop;
-var BOSS_TYPES=[
-    {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c'},
-    {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6'},
-    {name:'Demon Lord',    sprite:'SI', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22'}
-];
 function BossMob(x,y){
     var bt=BOSS_TYPES[currentLevel]||BOSS_TYPES[0];
     AgressiveMob.call(this,x,y,bt.sprite);

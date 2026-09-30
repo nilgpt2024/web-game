@@ -574,7 +574,7 @@ function loadLevel(idx){
     hero.x=spawnPX; hero.y=spawnPY; hero.to_x=hero.x; hero.to_y=hero.y;
     hero.health=hero.origin_health;
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
-    dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0;
+    dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0; hero.whetTimer=0; hero.shieldTimer=0;
     if(idx===0){ kills=0; gameStartTime=performance.now()/1000; }
     gameState='dialog'; dialogIdx=0; dialogText=STORY[idx].lines[LANG][0];
     questTitle=T('level')+' '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[LANG][idx];
@@ -738,6 +738,8 @@ setInterval(function() {
     for(var i in monsters){ monsters[i].nextStep(); if(monsters[i].slow>0) monsters[i].slow-=0.066; }
     // buffs + move speed
     if(hero.powerTimer>0) hero.powerTimer-=0.066;
+    if(hero.whetTimer>0) hero.whetTimer-=0.066;
+    if(hero.shieldTimer>0) hero.shieldTimer-=0.066;
     if(hero.hasteTimer>0) hero.hasteTimer-=0.066;
     hero.st = hero.hasteTimer>0 ? 26 : 16;
     // rage decays out of combat
@@ -1399,12 +1401,14 @@ function Mob(x,y,name){
         if(mob.doAttack){ sfx('attack'); mob.doAttack(this); }
     };
     this.damage=function(damage){
-        var health=this.health - damage * 1000/(1000-this.resistance);
+        var dmgIn=damage * 1000/(1000-this.resistance);
+        if(this.isHero && this.shieldTimer>0) dmgIn*=0.2; // shield orb: 80% damage reduction
+        var health=this.health - dmgIn;
         if(this.isHero){
             if(health>0) this.gainRage(RAGE.hurtGain);
             Fx.shake=0.15;
             if(navigator.vibrate) navigator.vibrate(40);
-            spawnDamageText(this.x,this.y,Math.round(damage*1000/(1000-this.resistance)),'#ff5050');
+            spawnDamageText(this.x,this.y,Math.round(dmgIn),'#ff5050');
             spawnParticles(this.x,this.y,'#ff8080',0,0);
         }else{
             this.flashUntil=performance.now()+90;
@@ -1433,19 +1437,28 @@ function Mob(x,y,name){
                     hero.damageMult=(hero.damageMult||1)*1.1;
                     sfx('levelup');
                 }
-                // drop loot (varied, tinted)
+                // drop loot: single-roll table, 70% chance of something (varied, tinted)
                 if(!this.isBoss){
                     if(Math.random()<0.5) coins.push(new Coin(this.x,this.y));
-                    if(Math.random()<0.2) potions.push(new PotionHealth(this.x,this.y));
-                    if(Math.random()<0.07) drops.push(new PowerPotion(this.x,this.y));
-                    if(Math.random()<0.07) drops.push(new HastePotion(this.x,this.y));
-                    if(Math.random()<0.07) drops.push(new Gem(this.x,this.y));
-                    if(Math.random()<0.03) drops.push(new HealthUp(this.x,this.y));
-                    if(Math.random()<0.03) drops.push(new DamageUp(this.x,this.y));
+                    var r=Math.random();
+                    if(r<0.22) potions.push(new PotionHealth(this.x,this.y));
+                    else if(r<0.28) drops.push(new BigPotion(this.x,this.y));
+                    else if(r<0.34) drops.push(new PowerPotion(this.x,this.y));
+                    else if(r<0.40) drops.push(new HastePotion(this.x,this.y));
+                    else if(r<0.48) drops.push(new Gem(this.x,this.y));
+                    else if(r<0.53) drops.push(new GoldBag(this.x,this.y));
+                    else if(r<0.58) drops.push(new Whetstone(this.x,this.y));
+                    else if(r<0.61) drops.push(new ShieldOrb(this.x,this.y));
+                    else if(r<0.64) drops.push(new Ruby(this.x,this.y));
+                    else if(r<0.67) drops.push(new HealthUp(this.x,this.y));
+                    else if(r<0.70) drops.push(new DamageUp(this.x,this.y));
                 }else{
                     coins.push(new Coin(this.x,this.y)); coins.push(new Coin(this.x,this.y));
-                    for(var bi=0;bi<3;bi++) potions.push(new PotionHealth(this.x,this.y));
-                    drops.push(new Gem(this.x,this.y)); drops.push(new HealthUp(this.x,this.y));
+                    for(var bi=0;bi<2;bi++) potions.push(new PotionHealth(this.x,this.y));
+                    drops.push(new BigPotion(this.x,this.y));
+                    drops.push(new GoldBag(this.x+30,this.y));
+                    drops.push(new Ruby(this.x-30,this.y));
+                    if(Math.random()<0.5) drops.push(new Whetstone(this.x,this.y+30)); else drops.push(new ShieldOrb(this.x,this.y+30));
                     bossDead=true;
                     sfx('bossdie');
                 }
@@ -1710,6 +1723,34 @@ function DamageUp(x,y){
     this.used=false; this.tint='#f1c40f';
     this.use=function(mob){ if(!this.used){ this.used=true; mob.damageMult=(mob.damageMult||1)*1.08; sfx('potion'); } };
 }
+// ---- richer loot: big heal, gold bags, rubies, whetstone (temp attack up), shield orb ----
+function BigPotion(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false; this.tint='#ff2d55';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.health=Math.min(mob.health+Math.round(mob.origin_health*0.6), mob.origin_health); sfx('potion'); } };
+}
+function GoldBag(x,y){
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#ffd700';
+    this.coins=150+Math.floor(Math.random()*101);
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.coins+=this.coins; sfx('coin'); } };
+}
+function Ruby(x,y){
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#ff4757';
+    this.coins=280+Math.floor(Math.random()*121);
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.coins+=this.coins; sfx('coin'); } };
+}
+function Whetstone(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false; this.tint='#ecf0f1';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.whetTimer=45; sfx('potion'); } };
+}
+function ShieldOrb(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false; this.tint='#00d2d3';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.shieldTimer=8; sfx('potion'); } };
+}
 var SHOP_ITEMS=[
     {id:'potion',name:'Health Potion',desc:'+1000 HP to your belt',price:60,icon:'\uD83E\uDDEA'},
     {id:'power', name:'Power Elixir', desc:'1.5x damage for 20s',price:80,icon:'\u26A1'},
@@ -1819,7 +1860,7 @@ function HeroBarbarian(x,y){
         {name:T('skillWarCry'),   cd:8, last:0}
     ];
     // ---- temporary buffs ----
-    this.powerTimer=0; this.hasteTimer=0;
+    this.powerTimer=0; this.hasteTimer=0; this.whetTimer=0; this.shieldTimer=0;
     // ---- rage resource ----
     this.rage=0; this.lastCombatAt=0;
     this.gainRage=function(n){ this.rage=Math.min(RAGE.max, this.rage+n); this.lastCombatAt=performance.now(); };
@@ -1827,6 +1868,7 @@ function HeroBarbarian(x,y){
         var w=this.getWeapon();
         var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
         if(this.powerTimer>0) d*=1.5;
+        if(this.whetTimer>0) d*=1.4; // whetstone drop: temp attack up
         if(this.damageMult) d*=this.damageMult;
         return Math.round(d);
     };
@@ -1860,11 +1902,12 @@ function HeroBarbarian(x,y){
 // ===== Character classes =====
 function heroCombatInit(h){
     h.criticalDamage=0.4;
-    h.powerTimer=0; h.hasteTimer=0;
+    h.powerTimer=0; h.hasteTimer=0; h.whetTimer=0; h.shieldTimer=0;
     h.getDamage=function(){
         var w=this.getWeapon();
         var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
         if(this.powerTimer>0) d*=1.5;
+        if(this.whetTimer>0) d*=1.4; // whetstone drop: temp attack up
         if(this.damageMult) d*=this.damageMult;
         return Math.round(d);
     };

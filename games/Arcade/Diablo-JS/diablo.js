@@ -531,6 +531,7 @@ var monsterMap={
         WL: loadImage("monsters/BA/WL/map.png",16,8,true),
     },
 };
+monsterMap.BA.DD=monsterMap.SI.DD; // BA sprite lacks its own death frames: borrow skeleton's
 
 // rage resource (combat rework)
 var RAGE={max:100, hitGain:12, hurtGain:6, dashGain:8, fireballCost:35, shoutCost:40, decayDelay:3000, decayRate:8};
@@ -552,7 +553,7 @@ var LEVELS=[
 var BOSS_TYPES=[
     {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c'},
     {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6'},
-    {name:'Demon Lord',    sprite:'SI', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22'}
+    {name:'Demon Lord',    sprite:'BA', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22'}
 ];
 
 function loadLevel(idx){

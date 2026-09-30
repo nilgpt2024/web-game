@@ -674,15 +674,6 @@ window.onkeydown=function(e){
         pickHero('barbarian');
         return false;
     }
-    var beltKeys=[49,50,51,52,53,54,55,56,57,48];
-    var beltIndex = beltKeys.indexOf(e.keyCode);
-    if(beltIndex>=0){
-        if(hero.belt.items[beltIndex] instanceof PotionHealth){
-           hero.belt.items[beltIndex].drink(hero);
-           remove(hero.belt.items,hero.belt.items[beltIndex]);
-        }
-        return false;
-    }
     if(e.keyCode==9){
         showMap=!showMap;
         return false;
@@ -795,7 +786,7 @@ setInterval(function() {
     renderFx();
     renderHeroHealth();
     renderHeroRage();
-    renderHeroBelt();
+    renderBuffs();
     renderBossHealth();
     renderCoins();
     if(showMap) renderMap();
@@ -987,28 +978,6 @@ function renderBossHealth(){
     floor.font="bold 11px Arial";
     floor.textAlign="center";
     floor.fillText(b.name||'BOSS', floor.w/2, y+11);
-    floor.restore();
-}
-
-function renderHeroBelt(){
-    floor.save();
-    var tile=potionSprite;
-    var tw = tile.width / tile.steps;
-    var th = tile.height / tile.angles;
-    var beltW = hero.belt.size * tw;
-    var beltX = (floor.w - beltW) / 2;
-    var beltY = floor.h - th - 16;
-    for(var i=0;i<hero.belt.size;i++){
-        floor.drawImage(tile,
-            tw*2, th*3, tw, th,
-            beltX+tw*i, beltY, tw, th);
-        var p = hero.belt.items[i];
-        if(p){
-            floor.drawImage(tile,
-                tw*p.step, th*p.angle, tw, th,
-                beltX+tw*i, beltY, tw, th);
-        }
-    }
     floor.restore();
 }
 
@@ -1309,7 +1278,8 @@ function Potion(x,y){
     this.sprite.steps=6;
     this.sprite.angles=4;
     this.use=function(mob){
-        if(mob.addToBelt(this)){ sfx('potion'); remove(potions,this); }
+        if(mob.health >= mob.origin_health) return; // full HP: leave it on the ground
+        this.drink(mob); sfx('potion'); remove(potions,this);
     }
 }
 
@@ -1779,7 +1749,7 @@ function ShieldOrb(x,y){
     this.use=function(mob){ if(!this.used){ this.used=true; mob.shieldTimer=8; sfx('potion'); } };
 }
 var SHOP_ITEMS=[
-    {id:'potion',name:'Health Potion',desc:'+1000 HP to your belt',price:60,icon:'\uD83E\uDDEA'},
+    {id:'heal',name:'Full Heal',desc:'Restore all HP instantly',price:80,icon:'\u2764\uFE0F'},
     {id:'power', name:'Power Elixir', desc:'1.5x damage for 20s',price:80,icon:'\u26A1'},
     {id:'haste', name:'Haste Elixir', desc:'+movement speed 10s',price:80,icon:'\uD83D\uDCA8'},
     {id:'dmg',   name:'Damage Upgrade',desc:'+15% permanent damage (price rises)',price:100,icon:'\uD83D\uDDE1\uFE0F'},
@@ -1789,8 +1759,8 @@ function buyShop(id){
     var it=null; for(var i=0;i<SHOP_ITEMS.length;i++) if(SHOP_ITEMS[i].id===id) it=SHOP_ITEMS[i];
     if(!it || !hero) return;
     if(hero.coins < it.price){ sfx('error'); return; }
-    if(id==='potion' && !hero.addToBelt(new PotionHealth(0,0))){ sfx('error'); return; } // belt full: no charge
     hero.coins -= it.price;
+    if(id==='heal') hero.health=hero.origin_health;
     if(id==='power') hero.powerTimer=20;
     else if(id==='haste') hero.hasteTimer=10;
     else if(id==='dmg'){ hero.damageMult=(hero.damageMult||1)*1.15; it.price=Math.round(it.price*2); }
@@ -1856,18 +1826,8 @@ function HeroBarbarian(x,y){
     this.normalOffset=10;
     this.health=this.origin_health=2000;
     this.coins=0;
-    this.belt={items:[], size:10};
     this.st=16;
     this.xp=0; this.xpNext=100; this.heroLevel=1;
-    this.addToBelt=function(potion){
-        for(var i=0;i<this.belt.size;i++){
-            if(typeof this.belt.items[i] == "undefined"){
-                this.belt.items[i]=potion;
-                return true;
-            }
-        }
-        return false;
-    }
     this.criticalDamage=0.15;
     this.currentDamage=180;
     // ---- weapon system (switch: Z/X/C on desktop, buttons on mobile) ----
@@ -2052,14 +2012,13 @@ var touchUI = {
     on(touchUI.potionBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
         initAudio();
-        var it=hero.belt.items;
-        for(var i=0;i<it.length;i++){
-            if(it[i] instanceof PotionHealth){
-                it[i].drink(hero);
-                remove(it,it[i]);
-                break;
-            }
+        var best=null, bd=1e9;
+        for(var i in potions){
+            var p=potions[i], dx=p.x-hero.x, dy=p.y-hero.y, d=dx*dx+dy*dy;
+            if(d<bd){ bd=d; best=p; }
         }
+        if(best){ floor.click_x=best.x; floor.click_y=best.y; processClick(); }
+        else sfx('error');
     });
     on(touchUI.mapBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();

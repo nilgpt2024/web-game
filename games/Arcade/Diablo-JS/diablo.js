@@ -1543,19 +1543,6 @@ function updateFx(dt){
 }
 function renderFx(){
     var i, m;
-    // boss telegraph circles (rendered under particles)
-    for(i in monsters){ m=monsters[i];
-        if(m.castUntil && performance.now()/1000<m.castUntil){
-            var tr=m.bossType.skill==='whirlwind'?s*2.5:(m.bossType.skill==='firerain'?s*2.4:s*1.8);
-            var prog=1-(m.castUntil-performance.now()/1000)/0.8;
-            floor.globalAlpha=0.18+0.25*prog;
-            floor.fillStyle="red";
-            floor.beginPath();
-            floor.arc((m.castCx-m.castCy)*acos, (m.castCx+m.castCy)/2*asin, tr, 0, Math.PI*2);
-            floor.fill();
-            floor.globalAlpha=1;
-        }
-    }
     for(i=0;i<Fx.parts.length;i++){ var p=Fx.parts[i];
         floor.globalAlpha=Math.max(0,Math.min(1,p.life*3));
         floor.fillStyle=p.color;

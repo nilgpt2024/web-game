@@ -717,6 +717,13 @@ setInterval(function() {
     if(hero.rage>0 && performance.now()-hero.lastCombatAt>RAGE.decayDelay){
         hero.rage=Math.max(0, hero.rage-RAGE.decayRate*0.066);
     }
+    // mobile skill button availability feedback
+    if(touchUI.s1){
+        var nowSk=performance.now()/1000;
+        touchUI.s1.style.opacity=(hero.rage>=RAGE.fireballCost && nowSk-hero.skills[0].last>=hero.skills[0].cd)?'1':'0.35';
+        touchUI.s2.style.opacity=(nowSk-hero.skills[1].last>=hero.skills[1].cd)?'1':'0.35';
+        touchUI.s3.style.opacity=(hero.rage>=RAGE.shoutCost && nowSk-hero.skills[2].last>=hero.skills[2].cd)?'1':'0.35';
+    }
     // projectiles
     updateProjectiles(0.066);
     updateFx(0.066);
@@ -725,6 +732,15 @@ setInterval(function() {
         var dd=drops[di];
         if(Math.abs(hero.x-dd.x)<s*0.8 && Math.abs(hero.y-dd.y)<s*0.8){ dd.use(hero); }
         if(dd.used) drops.splice(di,1);
+    }
+    // auto-pickup coins and potions by walking over them (mobile friendly)
+    for(var ci2=coins.length-1; ci2>=0; ci2--){
+        var cc=coins[ci2];
+        if(Math.abs(hero.x-cc.x)<s*0.9 && Math.abs(hero.y-cc.y)<s*0.9){ cc.use(hero); }
+    }
+    for(var pi2=potions.length-1; pi2>=0; pi2--){
+        var pp=potions[pi2];
+        if(Math.abs(hero.x-pp.x)<s*0.9 && Math.abs(hero.y-pp.y)<s*0.9){ pp.use(hero); }
     }
     // boss slam attack
     for(var bi in monsters){
@@ -745,6 +761,7 @@ setInterval(function() {
     renderHeroHealth();
     renderHeroRage();
     renderHeroBelt();
+    renderBossHealth();
     renderCoins();
     if(showMap) renderMap();
     if(shaking) floor.restore();
@@ -916,6 +933,25 @@ function renderHeroRage(){
     floor.beginPath();
     floor.arc(radius+padding, floor.h-radius-padding, radius+11, -Math.PI/2, -Math.PI/2+Math.PI*2*pct, false);
     floor.stroke();
+    floor.restore();
+}
+
+function renderBossHealth(){
+    var b=null;
+    for(var i in monsters){ if(monsters[i].isBoss){ b=monsters[i]; break; } }
+    if(!b || !b.isAboveHero()) return;
+    var w=Math.min(420, floor.w*0.5), x=(floor.w-w)/2, y=14;
+    floor.save();
+    floor.globalAlpha=0.75;
+    floor.fillStyle="black";
+    floor.fillRect(x-2,y-2,w+4,18);
+    floor.fillStyle="#8e2b2b";
+    floor.fillRect(x,y,w*b.health/b.origin_health,14);
+    floor.globalAlpha=0.9;
+    floor.fillStyle="#fff";
+    floor.font="bold 11px Arial";
+    floor.textAlign="center";
+    floor.fillText(b.name||'BOSS', floor.w/2, y+11);
     floor.restore();
 }
 
@@ -1340,6 +1376,7 @@ function Mob(x,y,name){
         if(this.isHero){
             if(health>0) this.gainRage(RAGE.hurtGain);
             Fx.shake=0.15;
+            if(navigator.vibrate) navigator.vibrate(40);
             spawnDamageText(this.x,this.y,Math.round(damage*1000/(1000-this.resistance)),'#ff5050');
             spawnParticles(this.x,this.y,'#ff8080',0,0);
         }else{
@@ -1359,6 +1396,7 @@ function Mob(x,y,name){
             if(this instanceof HeroBarbarian){ if(!deathSfxPlayed){ sfx('death'); deathSfxPlayed=true; } }
             else {
                 sfx('monsterDie');
+                if(navigator.vibrate) navigator.vibrate(60);
                 kills++;
                 if(!this.isBoss){ hero.health=Math.min(hero.origin_health, hero.health+30); hero.xp+=25; }
                 else{ hero.xp+=100; }
@@ -1913,8 +1951,9 @@ var touchUI = {
         e.preventDefault(); e.stopPropagation();
         initAudio();
         if(restartIfDead()) return;
-        floor.click_x=hero.x; floor.click_y=hero.y;
-        processClick();
+        var t=nearestMonster(); // attack closest visible monster
+        if(t){ hero.rotateTo(t); hero.doAttack(t); }
+        else { floor.click_x=hero.x; floor.click_y=hero.y; processClick(); }
     });
     on(touchUI.potionBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
@@ -1950,7 +1989,7 @@ var touchUI = {
         var scx=floor.w/r.width, scy=floor.h/r.height;
         var mx=(t.clientX-r.left)*scx - floor.w/2;
         var my=(t.clientY-r.top)*scy - floor.h/2;
-        var isCanClick=Math.abs(mx) < 100 && Math.abs(my) < 100;
+        var isCanClick=Math.abs(mx) < 150 && Math.abs(my) < 150; // generous tap radius for touch
         my *= 2;
         floor.click_x=hero.x + mx*Math.cos(-a) - my*Math.sin(-a);
         floor.click_y=hero.y + mx*Math.sin(-a) + my*Math.cos(-a);

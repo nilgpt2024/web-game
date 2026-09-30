@@ -180,15 +180,15 @@ var level = {
     }
 };
 
-// ===== Generated larger dungeon map: 3 levels, each 100% connected, with decor & stairs =====
-var LEVEL_CFG=[
-    {doors:{h:{5:[5,10,19,25],11:[8,21],16:[5,13,25]},v:{9:[6,14],20:[9,17]}},decor:[[2,7,4116],[2,25,4212],[6,14,5844],[17,12,5748],[17,2,5652],[12,13,5652],[12,10,564],[2,13,564],[2,28,372],[6,17,5748],[6,6,5748],[12,24,4116],[2,10,5652],[16,13,3828],[2,3,372],[18,19,4212],[12,21,660],[2,6,4212],[12,22,372],[15,10,3828],[12,5,4116],[6,7,564],[4,19,4116],[2,11,5652],[14,28,4116],[6,3,372],[9,8,4212],[12,17,5652],[18,8,4212],[14,21,660],[18,28,4212],[17,27,4212],[18,2,660],[6,13,4212],[13,8,4212],[12,3,564],[11,21,660],[6,9,5748],[17,19,5844],[9,28,4212],[12,28,4212],[4,21,660],[3,10,660],[13,2,660],[15,28,4116],[17,11,5844],[12,15,4212]],stair:[2,28]},
-    {doors:{h:{5:[6,12,21,27],11:[2,10],16:[7,15,26]},v:{9:[7,16],20:[10,18]}},decor:[[3,2,660],[3,8,4116],[2,7,372],[12,28,5844],[9,8,4116],[4,2,3828],[17,4,5748],[6,28,5748],[12,18,372],[12,15,4212],[12,26,5844],[17,6,5748],[2,23,5844],[2,25,5844],[17,2,5748],[13,28,4212],[9,10,660],[7,9,564],[6,13,372],[2,12,5844],[3,19,4212],[2,10,5652],[17,19,5844],[2,3,4116],[3,28,4212],[12,4,5748],[9,28,4212],[2,28,4116],[12,21,5652],[2,16,4212],[12,3,4212],[5,27,3828],[12,24,4116],[6,22,5652],[9,19,4116],[12,13,5652],[2,22,5748],[2,6,5748],[12,22,5844],[12,14,4212],[8,21,660],[4,8,4212],[6,17,5844]],stair:[2,28]},
-    {doors:{h:{5:[8,16,24],11:[6,14,23],16:[2,11,19,27]},v:{9:[5,15],20:[8,17]}},decor:[[2,5,5652],[3,28,4212],[12,13,5652],[2,17,5652],[12,28,4116],[3,10,3828],[12,27,4212],[14,8,4116],[6,18,372],[13,21,3828],[6,17,564],[12,17,564],[6,28,5748],[2,11,4212],[16,11,660],[18,21,660],[6,23,5652],[17,22,5844],[12,5,5748],[12,25,4212],[2,14,5844],[18,10,660],[2,18,372],[3,8,4212],[8,28,4212],[10,2,660],[11,6,660],[2,27,5652],[12,2,5844],[6,26,4212],[12,16,4212],[13,28,4212],[6,19,564],[12,21,372],[2,22,564],[17,12,5844],[8,2,660],[7,8,4212],[18,2,3828],[2,19,5844],[12,15,372],[2,25,5652],[9,19,4116],[2,12,5844],[17,17,5748]],stair:[2,28]}
+// ===== Procedural room-and-corridor dungeon generator: 3 levels, every run different =====
+var LEVEL_GEN=[
+    {rooms:[5,6], rmin:4, rmax:7},  // Cellar: few spacious halls
+    {rooms:[7,9], rmin:3, rmax:5},  // Crypt: many tight chambers, maze-like
+    {rooms:[4,6], rmin:5, rmax:8}   // Demon Lair: big open halls
 ];
 
-var MAX_LEVEL=LEVEL_CFG.length;
-var currentLevel=0, stairX=-1, stairY=-1, gameWon=false, questTitle="", questGoal="";
+var MAX_LEVEL=LEVEL_GEN.length;
+var currentLevel=0, stairX=-1, stairY=-1, spawnGX=8, spawnGY=10, gameWon=false, questTitle="", questGoal="";
 var gameState="title", kills=0, gameStartTime=0, dialogIdx=0, dialogText="";
 var LANG=(navigator.language||"en").toLowerCase().indexOf("zh")>=0?"zh":"en";
 var I18N={
@@ -217,42 +217,90 @@ var LEVEL_NAMES={zh:["地窖","墓穴","恶魔巢穴"],en:["Cellar","Crypt","Dem
 var LEVEL_GOALS={zh:['击败骷髅王，找到楼梯','击败墓穴巫妖，深入腹地','击败恶魔领主，拯救荆棘镇'],en:['Slay the Skeleton King, then find the stairs','Slay the Crypt Lich, then descend deeper','Slay the Demon Lord to save Thornhaven']};
 
 function buildMap(idx){
-    var cfg=LEVEL_CFG[idx];
+    var gen=LEVEL_GEN[idx];
     var W=31,H=21;
     function blank(){var a=[];for(var y=0;y<H;y++){a.push([]);for(var x=0;x<W;x++)a[y].push(0);}return a;}
     level.floor.map=blank(); level.wall.map=blank(); level.object.map=blank();
     var x,y;
     for(y=2;y<H-2;y++) for(x=2;x<W-2;x++) level.floor.map[y][x]=756;
-    for(x=1;x<W-1;x++){ level.wall.map[1][x]=(x===1||x===W-2)?948:372; level.wall.map[H-2][x]=(x===1||x===W-2)?948:372; }
-    for(y=2;y<H-2;y++){ level.wall.map[y][1]=468; level.wall.map[y][W-2]=468; }
-    function hw(row,cols,opens){for(var c=0;c<cols.length;c++) if(opens.indexOf(cols[c])<0) level.wall.map[row][cols[c]]=372;}
-    function vw(col,rows,opens){for(var r=0;r<rows.length;r++) if(opens.indexOf(rows[r])<0) level.wall.map[rows[r]][col]=468;}
-    var allc=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28];
-    var allr=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
-    // ---- per-level architectural skeleton ----
-    if(idx===0){ // Cellar: two open great halls + pillars
-        hw(8,allc,[4,11,17,24]);
-        level.wall.map[4][8]=468; level.wall.map[4][16]=468; level.wall.map[15][8]=468; level.wall.map[15][16]=468;
-    }else if(idx===1){ // Crypt: open burial hall + short colonnade
-        hw(9,allc,[3,10,16,24]);
-        vw(14,allr,[4]); vw(14,[11,12,13,14,15,16,17],[15]);
-        level.wall.map[3][14]=468; level.wall.map[17][14]=468;
-    }else{ // Demon Lair: central altar room + open ring, corner pillars
-        vw(11,[6,7,8,9,10,11,12,13,14],[10]); vw(18,[6,7,8,9,10,11,12,13,14],[10]);
-        hw(6,[11,12,13,14,15,16,17,18],[14]); hw(14,[11,12,13,14,15,16,17,18],[15]);
-        level.wall.map[4][6]=468; level.wall.map[4][24]=468; level.wall.map[16][6]=468; level.wall.map[16][24]=468;
+    // ---- random non-overlapping rooms (1-tile thick wall rings, same tile language as before) ----
+    var rooms=[], tries=0;
+    var want=gen.rooms[0]+Math.floor(Math.random()*(gen.rooms[1]-gen.rooms[0]+1));
+    while(rooms.length<want && tries<250){
+        tries++;
+        var rw=gen.rmin+Math.floor(Math.random()*(gen.rmax-gen.rmin+1));
+        var rh=gen.rmin+Math.floor(Math.random()*(gen.rmax-gen.rmin+1));
+        var rx=3+Math.floor(Math.random()*(W-6-rw));
+        var ry=3+Math.floor(Math.random()*(H-6-rh));
+        var ok=true;
+        for(var ri=0;ri<rooms.length;ri++){ var o=rooms[ri];
+            if(rx<o.x+o.w+1 && rx+rw+1>o.x && ry<o.y+o.h+1 && ry+rh+1>o.y){ ok=false; break; } }
+        if(ok) rooms.push({x:rx,y:ry,w:rw,h:rh});
     }
-    level.wall.map[10][8]=0; level.wall.map[10][9]=0;
-    // ---- BFS connectivity repair ----
+    if(rooms.length===0) rooms.push({x:5,y:5,w:9,h:7});
+    function ring(o){
+        for(x=o.x;x<o.x+o.w;x++){ if(!level.wall.map[o.y][x]) level.wall.map[o.y][x]=372;
+                                   if(!level.wall.map[o.y+o.h-1][x]) level.wall.map[o.y+o.h-1][x]=372; }
+        for(y=o.y;y<o.y+o.h;y++){ if(!level.wall.map[y][o.x]) level.wall.map[y][o.x]=468;
+                                   if(!level.wall.map[y][o.x+o.w-1]) level.wall.map[y][o.x+o.w-1]=468; }
+        level.wall.map[o.y][o.x]=948; level.wall.map[o.y][o.x+o.w-1]=948;
+        level.wall.map[o.y+o.h-1][o.x]=948; level.wall.map[o.y+o.h-1][o.x+o.w-1]=948;
+    }
+    for(var rg=0;rg<rooms.length;rg++) ring(rooms[rg]);
+    // ---- doors: 1-2 openings per side, never on corners ----
+    for(var rd=0;rd<rooms.length;rd++){ var o=rooms[rd];
+        for(var sd=0;sd<4;sd++){
+            var n=1+Math.floor(Math.random()*2);
+            for(var dn=0;dn<n;dn++){
+                if(sd===0){ level.wall.map[o.y][o.x+1+Math.floor(Math.random()*(o.w-2))]=0; }
+                else if(sd===1){ level.wall.map[o.y+o.h-1][o.x+1+Math.floor(Math.random()*(o.w-2))]=0; }
+                else if(sd===2){ level.wall.map[o.y+1+Math.floor(Math.random()*(o.h-2))][o.x]=0; }
+                else { level.wall.map[o.y+1+Math.floor(Math.random()*(o.h-2))][o.x+o.w-1]=0; }
+            }
+        }
+    }
     function isFloor(yy,xx){ return yy>0 && yy<H-1 && xx>0 && xx<W-1 && level.wall.map[yy][xx]===0 && level.object.map[yy][xx]===0; }
     var dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+    function bfs(sy0,sx0){
+        var dist={}; dist[sy0+','+sx0]=0;
+        var q=[[sy0,sx0]];
+        while(q.length){
+            var c=q.shift(), yy=c[0], xx=c[1], base=dist[yy+','+xx];
+            for(var d=0;d<4;d++){ var ny=yy+dirs[d][0], nx=xx+dirs[d][1];
+                if(isFloor(ny,nx) && dist[ny+','+nx]===undefined){ dist[ny+','+nx]=base+1; q.push([ny,nx]); }
+            }
+        }
+        return dist;
+    }
+    // ---- spawn = first room center; stairs = farthest reachable room center ----
+    spawnGX=rooms[0].x+(rooms[0].w>>1); spawnGY=rooms[0].y+(rooms[0].h>>1);
+    var dist=bfs(spawnGY,spawnGX);
+    var best=-1, bi=0;
+    for(var rb=0;rb<rooms.length;rb++){
+        var o=rooms[rb], cy=o.y+(o.h>>1), cx=o.x+(o.w>>1);
+        var dd=dist[cy+','+cx];
+        if(dd===undefined) dd=-1;
+        if(dd>best){ best=dd; bi=rb; }
+    }
+    var st=rooms[bi];
+    var sgy=st.y+(st.h>>1), sgx=st.x+(st.w>>1);
+    // ---- pillars inside larger rooms (kept clear of spawn/stairs and door lanes) ----
+    for(var rp=0;rp<rooms.length;rp++){ var o2=rooms[rp];
+        if(o2.w>=5 && o2.h>=5 && Math.random()<0.7){
+            var px=o2.x+1+Math.floor(Math.random()*(o2.w-2)), py=o2.y+1+Math.floor(Math.random()*(o2.h-2));
+            if(Math.abs(px-spawnGX)+Math.abs(py-spawnGY)<3) continue;
+            if(Math.abs(px-sgx)+Math.abs(py-sgy)<3) continue;
+            level.wall.map[py][px]=Math.random()<0.5?372:468;
+        }
+    }
+    // ---- BFS connectivity repair (seeded from spawn) ----
     function reachable(){
-        var seen={}, q=[[10,8]], k=function(yy,xx){return yy+','+xx;};
-        seen[k(10,8)]=1;
+        var seen={}, q=[[spawnGY,spawnGX]];
+        seen[spawnGY+','+spawnGX]=1;
         while(q.length){
             var c=q.shift(), yy=c[0], xx=c[1];
             for(var d=0;d<4;d++){ var ny=yy+dirs[d][0], nx=xx+dirs[d][1];
-                if(isFloor(ny,nx) && !seen[k(ny,nx)]){ seen[k(ny,nx)]=1; q.push([ny,nx]); }
+                if(isFloor(ny,nx) && !seen[ny+','+nx]){ seen[ny+','+nx]=1; q.push([ny,nx]); }
             }
         }
         return seen;
@@ -275,27 +323,26 @@ function buildMap(idx){
         }
         if(!opened){ level.wall.map[un[0]][un[1]]=0; }
     }
-    // stairs marker (rendered as a statue + portal glow)
-    var sy=cfg.stair[0], sx=cfg.stair[1];
-    stairX=sx*s+s/2; stairY=sy*s+s/2;
-    level.object.map[sy][sx]=1524;
+    // ---- stairs (rendered as a statue + portal glow), guarded by the BOSS ----
+    stairX=sgx*s+s/2; stairY=sgy*s+s/2;
+    level.object.map[sgy][sgx]=1524;
     // ---- procedural wall-adjacent decor (connectivity-safe) ----
     var decoTiles=[564,660,372,4116,4212,5748,5844,5652,3828];
-    var placed=0, maxDec=40, tries=0;
-    while(placed<maxDec && tries<600){
-        tries++;
-        var ry=2+Math.floor(Math.random()*17), rx=2+Math.floor(Math.random()*27);
-        if(level.wall.map[ry][rx]>0 || level.object.map[ry][rx]>0) continue;
-        if((rx===8||rx===9)&&ry===10) continue; // keep spawn clear
-        var adj = (level.wall.map[ry-1]&&level.wall.map[ry-1][rx]>0)||(level.wall.map[ry+1]&&level.wall.map[ry+1][rx]>0)||level.wall.map[ry][rx-1]>0||level.wall.map[ry][rx+1]>0;
+    var placed=0, maxDec=40, tries2=0;
+    while(placed<maxDec && tries2<600){
+        tries2++;
+        var ry2=2+Math.floor(Math.random()*17), rx2=2+Math.floor(Math.random()*27);
+        if(level.wall.map[ry2][rx2]>0 || level.object.map[ry2][rx2]>0) continue;
+        if(Math.abs(rx2-spawnGX)<=1 && Math.abs(ry2-spawnGY)<=1) continue; // keep spawn clear
+        var adj = (level.wall.map[ry2-1]&&level.wall.map[ry2-1][rx2]>0)||(level.wall.map[ry2+1]&&level.wall.map[ry2+1][rx2]>0)||level.wall.map[ry2][rx2-1]>0||level.wall.map[ry2][rx2+1]>0;
         if(!adj) continue;
-        level.wall.map[ry][rx]=999; // tentatively block
-        var s2=reachable(), ok=true;
-        for(var fy2=1; fy2<H-1 && ok; fy2++) for(var fx2=1; fx2<W-1; fx2++)
-            if(isFloor(fy2,fx2) && !s2[fy2+','+fx2]){ ok=false; }
-        level.wall.map[ry][rx]=0;
-        if(!ok) continue;
-        level.object.map[ry][rx]=decoTiles[Math.floor(Math.random()*decoTiles.length)];
+        level.wall.map[ry2][rx2]=999; // tentatively block
+        var s2=reachable(), ok2=true;
+        for(var fy2=1; fy2<H-1 && ok2; fy2++) for(var fx2=1; fx2<W-1; fx2++)
+            if(isFloor(fy2,fx2) && !s2[fy2+','+fx2]){ ok2=false; }
+        level.wall.map[ry2][rx2]=0;
+        if(!ok2) continue;
+        level.object.map[ry2][rx2]=decoTiles[Math.floor(Math.random()*decoTiles.length)];
         placed++;
     }
 }
@@ -538,14 +585,15 @@ function loadLevel(idx){
     for(var y in level.object.map) for(var x in level.object.map[y]){ var v=level.object.map[y][x]; if(v>0) walls.push(new WallObject(v,x*s,y*s)); }
     monsters=[]; deathmobs=[]; barrels=[]; coins=[]; potions=[]; drops=[];
     var L=LEVELS[idx];
-    function safePos(){var x,y,t=0;do{x=randomx();y=randomy();t++;}while(t<25&&((Math.abs(x-s*8)+Math.abs(y-s*10))<5*s||!isWayWall(x,y)));return [x,y];}
+    var spawnPX=spawnGX*s+s/2, spawnPY=spawnGY*s+s/2;
+    function safePos(){var x,y,t=0;do{x=randomx();y=randomy();t++;}while(t<25&&((Math.abs(x-spawnPX)+Math.abs(y-spawnPY))<5*s||!isWayWall(x,y)));return [x,y];}
     for(var i=0;i<L.sk;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'SK'));}
     for(var i=0;i<L.fs;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'FS'));}
     for(var i=0;i<L.si;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'SI'));}
     for(var i=0;i<L.pots;i++) potions.push(new PotionHealth(randomx(),randomy()));
     // boss guards the stairs
     if(idx<MAX_LEVEL) monsters.push(new BossMob(stairX+s*0.5, stairY-s*0.2));
-    hero.x=s*8; hero.y=s*10; hero.to_x=hero.x; hero.to_y=hero.y;
+    hero.x=spawnPX; hero.y=spawnPY; hero.to_x=hero.x; hero.to_y=hero.y;
     hero.health=hero.origin_health;
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
     dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0;

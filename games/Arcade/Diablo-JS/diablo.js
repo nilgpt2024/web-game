@@ -190,7 +190,7 @@ var I18N={
   helpDesktop:{zh:"电脑：点击移动/攻击 | Z/X/C 切换武器 | Q/W/E 技能 | 1-0 药水",en:"Desktop: Click to move/attack | Z/X/C weapons | Q/W/E skills | 1-0 potions"},
   helpMobile:{zh:"手机：左侧摇杆移动 | 右侧按钮攻击/技能",en:"Mobile: Left joystick to move | Right buttons to attack/skills"},
   begin:{zh:"点击 或 按空格 开始",en:"CLICK or PRESS SPACE to BEGIN"},langHint:{zh:"按 L 切换语言",en:"Press L to switch language"},
-  quest:{zh:"任务：",en:"Quest: "},wpn:{zh:"武器：",en:"Wpn: "},bossHint:{zh:"☠ 击败 BOSS 开启楼梯",en:"☠ Defeat the BOSS to open the stairs"},
+  quest:{zh:"任务：",en:"Quest: "},wpn:{zh:"武器：",en:"Wpn: "},bossHint:{zh:"☠ 击败 BOSS 进入下一层",en:"☠ Defeat the BOSS to descend"},
   youDied:{zh:"你死了",en:"YOU DIED"},restart:{zh:"点击 或 按 R 重新开始",en:"Click or press R to restart"},
   victory:{zh:"胜利！",en:"VICTORY!"},victoryText:{zh:"你击败了恶魔领主，光明重返荆棘镇。",en:"You have slain the Demon Lord. Light returns to Thornhaven."},
   kills:{zh:"击杀",en:"Kills"},level:{zh:"等级",en:"Level"},time:{zh:"用时",en:"Time"},gold:{zh:"金币",en:"Gold"},
@@ -208,7 +208,7 @@ var STORY=[
   {title:{zh:"恶魔巢穴",en:"The Demon Lair"}, lines:{zh:["空气中弥漫着硫磺的灼烧味。","恶魔领主在深渊中等候。","它是黑暗的核心。","击倒它，荆棘镇将重获和平。"],en:["The air burns with sulphur.","The Demon Lord awaits in the abyss.","It is the heart of the darkness.","Strike it down, and Thornhaven shall know peace again."]}}
 ];
 var LEVEL_NAMES={zh:["地窖","墓穴","恶魔巢穴"],en:["Cellar","Crypt","Demon Lair"]};
-var LEVEL_GOALS={zh:['击败骷髅王，找到楼梯','击败墓穴巫妖，深入腹地','击败恶魔领主，拯救荆棘镇'],en:['Slay the Skeleton King, then find the stairs','Slay the Crypt Lich, then descend deeper','Slay the Demon Lord to save Thornhaven']};
+var LEVEL_GOALS={zh:['击败骷髅王，深入下一层','击败墓穴巫妖，深入腹地','击败恶魔领主，拯救荆棘镇'],en:['Slay the Skeleton King to descend','Slay the Crypt Lich, then descend deeper','Slay the Demon Lord to save Thornhaven']};
 
 function buildMap(idx){
     var W=31,H=21;
@@ -300,9 +300,8 @@ function buildMap(idx){
         }
         if(!opened){ level.wall.map[un[0]][un[1]]=0; }
     }
-    // ---- stairs guarded by the BOSS ----
+    // ---- boss arena = farthest room (exit is automatic on boss death) ----
     stairX=sgx*s+s/2; stairY=sgy*s+s/2;
-    level.object.map[sgy][sgx]=1524;
     // ---- sparse decor around walls (per level density) ----
     var decoTiles=[564,660,4116,4212,5748,5844,5652,3828];
     var maxDec=[18,24,12][idx]||18;
@@ -576,7 +575,7 @@ function loadLevel(idx){
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
     dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0; hero.whetTimer=0; hero.shieldTimer=0;
     if(idx===0){ kills=0; gameStartTime=performance.now()/1000; }
-    gameState='dialog'; dialogIdx=0; dialogText=STORY[idx].lines[LANG][0];
+    gameState='playing';
     questTitle=T('level')+' '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[LANG][idx];
     questGoal=LEVEL_GOALS[LANG][idx];
 }
@@ -633,13 +632,7 @@ setInterval(function() { // random step for mobs, attack hero
 
 floor.canvas.onclick=function(e) {
     initAudio();
-    if(gameState==='title'){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[LANG][0]; return; }
-    if(gameState==='dialog'){
-        dialogIdx++;
-        if(dialogIdx>=STORY[currentLevel].lines[LANG].length){ gameState='playing'; }
-        else { dialogText=STORY[currentLevel].lines[LANG][dialogIdx]; }
-        return;
-    }
+    if(gameState==='title'){ gameState='playing'; return; }
     if(gameState==='victory'){ location.reload(); return; }
     if(restartIfDead()) return;
     var scx=floor.canvas.clientWidth>0?floor.canvas.width/floor.canvas.clientWidth:1;
@@ -657,15 +650,7 @@ floor.canvas.onclick=function(e) {
 
 window.onkeydown=function(e){
     initAudio();
-    if(gameState==='title'){ if(e.keyCode===76){ toggleLang(); return; } if(e.keyCode===32||e.keyCode===13){ gameState='dialog'; dialogIdx=0; dialogText=STORY[0].lines[LANG][0]; } return; }
-    if(gameState==='dialog'){
-        if(e.keyCode===32||e.keyCode===13){
-            dialogIdx++;
-            if(dialogIdx>=STORY[currentLevel].lines[LANG].length){ gameState='playing'; }
-            else { dialogText=STORY[currentLevel].lines[LANG][dialogIdx]; }
-        }
-        return;
-    }
+    if(gameState==='title'){ if(e.keyCode===76){ toggleLang(); return; } if(e.keyCode===32||e.keyCode===13){ gameState='playing'; } return; }
     if(gameState==='victory'){
         if(e.keyCode===83){ shareVictory(); return; }
         if(e.keyCode===82){ location.reload(); return; }
@@ -714,7 +699,6 @@ setInterval(function() {
     if(imageCount>0) return;
     if(document.body) document.body.classList.toggle('in-game', gameState==='playing'); // show touch controls only in-game
     if(gameState==='title'){ renderTitleScreen(); return; }
-    if(gameState==='dialog'){ renderFloor(); renderDialog(); return; }
     if(dead){
         floor.fillStyle="black";floor.fillRect(0,0, floor.w,floor.h);
         renderFloor();
@@ -792,10 +776,6 @@ setInterval(function() {
     if(showMap) renderMap();
     if(shaking) floor.restore();
     // ---- level / quest system ----
-    if(!gameWon && currentLevel<MAX_LEVEL-1 && bossDead &&
-       Math.abs(hero.x-stairX)<s*0.95 && Math.abs(hero.y-stairY)<s*0.95){
-        sfx('stairs'); loadLevel(currentLevel+1);
-    }
     if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; gameState='victory'; sfx('levelup'); }
     renderQuest();
     if(hero.health<=0) dead=true;
@@ -1070,21 +1050,6 @@ function renderObjects(){
             floor.drawImage(tile, Math.round(sx-tile.width/2)+1, Math.round(sy-tile.height)+1);
         }
         floor.restore()
-        // stairs portal glow
-        if(typeof WallObject!=='undefined' && m instanceof WallObject && m.tile===1524){
-            var pulse=0.45+0.3*Math.sin(Date.now()/180);
-            floor.save();
-            floor.globalAlpha=pulse;
-            floor.fillStyle="#39ff14";
-            floor.beginPath();
-            floor.arc(sx, sy-70, 30, 0, Math.PI*2);
-            floor.fill();
-            floor.globalAlpha=0.9;
-            floor.strokeStyle="#fff";
-            floor.lineWidth=3;
-            floor.stroke();
-            floor.restore();
-        }
         // health line
         if(m.health && m.origin_health && m != hero){
             floor.save()
@@ -1427,6 +1392,11 @@ function Mob(x,y,name){
                     drops.push(new Ruby(this.x-30,this.y));
                     if(Math.random()<0.5) drops.push(new Whetstone(this.x,this.y+30)); else drops.push(new ShieldOrb(this.x,this.y+30));
                     bossDead=true;
+                    // descend automatically: no stairs to hunt for
+                    if(currentLevel<MAX_LEVEL-1){
+                        questGoal=(LANG==='zh')?'☠ 下一层开启中…':'☠ Descending...';
+                        setTimeout(function(){ if(!dead && gameState==='playing') { sfx('stairs'); loadLevel(currentLevel+1); } }, 3000);
+                    }
                     sfx('bossdie');
                 }
             }

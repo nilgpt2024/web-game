@@ -1399,31 +1399,30 @@ function Mob(x,y,name){
                 kills++;
                 if(!this.isBoss){ hero.health=Math.min(hero.origin_health, hero.health+30); hero.xp+=25; }
                 else{ hero.xp+=100; }
-                while(hero.xp>=hero.xpNext){
-                    hero.xp-=hero.xpNext; hero.heroLevel++; hero.xpNext=Math.round(hero.xpNext*1.5);
-                    hero.origin_health+=200; hero.health=hero.origin_health;
-                    hero.damageMult=(hero.damageMult||1)*1.1;
-                    sfx('levelup');
-                }
+                grantLevelUps();
                 // drop loot: single-roll table, 70% chance of something (varied, tinted)
                 if(!this.isBoss){
                     if(Math.random()<0.5) coins.push(new Coin(this.x,this.y));
                     var r=Math.random();
-                    if(r<0.22) potions.push(new PotionHealth(this.x,this.y));
-                    else if(r<0.28) drops.push(new BigPotion(this.x,this.y));
-                    else if(r<0.34) drops.push(new PowerPotion(this.x,this.y));
-                    else if(r<0.40) drops.push(new HastePotion(this.x,this.y));
-                    else if(r<0.48) drops.push(new Gem(this.x,this.y));
-                    else if(r<0.53) drops.push(new GoldBag(this.x,this.y));
-                    else if(r<0.58) drops.push(new Whetstone(this.x,this.y));
-                    else if(r<0.61) drops.push(new ShieldOrb(this.x,this.y));
-                    else if(r<0.64) drops.push(new Ruby(this.x,this.y));
-                    else if(r<0.67) drops.push(new HealthUp(this.x,this.y));
-                    else if(r<0.70) drops.push(new DamageUp(this.x,this.y));
+                    if(r<0.20) potions.push(new PotionHealth(this.x,this.y));
+                    else if(r<0.26) drops.push(new BigPotion(this.x,this.y));
+                    else if(r<0.31) drops.push(new PowerPotion(this.x,this.y));
+                    else if(r<0.36) drops.push(new HastePotion(this.x,this.y));
+                    else if(r<0.42) drops.push(new Gem(this.x,this.y));
+                    else if(r<0.47) drops.push(new GoldBag(this.x,this.y));
+                    else if(r<0.52) drops.push(new Whetstone(this.x,this.y));
+                    else if(r<0.55) drops.push(new ShieldOrb(this.x,this.y));
+                    else if(r<0.58) drops.push(new Ruby(this.x,this.y));
+                    else if(r<0.61) drops.push(new HealthUp(this.x,this.y));
+                    else if(r<0.64) drops.push(new DamageUp(this.x,this.y));
+                    else if(r<0.68) drops.push(new XpSkull(this.x,this.y));
+                    else if(r<0.72) drops.push(new MagnetRune(this.x,this.y));
+                    else if(r<0.76) drops.push(new FireBomb(this.x,this.y));
                 }else{
                     coins.push(new Coin(this.x,this.y)); coins.push(new Coin(this.x,this.y));
                     for(var bi=0;bi<2;bi++) potions.push(new PotionHealth(this.x,this.y));
                     drops.push(new BigPotion(this.x,this.y));
+                    drops.push(new XpSkull(this.x+40,this.y));
                     drops.push(new GoldBag(this.x+30,this.y));
                     drops.push(new Ruby(this.x-30,this.y));
                     if(Math.random()<0.5) drops.push(new Whetstone(this.x,this.y+30)); else drops.push(new ShieldOrb(this.x,this.y+30));
@@ -1694,6 +1693,14 @@ function castSkill(i){
     }
     return false;
 }
+function grantLevelUps(){
+    while(hero.xp>=hero.xpNext){
+        hero.xp-=hero.xpNext; hero.heroLevel++; hero.xpNext=Math.round(hero.xpNext*1.5);
+        hero.origin_health+=200; hero.health=hero.origin_health;
+        hero.damageMult=(hero.damageMult||1)*1.1;
+        sfx('levelup');
+    }
+}
 function PowerPotion(x,y){
     Shape.call(this, potionSprite, x, y);
     this.used=false; this.tint='#e67e22';
@@ -1703,6 +1710,32 @@ function HastePotion(x,y){
     Shape.call(this, potionSprite, x, y);
     this.used=false; this.tint='#3498db';
     this.use=function(mob){ if(!this.used){ this.used=true; mob.hasteTimer=10; sfx('potion'); } };
+}
+function XpSkull(x,y){
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#1dd1a1';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.xp+=80+Math.floor(Math.random()*71); grantLevelUps(); sfx('levelup'); } };
+}
+function MagnetRune(x,y){
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#f5cd47';
+    this.use=function(mob){
+        if(this.used) return; this.used=true;
+        for(var i=coins.length-1;i>=0;i--){ mob.coins+=coins[i].coins; remove(coins,coins[i]); }
+        sfx('coin');
+    };
+}
+function FireBomb(x,y){
+    Shape.call(this, potionSprite, x, y);
+    this.used=false; this.tint='#ff7f50';
+    this.use=function(mob){
+        if(this.used) return; this.used=true;
+        var s=16;
+        for(var i in monsters){ var m=monsters[i];
+            if(m.isAboveHero() && Math.abs(m.x-mob.x)<s*3.5 && Math.abs(m.y-mob.y)<s*3.5){ m.damage(250); m.slow=2; }
+        }
+        sfx('fire');
+    };
 }
 function Gem(x,y){
     Shape.call(this, coinSprite, x, y);

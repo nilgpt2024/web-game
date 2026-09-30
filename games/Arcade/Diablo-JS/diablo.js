@@ -1894,9 +1894,7 @@ var touchUI = {
     attackBtn: document.getElementById('btn-attack'),
     potionBtn: document.getElementById('btn-potion'),
     mapBtn: document.getElementById('btn-map'),
-    w1: document.getElementById('btn-w1'),
-    w2: document.getElementById('btn-w2'),
-    w3: document.getElementById('btn-w3'),
+    weaponBtn: document.getElementById('btn-weapon'),
     s1: document.getElementById('btn-s1'),
     s2: document.getElementById('btn-s2'),
     s3: document.getElementById('btn-s3'),
@@ -1972,9 +1970,12 @@ var touchUI = {
         initAudio();
         showMap=!showMap;
     });
-    on(touchUI.w1,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); hero.weaponIndex=0; });
-    on(touchUI.w2,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); hero.weaponIndex=1; });
-    on(touchUI.w3,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); hero.weaponIndex=2; });
+    on(touchUI.weaponBtn,'touchstart',function(e){
+        e.preventDefault(); e.stopPropagation(); initAudio();
+        if(restartIfDead()) return;
+        hero.weaponIndex=(hero.weaponIndex+1)%hero.weapons.length;
+        touchUI.weaponBtn.textContent=['🗡️','🪓','🪄'][hero.weaponIndex];
+    });
     on(touchUI.s1,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(0); });
     on(touchUI.s2,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(1); });
     on(touchUI.s3,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(2); });

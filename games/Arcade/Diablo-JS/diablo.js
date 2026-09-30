@@ -180,14 +180,8 @@ var level = {
     }
 };
 
-// ===== Procedural room-and-corridor dungeon generator: 3 levels, every run different =====
-var LEVEL_GEN=[
-    {rooms:[4,5], rmin:5, rmax:8},  // Cellar: few spacious halls
-    {rooms:[6,7], rmin:4, rmax:6},  // Crypt: several chambers, maze-like
-    {rooms:[3,4], rmin:6, rmax:9}   // Demon Lair: big open halls
-];
-
-var MAX_LEVEL=LEVEL_GEN.length;
+// ===== Per-level handcrafted architectures, randomized each run =====
+var MAX_LEVEL=3;
 var currentLevel=0, stairX=-1, stairY=-1, spawnGX=8, spawnGY=10, gameWon=false, questTitle="", questGoal="";
 var gameState="title", kills=0, gameStartTime=0, dialogIdx=0, dialogText="";
 var LANG=(navigator.language||"en").toLowerCase().indexOf("zh")>=0?"zh":"en";
@@ -217,81 +211,67 @@ var LEVEL_NAMES={zh:["地窖","墓穴","恶魔巢穴"],en:["Cellar","Crypt","Dem
 var LEVEL_GOALS={zh:['击败骷髅王，找到楼梯','击败墓穴巫妖，深入腹地','击败恶魔领主，拯救荆棘镇'],en:['Slay the Skeleton King, then find the stairs','Slay the Crypt Lich, then descend deeper','Slay the Demon Lord to save Thornhaven']};
 
 function buildMap(idx){
-    var gen=LEVEL_GEN[idx];
     var W=31,H=21;
     function blank(){var a=[];for(var y=0;y<H;y++){a.push([]);for(var x=0;x<W;x++)a[y].push(0);}return a;}
     level.floor.map=blank(); level.wall.map=blank(); level.object.map=blank();
-    var x,y;
+    var x,y,sgx=15,sgy=10;
     for(y=2;y<H-2;y++) for(x=2;x<W-2;x++) level.floor.map[y][x]=756;
-    // ---- random non-overlapping rooms (1-tile thick wall rings, same tile language as before) ----
-    var rooms=[], tries=0;
-    var want=gen.rooms[0]+Math.floor(Math.random()*(gen.rooms[1]-gen.rooms[0]+1));
-    while(rooms.length<want && tries<250){
-        tries++;
-        var rw=gen.rmin+Math.floor(Math.random()*(gen.rmax-gen.rmin+1));
-        var rh=gen.rmin+Math.floor(Math.random()*(gen.rmax-gen.rmin+1));
-        var rx=3+Math.floor(Math.random()*(W-6-rw));
-        var ry=3+Math.floor(Math.random()*(H-6-rh));
-        var ok=true;
-        for(var ri=0;ri<rooms.length;ri++){ var o=rooms[ri];
-            if(rx<o.x+o.w+1 && rx+rw+1>o.x && ry<o.y+o.h+1 && ry+rh+1>o.y){ ok=false; break; } }
-        if(ok) rooms.push({x:rx,y:ry,w:rw,h:rh});
-    }
-    if(rooms.length===0) rooms.push({x:5,y:5,w:9,h:7});
-    function ring(o){
-        for(x=o.x;x<o.x+o.w;x++){ if(!level.wall.map[o.y][x]) level.wall.map[o.y][x]=372;
-                                   if(!level.wall.map[o.y+o.h-1][x]) level.wall.map[o.y+o.h-1][x]=372; }
-        for(y=o.y;y<o.y+o.h;y++){ if(!level.wall.map[y][o.x]) level.wall.map[y][o.x]=468;
-                                   if(!level.wall.map[y][o.x+o.w-1]) level.wall.map[y][o.x+o.w-1]=468; }
-        level.wall.map[o.y][o.x]=948; level.wall.map[o.y][o.x+o.w-1]=948;
-        level.wall.map[o.y+o.h-1][o.x]=948; level.wall.map[o.y+o.h-1][o.x+o.w-1]=948;
-    }
-    for(var rg=0;rg<rooms.length;rg++) ring(rooms[rg]);
-    // ---- doors: one wide opening per side (long intact wall runs, no rubble look) ----
-    for(var rd=0;rd<rooms.length;rd++){ var o=rooms[rd];
-        for(var sd=0;sd<4;sd++){
-            if(Math.random()<0.25) continue; // some sides stay fully sealed
-            if(sd===0){ var d0=o.x+1+Math.floor(Math.random()*(o.w-3)); level.wall.map[o.y][d0]=0; if(o.w>5) level.wall.map[o.y][d0+1]=0; }
-            else if(sd===1){ var d1=o.x+1+Math.floor(Math.random()*(o.w-3)); level.wall.map[o.y+o.h-1][d1]=0; if(o.w>5) level.wall.map[o.y+o.h-1][d1+1]=0; }
-            else if(sd===2){ var d2=o.y+1+Math.floor(Math.random()*(o.h-3)); level.wall.map[d2][o.x]=0; if(o.h>5) level.wall.map[d2+1][o.x]=0; }
-            else { var d3=o.y+1+Math.floor(Math.random()*(o.h-3)); level.wall.map[d3][o.x+o.w-1]=0; if(o.h>5) level.wall.map[d3+1][o.x+o.w-1]=0; }
-        }
-    }
     function isFloor(yy,xx){ return yy>0 && yy<H-1 && xx>0 && xx<W-1 && level.wall.map[yy][xx]===0 && level.object.map[yy][xx]===0; }
     var dirs=[[0,1],[0,-1],[1,0],[-1,0]];
-    function bfs(sy0,sx0){
-        var dist={}; dist[sy0+','+sx0]=0;
-        var q=[[sy0,sx0]];
-        while(q.length){
-            var c=q.shift(), yy=c[0], xx=c[1], base=dist[yy+','+xx];
-            for(var d=0;d<4;d++){ var ny=yy+dirs[d][0], nx=xx+dirs[d][1];
-                if(isFloor(ny,nx) && dist[ny+','+nx]===undefined){ dist[ny+','+nx]=base+1; q.push([ny,nx]); }
+    function ring(o,hw,vw){ // rectangular wall ring with corner tiles
+        for(x=o.x;x<=o.x+o.w;x++){ if(!level.wall.map[o.y][x]) level.wall.map[o.y][x]=hw; if(!level.wall.map[o.y+o.h][x]) level.wall.map[o.y+o.h][x]=hw; }
+        for(y=o.y;y<=o.y+o.h;y++){ if(!level.wall.map[y][o.x]) level.wall.map[y][o.x]=vw; if(!level.wall.map[y][o.x+o.w]) level.wall.map[y][o.x+o.w]=vw; }
+        level.wall.map[o.y][o.x]=948; level.wall.map[o.y][o.x+o.w]=948;
+        level.wall.map[o.y+o.h][o.x]=948; level.wall.map[o.y+o.h][o.x+o.w]=948;
+    }
+    function door(o,side,at,wide){ // side:0 top,1 bottom,2 left,3 right; at offset from o.x/o.y, 1-based interior
+        if(side===0){ level.wall.map[o.y][o.x+at]=0; if(wide) level.wall.map[o.y][o.x+at+1]=0; }
+        else if(side===1){ level.wall.map[o.y+o.h][o.x+at]=0; if(wide) level.wall.map[o.y+o.h][o.x+at+1]=0; }
+        else if(side===2){ level.wall.map[o.y+at][o.x]=0; if(wide) level.wall.map[o.y+at+1][o.x]=0; }
+        else { level.wall.map[o.y+at][o.x+o.w]=0; if(wide) level.wall.map[o.y+at+1][o.x+o.w]=0; }
+    }
+    if(idx===0){
+        // ---- Cellar: two open warehouse halls + loose shelf walls ----
+        var hallA={x:4,y:4,w:7,h:5}, hallB={x:19,y:11,w:7,h:5};
+        ring(hallA,372,468); ring(hallB,372,468);
+        door(hallA,1,2,true); door(hallA,3,1,true);      // bottom + right openings
+        door(hallB,0,2,true); door(hallB,2,1,true);      // top + left openings
+        spawnGX=hallA.x+3; spawnGY=hallA.y+2; sgx=hallB.x+3; sgy=hallB.y+2;
+        var shelves=5+Math.floor(Math.random()*2);       // loose rack walls, nothing maze-like
+        for(var sh=0; sh<shelves; sh++){
+            var horiz=Math.random()<0.5, len=3+Math.floor(Math.random()*3);
+            var sx=3+Math.floor(Math.random()*(W-6-len)), sy=3+Math.floor(Math.random()*(H-6));
+            var ok=true;
+            for(var k=0;k<len;k++){ var cx=horiz?sx+k:sx, cy=horiz?sy:sy+k;
+                if(!isFloor(cy,cx)) { ok=false; break; }
+                if(Math.abs(cx-spawnGX)+Math.abs(cy-spawnGY)<4 || Math.abs(cx-sgx)+Math.abs(cy-sgy)<4){ ok=false; break; }
             }
+            if(!ok) continue;
+            for(var k2=0;k2<len;k2++){ var cx2=horiz?sx+k2:sx, cy2=horiz?sy:sy+k2; level.wall.map[cy2][cx2]=horiz?372:468; }
         }
-        return dist;
+    } else if(idx===1){
+        // ---- Crypt: symmetric tomb - central crypt mirrored by side chambers ----
+        var cen={x:12,y:6,w:6,h:8};
+        var sL1={x:3,y:5,w:4,h:3}, sL2={x:3,y:13,w:4,h:3};
+        var sR1={x:23,y:5,w:4,h:3}, sR2={x:23,y:13,w:4,h:3};
+        ring(cen,372,468); ring(sL1,372,468); ring(sL2,372,468); ring(sR1,372,468); ring(sR2,372,468);
+        door(cen,2,3,true); door(cen,3,3,true);          // crypt opens both sides
+        door(sL1,3,1,true); door(sR1,2,1,true);          // upper chambers face the aisles
+        door(sL2,3,1,true); door(sR2,2,1,true);          // lower chambers too
+        door(cen,0,2,true); door(cen,1,2,true);          // north/south exits
+        spawnGX=sL2.x+2; spawnGY=sL2.y+1; sgx=cen.x+3; sgy=cen.y+4;
+    } else {
+        // ---- Lair: ring arena around a central boss hall ----
+        var outer={x:4,y:3,w:22,h:14}, inner={x:11,y:7,w:8,h:6};
+        ring(outer,372,468); ring(inner,372,468);
+        door(outer,0,4,true); door(outer,0,16,true);     // two gates per side
+        door(outer,1,4,true); door(outer,1,16,true);
+        door(outer,2,5,true); door(outer,2,9,true);
+        door(outer,3,5,true); door(outer,3,9,true);
+        door(inner,0,3,true); door(inner,1,3,true); door(inner,2,2,true); door(inner,3,2,true);
+        spawnGX=7; spawnGY=15; sgx=inner.x+4; sgy=inner.y+3;
     }
-    // ---- spawn = first room center; stairs = farthest reachable room center ----
-    spawnGX=rooms[0].x+(rooms[0].w>>1); spawnGY=rooms[0].y+(rooms[0].h>>1);
-    var dist=bfs(spawnGY,spawnGX);
-    var best=-1, bi=0;
-    for(var rb=0;rb<rooms.length;rb++){
-        var o=rooms[rb], cy=o.y+(o.h>>1), cx=o.x+(o.w>>1);
-        var dd=dist[cy+','+cx];
-        if(dd===undefined) dd=-1;
-        if(dd>best){ best=dd; bi=rb; }
-    }
-    var st=rooms[bi];
-    var sgy=st.y+(st.h>>1), sgx=st.x+(st.w>>1);
-    // ---- occasional pillar pair inside big rooms only (sparse, no rubble) ----
-    for(var rp=0;rp<rooms.length;rp++){ var o2=rooms[rp];
-        if(o2.w>=7 && o2.h>=6 && Math.random()<0.4){
-            var px=o2.x+2+Math.floor(Math.random()*(o2.w-4)), py=o2.y+2+Math.floor(Math.random()*(o2.h-4));
-            if(Math.abs(px-spawnGX)+Math.abs(py-spawnGY)<3) continue;
-            if(Math.abs(px-sgx)+Math.abs(py-sgy)<3) continue;
-            level.wall.map[py][px]=468;
-        }
-    }
-    // ---- BFS connectivity repair (seeded from spawn) ----
+    // ---- common: BFS connectivity repair (never traps the player) ----
     function reachable(){
         var seen={}, q=[[spawnGY,spawnGX]];
         seen[spawnGY+','+spawnGX]=1;
@@ -304,8 +284,7 @@ function buildMap(idx){
         return seen;
     }
     for(var guard=0; guard<200; guard++){
-        var seen=reachable();
-        var un=null;
+        var seen=reachable(), un=null;
         outer1: for(var fy=1; fy<H-1; fy++) for(var fx=1; fx<W-1; fx++)
             if(isFloor(fy,fx) && !seen[fy+','+fx]){ un=[fy,fx]; break outer1; }
         if(!un) break;
@@ -321,20 +300,21 @@ function buildMap(idx){
         }
         if(!opened){ level.wall.map[un[0]][un[1]]=0; }
     }
-    // ---- stairs (rendered as a statue + portal glow), guarded by the BOSS ----
+    // ---- stairs guarded by the BOSS ----
     stairX=sgx*s+s/2; stairY=sgy*s+s/2;
     level.object.map[sgy][sgx]=1524;
-    // ---- sparse wall-adjacent decor, real prop tiles only (connectivity-safe) ----
+    // ---- sparse decor around walls (per level density) ----
     var decoTiles=[564,660,4116,4212,5748,5844,5652,3828];
-    var placed=0, maxDec=18, tries2=0;
+    var maxDec=[18,24,12][idx]||18;
+    var placed=0, tries2=0;
     while(placed<maxDec && tries2<600){
         tries2++;
         var ry2=2+Math.floor(Math.random()*17), rx2=2+Math.floor(Math.random()*27);
         if(level.wall.map[ry2][rx2]>0 || level.object.map[ry2][rx2]>0) continue;
-        if(Math.abs(rx2-spawnGX)<=1 && Math.abs(ry2-spawnGY)<=1) continue; // keep spawn clear
-        var adj = (level.wall.map[ry2-1]&&level.wall.map[ry2-1][rx2]>0)||(level.wall.map[ry2+1]&&level.wall.map[ry2+1][rx2]>0)||level.wall.map[ry2][rx2-1]>0||level.wall.map[ry2][rx2+1]>0;
+        if(Math.abs(rx2-spawnGX)<=1 && Math.abs(ry2-spawnGY)<=1) continue;
+        var adj=(level.wall.map[ry2-1]&&level.wall.map[ry2-1][rx2]>0)||(level.wall.map[ry2+1]&&level.wall.map[ry2+1][rx2]>0)||level.wall.map[ry2][rx2-1]>0||level.wall.map[ry2][rx2+1]>0;
         if(!adj) continue;
-        level.wall.map[ry2][rx2]=999; // tentatively block
+        level.wall.map[ry2][rx2]=999;
         var s2=reachable(), ok2=true;
         for(var fy2=1; fy2<H-1 && ok2; fy2++) for(var fx2=1; fx2<W-1; fx2++)
             if(isFloor(fy2,fx2) && !s2[fy2+','+fx2]){ ok2=false; }

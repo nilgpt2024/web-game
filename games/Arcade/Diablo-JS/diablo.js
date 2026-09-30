@@ -587,6 +587,7 @@ function loadLevel(idx){
     hero.health=hero.origin_health;
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
     dead=false; gameWon=false; bossDead=false; hero.powerTimer=0; hero.hasteTimer=0; hero.whetTimer=0; hero.shieldTimer=0;
+    hero.attackSpeedTimer=0; hero.giantTimer=0; hero.lifestealTimer=0; hero.scale=1;
     if(idx===0){ kills=0; gameStartTime=performance.now()/1000; }
     gameState='playing';
     questTitle=T('level')+' '+(idx+1)+'/'+MAX_LEVEL+' · '+LEVEL_NAMES[LANG][idx];
@@ -690,6 +691,7 @@ window.onkeydown=function(e){
 }
 
 var clickInd={mode:null,x:0,y:0,life:0}; // click feedback: 'move' green ring / 'attack' red crosshair
+var screenFlash=0, lightBolts=[];
 var showMap=false;
 var dead=false;
 function drawDeathScreen(){
@@ -738,6 +740,16 @@ setInterval(function() {
     if(comboTimer>0){ comboTimer-=0.066; comboPop=Math.max(0,comboPop-0.066*6); if(comboTimer<=0){ combo=0; } }
     if(hero.hasteTimer>0) hero.hasteTimer-=0.066;
     hero.st = hero.hasteTimer>0 ? 26 : 16;
+    if(hero.attackSpeedTimer>0) hero.attackSpeedTimer-=0.066;
+    if(hero.giantTimer>0) hero.giantTimer-=0.066;
+    if(hero.lifestealTimer>0) hero.lifestealTimer-=0.066;
+    hero.scale = hero.giantTimer>0 ? 1.9 : 1; // giant potion
+    // buff aura particles
+    if(!dead && Fx.parts.length<80){
+        if(hero.attackSpeedTimer>0 && Math.random()<0.3) Fx.parts.push({x:hero.x+(Math.random()-0.5)*34,y:hero.y+(Math.random()-0.5)*34,dx:0,dy:-55,life:0.4,color:'#ff9f43'});
+        if(hero.giantTimer>0 && Math.random()<0.3) Fx.parts.push({x:hero.x+(Math.random()-0.5)*50,y:hero.y+(Math.random()-0.5)*50,dx:0,dy:-45,life:0.45,color:'#a55eea'});
+        if(hero.lifestealTimer>0 && Math.random()<0.3) Fx.parts.push({x:hero.x+(Math.random()-0.5)*34,y:hero.y+(Math.random()-0.5)*34,dx:0,dy:-55,life:0.4,color:'#2ed573'});
+    }
     // rage decays out of combat
     if(hero.rage>0 && performance.now()-hero.lastCombatAt>RAGE.decayDelay){
         hero.rage=Math.max(0, hero.rage-RAGE.decayRate*0.066);
@@ -1145,6 +1157,30 @@ function renderFloor() {
     floor.restore();
 }
 
+function renderBuffs(){
+    var list=[];
+    if(hero.powerTimer>0) list.push({t:hero.powerTimer,c:'#e67e22',n:'POW'});
+    if(hero.hasteTimer>0) list.push({t:hero.hasteTimer,c:'#3498db',n:'SPD'});
+    if(hero.whetTimer>0) list.push({t:hero.whetTimer,c:'#bdc3c7',n:'DMG'});
+    if(hero.shieldTimer>0) list.push({t:hero.shieldTimer,c:'#00d2d3',n:'SHD'});
+    if(hero.attackSpeedTimer>0) list.push({t:hero.attackSpeedTimer,c:'#ff9f43',n:'ASP'});
+    if(hero.giantTimer>0) list.push({t:hero.giantTimer,c:'#a55eea',n:'BIG'});
+    if(hero.lifestealTimer>0) list.push({t:hero.lifestealTimer,c:'#2ed573',n:'VAM'});
+    if(!list.length) return;
+    var bx=70, by=40;
+    floor.save();
+    floor.font="bold 12px Arial"; floor.textAlign="center";
+    for(var i=0;i<list.length;i++){
+        var px=bx+i*58;
+        floor.fillStyle="rgba(0,0,0,0.55)";
+        floor.fillRect(px-26,by-14,52,21);
+        floor.fillStyle=list[i].c;
+        floor.fillRect(px-26,by+4,52*Math.min(1,list[i].t/10),3);
+        floor.fillStyle="#fff";
+        floor.fillText(list[i].n+' '+Math.ceil(list[i].t), px, by);
+    }
+    floor.restore();
+}
 function renderMap() {
     floor.save();
     floor.translate(floor.w/2, floor.h/2);
@@ -1406,6 +1442,10 @@ function Mob(x,y,name){
                     else if(r<0.68) drops.push(new XpSkull(this.x,this.y));
                     else if(r<0.72) drops.push(new MagnetRune(this.x,this.y));
                     else if(r<0.76) drops.push(new FireBomb(this.x,this.y));
+                    else if(r<0.79) drops.push(new HasteGloves(this.x,this.y));
+                    else if(r<0.82) drops.push(new GiantPotion(this.x,this.y));
+                    else if(r<0.85) drops.push(new VampireFang(this.x,this.y));
+                    else if(r<0.88) drops.push(new StormOrb(this.x,this.y));
                 }else{
                     coins.push(new Coin(this.x,this.y)); coins.push(new Coin(this.x,this.y));
                     for(var bi=0;bi<2;bi++) potions.push(new PotionHealth(this.x,this.y));
@@ -1539,6 +1579,25 @@ function updateFx(dt){
     for(var j=Fx.texts.length-1;j>=0;j--){ var t=Fx.texts[j]; t.life-=dt; t.y-=40*dt; if(t.life<=0) Fx.texts.splice(j,1); }
 }
 function renderFx(){
+    // chain lightning bolts
+    for(var lb=lightBolts.length-1;lb>=0;lb--){ var bo=lightBolts[lb]; bo.life-=0.066;
+        if(bo.life<=0){ lightBolts.splice(lb,1); continue; }
+        var bx1=(bo.x1-bo.y1)*acos, by1=(bo.x1+bo.y1)/2*asin-40;
+        var bx2=(bo.x2-bo.y2)*acos, by2=(bo.x2+bo.y2)/2*asin-40;
+        floor.save(); floor.globalAlpha=Math.min(1,bo.life*6);
+        floor.strokeStyle="#f9ca24"; floor.lineWidth=3;
+        floor.beginPath(); floor.moveTo(bx1,by1);
+        floor.lineTo((bx1+bx2)/2+(Math.random()-0.5)*30, (by1+by2)/2+(Math.random()-0.5)*30);
+        floor.lineTo(bx2,by2); floor.stroke();
+        floor.strokeStyle="#fff"; floor.lineWidth=1; floor.stroke();
+        floor.restore();
+    }
+    // screen flash
+    if(screenFlash>0){
+        floor.fillStyle="rgba(255,255,255,"+Math.min(1,screenFlash).toFixed(3)+")";
+        floor.fillRect(0,0,floor.w,floor.h);
+        screenFlash-=0.07;
+    }
     var i, m;
     // click feedback marker: green ring = move there, red crosshair = attack
     if(clickInd.life>0){
@@ -1742,6 +1801,44 @@ function FireBomb(x,y){
         sfx('fire');
     };
 }
+function HasteGloves(x,y){ // attack speed buff
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#ff9f43';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.attackSpeedTimer=10; sfx('levelup'); } };
+}
+function GiantPotion(x,y){ // hero grows huge
+    Shape.call(this, potionSprite, x, y);
+    this.used=false; this.tint='#a55eea';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.giantTimer=10; sfx('levelup'); } };
+}
+function VampireFang(x,y){ // life steal on melee hits
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#2ed573';
+    this.use=function(mob){ if(!this.used){ this.used=true; mob.lifestealTimer=10; sfx('levelup'); } };
+}
+function StormOrb(x,y){ // chain lightning burst on pickup
+    Shape.call(this, coinSprite, x, y);
+    this.used=false; this.tint='#f9ca24';
+    this.use=function(mob){
+        if(this.used) return; this.used=true;
+        screenFlash=0.85; sfx('levelup');
+        var hit=0;
+        for(var i in monsters){ var m=monsters[i];
+            if(hit>=6) break;
+            if(m.isAboveHero()){
+                lightBolts.push({x1:mob.x,y1:mob.y,x2:m.x,y2:m.y,life:0.2});
+                spawnBurst(m.x,m.y,'#f9ca24');
+                m.damage(300);
+                hit++;
+            }
+        }
+    };
+}
+function spawnBurst(x,y,color){
+    for(var i=0;i<12;i++){ var a=Math.random()*Math.PI*2;
+        Fx.parts.push({x:x,y:y,dx:Math.cos(a)*90,dy:Math.sin(a)*90,life:0.45,color:color});
+    }
+}
 function Gem(x,y){
     Shape.call(this, coinSprite, x, y);
     this.used=false; this.tint='#9b59b6';
@@ -1885,6 +1982,7 @@ function HeroBarbarian(x,y){
     ];
     // ---- temporary buffs ----
     this.powerTimer=0; this.hasteTimer=0; this.whetTimer=0; this.shieldTimer=0;
+    this.attackSpeedTimer=0; this.giantTimer=0; this.lifestealTimer=0; this.scale=1;
     // ---- rage resource ----
     this.rage=0; this.lastCombatAt=0;
     this.gainRage=function(n){ this.rage=Math.min(RAGE.max, this.rage+n); this.lastCombatAt=performance.now(); };
@@ -1893,6 +1991,7 @@ function HeroBarbarian(x,y){
         var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
         if(this.powerTimer>0) d*=1.5;
         if(this.whetTimer>0) d*=1.4; // whetstone drop: temp attack up
+        if(this.giantTimer>0) d*=1.3; // giant potion: heavy hitter
         if(this.damageMult) d*=this.damageMult;
         return Math.round(d);
     };
@@ -1901,12 +2000,14 @@ function HeroBarbarian(x,y){
         this.setState(this.attack);
         var w=this.getWeapon();
         var now=performance.now()/1000;
-        if(now-this.lastAttackAt < (w.cd||0)) return; // weapon cooldown
+        if(now-this.lastAttackAt < (w.cd||0)/(this.attackSpeedTimer>0?1.6:1)) return; // haste gloves: 1.6x attack speed
         this.lastAttackAt=now;
         if(w.type==='ranged'){
             fireProjectile(this, mob, this.getDamage());
         }else{
-            mob.damage(this.getDamage()); sfx('hit');
+            var dealt=this.getDamage();
+            if(this.lifestealTimer>0){ var ls=Math.round(dealt*0.25); this.health=Math.min(this.origin_health, this.health+ls); spawnDamageText(this.x,this.y-60,'+'+ls,'#2ed573'); }
+            mob.damage(dealt); sfx('hit');
             this.gainRage(RAGE.hitGain*(w.rageMul||1));
             if(w.sweep){ // axe cone: forward radius, wide arc
                 var adx=mob.x-this.x, ady=mob.y-this.y, alen=Math.sqrt(adx*adx+ady*ady)||1;
@@ -1927,11 +2028,13 @@ function HeroBarbarian(x,y){
 function heroCombatInit(h){
     h.criticalDamage=0.4;
     h.powerTimer=0; h.hasteTimer=0; h.whetTimer=0; h.shieldTimer=0;
+    h.attackSpeedTimer=0; h.giantTimer=0; h.lifestealTimer=0; h.scale=1;
     h.getDamage=function(){
         var w=this.getWeapon();
         var d=w.dmg * ( Math.random() <= this.criticalDamage ? 2 : 1 );
         if(this.powerTimer>0) d*=1.5;
         if(this.whetTimer>0) d*=1.4; // whetstone drop: temp attack up
+        if(this.giantTimer>0) d*=1.3; // giant potion: heavy hitter
         if(this.damageMult) d*=this.damageMult;
         return Math.round(d);
     };

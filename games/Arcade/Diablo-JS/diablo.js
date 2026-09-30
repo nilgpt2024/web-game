@@ -1116,18 +1116,6 @@ function renderObjects(){
             floor.stroke();
             floor.restore();
         }
-        // class weapon overlay
-        if(m===hero && hero.name==='Barbarian'){ drawHeroWeapon(floor, hero, sx, sy-th/2); }
-        // hero class name tag
-        if(m===hero && hero.name){
-            floor.save();
-            floor.font="bold 13px 'Poppins',sans-serif";
-            floor.textAlign="center";
-            floor.fillStyle="#111"; floor.fillRect(sx-46, sy-120, 92, 16);
-            floor.fillStyle=hero.tint; floor.fillText(hero.name, sx, sy-107);
-            floor.textAlign="left";
-            floor.restore();
-        }
         // health line
         if(m.health && m.origin_health && m != hero){
             floor.save()
@@ -1873,7 +1861,6 @@ function HeroBarbarian(x,y){
     AgressiveMob.call(this,x,y,"BA");
     this.isHero=true;
     this.name='Barbarian';
-    this.tint='#dc4632';
     this.attackOffset=40;
     this.normalOffset=10;
     this.health=this.origin_health=2000;

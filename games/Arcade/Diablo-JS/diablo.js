@@ -203,6 +203,7 @@ var I18N={
   skillFireball:{zh:"火球术",en:"Fireball"},skillDash:{zh:"冲锋",en:"Dash"},skillWarCry:{zh:"战吼",en:"WarCry"}
 };
 function T(k){var v=I18N[k];return v?(v[LANG]||v.en):k;}
+function L(v){return (v&&v.zh)?(v[LANG]||v.en):(v||'');} // bilingual string helper
 function toggleLang(){LANG=LANG==="zh"?"en":"zh";}
 var STORY=[
   {title:{zh:"黑暗地窖",en:"The Dark Cellar"}, lines:{zh:["荆棘镇陷入了死寂。","牲畜失踪，孩童在夜里尖叫。","你走下古老的地窖，寻找邪恶的源头。","骷髅在走廊中游荡，骷髅王指挥着它们。","杀死他，通往墓穴的道路就会开启。"],en:["The village of Thornhaven has fallen silent.","Cattle vanish, children scream at night.","You descend into the old cellar to find the source.","Skeletons walk these halls. The Skeleton King commands them.","Slay him, and the path to the Crypt shall open."]}},
@@ -552,14 +553,14 @@ var LEVELS=[
 ];
 var BOSS_WAVES=[
     // L1: one giant skeleton
-    [{name:'Bone Colossus', sprite:'SK', hp:3500, dmg:30, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.6}],
+    [{name:'Bone Colossus', zh:'白骨巨人', sprite:'SK', hp:3500, dmg:30, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.6}],
     // L2: giant skeleton + fire fiend
-    [{name:'Bone Colossus', sprite:'SK', hp:1500, dmg:24, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.4},
-     {name:'Pyro Fiend',    sprite:'FS', hp:1500, dmg:26, spd:7, skill:'firerain',  color:'#9b59b6', scale:2.4}],
+    [{name:'Bone Colossus', zh:'白骨巨人', sprite:'SK', hp:1500, dmg:24, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.4},
+     {name:'Pyro Fiend',    zh:'炎魔',     sprite:'FS', hp:1500, dmg:26, spd:7, skill:'firerain',  color:'#9b59b6', scale:2.4}],
     // L3: skeleton + fire fiend + demon lord
-    [{name:'Bone Colossus', sprite:'SK', hp:1700, dmg:30, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.2},
-     {name:'Pyro Fiend',    sprite:'FS', hp:1700, dmg:34, spd:7, skill:'firerain',  color:'#9b59b6', scale:2.2},
-     {name:'Demon Lord',    sprite:'SI', hp:1600, dmg:40, spd:8, skill:'summon',    color:'#e67e22', scale:2.2}]
+    [{name:'Bone Colossus', zh:'白骨巨人', sprite:'SK', hp:1700, dmg:30, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.2},
+     {name:'Pyro Fiend',    zh:'炎魔',     sprite:'FS', hp:1700, dmg:34, spd:7, skill:'firerain',  color:'#9b59b6', scale:2.2},
+     {name:'Demon Lord',    zh:'魔王',     sprite:'SI', hp:1600, dmg:40, spd:8, skill:'summon',    color:'#e67e22', scale:2.2}]
 ];
 
 function loadLevel(idx){
@@ -902,7 +903,7 @@ function renderQuest(){
     floor.fillStyle="#fff";
     floor.font="13px 'Poppins',sans-serif";
     floor.textAlign="center";
-    floor.fillText(T('wpn')+w.name+"   ·   Q "+skLabel(hero.skills[0])+"   ·   W "+skLabel(hero.skills[1])+"   ·   E "+skLabel(hero.skills[2]), floor.w/2, 84);
+    floor.fillText(T('wpn')+L(w.name)+"   ·   Q "+skLabel(hero.skills[0])+"   ·   W "+skLabel(hero.skills[1])+"   ·   E "+skLabel(hero.skills[2]), floor.w/2, 84);
     floor.textAlign="left";
     floor.restore();
     if(currentLevel<MAX_LEVEL-1 && !bossDead){
@@ -944,7 +945,7 @@ function renderCoins(){
     floor.fillRect(18, floor.h-64, 170, 44);
     floor.fillStyle="#ffd700";
     floor.font="bold 20px 'Poppins',sans-serif";
-    floor.fillText("Gold: "+hero.coins, 34, floor.h-34);
+    floor.fillText(T('gold')+": "+hero.coins, 34, floor.h-34);
     floor.restore();
 }
 
@@ -1901,11 +1902,11 @@ function ShieldOrb(x,y){
     this.use=function(mob){ if(!this.used){ this.used=true; mob.shieldTimer=8; sfx('potion'); } };
 }
 var SHOP_ITEMS=[
-    {id:'heal',name:'Full Heal',desc:'Restore all HP instantly',price:80,icon:'\u2764\uFE0F'},
-    {id:'power', name:'Power Elixir', desc:'1.5x damage for 20s',price:80,icon:'\u26A1'},
-    {id:'haste', name:'Haste Elixir', desc:'+movement speed 10s',price:80,icon:'\uD83D\uDCA8'},
-    {id:'dmg',   name:'Damage Upgrade',desc:'+15% permanent damage (price rises)',price:100,icon:'\uD83D\uDDE1\uFE0F'},
-    {id:'hp',    name:'Vitality',     desc:'+200 max HP permanent (price rises)',price:150,icon:'\u2764\uFE0F'}
+    {id:'heal',name:{zh:'立即治疗',en:'Full Heal'},desc:{zh:'瞬间回满生命',en:'Restore all HP instantly'},price:80,icon:'\u2764\uFE0F'},
+    {id:'power', name:{zh:'力量药剂',en:'Power Elixir'}, desc:{zh:'20 秒内伤害 ×1.5',en:'1.5x damage for 20s'},price:80,icon:'\u26A1'},
+    {id:'haste', name:{zh:'疾风药剂',en:'Haste Elixir'}, desc:{zh:'10 秒移动加速',en:'+movement speed 10s'},price:80,icon:'\uD83D\uDCA8'},
+    {id:'dmg',   name:{zh:'伤害强化',en:'Damage Upgrade'},desc:{zh:'永久 +15% 伤害（价格递增）',en:'+15% permanent damage (price rises)'},price:100,icon:'\uD83D\uDDE1\uFE0F'},
+    {id:'hp',    name:{zh:'生命精魄',en:'Vitality'},     desc:{zh:'永久 +200 上限生命（价格递增）',en:'+200 max HP permanent (price rises)'},price:150,icon:'\u2764\uFE0F'}
 ];
 function buyShop(id){
     var it=null; for(var i=0;i<SHOP_ITEMS.length;i++) if(SHOP_ITEMS[i].id===id) it=SHOP_ITEMS[i];
@@ -1933,7 +1934,7 @@ function BossMob(x,y,bt){
     this.skillAt=performance.now()/1000+3;
     this.slamAt=performance.now()/1000;
     this.enraged=false;
-    this.name=bt.name;
+    this.name=L(bt.name);
     this.tint=bt.color;
     this._bossNextStep=this.nextStep;
     this.nextStep=function(){
@@ -1973,7 +1974,7 @@ function BossMob(x,y,bt){
 function HeroBarbarian(x,y){
     AgressiveMob.call(this,x,y,"BA");
     this.isHero=true;
-    this.name='Barbarian';
+    this.name=(LANG==='zh')?'野蛮人':'Barbarian';
     this.attackOffset=40;
     this.normalOffset=10;
     this.health=this.origin_health=2000;
@@ -1985,9 +1986,9 @@ function HeroBarbarian(x,y){
     // ---- weapon system (switch: Z/X/C on desktop, buttons on mobile) ----
     this.weaponIndex=0;
     this.weapons=[
-        {name:'Blade',       dmg:180, cd:0.35, type:'melee',  aoe:0, rageMul:1.5},
-        {name:'War Axe',     dmg:340, cd:0.70, type:'melee',  aoe:0, sweep:true},
-        {name:'Fire Staff',  dmg:140, cd:0.50, type:'ranged', aoe:0, fireballMul:2.2}
+        {name:{zh:'长剑',en:'Blade'},       dmg:180, cd:0.35, type:'melee',  aoe:0, rageMul:1.5},
+        {name:{zh:'战斧',en:'War Axe'},     dmg:340, cd:0.70, type:'melee',  aoe:0, sweep:true},
+        {name:{zh:'火法杖',en:'Fire Staff'},  dmg:140, cd:0.50, type:'ranged', aoe:0, fireballMul:2.2}
     ];
     this.lastAttackAt=0;
     this.getWeapon=function(){ return this.weapons[this.weaponIndex]; };

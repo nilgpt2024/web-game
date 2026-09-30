@@ -132,7 +132,36 @@
   </div>
 </div>
 
-<script src="diablo.js?v=20260930v"></script>
+<script src="diablo.js?v=20260930w"></script>
+<script>
+/* Chinese UI localization: swaps player-visible HTML text on zh browsers (SEO meta stays English) */
+(function(){
+  if((navigator.language||'').toLowerCase().indexOf('zh')<0) return;
+  var SUB={'Back to Hub':'返回大厅','How to Play':'玩法说明',"Trader's Shop":'商人商店','Buy with gold — upgrades get pricier each time':'用金币购买 — 强化类商品每次购买都会涨价'};
+  document.querySelectorAll('nav span,nav button,h1,h2,h3,.shop-hint').forEach(function(el){
+    var t=(el.childNodes[0]&&el.childNodes[0].nodeValue||'').trim(), r=SUB[t];
+    if(r) el.childNodes[0].nodeValue=r;
+  });
+  var info=document.querySelector('.game-info > p');
+  if(info) info.innerHTML='暗黑JS 是一款经典<strong>等距视角砍杀动作 RPG</strong>，完全在浏览器中运行——无需下载安装。带领你的野蛮人英雄深入黑暗地牢，斩杀主动攻击的怪物，拾取血瓶与金币，击败三层地牢的 BOSS。';
+  var feats=['触屏优化：虚拟摇杆 + 屏幕按钮，手机畅玩','桌面适配：点击移动 + 快捷键操作','生存玩法：管理血量、喝药回血、击杀怪物捡装备','即点即玩：现代浏览器直接运行','深度战斗：长剑/战斧/火法杖三武器，火球/冲锋/战吼三技能','三层地牢：地窖 → 墓穴 → 恶魔巢穴，击杀每层 BOSS 取胜'];
+  var fl=document.querySelectorAll('.feature-list li');
+  fl.forEach(function(li,i){ if(!feats[i]) return; var ic=li.querySelector('i'), b=li.querySelector('strong'); li.textContent=''; if(ic) li.appendChild(ic); li.appendChild(document.createTextNode(' '+(b?'':'')+feats[i])); });
+  var rh=document.querySelector('.rules-content h2');
+  if(rh&&rh.childNodes[0]) rh.childNodes[0].nodeValue='📜 暗黑JS 玩法说明';
+  var RULES=[
+    ['目标','活下去！击杀怪物赚取金币与药水，保持血量并探索地牢。'],
+    ['桌面操作','点击任意处移动。靠近英雄点击则攻击或拾取。药水缺血时捡到即喝。按 Tab 开关小地图。'],
+    ['手机操作','左侧虚拟摇杆移动。⚔️ 攻击/交互，🧪 走向药水自动喝下，🗺️ 开地图，🛒 商店。也可直接点地图移动。'],
+    ['生命','生命会缓慢回复。缺血时走过红药水即可回血。怪物会追击你——保持距离或奋起反击。'],
+    ['武器与技能','按 Z/X/C（手机点切换键）在长剑/战斧/火法杖间切换。Q 火球术、W 冲锋、E 战吼。技能冷却显示在 HUD。'],
+    ['关卡与BOSS','地牢共 3 层：地窖 → 墓穴 → 恶魔巢穴。每层由 BOSS 波次镇守——全灭即可自动进入下一层，击杀魔王即通关。'],
+    ['你的英雄','你扮演野蛮人——2000 血重型近战，三武器（长剑/战斧/火法杖）三技能（火球/冲锋/战吼）。HUD 显示血量、武器与冷却。']
+  ];
+  var items=document.querySelectorAll('.rule-item');
+  items.forEach(function(it,i){ if(!RULES[i]) return; var h=it.querySelector('h3'), p=it.querySelector('p'); if(h) h.textContent=RULES[i][0]; if(p) p.textContent=RULES[i][1]; });
+})();
+</script>
 <script>
 (function(){
   var rules=document.getElementById('rules');
@@ -151,7 +180,7 @@
         var d=document.createElement('button');
         d.className='shop-item';
         var afford=(typeof hero!=='undefined'&&hero && hero.coins>=it.price);
-        d.innerHTML='<span class="si-icon">'+it.icon+'</span><span class="si-txt"><b>'+it.name+'</b><small>'+it.desc+'</small></span><span class="si-price'+(afford?'':' si-off')+'">'+it.price+' 💰</span>';
+        d.innerHTML='<span class="si-icon">'+it.icon+'</span><span class="si-txt"><b>'+(window.L?window.L(it.name):it.name)+'</b><small>'+(window.L?window.L(it.desc):it.desc)+'</small></span><span class="si-price'+(afford?'':' si-off')+'">'+it.price+' 💰</span>';
         d.onclick=function(){ if(window.buyShop) window.buyShop(it.id); renderShop(); };
         box.appendChild(d);
       })(items[i]);

@@ -548,10 +548,16 @@ var LEVELS=[
     {sk:5,fs:3,si:3,pots:6,dmg:24},
     {sk:6,fs:4,si:4,pots:7,dmg:32}
 ];
-var BOSS_TYPES=[
-    {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c', scale:1.3},
-    {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6', scale:1.3},
-    {name:'Demon Lord',    sprite:'FS', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22', scale:2.2}
+var BOSS_WAVES=[
+    // L1: one giant skeleton
+    [{name:'Bone Colossus', sprite:'SK', hp:3500, dmg:30, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.6}],
+    // L2: giant skeleton + fire fiend
+    [{name:'Bone Colossus', sprite:'SK', hp:1500, dmg:24, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.4},
+     {name:'Pyro Fiend',    sprite:'FS', hp:1500, dmg:26, spd:7, skill:'firerain',  color:'#9b59b6', scale:2.4}],
+    // L3: skeleton + fire fiend + demon lord
+    [{name:'Bone Colossus', sprite:'SK', hp:1700, dmg:30, spd:6, skill:'whirlwind', color:'#e74c3c', scale:2.2},
+     {name:'Pyro Fiend',    sprite:'FS', hp:1700, dmg:34, spd:7, skill:'firerain',  color:'#9b59b6', scale:2.2},
+     {name:'Demon Lord',    sprite:'SI', hp:1600, dmg:40, spd:8, skill:'summon',    color:'#e67e22', scale:2.2}]
 ];
 
 function loadLevel(idx){
@@ -568,8 +574,15 @@ function loadLevel(idx){
     for(var i=0;i<L.fs;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'FS'));}
     for(var i=0;i<L.si;i++){var p=safePos();monsters.push(new AgressiveMob(p[0],p[1],'SI'));}
     for(var i=0;i<L.pots;i++) potions.push(new PotionHealth(randomx(),randomy()));
-    // boss guards the stairs
-    if(idx<MAX_LEVEL) monsters.push(new BossMob(stairX+s*0.5, stairY-s*0.2));
+    // boss wave: scaled-up elites, more types on deeper levels
+    if(idx<MAX_LEVEL){
+        var wave=BOSS_WAVES[idx]||BOSS_WAVES[0];
+        for(var bw=0;bw<wave.length;bw++){
+            var wang=-Math.PI/2+bw/wave.length*Math.PI*2;
+            var wrad=wave.length>1?s*1.3:0;
+            monsters.push(new BossMob(stairX+Math.cos(wang)*wrad, stairY+Math.sin(wang)*wrad*0.6, wave[bw]));
+        }
+    }
     hero.x=spawnPX; hero.y=spawnPY; hero.to_x=hero.x; hero.to_y=hero.y;
     hero.health=hero.origin_health;
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
@@ -945,21 +958,25 @@ function renderHeroRage(){
 }
 
 function renderBossHealth(){
-    var b=null;
-    for(var i in monsters){ if(monsters[i].isBoss){ b=monsters[i]; break; } }
-    if(!b || !b.isAboveHero()) return;
-    var w=Math.min(420, floor.w*0.5), x=(floor.w-w)/2, y=14;
+    var bars=[];
+    for(var i in monsters){ if(monsters[i].isBoss) bars.push(monsters[i]); }
+    if(!bars.length) return;
+    var w=Math.min(420, floor.w*0.5), x=(floor.w-w)/2;
     floor.save();
-    floor.globalAlpha=0.75;
-    floor.fillStyle="black";
-    floor.fillRect(x-2,y-2,w+4,18);
-    floor.fillStyle="#8e2b2b";
-    floor.fillRect(x,y,w*b.health/b.origin_health,14);
-    floor.globalAlpha=0.9;
-    floor.fillStyle="#fff";
-    floor.font="bold 11px Arial";
-    floor.textAlign="center";
-    floor.fillText(b.name||'BOSS', floor.w/2, y+11);
+    for(var bi2=0;bi2<bars.length;bi2++){
+        var b=bars[bi2];
+        var y=14+bi2*20;
+        floor.globalAlpha=0.75;
+        floor.fillStyle="black";
+        floor.fillRect(x-2,y-2,w+4,18);
+        floor.fillStyle="#8e2b2b";
+        floor.fillRect(x,y,w*Math.max(0,b.health/b.origin_health),14);
+        floor.globalAlpha=0.9;
+        floor.fillStyle="#fff";
+        floor.font="bold 11px Arial";
+        floor.textAlign="center";
+        floor.fillText(b.name||'BOSS', floor.w/2, y+11);
+    }
     floor.restore();
 }
 
@@ -1397,11 +1414,15 @@ function Mob(x,y,name){
                     drops.push(new GoldBag(this.x+30,this.y));
                     drops.push(new Ruby(this.x-30,this.y));
                     if(Math.random()<0.5) drops.push(new Whetstone(this.x,this.y+30)); else drops.push(new ShieldOrb(this.x,this.y+30));
-                    bossDead=true;
-                    // descend automatically: no stairs to hunt for
-                    if(currentLevel<MAX_LEVEL-1){
-                        questGoal=(LANG==='zh')?'☠ 下一层开启中…':'☠ Descending...';
-                        setTimeout(function(){ if(!dead && gameState==='playing') { sfx('stairs'); loadLevel(currentLevel+1); } }, 3000);
+                    var anyBossLeft=false;
+                    for(var bk in monsters){ if(monsters[bk].isBoss && monsters[bk]!==this){ anyBossLeft=true; break; } }
+                    if(!anyBossLeft){
+                        bossDead=true;
+                        // descend automatically: no stairs to hunt for
+                        if(currentLevel<MAX_LEVEL-1){
+                            questGoal=(LANG==='zh')?'☠ 下一层开启中…':'☠ Descending...';
+                            setTimeout(function(){ if(!dead && gameState==='playing') { sfx('stairs'); loadLevel(currentLevel+1); } }, 3000);
+                        }
                     }
                     sfx('bossdie');
                 }
@@ -1786,8 +1807,8 @@ function buyShop(id){
     if(window.renderShop) window.renderShop();
 }
 window.SHOP_ITEMS=SHOP_ITEMS; window.buyShop=buyShop;
-function BossMob(x,y){
-    var bt=BOSS_TYPES[currentLevel]||BOSS_TYPES[0];
+function BossMob(x,y,bt){
+    bt=bt||BOSS_WAVES[currentLevel][0]||BOSS_WAVES[0][0];
     AgressiveMob.call(this,x,y,bt.sprite);
     this.isBoss=true;
     this.bossType=bt;

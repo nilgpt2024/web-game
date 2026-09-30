@@ -1063,21 +1063,6 @@ function renderObjects(){
             floor.fillRect(sx-lm/2, sy+1, lr, 4);
             floor.restore()
         }
-        // boss indicator
-        if(m.isBoss){
-            floor.save();
-            floor.globalAlpha=0.75;
-            floor.strokeStyle="#ff3b30"; floor.lineWidth=3;
-            floor.beginPath(); floor.arc(sx, sy-70, 50, 0, Math.PI*2); floor.stroke();
-            floor.font="bold 16px 'Poppins',sans-serif";
-            floor.textAlign="center";
-            floor.fillStyle="#ff3b30"; floor.fillText("☠ BOSS", sx, sy-150);
-            floor.textAlign="left";
-            var bw=150; var bh=10;
-            floor.fillStyle="#111"; floor.fillRect(sx-bw/2-1, sy-142, bw+2, bh+2);
-            floor.fillStyle="#ff3b30"; floor.fillRect(sx-bw/2, sy-141, bw*Math.max(0,m.health/m.origin_health), bh);
-            floor.restore();
-        }
     }
     // projectiles
     for(var pi=0; pi<projectiles.length; pi++){

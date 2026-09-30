@@ -71,15 +71,11 @@ body{
 }
 .tbtn:active{transform:scale(.93);}
 /* Touch layout — single source of truth, fixed px (buttons are px-sized).
-   Right hand: big attack with skill arc around it. Left hand: potion + weapon cycle. */
+   Right hand: big attack with skill arc around it. Left hand: joystick only. */
 #btn-attack{right:20px;bottom:20px;width:80px;height:80px;font-size:36px;background:rgba(176,42,42,.55);border-color:rgba(255,255,255,.5);}
 #btn-s1{right:34px;bottom:148px;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
 #btn-s2{right:96px;bottom:104px;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
 #btn-s3{right:124px;bottom:34px;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
-#btn-potion{left:16px;bottom:20px;width:58px;height:58px;font-size:24px;}
-#btn-weapon{left:88px;bottom:20px;width:54px;height:54px;font-size:22px;background:rgba(52,152,219,.45);}
-#btn-map{right:12px;top:52px;width:44px;height:44px;font-size:18px;}
-#btn-shop{right:12px;top:106px;width:44px;height:44px;font-size:18px;}
 /* hide touch controls until the game actually starts */
 body:not(.in-game) .tbtn, body:not(.in-game) #touch-joystick{display:none!important;}
 
@@ -166,8 +162,6 @@ body:not(.in-game) .tbtn, body:not(.in-game) #touch-joystick{display:none!import
   .header-btn span{display:none;}
   .game-title{font-size:16px;}
   #btn-attack{width:72px;height:72px;font-size:32px;}
-  #btn-potion{width:54px;height:54px;font-size:22px;}
-  #btn-weapon{width:50px;height:50px;font-size:20px;}
   #btn-s1,#btn-s2,#btn-s3{width:46px;height:46px;font-size:18px;}
 }
 
@@ -238,7 +232,6 @@ body:not(.in-game) .tbtn, body:not(.in-game) #touch-joystick{display:none!import
 .related-card p{font-size:12px;color:var(--muted);}
 
 /* ---------- Shop ---------- */
-#btn-shop{background:rgba(212,160,23,.4);border-color:rgba(255,255,255,.5);} /* position defined in touch layout above */
 .shop-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:150;display:none;align-items:center;justify-content:center;background:rgba(8,8,12,.88);}
 .shop-overlay.open{display:flex;}
 .shop-box{width:92%;max-width:460px;max-height:88vh;overflow-y:auto;background:var(--panel);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:22px;}
@@ -258,5 +251,5 @@ body:not(.in-game) .tbtn, body:not(.in-game) #touch-joystick{display:none!import
 .si-price{font-weight:700;font-size:15px;color:var(--accent);white-space:nowrap;}
 .si-off{opacity:.45;color:var(--muted);}
 .shop-hint{margin-top:14px;font-size:12px;color:var(--muted);text-align:center;}
-@media (pointer:coarse){ #btn-shop{right:5%;top:124px;} }
-@media (orientation:landscape) and (pointer:coarse){ #btn-shop{top:92px;} }
+@media (pointer:coarse){ }
+@media (orientation:landscape) and (pointer:coarse){ }

@@ -1902,27 +1902,7 @@ function ShieldOrb(x,y){
     this.used=false; this.tint='#00d2d3';
     this.use=function(mob){ if(!this.used){ this.used=true; mob.shieldTimer=8; sfx('potion'); } };
 }
-var SHOP_ITEMS=[
-    {id:'heal',name:{zh:'立即治疗',en:'Full Heal'},desc:{zh:'瞬间回满生命',en:'Restore all HP instantly'},price:80,icon:'\u2764\uFE0F'},
-    {id:'power', name:{zh:'力量药剂',en:'Power Elixir'}, desc:{zh:'20 秒内伤害 ×1.5',en:'1.5x damage for 20s'},price:80,icon:'\u26A1'},
-    {id:'haste', name:{zh:'疾风药剂',en:'Haste Elixir'}, desc:{zh:'10 秒移动加速',en:'+movement speed 10s'},price:80,icon:'\uD83D\uDCA8'},
-    {id:'dmg',   name:{zh:'伤害强化',en:'Damage Upgrade'},desc:{zh:'永久 +15% 伤害（价格递增）',en:'+15% permanent damage (price rises)'},price:100,icon:'\uD83D\uDDE1\uFE0F'},
-    {id:'hp',    name:{zh:'生命精魄',en:'Vitality'},     desc:{zh:'永久 +200 上限生命（价格递增）',en:'+200 max HP permanent (price rises)'},price:150,icon:'\u2764\uFE0F'}
-];
-function buyShop(id){
-    var it=null; for(var i=0;i<SHOP_ITEMS.length;i++) if(SHOP_ITEMS[i].id===id) it=SHOP_ITEMS[i];
-    if(!it || !hero) return;
-    if(hero.coins < it.price){ sfx('error'); return; }
-    hero.coins -= it.price;
-    if(id==='heal') hero.health=hero.origin_health;
-    if(id==='power') hero.powerTimer=20;
-    else if(id==='haste') hero.hasteTimer=10;
-    else if(id==='dmg'){ hero.damageMult=(hero.damageMult||1)*1.15; it.price=Math.round(it.price*2); }
-    else if(id==='hp'){ hero.origin_health+=200; hero.health+=200; it.price=Math.round(it.price*2); }
-    sfx('potion');
-    if(window.renderShop) window.renderShop();
-}
-window.SHOP_ITEMS=SHOP_ITEMS; window.buyShop=buyShop;
+/* shop removed from the game: no entry point */
 function BossMob(x,y,bt){
     bt=bt||BOSS_WAVES[currentLevel][0]||BOSS_WAVES[0][0];
     AgressiveMob.call(this,x,y,bt.sprite);
@@ -2108,9 +2088,6 @@ window.loadLevel=loadLevel;
 var touchUI = {
     joystickZone: document.getElementById('touch-joystick'),
     attackBtn: document.getElementById('btn-attack'),
-    potionBtn: document.getElementById('btn-potion'),
-    mapBtn: document.getElementById('btn-map'),
-    weaponBtn: document.getElementById('btn-weapon'),
     s1: document.getElementById('btn-s1'),
     s2: document.getElementById('btn-s2'),
     s3: document.getElementById('btn-s3'),
@@ -2169,30 +2146,6 @@ var touchUI = {
         var t=nearestMonster(); // attack closest visible monster
         if(t){ hero.rotateTo(t); hero.doAttack(t); clickInd.mode='attack'; clickInd.x=t.x; clickInd.y=t.y; clickInd.life=0.55; }
         else { floor.click_x=hero.x; floor.click_y=hero.y; processClick(); }
-    });
-    on(touchUI.potionBtn, 'touchstart', function(e){
-        e.preventDefault(); e.stopPropagation();
-        initAudio();
-        if(gameState!=='playing' || !hero) return;
-        var best=null, bd=1e9;
-        for(var i in potions){
-            var p=potions[i], dx=p.x-hero.x, dy=p.y-hero.y, d=dx*dx+dy*dy;
-            if(d<bd){ bd=d; best=p; }
-        }
-        if(best){ floor.click_x=best.x; floor.click_y=best.y; processClick(); }
-        else sfx('error');
-    });
-    on(touchUI.mapBtn, 'touchstart', function(e){
-        e.preventDefault(); e.stopPropagation();
-        initAudio();
-        showMap=!showMap;
-    });
-    on(touchUI.weaponBtn,'touchstart',function(e){
-        e.preventDefault(); e.stopPropagation(); initAudio();
-        if(gameState!=='playing' || !hero) return;
-        if(restartIfDead()) return;
-        hero.weaponIndex=(hero.weaponIndex+1)%hero.weapons.length;
-        touchUI.weaponBtn.textContent=['🗡️','🪓','🪄'][hero.weaponIndex];
     });
     on(touchUI.s1,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(0); });
     on(touchUI.s2,'touchstart',function(e){ e.preventDefault(); e.stopPropagation(); initAudio(); castSkill(1); });

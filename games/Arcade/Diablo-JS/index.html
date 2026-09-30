@@ -7,7 +7,7 @@
 <meta name="description" content="Play DiabloJS online free — a classic isometric hack-and-slash action RPG in your browser. Fight monsters, collect potions and coins, survive the dungeon. No download, works on mobile & desktop.">
 <title>Play DiabloJS Online Free — Isometric Action RPG | WebGameHub</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚔️</text></svg>">
-<link rel="stylesheet" href="style.css?v=20260929k">
+<link rel="stylesheet" href="style.css?v=20260930y">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -68,10 +68,6 @@
     <!-- Mobile touch controls -->
     <div id="touch-joystick" aria-hidden="true"><div id="joystick-knob"></div></div>
     <button id="btn-attack" class="tbtn" aria-label="Attack">⚔️</button>
-    <button id="btn-potion" class="tbtn" aria-label="Drink health potion">🧪</button>
-    <button id="btn-map" class="tbtn" aria-label="Toggle map">🗺️</button>
-    <button id="btn-shop" class="tbtn" aria-label="Open shop">🛒</button>
-    <button id="btn-weapon" class="tbtn" aria-label="Switch weapon">🗡️</button>
     <button id="btn-s1" class="tbtn" aria-label="Fireball skill">🔥</button>
     <button id="btn-s2" class="tbtn" aria-label="Dash skill">💨</button>
     <button id="btn-s3" class="tbtn" aria-label="War Cry skill">📢</button>
@@ -108,15 +104,6 @@
   </section>
 </div>
 
-<!-- Shop -->
-<div id="shop" class="shop-overlay">
-  <div class="shop-box">
-    <div class="shop-head"><h2><i class="fas fa-store"></i> Trader's Shop</h2><span id="shop-gold" class="shop-gold"></span><button id="shop-close" class="shop-x" aria-label="Close">✕</button></div>
-    <div id="shop-items" class="shop-items"></div>
-    <p class="shop-hint">Buy with gold — upgrades get pricier each time</p>
-  </div>
-</div>
-
 <!-- Rules -->
 <div id="rules" class="rules">
   <button class="close-btn" id="close-btn"><i class="fas fa-times"></i></button>
@@ -132,7 +119,7 @@
   </div>
 </div>
 
-<script src="diablo.js?v=20260930x"></script>
+<script src="diablo.js?v=20260930y"></script>
 <script>
 /* Chinese UI localization: swaps player-visible HTML text on zh browsers (SEO meta stays English) */
 (function(){
@@ -167,31 +154,6 @@
   var rules=document.getElementById('rules');
   document.getElementById('rules-btn').addEventListener('click',function(){rules.classList.add('open');});
   document.getElementById('close-btn').addEventListener('click',function(){rules.classList.remove('open');});
-  // ---- Shop ----
-  var shop=document.getElementById('shop');
-  function renderShop(){
-    var g=document.getElementById('shop-gold');
-    if(g) g.textContent='💰 '+(typeof hero!=='undefined'&&hero?hero.coins:0);
-    var box=document.getElementById('shop-items'); if(!box) return;
-    box.innerHTML='';
-    var items=(window.SHOP_ITEMS||[]);
-    for(var i=0;i<items.length;i++){
-      (function(it){
-        var d=document.createElement('button');
-        d.className='shop-item';
-        var afford=(typeof hero!=='undefined'&&hero && hero.coins>=it.price);
-        d.innerHTML='<span class="si-icon">'+it.icon+'</span><span class="si-txt"><b>'+(window.L?window.L(it.name):it.name)+'</b><small>'+(window.L?window.L(it.desc):it.desc)+'</small></span><span class="si-price'+(afford?'':' si-off')+'">'+it.price+' 💰</span>';
-        d.onclick=function(){ if(window.buyShop) window.buyShop(it.id); renderShop(); };
-        box.appendChild(d);
-      })(items[i]);
-    }
-  }
-  function openShop(){ shop.classList.add('open'); renderShop(); }
-  function closeShop(){ shop.classList.remove('open'); }
-  window.openShop=openShop; window.closeShop=closeShop; window.renderShop=renderShop;
-  document.getElementById('shop-close').addEventListener('click',closeShop);
-  var sb=document.getElementById('btn-shop');
-  if(sb) sb.addEventListener('click',function(){ if(typeof hero!=='undefined'&&hero) openShop(); });
 })();
 </script>
 </body>

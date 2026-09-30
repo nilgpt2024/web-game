@@ -741,6 +741,7 @@ setInterval(function() {
     if(hero.powerTimer>0) hero.powerTimer-=0.066;
     if(hero.whetTimer>0) hero.whetTimer-=0.066;
     if(hero.shieldTimer>0) hero.shieldTimer-=0.066;
+    if(comboTimer>0){ comboTimer-=0.066; comboPop=Math.max(0,comboPop-0.066*6); if(comboTimer<=0){ combo=0; } }
     if(hero.hasteTimer>0) hero.hasteTimer-=0.066;
     hero.st = hero.hasteTimer>0 ? 26 : 16;
     // rage decays out of combat
@@ -1414,7 +1415,10 @@ function Mob(x,y,name){
         }else{
             this.flashUntil=performance.now()+90;
             if(!this.isBoss) this.staggerUntil=performance.now()+250; // hit stagger (bosses immune)
-            spawnDamageText(this.x,this.y,Math.round(damage*1000/(1000-this.resistance)),'#ffffff');
+            // DNF-style combo: every hero hit counts, resets after 3s without hitting
+            combo++; comboTimer=3; comboPop=1; if(combo>comboBest) comboBest=combo;
+            if(combo%10===0) sfx('levelup'); // milestone jingle every 10 hits
+            spawnDamageText(this.x,this.y,Math.round(damage*1000/(1000-this.resistance)),'#ffd76e');
             spawnParticles(this.x,this.y,'#ffd76e',this.x-hero.x,this.y-hero.y);
             // knockback 10px away from hero (never through walls, never on killing blow)
             if(health>0){
@@ -1520,6 +1524,8 @@ function AgressiveMob(x,y,name){
 }
 
 var projectiles=[], drops=[], bossDead=false;
+// DNF-style combo counter
+var combo=0, comboTimer=0, comboPop=0, comboBest=0;
 
 function fireProjectile(shooter, target, dmg, type){
     var ang=Math.atan2(target.y-shooter.y, target.x-shooter.x);
@@ -1596,8 +1602,10 @@ function renderFx(){
     floor.textAlign="center";
     for(i=0;i<Fx.texts.length;i++){ var t=Fx.texts[i];
         floor.globalAlpha=Math.max(0,Math.min(1,t.life*2.5));
+        floor.font="bold 18px 'Arial Black',Arial";
+        floor.lineWidth=3; floor.strokeStyle="rgba(0,0,0,.75)";
+        floor.strokeText(t.txt, (t.x-t.y)*acos, (t.x+t.y)/2*asin-30);
         floor.fillStyle=t.color;
-        floor.font="bold 15px Arial";
         floor.fillText(t.txt, (t.x-t.y)*acos, (t.x+t.y)/2*asin-30);
     }
     floor.globalAlpha=1;
@@ -1610,6 +1618,31 @@ function renderFx(){
             floor.fill();
             floor.globalAlpha=1;
         }
+    }
+    // DNF-style combo counter (screen space, right side)
+    if(combo>=2){
+        var cw=floor.canvas.width, ch=floor.canvas.height;
+        var pop=1+comboPop*0.35; // bounce on every hit
+        var fs=Math.min(64, 22+combo*0.9);
+        floor.save();
+        floor.translate(cw-Math.max(90,cw*0.12), ch*0.38);
+        floor.scale(pop,pop);
+        floor.globalAlpha=comboTimer<1?comboTimer:1; // fade out before reset
+        floor.textAlign="center";
+        floor.font="bold "+fs+"px 'Arial Black',Arial";
+        floor.lineWidth=5; floor.strokeStyle="rgba(60,20,0,.9)";
+        floor.strokeText(combo, 0, 0);
+        var cg=floor.createLinearGradient(0,-fs,0,10);
+        cg.addColorStop(0,"#fff3b0"); cg.addColorStop(0.5,"#ffb347"); cg.addColorStop(1,"#ff6a00");
+        floor.fillStyle=cg;
+        floor.fillText(combo, 0, 0);
+        floor.font="bold 16px Arial";
+        floor.lineWidth=3;
+        floor.strokeText("COMBO", 0, 22);
+        floor.fillStyle="#ffe9c9";
+        floor.fillText("COMBO", 0, 22);
+        floor.restore();
+        floor.globalAlpha=1;
     }
 }
 function nearestMonster(){

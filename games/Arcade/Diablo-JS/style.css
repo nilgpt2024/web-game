@@ -70,16 +70,18 @@ body{
   box-shadow:0 6px 18px rgba(0,0,0,.45);
 }
 .tbtn:active{transform:scale(.93);}
-/* Touch layout — single source of truth, percentages adapt to portrait/landscape.
-   Bottom-right cluster: big attack, potion + weapon-cycle beside it, skills row above. */
-#btn-attack{right:4%;bottom:5%;width:80px;height:80px;font-size:36px;background:rgba(176,42,42,.55);border-color:rgba(255,255,255,.5);}
-#btn-potion{right:22%;bottom:7%;width:58px;height:58px;font-size:24px;}
-#btn-weapon{right:14%;bottom:7%;width:54px;height:54px;font-size:22px;background:rgba(52,152,219,.45);}
-#btn-s1{right:4%;bottom:29%;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
-#btn-s2{right:15%;bottom:29%;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
-#btn-s3{right:26%;bottom:29%;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
-#btn-map{right:10px;top:50px;width:44px;height:44px;font-size:18px;}
-#btn-shop{right:10px;top:104px;width:44px;height:44px;font-size:18px;}
+/* Touch layout — single source of truth, fixed px (buttons are px-sized).
+   Right hand: big attack with skill arc around it. Left hand: potion + weapon cycle. */
+#btn-attack{right:20px;bottom:20px;width:80px;height:80px;font-size:36px;background:rgba(176,42,42,.55);border-color:rgba(255,255,255,.5);}
+#btn-s1{right:34px;bottom:148px;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
+#btn-s2{right:96px;bottom:104px;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
+#btn-s3{right:124px;bottom:34px;width:50px;height:50px;font-size:20px;background:rgba(142,68,173,.5);}
+#btn-potion{left:16px;bottom:20px;width:58px;height:58px;font-size:24px;}
+#btn-weapon{left:88px;bottom:20px;width:54px;height:54px;font-size:22px;background:rgba(52,152,219,.45);}
+#btn-map{right:12px;top:52px;width:44px;height:44px;font-size:18px;}
+#btn-shop{right:12px;top:106px;width:44px;height:44px;font-size:18px;}
+/* hide touch controls until the game actually starts */
+body:not(.in-game) .tbtn, body:not(.in-game) #touch-joystick{display:none!important;}
 
 #touch-joystick{
   position:absolute;left:0;top:0;width:52%;height:100%;z-index:5;display:none;

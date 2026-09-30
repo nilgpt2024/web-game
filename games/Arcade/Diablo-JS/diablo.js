@@ -695,6 +695,7 @@ function restartIfDead(){
 }
 setInterval(function() {
     if(imageCount>0) return;
+    if(document.body) document.body.classList.toggle('in-game', gameState==='playing'); // show touch controls only in-game
     if(gameState==='title'){ renderTitleScreen(); return; }
     if(gameState==='dialog'){ renderFloor(); renderDialog(); return; }
     if(dead){

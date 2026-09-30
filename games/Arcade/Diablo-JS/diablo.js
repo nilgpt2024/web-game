@@ -531,7 +531,6 @@ var monsterMap={
         WL: loadImage("monsters/BA/WL/map.png",16,8,true),
     },
 };
-monsterMap.BA.DD=monsterMap.SI.DD; // BA sprite lacks its own death frames: borrow skeleton's
 
 // rage resource (combat rework)
 var RAGE={max:100, hitGain:12, hurtGain:6, dashGain:8, fireballCost:35, shoutCost:40, decayDelay:3000, decayRate:8};
@@ -553,7 +552,7 @@ var LEVELS=[
 var BOSS_TYPES=[
     {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c'},
     {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6'},
-    {name:'Demon Lord',    sprite:'BA', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22'}
+    {name:'Demon Lord',    sprite:'SI', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22', scale:1.5}
 ];
 
 function loadLevel(idx){
@@ -736,7 +735,12 @@ setInterval(function() {
         hero.to_y=hero.y+touchUI.joyDY*2000;
     }
     hero.nextStep();
-    for(var i in monsters){ monsters[i].nextStep(); if(monsters[i].slow>0) monsters[i].slow-=0.066; }
+    for(var i in monsters){ monsters[i].nextStep(); if(monsters[i].slow>0) monsters[i].slow-=0.066;
+        var mm=monsters[i];
+        if(mm.isBoss && mm.bossType.skill==='firerain' && Math.random()<0.35 && Fx.parts.length<70){ // hellfire embers
+            Fx.parts.push({x:mm.x+(Math.random()-0.5)*40, y:mm.y+(Math.random()-0.5)*40, dx:(Math.random()-0.5)*20, dy:-30-Math.random()*30, life:0.5, color:Math.random()<0.5?'#ff8c00':'#ffd76e'});
+        }
+    }
     // buffs + move speed
     if(hero.powerTimer>0) hero.powerTimer-=0.066;
     if(hero.whetTimer>0) hero.whetTimer-=0.066;
@@ -1082,16 +1086,17 @@ function renderObjects(){
         if(m.isHero && hero.tint) _tc=hero.tint;
         else if(m.tint) _tc=m.tint;
         if(_tc) tile=getTinted(tile, _tc);
-        // render sprite
+        // render sprite (scale support for bosses)
         var tw = tile.width;
-        var th = tile.height
+        var th = tile.height;
+        var msc = m.scale||1;
         if(tile.steps && tile.angles){
             tw/=tile.steps;
             th/=tile.angles;
             var _ang=(tile.angles>1)?(m.angle%tile.angles):0;
-            floor.drawImage(tile, 
+            floor.drawImage(tile,
                 tw*m.step, th*_ang, tw, th,
-                Math.round(sx-tw/2-tile.offsetX), Math.round(sy-th), tw, th);
+                Math.round(sx-tw*msc/2-tile.offsetX), Math.round(sy-th*msc), Math.round(tw*msc), Math.round(th*msc));
         }else{
             floor.drawImage(tile, Math.round(sx-tile.width/2)+1, Math.round(sy-tile.height)+1);
         }
@@ -1593,6 +1598,15 @@ function renderFx(){
             floor.fill();
             floor.globalAlpha=1;
         }
+        if(m.isBoss){ // per-boss ambient aura
+            var auraC=m.bossType.skill==='firerain'?'255,120,0':(m.bossType.skill==='summon'?'155,89,182':'231,76,60');
+            var ax=(m.x-m.y)*acos, ay=(m.x+m.y)/2*asin-20;
+            var ag=floor.createRadialGradient(ax,ay,4,ax,ay,60);
+            ag.addColorStop(0,'rgba('+auraC+','+(0.26+0.1*Math.sin(Date.now()/150)).toFixed(3)+')');
+            ag.addColorStop(1,'rgba('+auraC+',0)');
+            floor.fillStyle=ag;
+            floor.beginPath(); floor.arc(ax,ay,60,0,Math.PI*2); floor.fill();
+        }
     }
     for(i=0;i<Fx.parts.length;i++){ var p=Fx.parts[i];
         floor.globalAlpha=Math.max(0,Math.min(1,p.life*3));
@@ -1813,7 +1827,7 @@ function BossMob(x,y){
     this.bossType=bt;
     this.origin_health=this.health=bt.hp;
     this.currentDamage=bt.dmg;
-    this.scale=1.7;
+    this.scale=bt.scale||1.7;
     this.st=bt.spd;
     this.skillAt=performance.now()/1000+3;
     this.slamAt=performance.now()/1000;

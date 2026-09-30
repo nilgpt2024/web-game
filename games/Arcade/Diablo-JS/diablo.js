@@ -549,9 +549,9 @@ var LEVELS=[
     {sk:6,fs:4,si:4,pots:7,dmg:32}
 ];
 var BOSS_TYPES=[
-    {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c'},
-    {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6'},
-    {name:'Demon Lord',    sprite:'SI', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22', scale:1.5}
+    {name:'Skeleton King', sprite:'SI', hp:3500, dmg:35, spd:7, skill:'whirlwind', color:'#e74c3c', scale:1.3},
+    {name:'Crypt Lich',    sprite:'FS', hp:3000, dmg:30, spd:5, skill:'summon',    color:'#9b59b6', scale:1.3},
+    {name:'Demon Lord',    sprite:'FS', hp:5000, dmg:45, spd:8, skill:'firerain',  color:'#e67e22', scale:2.2}
 ];
 
 function loadLevel(idx){
@@ -1016,6 +1016,23 @@ function getTinted(img,color){
     _tintCache.push({img:img,color:color,t:c});
     return c;
 }
+var _bossSkinCache=[];
+function getBossSkin(img){
+    for(var i=0;i<_bossSkinCache.length;i++) if(_bossSkinCache[i].img===img) return _bossSkinCache[i].t;
+    var c=document.createElement('canvas');
+    c.width=img.width; c.height=img.height;
+    var g=c.getContext('2d');
+    g.drawImage(img,0,0);
+    g.globalCompositeOperation='source-atop';
+    g.globalAlpha=0.45; g.fillStyle='#7a1408'; g.fillRect(0,0,c.width,c.height); // hellfire red
+    g.globalAlpha=0.35; g.fillStyle='#0d0206'; g.fillRect(0,0,c.width,c.height); // abyssal dark
+    g.globalAlpha=1; g.globalCompositeOperation='source-over';
+    if(img.steps) c.steps=img.steps;
+    if(img.angles) c.angles=img.angles;
+    if(img.offsetX) c.offsetX=img.offsetX;
+    _bossSkinCache.push({img:img,t:c});
+    return c;
+}
 function drawHeroWeapon(g, hero, cx, cy){
     g.save();
     g.translate(cx, cy);
@@ -1038,6 +1055,7 @@ function renderObjects(){
         if(m.isHero && hero.tint) _tc=hero.tint;
         else if(m.tint) _tc=m.tint;
         if(_tc) tile=getTinted(tile, _tc);
+        if(m.isBoss && m.bossType.skill==='firerain') tile=getBossSkin(tile); // demon lord: unique dark hellfire skin
         // render sprite (scale support for bosses)
         var tw = tile.width;
         var th = tile.height;
@@ -1775,7 +1793,7 @@ function BossMob(x,y){
     this.bossType=bt;
     this.origin_health=this.health=bt.hp;
     this.currentDamage=bt.dmg;
-    this.scale=bt.scale||1.7;
+    this.scale=bt.scale||1.3;
     this.st=bt.spd;
     this.skillAt=performance.now()/1000+3;
     this.slamAt=performance.now()/1000;

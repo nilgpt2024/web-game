@@ -183,6 +183,8 @@ var level = {
 // ===== Per-level handcrafted architectures, randomized each run =====
 var MAX_LEVEL=3;
 var currentLevel=0, stairX=-1, stairY=-1, spawnGX=8, spawnGY=10, gameWon=false, questTitle="", questGoal="";
+var nightmare=false, nightmareUnlocked=false;
+try{ nightmareUnlocked=localStorage.getItem('diablojs_nightmare')==='1'; }catch(e){}
 var gameState="title", kills=0, gameStartTime=0, dialogIdx=0, dialogText="";
 var LANG=(navigator.language||"en").toLowerCase().indexOf("zh")>=0?"zh":"en";
 var I18N={
@@ -583,6 +585,11 @@ function loadLevel(idx){
             monsters.push(new BossMob(stairX+Math.cos(wang)*wrad, stairY+Math.sin(wang)*wrad*0.6, wave[bw]));
         }
     }
+    if(nightmare){
+        for(var nm2=0;nm2<monsters.length;nm2++){ var nmm=monsters[nm2];
+            nmm.health*=2.5; nmm.origin_health*=2.5; nmm.dmgMult=2.5;
+        }
+    }
     hero.x=spawnPX; hero.y=spawnPY; hero.to_x=hero.x; hero.to_y=hero.y;
     hero.health=hero.origin_health;
     hero.currentState=hero.stay; hero.step=0; hero.attacked=null;
@@ -665,7 +672,7 @@ floor.canvas.onclick=function(e) {
 
 window.onkeydown=function(e){
     initAudio();
-    if(gameState==='title'){ if(e.keyCode===76){ toggleLang(); return; } if(e.keyCode===32||e.keyCode===13){ gameState='playing'; } return; }
+    if(gameState==='title'){ if(e.keyCode===76){ toggleLang(); return; } if(e.keyCode===78&&nightmareUnlocked){ nightmare=!nightmare; sfx('levelup'); return; } if(e.keyCode===32||e.keyCode===13){ gameState='playing'; } return; }
     if(gameState==='victory'){
         if(e.keyCode===83){ shareVictory(); return; }
         if(e.keyCode===82){ location.reload(); return; }
@@ -803,7 +810,7 @@ setInterval(function() {
     if(showMap) renderMap();
     if(shaking) floor.restore();
     // ---- level / quest system ----
-    if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; gameState='victory'; sfx('levelup'); }
+    if(!gameWon && currentLevel===MAX_LEVEL-1 && monsters.length===0){ gameWon=true; gameState='victory'; sfx('levelup'); try{ localStorage.setItem('diablojs_nightmare','1'); }catch(e){} }
     renderQuest();
     if(hero.health<=0) dead=true;
 }, 66);
@@ -825,6 +832,15 @@ function renderTitleScreen(){
     floor.font="13px 'Poppins',sans-serif";
     floor.fillText(T('helpDesktop'), floor.w/2, floor.h/2+30);
     floor.fillText(T('helpMobile'), floor.w/2, floor.h/2+52);
+    if(nightmareUnlocked){
+        floor.fillStyle=nightmare?"#ff4757":"#7f8c8d";
+        floor.font="bold 16px 'Poppins',sans-serif";
+        floor.fillText(nightmare?(LANG==='zh'?"☠ 噩梦模式：开启（按 N 关闭）":"☠ NIGHTMARE MODE: ON (N to disable)"):(LANG==='zh'?"噩梦模式已解锁（按 N 开启）":"Nightmare unlocked (press N)"), floor.w/2, floor.h/2+160);
+    }else{
+        floor.fillStyle="#555";
+        floor.font="13px 'Poppins',sans-serif";
+        floor.fillText(LANG==='zh'?"通关一次解锁噩梦模式":"Beat the game once to unlock Nightmare", floor.w/2, floor.h/2+160);
+    }
     if(Math.floor(performance.now()/500)%2===0){
         floor.fillStyle="#fff";
         floor.font="bold 20px 'Poppins',sans-serif";
@@ -870,7 +886,7 @@ function renderQuest(){
     floor.fillStyle="#fff";
     floor.font="bold 17px 'Poppins',sans-serif";
     floor.textAlign="center";
-    floor.fillText(hero.name+" \u2014 "+questTitle, floor.w/2, 34);
+    floor.fillText((nightmare?"☠ ":"")+hero.name+" \u2014 "+questTitle, floor.w/2, 34);
     floor.fillStyle="#d9f7d9";
     floor.font="13px 'Poppins',sans-serif";
     floor.fillText(T('quest')+questGoal, floor.w/2, 52);
@@ -906,7 +922,7 @@ function renderQuest(){
         floor.textAlign="center";
         floor.fillStyle="#ffd700";
         floor.font="bold 52px 'Poppins',sans-serif";
-        floor.fillText(T('victory'), floor.w/2, floor.h/2-100);
+        floor.fillText(nightmare?(LANG==='zh'?'噩梦通关！':'NIGHTMARE CLEARED!'):T('victory'), floor.w/2, floor.h/2-100);
         floor.fillStyle="#e8e6e3";
         floor.font="17px 'Poppins',sans-serif";
         floor.fillText(T('victoryText'), floor.w/2, floor.h/2-60);
@@ -914,7 +930,7 @@ function renderQuest(){
         var mm=Math.floor(elapsed/60), ss=elapsed%60;
         floor.fillStyle="#ffd700";
         floor.font="bold 20px 'Poppins',sans-serif";
-        floor.fillText(T("kills")+": "+kills+"  |  "+T("level")+": "+hero.heroLevel+"  |  "+T("time")+": "+mm+"m"+ss+"s  |  Gold: "+hero.coins, floor.w/2, floor.h/2-10);
+        floor.fillText((nightmare?'☠ NIGHTMARE | ':'')+T("kills")+": "+kills+"  |  "+T("level")+": "+hero.heroLevel+"  |  "+T("time")+": "+mm+"m"+ss+"s  |  Gold: "+hero.coins, floor.w/2, floor.h/2-10);
         floor.fillStyle="#aaa";
         floor.font="14px 'Poppins',sans-serif";
         floor.fillText(T('shareHint'), floor.w/2, floor.h/2+30);
@@ -1289,7 +1305,7 @@ function Barrel(x, y){
 
 function Coin(x,y){
     Shape.call(this,coinSprite,x,y);
-    this.coins=5+Math.floor(Math.random()*26);
+    this.coins=(5+Math.floor(Math.random()*26))*(nightmare?2:1);
     this.use=function(mob){
         remove(coins,this);
         mob.coins+=this.coins;
@@ -1428,6 +1444,7 @@ function Mob(x,y,name){
                 if(!this.isBoss){
                     if(Math.random()<0.5) coins.push(new Coin(this.x,this.y));
                     var r=Math.random();
+                    if(nightmare) r-=0.08; // nightmare: far more drops
                     if(r<0.20) potions.push(new PotionHealth(this.x,this.y));
                     else if(r<0.26) drops.push(new BigPotion(this.x,this.y));
                     else if(r<0.31) drops.push(new PowerPotion(this.x,this.y));
@@ -2076,7 +2093,7 @@ function pickHero(cls){
 function shareVictory(){
     var elapsed=Math.round(performance.now()/1000-gameStartTime);
     var mm=Math.floor(elapsed/60), ss=elapsed%60;
-    var text=T('shareText')+' '+T('kills')+': '+kills+' | '+T('level')+'.'+hero.heroLevel+' | '+T('time')+': '+mm+'m'+ss+'s | '+T('gold')+': '+hero.coins+' | https://game.suipce.com/games/Arcade/Diablo-JS/';
+    var text=(nightmare?'[NIGHTMARE] ':'')+T('shareText')+' '+T('kills')+': '+kills+' | '+T('level')+'.'+hero.heroLevel+' | '+T('time')+': '+mm+'m'+ss+'s | '+T('gold')+': '+hero.coins+' | https://game.suipce.com/games/Arcade/Diablo-JS/';
     if(navigator.share){ navigator.share({title:T('shareTitle'),text:text,url:'https://game.suipce.com/games/Arcade/Diablo-JS/'}).catch(function(){}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert(T('shareCopied')); }).catch(function(){ prompt(T('shareCopy'),text); }); }
     else { prompt('Copy to share:',text); }

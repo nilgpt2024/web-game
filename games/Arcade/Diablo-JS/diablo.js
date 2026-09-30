@@ -1586,15 +1586,6 @@ function renderFx(){
             floor.fill();
             floor.globalAlpha=1;
         }
-        if(m.isBoss){ // per-boss ambient aura
-            var auraC=m.bossType.skill==='firerain'?'255,120,0':(m.bossType.skill==='summon'?'155,89,182':'231,76,60');
-            var ax=(m.x-m.y)*acos, ay=(m.x+m.y)/2*asin-20;
-            var ag=floor.createRadialGradient(ax,ay,4,ax,ay,60);
-            ag.addColorStop(0,'rgba('+auraC+','+(0.26+0.1*Math.sin(Date.now()/150)).toFixed(3)+')');
-            ag.addColorStop(1,'rgba('+auraC+',0)');
-            floor.fillStyle=ag;
-            floor.beginPath(); floor.arc(ax,ay,60,0,Math.PI*2); floor.fill();
-        }
     }
     for(i=0;i<Fx.parts.length;i++){ var p=Fx.parts[i];
         floor.globalAlpha=Math.max(0,Math.min(1,p.life*3));

@@ -646,6 +646,7 @@ floor.canvas.onclick=function(e) {
     if(isCanClick)if(processClick())return;
     hero.to_x=floor.click_x;
     hero.to_y=floor.click_y;
+    clickInd.mode='move'; clickInd.x=floor.click_x; clickInd.y=floor.click_y; clickInd.life=0.55;
 }
 
 window.onkeydown=function(e){
@@ -675,6 +676,7 @@ window.onkeydown=function(e){
     }
 }
 
+var clickInd={mode:null,x:0,y:0,life:0}; // click feedback: 'move' green ring / 'attack' red crosshair
 var showMap=false;
 var dead=false;
 function drawDeathScreen(){
@@ -989,6 +991,7 @@ function processClick(){
         var spr_h = spr.steps ? spr.height/spr.steps : spr.height;
         if( cx >= sx-spr_w/2 && cx <= sx+spr_w/2 && cy >= sy-spr_h && cy <= sy){
             m.use(hero)
+            if(m.health && m.origin_health){ clickInd.mode='attack'; clickInd.x=m.x; clickInd.y=m.y; clickInd.life=0.55; }
             return true;
         }
     }
@@ -1498,6 +1501,27 @@ function updateFx(dt){
 }
 function renderFx(){
     var i, m;
+    // click feedback marker: green ring = move there, red crosshair = attack
+    if(clickInd.life>0){
+        clickInd.life-=0.066;
+        var cix=(clickInd.x-clickInd.y)*acos, ciy=(clickInd.x+clickInd.y)/2*asin;
+        var cal=Math.max(0,Math.min(1,clickInd.life*3));
+        floor.save(); floor.globalAlpha=cal;
+        if(clickInd.mode==='attack'){
+            floor.strokeStyle="#ff3b30"; floor.lineWidth=3;
+            floor.beginPath(); floor.arc(cix,ciy,16+8*(1-cal),0,Math.PI*2); floor.stroke();
+            floor.beginPath();
+            floor.moveTo(cix-26,ciy); floor.lineTo(cix-10,ciy);
+            floor.moveTo(cix+10,ciy); floor.lineTo(cix+26,ciy);
+            floor.moveTo(cix,ciy-26); floor.lineTo(cix,ciy-10);
+            floor.moveTo(cix,ciy+10); floor.lineTo(cix,ciy+26);
+            floor.stroke();
+        }else{
+            floor.strokeStyle="#2ecc71"; floor.lineWidth=3;
+            floor.beginPath(); floor.arc(cix,ciy,10+16*(1-cal),0,Math.PI*2); floor.stroke();
+        }
+        floor.restore();
+    }
     for(i=0;i<Fx.parts.length;i++){ var p=Fx.parts[i];
         floor.globalAlpha=Math.max(0,Math.min(1,p.life*3));
         floor.fillStyle=p.color;
@@ -1981,7 +2005,7 @@ var touchUI = {
         initAudio();
         if(restartIfDead()) return;
         var t=nearestMonster(); // attack closest visible monster
-        if(t){ hero.rotateTo(t); hero.doAttack(t); }
+        if(t){ hero.rotateTo(t); hero.doAttack(t); clickInd.mode='attack'; clickInd.x=t.x; clickInd.y=t.y; clickInd.life=0.55; }
         else { floor.click_x=hero.x; floor.click_y=hero.y; processClick(); }
     });
     on(touchUI.potionBtn, 'touchstart', function(e){
@@ -2027,6 +2051,7 @@ var touchUI = {
         if(isCanClick) if(processClick()) return;
         hero.to_x=floor.click_x;
         hero.to_y=floor.click_y;
+        clickInd.mode='move'; clickInd.x=floor.click_x; clickInd.y=floor.click_y; clickInd.life=0.55;
     }, {passive:false});
 })();
 

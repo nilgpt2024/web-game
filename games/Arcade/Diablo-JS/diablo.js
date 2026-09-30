@@ -657,6 +657,7 @@ floor.canvas.onclick=function(e) {
     if(gameState==='title'){ gameState='playing'; return; }
     if(gameState==='victory'){ location.reload(); return; }
     if(restartIfDead()) return;
+    if(!hero){ pickHero('barbarian'); return; } // mouse-only users never press a key
     var scx=floor.canvas.clientWidth>0?floor.canvas.width/floor.canvas.clientWidth:1;
     var scy=floor.canvas.clientHeight>0?floor.canvas.height/floor.canvas.clientHeight:1;
     var mx=((e.offsetX==undefined?e.layerX:e.offsetX)*scx) - floor.w/2;
@@ -2163,6 +2164,7 @@ var touchUI = {
     on(touchUI.attackBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
         initAudio();
+        if(gameState!=='playing' || !hero) return;
         if(restartIfDead()) return;
         var t=nearestMonster(); // attack closest visible monster
         if(t){ hero.rotateTo(t); hero.doAttack(t); clickInd.mode='attack'; clickInd.x=t.x; clickInd.y=t.y; clickInd.life=0.55; }
@@ -2171,6 +2173,7 @@ var touchUI = {
     on(touchUI.potionBtn, 'touchstart', function(e){
         e.preventDefault(); e.stopPropagation();
         initAudio();
+        if(gameState!=='playing' || !hero) return;
         var best=null, bd=1e9;
         for(var i in potions){
             var p=potions[i], dx=p.x-hero.x, dy=p.y-hero.y, d=dx*dx+dy*dy;
@@ -2186,6 +2189,7 @@ var touchUI = {
     });
     on(touchUI.weaponBtn,'touchstart',function(e){
         e.preventDefault(); e.stopPropagation(); initAudio();
+        if(gameState!=='playing' || !hero) return;
         if(restartIfDead()) return;
         hero.weaponIndex=(hero.weaponIndex+1)%hero.weapons.length;
         touchUI.weaponBtn.textContent=['🗡️','🪓','🪄'][hero.weaponIndex];
@@ -2198,7 +2202,10 @@ var touchUI = {
     on(cv, 'touchstart', function(e){
         e.preventDefault(); // suppress the synthetic click so attacks do not double-fire
         initAudio();
+        if(gameState==='title'){ gameState='playing'; return; } // tap through title like desktop click
+        if(gameState==='victory'){ location.reload(); return; }
         if(restartIfDead()) return;
+        if(!hero){ pickHero('barbarian'); return; } // first entry on touch devices
         var t=e.touches[0];
         var r=cv.getBoundingClientRect();
         var scx=floor.w/r.width, scy=floor.h/r.height;

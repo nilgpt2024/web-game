@@ -182,9 +182,9 @@ var level = {
 
 // ===== Procedural room-and-corridor dungeon generator: 3 levels, every run different =====
 var LEVEL_GEN=[
-    {rooms:[5,6], rmin:4, rmax:7},  // Cellar: few spacious halls
-    {rooms:[7,9], rmin:3, rmax:5},  // Crypt: many tight chambers, maze-like
-    {rooms:[4,6], rmin:5, rmax:8}   // Demon Lair: big open halls
+    {rooms:[4,5], rmin:5, rmax:8},  // Cellar: few spacious halls
+    {rooms:[6,7], rmin:4, rmax:6},  // Crypt: several chambers, maze-like
+    {rooms:[3,4], rmin:6, rmax:9}   // Demon Lair: big open halls
 ];
 
 var MAX_LEVEL=LEVEL_GEN.length;
@@ -247,16 +247,14 @@ function buildMap(idx){
         level.wall.map[o.y+o.h-1][o.x]=948; level.wall.map[o.y+o.h-1][o.x+o.w-1]=948;
     }
     for(var rg=0;rg<rooms.length;rg++) ring(rooms[rg]);
-    // ---- doors: 1-2 openings per side, never on corners ----
+    // ---- doors: one wide opening per side (long intact wall runs, no rubble look) ----
     for(var rd=0;rd<rooms.length;rd++){ var o=rooms[rd];
         for(var sd=0;sd<4;sd++){
-            var n=1+Math.floor(Math.random()*2);
-            for(var dn=0;dn<n;dn++){
-                if(sd===0){ level.wall.map[o.y][o.x+1+Math.floor(Math.random()*(o.w-2))]=0; }
-                else if(sd===1){ level.wall.map[o.y+o.h-1][o.x+1+Math.floor(Math.random()*(o.w-2))]=0; }
-                else if(sd===2){ level.wall.map[o.y+1+Math.floor(Math.random()*(o.h-2))][o.x]=0; }
-                else { level.wall.map[o.y+1+Math.floor(Math.random()*(o.h-2))][o.x+o.w-1]=0; }
-            }
+            if(Math.random()<0.25) continue; // some sides stay fully sealed
+            if(sd===0){ var d0=o.x+1+Math.floor(Math.random()*(o.w-3)); level.wall.map[o.y][d0]=0; if(o.w>5) level.wall.map[o.y][d0+1]=0; }
+            else if(sd===1){ var d1=o.x+1+Math.floor(Math.random()*(o.w-3)); level.wall.map[o.y+o.h-1][d1]=0; if(o.w>5) level.wall.map[o.y+o.h-1][d1+1]=0; }
+            else if(sd===2){ var d2=o.y+1+Math.floor(Math.random()*(o.h-3)); level.wall.map[d2][o.x]=0; if(o.h>5) level.wall.map[d2+1][o.x]=0; }
+            else { var d3=o.y+1+Math.floor(Math.random()*(o.h-3)); level.wall.map[d3][o.x+o.w-1]=0; if(o.h>5) level.wall.map[d3+1][o.x+o.w-1]=0; }
         }
     }
     function isFloor(yy,xx){ return yy>0 && yy<H-1 && xx>0 && xx<W-1 && level.wall.map[yy][xx]===0 && level.object.map[yy][xx]===0; }
@@ -284,13 +282,13 @@ function buildMap(idx){
     }
     var st=rooms[bi];
     var sgy=st.y+(st.h>>1), sgx=st.x+(st.w>>1);
-    // ---- pillars inside larger rooms (kept clear of spawn/stairs and door lanes) ----
+    // ---- occasional pillar pair inside big rooms only (sparse, no rubble) ----
     for(var rp=0;rp<rooms.length;rp++){ var o2=rooms[rp];
-        if(o2.w>=5 && o2.h>=5 && Math.random()<0.7){
-            var px=o2.x+1+Math.floor(Math.random()*(o2.w-2)), py=o2.y+1+Math.floor(Math.random()*(o2.h-2));
+        if(o2.w>=7 && o2.h>=6 && Math.random()<0.4){
+            var px=o2.x+2+Math.floor(Math.random()*(o2.w-4)), py=o2.y+2+Math.floor(Math.random()*(o2.h-4));
             if(Math.abs(px-spawnGX)+Math.abs(py-spawnGY)<3) continue;
             if(Math.abs(px-sgx)+Math.abs(py-sgy)<3) continue;
-            level.wall.map[py][px]=Math.random()<0.5?372:468;
+            level.wall.map[py][px]=468;
         }
     }
     // ---- BFS connectivity repair (seeded from spawn) ----
@@ -326,9 +324,9 @@ function buildMap(idx){
     // ---- stairs (rendered as a statue + portal glow), guarded by the BOSS ----
     stairX=sgx*s+s/2; stairY=sgy*s+s/2;
     level.object.map[sgy][sgx]=1524;
-    // ---- procedural wall-adjacent decor (connectivity-safe) ----
-    var decoTiles=[564,660,372,4116,4212,5748,5844,5652,3828];
-    var placed=0, maxDec=40, tries2=0;
+    // ---- sparse wall-adjacent decor, real prop tiles only (connectivity-safe) ----
+    var decoTiles=[564,660,4116,4212,5748,5844,5652,3828];
+    var placed=0, maxDec=18, tries2=0;
     while(placed<maxDec && tries2<600){
         tries2++;
         var ry2=2+Math.floor(Math.random()*17), rx2=2+Math.floor(Math.random()*27);

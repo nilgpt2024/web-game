@@ -39,6 +39,20 @@ canvas.emscripten{border:0 none;width:100%;height:100%;padding:0;margin:0;displa
 #game-hud b{color:#e8b04a;}
 #game-hud .hud-title{color:#e8b04a;font-weight:bold;margin-bottom:4px;font-size:12px;}
 #hud-toggle{position:absolute;bottom:12px;right:12px;z-index:5;background:rgba(0,0,0,0.55);border:1px solid rgba(232,176,74,0.3);border-radius:4px;padding:4px 10px;font-size:11px;color:#e8b04a;cursor:pointer;display:none;}
+/* 移动端控制层 */
+#mobile-controls{display:none;position:absolute;top:0;left:0;width:100%;height:100%;z-index:6;pointer-events:none;}
+#mobile-controls.active{display:block;}
+#joystick-zone{position:absolute;bottom:20px;left:20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.2);pointer-events:auto;touch-action:none;}
+#joystick-knob{position:absolute;top:50%;left:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:rgba(232,176,74,0.5);border:2px solid rgba(232,176,74,0.8);}
+#look-zone{position:absolute;top:0;right:0;width:55%;height:100%;pointer-events:auto;touch-action:none;}
+.mobile-btn{position:absolute;border-radius:50%;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.25);color:#fff;font-size:14px;font-weight:bold;display:flex;align-items:center;justify-content:center;pointer-events:auto;touch-action:none;user-select:none;-webkit-user-select:none;}
+.mobile-btn:active{background:rgba(232,176,74,0.4);border-color:rgba(232,176,74,0.7);}
+#btn-fire{bottom:30px;right:30px;width:70px;height:70px;font-size:16px;background:rgba(196,48,32,0.35);border-color:rgba(196,48,32,0.6);}
+#btn-jump{bottom:110px;right:100px;width:55px;height:55px;}
+#btn-reload{bottom:110px;right:30px;width:55px;height:55px;}
+#btn-use{bottom:190px;right:30px;width:55px;height:55px;}
+#btn-knife{bottom:190px;right:100px;width:55px;height:55px;}
+#mobile-hint{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.6);color:#e8b04a;padding:4px 12px;border-radius:4px;font-size:11px;pointer-events:none;}
 @media(orientation:portrait) and (max-width:900px){
   #rotate-hint{display:flex;}
 }
@@ -101,6 +115,18 @@ canvas.emscripten{border:0 none;width:100%;height:100%;padding:0;margin:0;displa
   <b>ESC</b> 菜单 | 对墙上武器画按<b>E</b>购买
 </div>
 <div id="hud-toggle" onclick="toggleHud()">操作提示</div>
+
+<!-- 移动端控制层 -->
+<div id="mobile-controls">
+  <div id="mobile-hint">左侧摇杆移动 · 右侧滑动视角 · 右下射击</div>
+  <div id="look-zone"></div>
+  <div id="joystick-zone"><div id="joystick-knob"></div></div>
+  <div class="mobile-btn" id="btn-fire">射击</div>
+  <div class="mobile-btn" id="btn-jump">跳</div>
+  <div class="mobile-btn" id="btn-reload">换弹</div>
+  <div class="mobile-btn" id="btn-use">使用</div>
+  <div class="mobile-btn" id="btn-knife">匕首</div>
+</div>
 
 <script type='text/javascript'>
 var GAME_PK3_CHUNKS = 5;
@@ -292,6 +318,134 @@ function gotdrop(ev){
     }
   showfiles();
 }
+
+// ========== 移动端控制 ==========
+var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
+
+function sendKey(code, down){
+  var ev = new KeyboardEvent(down ? 'keydown' : 'keyup', {code: code, key: code, bubbles: true});
+  document.dispatchEvent(ev);
+  var canvas = document.getElementById('canvas');
+  if(canvas) canvas.dispatchEvent(ev);
+}
+function sendMouse(button, down, x, y){
+  var ev = new MouseEvent(down ? 'mousedown' : 'mouseup', {button: button, clientX: x||0, clientY: y||0, bubbles: true});
+  var canvas = document.getElementById('canvas');
+  if(canvas) canvas.dispatchEvent(ev);
+  document.dispatchEvent(ev);
+}
+function sendMouseMove(dx, dy){
+  var canvas = document.getElementById('canvas');
+  if(!canvas) return;
+  var rect = canvas.getBoundingClientRect();
+  var ev = new MouseEvent('mousemove', {clientX: rect.width/2 + dx, clientY: rect.height/2 + dy, movementX: dx, movementY: dy, bubbles: true});
+  canvas.dispatchEvent(ev);
+  document.dispatchEvent(ev);
+}
+
+// 虚拟摇杆
+var joyActive = false, joyTouchId = null, joyCenter = {x:0, y:0};
+var joyKeys = {w:false, a:false, s:false, d:false};
+function updateJoyKeys(dx, dy){
+  var threshold = 15;
+  var newW = dy < -threshold, newA = dx < -threshold, newS = dy > threshold, newD = dx > threshold;
+  if(newW !== joyKeys.w){ joyKeys.w = newW; sendKey('KeyW', newW); }
+  if(newA !== joyKeys.a){ joyKeys.a = newA; sendKey('KeyA', newA); }
+  if(newS !== joyKeys.s){ joyKeys.s = newS; sendKey('KeyS', newS); }
+  if(newD !== joyKeys.d){ joyKeys.d = newD; sendKey('KeyD', newD); }
+}
+var joyZone = document.getElementById('joystick-zone');
+var joyKnob = document.getElementById('joystick-knob');
+joyZone.addEventListener('touchstart', function(e){
+  e.preventDefault();
+  var t = e.changedTouches[0];
+  joyActive = true; joyTouchId = t.identifier;
+  var rect = joyZone.getBoundingClientRect();
+  joyCenter = {x: rect.left + rect.width/2, y: rect.top + rect.height/2};
+}, {passive:false});
+joyZone.addEventListener('touchmove', function(e){
+  e.preventDefault();
+  for(var i=0;i<e.changedTouches.length;i++){
+    var t = e.changedTouches[i];
+    if(t.identifier === joyTouchId){
+      var dx = t.clientX - joyCenter.x, dy = t.clientY - joyCenter.y;
+      var dist = Math.sqrt(dx*dx+dy*dy), maxR = 35;
+      if(dist > maxR){ dx = dx/dist*maxR; dy = dy/dist*maxR; }
+      joyKnob.style.transform = 'translate('+dx+'px,'+dy+'px)';
+      updateJoyKeys(dx, dy);
+    }
+  }
+}, {passive:false});
+function joyEnd(e){
+  for(var i=0;i<e.changedTouches.length;i++){
+    if(e.changedTouches[i].identifier === joyTouchId){
+      joyActive = false; joyTouchId = null;
+      joyKnob.style.transform = 'translate(0,0)';
+      updateJoyKeys(0,0);
+    }
+  }
+}
+joyZone.addEventListener('touchend', joyEnd, {passive:false});
+joyZone.addEventListener('touchcancel', joyEnd, {passive:false});
+
+// 视角拖动
+var lookTouchId = null, lookLast = {x:0,y:0};
+var lookZone = document.getElementById('look-zone');
+lookZone.addEventListener('touchstart', function(e){
+  e.preventDefault();
+  var t = e.changedTouches[0];
+  lookTouchId = t.identifier;
+  lookLast = {x:t.clientX, y:t.clientY};
+}, {passive:false});
+lookZone.addEventListener('touchmove', function(e){
+  e.preventDefault();
+  for(var i=0;i<e.changedTouches.length;i++){
+    var t = e.changedTouches[i];
+    if(t.identifier === lookTouchId){
+      var dx = t.clientX - lookLast.x, dy = t.clientY - lookLast.y;
+      lookLast = {x:t.clientX, y:t.clientY};
+      sendMouseMove(dx*2, dy*2);
+    }
+  }
+}, {passive:false});
+function lookEnd(e){
+  for(var i=0;i<e.changedTouches.length;i++){
+    if(e.changedTouches[i].identifier === lookTouchId) lookTouchId = null;
+  }
+}
+lookZone.addEventListener('touchend', lookEnd, {passive:false});
+lookZone.addEventListener('touchcancel', lookEnd, {passive:false});
+
+// 触屏按钮
+function bindBtn(id, keyCode, mouseBtn){
+  var el = document.getElementById(id);
+  el.addEventListener('touchstart', function(e){
+    e.preventDefault();
+    if(mouseBtn !== undefined) sendMouse(mouseBtn, true);
+    else sendKey(keyCode, true);
+  }, {passive:false});
+  el.addEventListener('touchend', function(e){
+    e.preventDefault();
+    if(mouseBtn !== undefined) sendMouse(mouseBtn, false);
+    else sendKey(keyCode, false);
+  }, {passive:false});
+}
+bindBtn('btn-fire', null, 0);
+bindBtn('btn-jump', 'Space');
+bindBtn('btn-reload', 'KeyR');
+bindBtn('btn-use', 'KeyE');
+bindBtn('btn-knife', 'KeyV');
+
+// 移动端启动后显示控制层
+var origPostRun = Module.postRun[0];
+Module.postRun[0] = function(){
+  origPostRun();
+  if(isMobile){
+    document.getElementById('mobile-controls').classList.add('active');
+    document.getElementById('game-hud').style.display = 'none';
+    document.getElementById('hud-toggle').style.display = 'none';
+  }
+};
 </script>
 </body>
 </html>

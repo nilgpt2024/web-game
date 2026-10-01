@@ -322,8 +322,13 @@ function gotdrop(ev){
 // ========== 移动端控制 ==========
 var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
 
+var _keyCodeMap = {KeyW:87,KeyA:65,KeyS:83,KeyD:68,Space:32,KeyR:82,KeyE:69,KeyV:86,KeyG:71,KeyQ:81,Digit1:49,Digit2:50,Digit3:51,Escape:27,Tab:9};
+var _keyNameMap = {KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d',Space:' ',KeyR:'r',KeyE:'e',KeyV:'v',KeyG:'g',KeyQ:'q',Digit1:'1',Digit2:'2',Digit3:'3',Escape:'Escape',Tab:'Tab'};
 function sendKey(code, down){
-  var ev = new KeyboardEvent(down ? 'keydown' : 'keyup', {code: code, key: code, bubbles: true});
+  var kc = _keyCodeMap[code] || 0;
+  var kn = _keyNameMap[code] || code;
+  var ev = new KeyboardEvent(down ? 'keydown' : 'keyup', {key:kn, code:code, keyCode:kc, which:kc, bubbles:true, cancelable:true});
+  try{ Object.defineProperty(ev,'keyCode',{value:kc}); Object.defineProperty(ev,'which',{value:kc}); }catch(e){}
   document.dispatchEvent(ev);
   var canvas = document.getElementById('canvas');
   if(canvas) canvas.dispatchEvent(ev);

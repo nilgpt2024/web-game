@@ -358,7 +358,8 @@ function sendMouseMove(dx, dy){
   var canvas = document.getElementById('canvas');
   if(!canvas) return;
   var rect = canvas.getBoundingClientRect();
-  var ev = new MouseEvent('mousemove', {clientX: rect.width/2 + dx, clientY: rect.height/2 + dy, movementX: dx, movementY: dy, bubbles: true});
+  var ev = new MouseEvent('mousemove', {clientX: rect.width/2, clientY: rect.height/2, bubbles: true});
+  try{ Object.defineProperty(ev,'movementX',{value:dx}); Object.defineProperty(ev,'movementY',{value:dy}); }catch(e){}
   canvas.dispatchEvent(ev);
   document.dispatchEvent(ev);
 }
@@ -464,6 +465,9 @@ Module.postRun[0] = function(){
     document.getElementById('mobile-controls').classList.add('active');
     document.getElementById('game-hud').style.display = 'none';
     document.getElementById('hud-toggle').style.display = 'none';
+    // 模拟 pointer lock，否则引擎忽略 mousemove 视角控制
+    try{ if(typeof Browser !== 'undefined') Browser.pointerLock = true; }catch(e){}
+    try{ document.pointerLockElement = document.getElementById('canvas'); }catch(e){}
   }
 };
 </script>

@@ -52,7 +52,7 @@ canvas.emscripten{border:0 none;width:100%;height:100%;padding:0;margin:0;displa
       本作为开源项目（GPLv2），基于 Quake 引擎移植，浏览器直接运行无需下载。
     </div>
     <div class="warn">
-      ⚠ 首次加载约 90MB 游戏资源，请耐心等待。游戏内菜单为英文（引擎字体限制），下方附中文操作说明和菜单对照。建议使用电脑端 Chrome/Edge 浏览器，横屏体验最佳。
+      ⚠ 首次加载约 90MB 游戏资源（分块下载），请耐心等待。游戏内菜单为英文（引擎字体限制），下方附中文操作说明和菜单对照。建议使用电脑端 Chrome/Edge 浏览器，横屏体验最佳。
     </div>
     <div class="controls">
       <div class="ctrl-item"><b>W A S D</b> — 移动</div>
@@ -88,10 +88,11 @@ canvas.emscripten{border:0 none;width:100%;height:100%;padding:0;margin:0;displa
 </div>
 
 <script type='text/javascript'>
+var GAME_PK3_CHUNKS = 5;
+
 var Module = {
   files: {
     "default.fmf": "default.fmf",
-    "nzp/game.pk3": "nzp/game.pk3",
     "nzp/progs.pk3": "nzp/progs.pk3"
   },
   print: function(msg){ console.log(msg); },
@@ -134,11 +135,63 @@ var Module = {
   ],
 };
 
+function downloadAndMergeGamePk3(){
+  return new Promise(function(resolve, reject){
+    var statusEl = document.getElementById('status');
+    var progressEl = document.getElementById('progress');
+    progressEl.hidden = false;
+    progressEl.value = 0;
+    progressEl.max = GAME_PK3_CHUNKS;
+    var chunks = [];
+    var loaded = 0;
+    function loadChunk(i){
+      if(i >= GAME_PK3_CHUNKS){
+        var total = 0;
+        for(var j=0;j<chunks.length;j++) total += chunks[j].byteLength;
+        var merged = new Uint8Array(total);
+        var offset = 0;
+        for(var j=0;j<chunks.length;j++){
+          merged.set(new Uint8Array(chunks[j]), offset);
+          offset += chunks[j].byteLength;
+        }
+        statusEl.innerHTML = '资源合并完成，正在启动引擎...';
+        resolve(merged.buffer);
+        return;
+      }
+      statusEl.innerHTML = '下载游戏资源分块 ' + (i+1) + '/' + GAME_PK3_CHUNKS + '...';
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'nzp/game.pk3.part' + i, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = function(){
+        if(xhr.status >= 200 && xhr.status < 300){
+          chunks[i] = xhr.response;
+          loaded++;
+          progressEl.value = loaded;
+          loadChunk(i+1);
+        } else {
+          reject(new Error('分块 ' + i + ' 下载失败: HTTP ' + xhr.status));
+        }
+      };
+      xhr.onerror = function(){ reject(new Error('分块 ' + i + ' 网络错误')); };
+      xhr.send();
+    }
+    loadChunk(0);
+  });
+}
+
 function beginCN(){
-  document.getElementById('start-btn').disabled = true;
-  document.getElementById('start-btn').style.opacity = '0.5';
-  document.getElementById('status').innerHTML = '正在下载游戏资源...';
-  begin();
+  var btn = document.getElementById('start-btn');
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  downloadAndMergeGamePk3().then(function(buffer){
+    Module.files["nzp/game.pk3"] = buffer;
+    begin();
+  }).catch(function(err){
+    alert("游戏资源下载失败：" + err.message + "\n请检查网络后刷新重试。");
+    document.getElementById('status').innerHTML = '下载失败';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  });
 }
 
 function begin(){

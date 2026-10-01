@@ -9,6 +9,12 @@
 <meta property="og:description" content="使命召唤僵尸模式的开源网页复刻版，第一人称守波次打僵尸，支持4人合作，浏览器直接玩。" />
 <meta property="og:url" content="https://game.suipce.com/games/FPS/Nazi-Zombies-Portable/" />
 <meta name="theme-color" content="#6e0d00">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NZ:P 僵尸">
+<meta name="application-name" content="NZ:P 僵尸">
+<link rel="manifest" href="manifest.json">
 <title>纳粹僵尸：便携版 - 网页FPS打僵尸 | game.suipce.com</title>
 <link rel="icon" href="nzportable.ico">
 <style>
@@ -221,10 +227,19 @@ function downloadAndMergeGamePk3(){
   });
 }
 
+function requestFullscreen(){
+  var el = document.documentElement;
+  if(el.requestFullscreen) el.requestFullscreen().catch(function(){});
+  else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if(el.msRequestFullscreen) el.msRequestFullscreen();
+}
+
 function beginCN(){
   var btn = document.getElementById('start-btn');
   btn.disabled = true;
   btn.style.opacity = '0.5';
+  // 用户点击时立即请求全屏（必须在用户手势同步调用链中）
+  if(isMobile) requestFullscreen();
   downloadAndMergeGamePk3().then(function(buffer){
     Module.files["nzp/game.pk3"] = buffer;
     begin();

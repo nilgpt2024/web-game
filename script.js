@@ -74,7 +74,9 @@ const gamesData = {
     Astra: [
         { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },
         { name: 'Thunderfall', path: 'games/Astra/Thunderfall/index.html', icon: 'fas fa-rocket', desc: '雷霆战机·天穹远征：纵向弹幕射击' },
-        { name: 'APEX CLUB', path: 'games/Astra/Apex-Club/index.html', icon: 'fas fa-car', desc: 'Bay Circuit 3D卡丁车大奖赛' }
+        { name: 'APEX CLUB', path: 'games/Astra/Apex-Club/index.html', icon: 'fas fa-car', desc: 'Bay Circuit 3D卡丁车大奖赛' },
+        { name: 'Mosswing', path: 'games/Astra/Mosswing/index.html', icon: 'fas fa-leaf', desc: '物理沙盒：动量重力与软体' },
+        { name: 'Melon Lab', path: 'games/Astra/Melon-Lab/index.html', icon: 'fas fa-apple-whole', desc: '瓜体实验室：甜瓜物理沙盒' }
     ],
 };
 

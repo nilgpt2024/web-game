@@ -1,0 +1,33 @@
+{
+  "id": "apex-club",
+  "title": "APEX CLUB — Bay Kart Grand Prix",
+  "created_at": "2026-09-07",
+  "category": "platformers-racing",
+  "description": "A three-lap browser kart racer with local 4v4 AI teams, six karts and charged corner-exit boosts.",
+  "entry": "index.html",
+  "attribution_status": "Exact GPT-6 Astra attribution pending creator confirmation; draft submission.",
+  "workflow": "Iterative Codex development guided by creator requests and screenshot feedback; not a one-shot benchmark.",
+  "technologies": [
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "Three.js"
+  ],
+  "external_dependencies": [
+    "Three.js 0.179.1, vendored with MIT notice"
+  ],
+  "external_assets": [],
+  "requires": [
+    "Modern browser with WebGL 2",
+    "Keyboard or mobile touch controls",
+    "Optional tilt steering requires motion sensors and permission"
+  ],
+  "submitter": {
+    "name": "MartinDelophy",
+    "url": "https://github.com/MartinDelophy"
+  },
+  "demo_url": "https://apex-club-racing.vercel.app",
+  "creator": {
+    "name": "Ryan"
+  }
+}

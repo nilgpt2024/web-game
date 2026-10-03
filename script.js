@@ -70,7 +70,12 @@ const gamesData = {
         { name: 'Type Number Guessing', path: 'games/Casual/Type-Number-Guessing/index.html', icon: 'fas fa-calculator', desc: '打字猜数字' },
         { name: 'Rhythm Game', path: 'games/Casual/Rhythm-Game/index.html', icon: 'fas fa-music', desc: '音乐节奏游戏' },
         { name: 'Coloring Book', path: 'games/Casual/Coloring-Book/index.html', icon: 'fas fa-paint-brush', desc: '涂色画册' }
-    ]
+    ],
+    Astra: [
+        { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },
+        { name: 'Thunderfall', path: 'games/Astra/Thunderfall/index.html', icon: 'fas fa-rocket', desc: '雷霆战机·天穹远征：纵向弹幕射击' },
+        { name: 'APEX CLUB', path: 'games/Astra/Apex-Club/index.html', icon: 'fas fa-car', desc: 'Bay Circuit 3D卡丁车大奖赛' }
+    ],
 };
 
 let currentCategory = 'all';

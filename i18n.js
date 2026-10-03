@@ -36,7 +36,8 @@ const TRANSLATIONS = {
                 "board": "棋牌策略",
                 "memory": "记忆训练",
                 "typing": "打字练习",
-                "casual": "休闲娱乐"
+                "casual": "休闲娱乐",
+                "astra": "AI生成"
             },
             "empty": {
                 "title": "未找到游戏",
@@ -233,7 +234,8 @@ const TRANSLATIONS = {
                 "board": "Board",
                 "memory": "Memory",
                 "typing": "Typing",
-                "casual": "Casual"
+                "casual": "Casual",
+                "astra": "AI Generated"
             },
             "empty": {
                 "title": "No games found",

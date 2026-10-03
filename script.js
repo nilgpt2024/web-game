@@ -78,7 +78,9 @@ const gamesData = {
         { name: 'Mosswing', path: 'games/Astra/Mosswing/index.html', icon: 'fas fa-leaf', desc: '物理沙盒：动量重力与软体' },
         { name: 'Melon Lab', path: 'games/Astra/Melon-Lab/index.html', icon: 'fas fa-apple-whole', desc: '瓜体实验室：甜瓜物理沙盒' },
         { name: 'Last Beacon', path: 'games/Astra/Last-Beacon/index.html', icon: 'fas fa-tower-broadcast', desc: '最后的灯塔：3D海岛塔防' },
-        { name: 'Silent Meridian', path: 'games/Astra/Silent-Meridian/index.html', icon: 'fas fa-compass', desc: '静默子午线：网页解谜游戏' }
+        { name: 'Silent Meridian', path: 'games/Astra/Silent-Meridian/index.html', icon: 'fas fa-compass', desc: '静默子午线：网页解谜游戏' },
+        { name: 'Dual Realms', path: 'games/Astra/Dual-Realms/index.html', icon: 'fas fa-khanda', desc: '时域·放学路：中文横版动作' },
+        { name: 'Race Jimothy', path: 'games/Astra/Race-Jimothy/index.html', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' }
     ],
 };
 

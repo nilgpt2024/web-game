@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 生成游戏集合 - 免费在线玩 | game.suipce.com</title>
+<meta name="description" content="精选开源 AI 生成游戏集合，全部浏览器直接玩，无需下载。涵盖动作射击、益智解谜、生成艺术、竞速赛车等类型，持续更新中。">
+<meta name="keywords" content="AI games, AI生成游戏, 开源游戏, 在线游戏, 浏览器游戏, GPT games, free online games">
+<link rel="canonical" href="https://game.suipce.com/ai-games.html">
+<meta property="og:title" content="AI 生成游戏集合 - 免费在线玩">
+<meta property="og:description" content="精选开源 AI 生成游戏，浏览器直接玩，无需下载。持续更新中。">
+<meta property="og:url" content="https://game.suipce.com/ai-games.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="game.suipce.com">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{
+  --bg:#0a0e17;--bg-raised:#111827;--bg-card:#151d2e;--border:#1e293b;
+  --text:#e2e8f0;--text-muted:#94a3b8;--accent:#818cf8;--accent2:#34d399;
+  --radius:16px;--radius-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+
+/* Hero */
+.hero{padding:80px 0 60px;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(129,140,248,.15),transparent 60%)}
+.hero-badge{display:inline-block;padding:6px 16px;border:1px solid var(--border);border-radius:999px;font-size:13px;color:var(--accent);margin-bottom:20px;background:rgba(129,140,248,.08)}
+.hero h1{font-size:clamp(28px,5vw,48px);font-weight:800;margin-bottom:16px;letter-spacing:-.02em}
+.hero h1 span{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:18px;color:var(--text-muted);max-width:600px;margin:0 auto 32px}
+.hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+.hero-stat .num{font-size:32px;font-weight:700;color:var(--accent)}
+.hero-stat .label{font-size:13px;color:var(--text-muted)}
+
+/* Filter */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:40px}
+.filter-btn{padding:8px 20px;border:1px solid var(--border);border-radius:999px;background:var(--bg-raised);color:var(--text-muted);font-size:14px;cursor:pointer;transition:all .2s}
+.filter-btn:hover{border-color:var(--accent);color:var(--text)}
+.filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+/* Grid */
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;padding-bottom:80px}
+.game-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative}
+.game-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 20px 40px rgba(0,0,0,.4)}
+.card-thumb{height:180px;background:linear-gradient(135deg,#1e293b,#0f172a);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-thumb .icon{font-size:56px;opacity:.9}
+.card-thumb .category-tag{position:absolute;top:12px;left:12px;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);color:var(--accent2)}
+.card-body{padding:20px}
+.card-body h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.card-body p{font-size:14px;color:var(--text-muted);margin-bottom:16px;min-height:42px}
+.card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.card-meta span{padding:3px 10px;border-radius:6px;font-size:11px;background:rgba(129,140,248,.1);color:var(--accent)}
+.card-footer{display:flex;justify-content:space-between;align-items:center}
+.play-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:var(--radius-sm);background:var(--accent);color:#fff;font-size:14px;font-weight:600;transition:all .2s}
+.play-btn:hover{background:#6366f1;transform:scale(1.02)}
+.source-link{font-size:12px;color:var(--text-muted)}
+.source-link:hover{color:var(--accent)}
+
+/* Section */
+.section{padding:60px 0}
+.section-title{font-size:24px;font-weight:700;margin-bottom:8px}
+.section-sub{color:var(--text-muted);margin-bottom:32px}
+
+/* About */
+.about{background:var(--bg-raised);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.about-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:32px}
+.about-item h4{font-size:16px;margin-bottom:8px;color:var(--accent)}
+.about-item p{font-size:14px;color:var(--text-muted)}
+
+/* Footer */
+.footer{padding:40px 0;text-align:center;color:var(--text-muted);font-size:13px}
+.footer a{color:var(--accent)}
+
+/* Responsive */
+@media(max-width:640px){
+  .hero{padding:48px 0 40px}
+  .games-grid{grid-template-columns:1fr}
+  .hero-stats{gap:24px}
+}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-badge">🎮 开源 AI 生成游戏 · 持续更新</div>
+    <h1>AI 生成游戏 <span>集合</span></h1>
+    <p>精选社区开源的 AI 生成游戏，全部浏览器直接玩，无需下载安装。从动作射击到生成艺术，每一款都值得体验。</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num" id="gameCount">3</div><div class="label">已上线游戏</div></div>
+      <div class="hero-stat"><div class="num">100%</div><div class="label">免费无广告</div></div>
+      <div class="hero-stat"><div class="num">CC0</div><div class="label">开源许可</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-cat="all">全部</button>
+    <button class="filter-btn" data-cat="shooter">射击</button>
+    <button class="filter-btn" data-cat="racing">竞速</button>
+    <button class="filter-btn" data-cat="art">生成艺术</button>
+    <button class="filter-btn" data-cat="puzzle">益智</button>
+    <button class="filter-btn" data-cat="action">动作</button>
+  </div>
+
+  <div class="games-grid" id="gamesGrid">
+    <!-- 游戏卡片由 JS 渲染 -->
+  </div>
+</div>
+
+<section class="about section">
+  <div class="container">
+    <h2 class="section-title">关于这个集合</h2>
+    <p class="section-sub">所有游戏均来自开源社区，由 AI 辅助创作，我们只做收录与部署</p>
+    <div class="about-grid">
+      <div class="about-item">
+        <h4>🔓 完全开源</h4>
+        <p>游戏源码来自 GitHub 开源仓库，主要采用 CC0 / MIT 许可证，可自由使用和修改。</p>
+      </div>
+      <div class="about-item">
+        <h4>⚡ 即点即玩</h4>
+        <p>纯 HTML5 / WebGL 技术，浏览器打开直接运行，支持电脑和手机，无需下载安装。</p>
+      </div>
+      <div class="about-item">
+        <h4>📈 持续更新</h4>
+        <p>每周从社区筛选优质 AI 生成游戏，部署上线。目前已收录 awesome-gpt-6-astra 等仓库的作品。</p>
+      </div>
+      <div class="about-item">
+        <h4>🌐 中文优化</h4>
+        <p>每个游戏页面都添加了中文 SEO 元数据，部分游戏已做中文化适配，方便国内玩家。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <p>游戏源码来自开源社区 · 本站仅做收录部署 · <a href="https://github.com/nilgpt2024/web-game" target="_blank">GitHub</a></p>
+    <p style="margin-top:8px"><a href="https://game.suipce.com/">← 返回游戏首页</a></p>
+  </div>
+</footer>
+
+<script>
+const games = [
+  {
+    name: "雷霆战机·天穹远征",
+    nameEn: "THUNDERFALL",
+    desc: "三种战机、五大空域、漂移弹幕、多阶段Boss与四色武器。支持手机触控的十分钟原创街机战役。",
+    icon: "🚀",
+    cat: "shooter",
+    tags: ["弹幕射击","5关战役","3种战机","手机适配"],
+    url: "https://game.suipce.com/games/Astra/Thunderfall/",
+    source: "awesome-gpt-6-astra"
+  },
+  {
+    name: "APEX CLUB 卡丁车",
+    nameEn: "Bay Kart Grand Prix",
+    desc: "3D卡丁车大奖赛，可选车辆与赛道、计时赛、漂移与氮气加速。支持键盘和触屏操作。",
+    icon: "🏎️",
+    cat: "racing",
+    tags: ["3D竞速","卡丁车","漂移","氮气"],
+    url: "https://game.suipce.com/games/Astra/Apex-Club/",
+    source: "awesome-gpt-6-astra"
+  },
+  {
+    name: "轨道花园",
+    nameEn: "Orbital Garden",
+    desc: "一件可以触摸的生成艺术作品。8000颗光点，在星之花、引力环与旋涡星系之间流动。",
+    icon: "✨",
+    cat: "art",
+    tags: ["生成艺术","WebGL","交互","放松"],
+    url: "https://game.suipce.com/games/Astra/Orbital-Garden/",
+    source: "awesome-gpt-6-astra"
+  }
+];
+
+const catNames = {shooter:"射击",racing:"竞速",art:"生成艺术",puzzle:"益智",action:"动作"};
+
+function renderGames(filter){
+  const grid = document.getElementById('gamesGrid');
+  const list = filter === 'all' ? games : games.filter(g => g.cat === filter);
+  grid.innerHTML = list.map(g => `
+    <div class="game-card">
+      <div class="card-thumb">
+        <span class="category-tag">${catNames[g.cat]||g.cat}</span>
+        <span class="icon">${g.icon}</span>
+      </div>
+      <div class="card-body">
+        <h3>${g.name} <span style="font-size:12px;color:var(--text-muted);font-weight:400">${g.nameEn}</span></h3>
+        <p>${g.desc}</p>
+        <div class="card-meta">${g.tags.map(t=>`<span>${t}</span>`).join('')}</div>
+        <div class="card-footer">
+          <a href="${g.url}" class="play-btn" target="_blank">▶ 开始游戏</a>
+          <span class="source-link">来源: ${g.source}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('gameCount').textContent = games.length;
+}
+
+document.getElementById('filterBar').addEventListener('click', e => {
+  if(e.target.classList.contains('filter-btn')){
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    renderGames(e.target.dataset.cat);
+  }
+});
+
+renderGames('all');
+</script>
+</body>
+</html>

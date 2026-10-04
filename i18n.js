@@ -37,7 +37,8 @@ const TRANSLATIONS = {
                 "memory": "记忆训练",
                 "typing": "打字练习",
                 "casual": "休闲娱乐",
-                "astra": "AI生成"
+                "astra": "AI生成",
+                "genart": "生成艺术"
             },
             "empty": {
                 "title": "未找到游戏",
@@ -235,7 +236,8 @@ const TRANSLATIONS = {
                 "memory": "Memory",
                 "typing": "Typing",
                 "casual": "Casual",
-                "astra": "AI Generated"
+                "astra": "AI Generated",
+                "genart": "Generative Art"
             },
             "empty": {
                 "title": "No games found",

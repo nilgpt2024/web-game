@@ -298,9 +298,13 @@ function getCategoryName(category) {
         'Board': 'games.filter.board',
         'Memory': 'games.filter.memory',
         'Typing': 'games.filter.typing',
-        'Casual': 'games.filter.casual'
+        'Casual': 'games.filter.casual',
+        'Astra': 'games.filter.astra',
+        'GenArt': 'games.filter.genart'
     };
-    return window.i18n?.t(i18nKeys[category]) || category;
+    const key = i18nKeys[category];
+    if (!key) return category;
+    return window.i18n?.t(key) || category;
 }
 
 function bindEvents() {

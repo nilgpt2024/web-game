@@ -13,10 +13,10 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie设置"
         },
         "hero": {
-            "eyebrow": "55款游戏 · 免费畅玩",
-            "title": "55款精品小游戏",
-            "subtitle": "随时随地，畅玩无限",
-            "description": "从经典街机到创新益智，从动作冒险到休闲放松，精选55款HTML5游戏，无需下载，即刻畅玩。",
+            "eyebrow": "168款AI生成游戏 · 免费畅玩",
+            "title": "AI 生成游戏集合",
+            "subtitle": "开源 AI 游戏，浏览器直接玩",
+            "description": "精选 168 款开源 AI 生成游戏，涵盖动作射击、益智解谜、生成艺术、竞速赛车等类型，无需下载，打开即玩，持续更新中。",
             "stats": {
                 "games": "游戏总数",
                 "categories": "游戏分类",
@@ -212,10 +212,10 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie Settings"
         },
         "hero": {
-            "eyebrow": "55 Games · Free to Play",
-            "title": "55 Premium Games",
-            "subtitle": "Play Anywhere, Anytime",
-            "description": "From classic arcade to innovative puzzles, from action adventures to casual relaxation, curated 55 HTML5 games, no download required, play instantly.",
+            "eyebrow": "168 AI-Generated Games · Free to Play",
+            "title": "AI Generated Games Collection",
+            "subtitle": "Open-source AI games, play in browser",
+            "description": "Curated 168 open-source AI-generated games: action, puzzle, generative art, racing & more. No download, play instantly, updated regularly.",
             "stats": {
                 "games": "Total Games",
                 "categories": "Categories",

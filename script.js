@@ -196,6 +196,16 @@ document.addEventListener('i18n:initialized', () => {
     initializeApp();
 });
 
+// 兜底：如果 i18n 已经初始化完成，直接执行
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (!i18nInitialized && window.i18n && window.i18n.currentLang) {
+            i18nInitialized = true;
+            initializeApp();
+        }
+    }, 100);
+});
+
 function initializeApp() {
     for (const category in gamesData) {
         gamesData[category].forEach(game => {

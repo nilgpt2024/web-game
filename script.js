@@ -80,7 +80,8 @@ const gamesData = {
         { name: 'Last Beacon', path: 'games/Astra/Last-Beacon/index.html', icon: 'fas fa-tower-broadcast', desc: '最后的灯塔：3D海岛塔防' },
         { name: 'Silent Meridian', path: 'games/Astra/Silent-Meridian/index.html', icon: 'fas fa-compass', desc: '静默子午线：网页解谜游戏' },
         { name: 'Dual Realms', path: 'games/Astra/Dual-Realms/index.html', icon: 'fas fa-khanda', desc: '时域·放学路：中文横版动作' },
-        { name: 'Race Jimothy', path: 'games/Astra/Race-Jimothy/index.html', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' }
+        { name: 'Race Jimothy', path: 'games/Astra/Race-Jimothy/index.html', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' },
+        { name: 'Fruit Ninja', path: 'games/Astra/Fruit-Ninja-Dojo/index.html', icon: 'fas fa-apple-whole', desc: '水果忍者·再来一刀：经典切水果' }
     ],
 };
 

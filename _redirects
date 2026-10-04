@@ -1,0 +1,4 @@
+# Cloudflare Pages 重定向规则
+# ai-games.html 已合并到首页，301 重定向（避免重复内容，传递权重）
+/ai-games.html  /  301
+/ai-games  /  301

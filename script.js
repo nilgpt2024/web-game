@@ -83,7 +83,6 @@ const gamesData = {
         { name: 'Race Jimothy', path: 'games/Astra/Race-Jimothy/index.html', preview: 'games/Astra/Race-Jimothy/preview.png', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' },
         { name: 'Fruit Ninja', path: 'games/Astra/Fruit-Ninja-Dojo/index.html', preview: 'games/Astra/Fruit-Ninja-Dojo/preview.png', icon: 'fas fa-apple-whole', desc: '水果忍者·再来一刀：经典切水果' }
     ],
-    ],
     GenArt: [
         { name: '极光观测台', path: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/index.html', icon: 'fas fa-palette', desc: 'AI生成交互体验', preview: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/preview.jpg' },
         { name: '形态编辑', path: 'games/Astra/MiaAI-Experiences/002-form-editorial/index.html', icon: 'fas fa-palette', desc: 'AI生成交互体验', preview: 'games/Astra/MiaAI-Experiences/002-form-editorial/preview.jpg' },

@@ -46,6 +46,8 @@ a{color:inherit;text-decoration:none}
 .game-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 20px 40px rgba(0,0,0,.4)}
 .card-thumb{height:180px;background:linear-gradient(135deg,#1e293b,#0f172a);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .card-thumb .icon{font-size:56px;opacity:.9}
+.card-thumb .card-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .3s ease}
+.game-card:hover .card-img{transform:scale(1.05)}
 .card-thumb .category-tag{position:absolute;top:12px;left:12px;padding:4px 12px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);color:var(--accent2)}
 .card-body{padding:20px}
 .card-body h3{font-size:18px;font-weight:700;margin-bottom:8px}
@@ -252,6 +254,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/001-aurora-observatory/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/001-aurora-observatory/",
     source: "MiaAI-Lab"
   },
@@ -262,6 +265,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/002-form-editorial/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/002-form-editorial/",
     source: "MiaAI-Lab"
   },
@@ -272,6 +276,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/003-kinetic-time/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/003-kinetic-time/",
     source: "MiaAI-Lab"
   },
@@ -282,6 +287,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/004-dune-residence/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/004-dune-residence/",
     source: "MiaAI-Lab"
   },
@@ -292,6 +298,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/005-abyss-sonar/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/005-abyss-sonar/",
     source: "MiaAI-Lab"
   },
@@ -302,6 +309,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/006-side-a-records/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/006-side-a-records/",
     source: "MiaAI-Lab"
   },
@@ -312,6 +320,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/007-herbarium/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/007-herbarium/",
     source: "MiaAI-Lab"
   },
@@ -322,6 +331,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/008-nacre-parfum/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/008-nacre-parfum/",
     source: "MiaAI-Lab"
   },
@@ -332,6 +342,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/009-unusual-practice/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/009-unusual-practice/",
     source: "MiaAI-Lab"
   },
@@ -342,6 +353,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/010-lava-lounge/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/010-lava-lounge/",
     source: "MiaAI-Lab"
   },
@@ -352,6 +364,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/011-postcards-from-elsewhere/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/011-postcards-from-elsewhere/",
     source: "MiaAI-Lab"
   },
@@ -362,6 +375,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/012-word-garden/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/012-word-garden/",
     source: "MiaAI-Lab"
   },
@@ -372,6 +386,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/013-pixel-orchard/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/013-pixel-orchard/",
     source: "MiaAI-Lab"
   },
@@ -382,6 +397,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/014-storm-window/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/014-storm-window/",
     source: "MiaAI-Lab"
   },
@@ -392,6 +408,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/015-fold-studio/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/015-fold-studio/",
     source: "MiaAI-Lab"
   },
@@ -402,6 +419,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/016-blueprint-of-light/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/016-blueprint-of-light/",
     source: "MiaAI-Lab"
   },
@@ -412,6 +430,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/017-jellyfish-ballet/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/017-jellyfish-ballet/",
     source: "MiaAI-Lab"
   },
@@ -422,6 +441,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/018-labyrinth-club/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/018-labyrinth-club/",
     source: "MiaAI-Lab"
   },
@@ -432,6 +452,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/019-komorebi-kitchen/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/019-komorebi-kitchen/",
     source: "MiaAI-Lab"
   },
@@ -442,6 +463,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/020-chroma-field/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/020-chroma-field/",
     source: "MiaAI-Lab"
   },
@@ -452,6 +474,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/021-departure-board/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/021-departure-board/",
     source: "MiaAI-Lab"
   },
@@ -462,6 +485,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/022-thread-and-form/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/022-thread-and-form/",
     source: "MiaAI-Lab"
   },
@@ -472,6 +496,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/023-ridgeline/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/023-ridgeline/",
     source: "MiaAI-Lab"
   },
@@ -482,6 +507,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/024-small-victories/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/024-small-victories/",
     source: "MiaAI-Lab"
   },
@@ -492,6 +518,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/025-aero-form/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/025-aero-form/",
     source: "MiaAI-Lab"
   },
@@ -502,6 +529,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/026-tidal-hours/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/026-tidal-hours/",
     source: "MiaAI-Lab"
   },
@@ -512,6 +540,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/027-mineral-cabinet/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/027-mineral-cabinet/",
     source: "MiaAI-Lab"
   },
@@ -522,6 +551,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/028-lunar-calendar/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/028-lunar-calendar/",
     source: "MiaAI-Lab"
   },
@@ -532,6 +562,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/029-pollen-atlas/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/029-pollen-atlas/",
     source: "MiaAI-Lab"
   },
@@ -542,6 +573,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/030-contour-office/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/030-contour-office/",
     source: "MiaAI-Lab"
   },
@@ -552,6 +584,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/031-whale-frequency/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/031-whale-frequency/",
     source: "MiaAI-Lab"
   },
@@ -562,6 +595,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/032-fern-house/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/032-fern-house/",
     source: "MiaAI-Lab"
   },
@@ -572,6 +606,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/033-barometer-room/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/033-barometer-room/",
     source: "MiaAI-Lab"
   },
@@ -582,6 +617,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/034-eclipse-chamber/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/034-eclipse-chamber/",
     source: "MiaAI-Lab"
   },
@@ -592,6 +628,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/035-reef-reserve/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/035-reef-reserve/",
     source: "MiaAI-Lab"
   },
@@ -602,6 +639,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/036-arctic-journal/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/036-arctic-journal/",
     source: "MiaAI-Lab"
   },
@@ -612,6 +650,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/037-migration-map/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/037-migration-map/",
     source: "MiaAI-Lab"
   },
@@ -622,6 +661,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/038-prism-studio/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/038-prism-studio/",
     source: "MiaAI-Lab"
   },
@@ -632,6 +672,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/039-sand-memory/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/039-sand-memory/",
     source: "MiaAI-Lab"
   },
@@ -642,6 +683,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/040-solar-garden/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/040-solar-garden/",
     source: "MiaAI-Lab"
   },
@@ -652,6 +694,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/041-lantern-festival/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/041-lantern-festival/",
     source: "MiaAI-Lab"
   },
@@ -662,6 +705,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/042-paper-museum/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/042-paper-museum/",
     source: "MiaAI-Lab"
   },
@@ -672,6 +716,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/043-sundial-courtyard/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/043-sundial-courtyard/",
     source: "MiaAI-Lab"
   },
@@ -682,6 +727,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/044-thought-network/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/044-thought-network/",
     source: "MiaAI-Lab"
   },
@@ -692,6 +738,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/045-seed-library/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/045-seed-library/",
     source: "MiaAI-Lab"
   },
@@ -702,6 +749,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/046-wind-chapel/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/046-wind-chapel/",
     source: "MiaAI-Lab"
   },
@@ -712,6 +760,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/047-ice-core-archive/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/047-ice-core-archive/",
     source: "MiaAI-Lab"
   },
@@ -722,6 +771,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/048-dream-index/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/048-dream-index/",
     source: "MiaAI-Lab"
   },
@@ -732,6 +782,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/049-ink-diffusion/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/049-ink-diffusion/",
     source: "MiaAI-Lab"
   },
@@ -742,6 +793,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/050-star-navigation/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/050-star-navigation/",
     source: "MiaAI-Lab"
   },
@@ -752,6 +804,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/051-tea-ceremony/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/051-tea-ceremony/",
     source: "MiaAI-Lab"
   },
@@ -762,6 +815,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/052-hydraulic-balance/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/052-hydraulic-balance/",
     source: "MiaAI-Lab"
   },
@@ -772,6 +826,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/053-type-specimen/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/053-type-specimen/",
     source: "MiaAI-Lab"
   },
@@ -782,6 +837,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/054-lunar-planner/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/054-lunar-planner/",
     source: "MiaAI-Lab"
   },
@@ -792,6 +848,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/055-chromatic-mixer/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/055-chromatic-mixer/",
     source: "MiaAI-Lab"
   },
@@ -802,6 +859,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/056-midnight-radio/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/056-midnight-radio/",
     source: "MiaAI-Lab"
   },
@@ -812,6 +870,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/057-zen-stones/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/057-zen-stones/",
     source: "MiaAI-Lab"
   },
@@ -822,6 +881,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/058-archive-vault/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/058-archive-vault/",
     source: "MiaAI-Lab"
   },
@@ -832,6 +892,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/059-sprint-clock/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/059-sprint-clock/",
     source: "MiaAI-Lab"
   },
@@ -842,6 +903,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/060-pasta-table/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/060-pasta-table/",
     source: "MiaAI-Lab"
   },
@@ -852,6 +914,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/061-metro-map/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/061-metro-map/",
     source: "MiaAI-Lab"
   },
@@ -862,6 +925,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/062-star-atlas/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/062-star-atlas/",
     source: "MiaAI-Lab"
   },
@@ -872,6 +936,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/063-sound-shapes/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/063-sound-shapes/",
     source: "MiaAI-Lab"
   },
@@ -882,6 +947,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/064-fourth-dimension/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/064-fourth-dimension/",
     source: "MiaAI-Lab"
   },
@@ -892,6 +958,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/065-bloom-lab/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/065-bloom-lab/",
     source: "MiaAI-Lab"
   },
@@ -902,6 +969,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/066-knights-tour/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/066-knights-tour/",
     source: "MiaAI-Lab"
   },
@@ -912,6 +980,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/067-glacier-study/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/067-glacier-study/",
     source: "MiaAI-Lab"
   },
@@ -922,6 +991,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/068-field-notes/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/068-field-notes/",
     source: "MiaAI-Lab"
   },
@@ -932,6 +1002,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/069-night-ticket/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/069-night-ticket/",
     source: "MiaAI-Lab"
   },
@@ -942,6 +1013,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/070-kinetic-balance/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/070-kinetic-balance/",
     source: "MiaAI-Lab"
   },
@@ -952,6 +1024,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/071-focus-room/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/071-focus-room/",
     source: "MiaAI-Lab"
   },
@@ -962,6 +1035,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/072-pixel-quilt/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/072-pixel-quilt/",
     source: "MiaAI-Lab"
   },
@@ -972,6 +1046,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/073-cellar-notes/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/073-cellar-notes/",
     source: "MiaAI-Lab"
   },
@@ -982,6 +1057,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/074-orbit-budget/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/074-orbit-budget/",
     source: "MiaAI-Lab"
   },
@@ -992,6 +1068,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/075-cloud-composer/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/075-cloud-composer/",
     source: "MiaAI-Lab"
   },
@@ -1002,6 +1079,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/076-atelier-plan/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/076-atelier-plan/",
     source: "MiaAI-Lab"
   },
@@ -1012,6 +1090,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/077-golden-repair/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/077-golden-repair/",
     source: "MiaAI-Lab"
   },
@@ -1022,6 +1101,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/078-midnight-cinema/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/078-midnight-cinema/",
     source: "MiaAI-Lab"
   },
@@ -1032,6 +1112,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/079-island-atlas/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/079-island-atlas/",
     source: "MiaAI-Lab"
   },
@@ -1042,6 +1123,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/080-hour-object/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/080-hour-object/",
     source: "MiaAI-Lab"
   },
@@ -1052,6 +1134,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/081-chromatic-chapel/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/081-chromatic-chapel/",
     source: "MiaAI-Lab"
   },
@@ -1062,6 +1145,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/082-clay-form/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/082-clay-form/",
     source: "MiaAI-Lab"
   },
@@ -1072,6 +1156,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/083-letter-foundry/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/083-letter-foundry/",
     source: "MiaAI-Lab"
   },
@@ -1082,6 +1167,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/084-ring-world/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/084-ring-world/",
     source: "MiaAI-Lab"
   },
@@ -1092,6 +1178,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/085-night-train/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/085-night-train/",
     source: "MiaAI-Lab"
   },
@@ -1102,6 +1189,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/086-woven-memory/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/086-woven-memory/",
     source: "MiaAI-Lab"
   },
@@ -1112,6 +1200,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/087-marble-room/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/087-marble-room/",
     source: "MiaAI-Lab"
   },
@@ -1122,6 +1211,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/088-incense-hour/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/088-incense-hour/",
     source: "MiaAI-Lab"
   },
@@ -1132,6 +1222,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/089-vinyl-evening/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/089-vinyl-evening/",
     source: "MiaAI-Lab"
   },
@@ -1142,6 +1233,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/090-glasshouse/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/090-glasshouse/",
     source: "MiaAI-Lab"
   },
@@ -1152,6 +1244,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/091-ink-mountains/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/091-ink-mountains/",
     source: "MiaAI-Lab"
   },
@@ -1162,6 +1255,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/092-aerogram/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/092-aerogram/",
     source: "MiaAI-Lab"
   },
@@ -1172,6 +1266,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/093-cellar-notes/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/093-cellar-notes/",
     source: "MiaAI-Lab"
   },
@@ -1182,6 +1277,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/094-ribbon-rehearsal/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/094-ribbon-rehearsal/",
     source: "MiaAI-Lab"
   },
@@ -1192,6 +1288,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/095-light-hour/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/095-light-hour/",
     source: "MiaAI-Lab"
   },
@@ -1202,6 +1299,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/096-magnetic-matter/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/096-magnetic-matter/",
     source: "MiaAI-Lab"
   },
@@ -1212,6 +1310,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/097-small-oracle/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/097-small-oracle/",
     source: "MiaAI-Lab"
   },
@@ -1222,6 +1321,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/098-poolside-club/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/098-poolside-club/",
     source: "MiaAI-Lab"
   },
@@ -1232,6 +1332,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/099-marginalia/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/099-marginalia/",
     source: "MiaAI-Lab"
   },
@@ -1242,6 +1343,7 @@ const games = [
     icon: "✨",
     cat: "art",
     tags: ["生成艺术","交互体验","AI生成","单文件"],
+    preview: "https://game.suipce.com/games/Astra/MiaAI-Experiences/100-organic-wave-lab/preview.jpg",
     url: "https://game.suipce.com/games/Astra/MiaAI-Experiences/100-organic-wave-lab/",
     source: "MiaAI-Lab"
   },
@@ -1257,7 +1359,7 @@ function renderGames(filter){
     <div class="game-card">
       <div class="card-thumb">
         <span class="category-tag">${catNames[g.cat]||g.cat}</span>
-        <span class="icon">${g.icon}</span>
+        ${g.preview ? `<img src="${g.preview}" alt="${g.name}" loading="lazy" class="card-img">` : `<span class="icon">${g.icon}</span>`}
       </div>
       <div class="card-body">
         <h3>${g.name} <span style="font-size:12px;color:var(--text-muted);font-weight:400">${g.nameEn}</span></h3>

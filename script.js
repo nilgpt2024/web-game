@@ -267,12 +267,12 @@ function createGameCard(game, index) {
 
     card.innerHTML = `
         <div class="card-shell">
-            <div class="card-core">
-                <div class="game-icon-wrap">
-                    ${game.preview ? `<img src="${game.preview}" alt="${localizedName}" loading="lazy" class="card-preview-img">` : `<i class="${game.icon}"></i>`}
-                </div>
+            <div class="card-thumb">
+                <span class="category-tag">${localizedCategory}</span>
+                ${game.preview ? `<img src="${game.preview}" alt="${localizedName}" loading="lazy" class="card-img">` : `<i class="thumb-icon ${game.icon}"></i>`}
+            </div>
+            <div class="card-body">
                 <h3 class="game-name">${localizedName}</h3>
-                <span class="game-cat-tag">${localizedCategory}</span>
                 <p class="game-desc">${localizedDesc}</p>
             </div>
         </div>

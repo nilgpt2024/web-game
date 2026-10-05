@@ -1,0 +1,4488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Idle Factory Tycoon</title>
+    <script src="https://cdn.jsdelivr.net/npm/break_infinity.js@2"></script>
+    <style>@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Orbitron:wght@500;700&display=swap');
+
+    :root {
+        --bg-dark: #0a0e14;
+        --bg-panel: #12171f;
+        --bg-card: #1a2029;
+        --bg-hover: #232b38;
+        --border: #2a3441;
+        --border-highlight: #4a9eff;
+        --text: #b8c5d6;
+        --text-dim: #6b7a8f;
+        --text-bright: #e8eef5;
+        --accent: #4a9eff;
+        --accent-dim: #2d6bc4;
+        --success: #2ecc71;
+        --warning: #f39c12;
+        --danger: #e74c3c;
+        --gold: #ffd700;
+        --purple: #9b59b6;
+        --cyan: #00d4ff;
+        --pink: #ff6b9d;
+        --comp-color: #4a9eff;
+        --widget-color: #2ecc71;
+        --gadget-color: #9b59b6;
+        --proto-color: #f39c12;
+        --innov-color: #00d4ff;
+        --bp-color: #3498db;
+        --patent-color: #9b59b6;
+        --corp-color: #ffd700;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    html, body {
+        overflow-x: hidden;
+        overscroll-behavior: none;
+    }
+
+    body {
+        font-family: 'JetBrains Mono', monospace;
+        background: var(--bg-dark);
+        color: var(--text);
+        min-height: 100vh;
+        min-height: 100dvh;
+        line-height: 1.4;
+        font-size: 13px;
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-dim);
+    }
+
+    .header {
+        background: var(--bg-panel);
+        border-bottom: 1px solid var(--border);
+        padding: 8px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .header-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-bright);
+        letter-spacing: 2px;
+    }
+
+    .header-title span {
+        color: var(--accent);
+    }
+
+    .prestige-indicators {
+        display: flex;
+        gap: 12px;
+    }
+
+    .prestige-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background: var(--bg-card);
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .prestige-indicator:hover {
+        background: var(--bg-hover);
+    }
+
+    .prestige-indicator.blueprints {
+        border-left: 3px solid var(--bp-color);
+    }
+
+    .prestige-indicator.patents {
+        border-left: 3px solid var(--patent-color);
+    }
+
+    .prestige-indicator.corporations {
+        border-left: 3px solid var(--corp-color);
+    }
+
+    .prestige-indicator .value {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+    }
+
+    .header-controls {
+        display: flex;
+        gap: 4px;
+    }
+
+    .icon-btn {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        transition: all 0.15s;
+    }
+
+    .icon-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .main-container {
+        display: flex;
+        min-height: calc(100vh - 50px);
+    }
+
+    .sidebar {
+        width: 280px;
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+    }
+
+    .resources-panel {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .resource-section-title {
+        font-size: 10px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .resource-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 10px;
+        background: var(--bg-card);
+        border-radius: 4px;
+        margin-bottom: 4px;
+        transition: all 0.15s;
+        cursor: pointer;
+    }
+
+    .resource-item:hover {
+        background: var(--bg-hover);
+    }
+
+    .resource-item.active {
+        background: var(--bg-hover);
+        border-left: 3px solid var(--accent);
+    }
+
+    .resource-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .resource-icon {
+        font-size: 16px;
+    }
+
+    .resource-name {
+        font-size: 11px;
+        color: var(--text-dim);
+    }
+
+    .resource-right {
+        text-align: right;
+    }
+
+    .resource-value {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-bright);
+    }
+
+    .resource-rate {
+        font-size: 10px;
+        color: var(--success);
+    }
+
+    .resource-rate.negative {
+        color: var(--danger);
+    }
+
+    .production-panel {
+        padding: 16px 12px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .main-btn {
+        width: 100%;
+        background: var(--bg-card);
+        border: 2px solid var(--accent);
+        color: var(--text-bright);
+        padding: 16px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .main-btn:hover {
+        background: var(--accent-dim);
+    }
+
+    .main-btn:active {
+        transform: scale(0.98);
+    }
+
+    .main-btn .subtitle {
+        display: block;
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-top: 4px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .combo-indicator {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: var(--warning);
+        color: var(--bg-dark);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        display: none;
+    }
+
+    .combo-indicator.active {
+        display: block;
+        animation: comboPulse 0.3s ease-out;
+    }
+
+    @keyframes comboPulse {
+        0% {
+            transform: scale(1.3);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .minigame-buttons {
+        display: grid;
+        grid-template-columns:1fr 1fr;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .mini-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 10px 8px;
+        font-size: 10px;
+        cursor: pointer;
+        transition: all 0.15s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .mini-btn:hover:not(:disabled) {
+        border-color: var(--warning);
+        color: var(--warning);
+    }
+
+    .mini-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .mini-btn .cooldown {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: var(--accent);
+        transition: width 0.1s linear;
+        width: 0%;
+    }
+
+    .mini-btn.active {
+        border-color: var(--success);
+        color: var(--success);
+        animation: miniPulse 0.5s ease-in-out infinite;
+    }
+
+    @keyframes miniPulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 8px 2px rgba(46, 204, 113, 0.2);
+        }
+    }
+
+    .nav-tabs {
+        display: flex;
+        flex-direction: column;
+        padding: 8px;
+        gap: 2px;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    .nav-tab {
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        padding: 10px 12px;
+        font-size: 11px;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .nav-tab:hover {
+        background: var(--bg-card);
+        color: var(--text);
+    }
+
+    .nav-tab.active {
+        background: var(--accent-dim);
+        color: var(--text-bright);
+    }
+
+    .nav-tab .badge {
+        margin-left: auto;
+        background: var(--danger);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 10px;
+        font-size: 9px;
+    }
+
+    .nav-tab .badge.success {
+        background: var(--success);
+    }
+
+    .nav-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 8px 0;
+    }
+
+    .content-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        padding-bottom: 80px;
+    }
+
+    .panel {
+        display: none;
+    }
+
+    .panel.active {
+        display: block;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        color: var(--text-bright);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-subtitle {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-top: 2px;
+    }
+
+    .section-actions {
+        display: flex;
+        gap: 4px;
+    }
+
+    .buildings-grid {
+        display: grid;
+        gap: 8px;
+    }
+
+    .building-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px;
+        display: flex;
+        gap: 12px;
+        transition: all 0.15s;
+    }
+
+    .building-card:hover {
+        border-color: var(--border-highlight);
+    }
+
+    .building-card.can-afford {
+        border-color: var(--success);
+    }
+
+    .building-card.locked {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    .building-card.chained {
+        border-left: 3px solid var(--purple);
+    }
+
+    .building-icon-wrap {
+        width: 48px;
+        height: 48px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.15s;
+        flex-shrink: 0;
+    }
+
+    .building-icon-wrap:hover {
+        transform: scale(1.1);
+        border-color: var(--accent);
+    }
+
+    .building-card.can-afford .building-icon-wrap:hover {
+        background: var(--success);
+        border-color: var(--success);
+    }
+
+    .building-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .building-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .building-name {
+        font-weight: 600;
+        color: var(--text-bright);
+        font-size: 13px;
+    }
+
+    .building-count {
+        background: var(--accent-dim);
+        color: var(--text-bright);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .building-level {
+        background: var(--purple);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 9px;
+    }
+
+    .building-desc {
+        font-size: 11px;
+        color: var(--text-dim);
+        margin-bottom: 4px;
+    }
+
+    .building-stats {
+        display: flex;
+        gap: 12px;
+        font-size: 10px;
+        flex-wrap: wrap;
+    }
+
+    .building-stat {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .building-stat.production {
+        color: var(--success);
+    }
+
+    .building-stat.cost {
+        color: var(--warning);
+    }
+
+    .building-stat.synergy {
+        color: var(--cyan);
+    }
+
+    .building-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .buy-btn {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 6px 12px;
+        font-size: 10px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+
+    .buy-btn:hover:not(:disabled) {
+        border-color: var(--accent);
+        background: var(--accent-dim);
+    }
+
+    .buy-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .spec-container {
+        display: grid;
+        grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+    }
+
+    .spec-card {
+        background: var(--bg-panel);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+
+    .spec-card:hover {
+        border-color: var(--border-highlight);
+    }
+
+    .spec-card.active {
+        border-color: var(--accent);
+    }
+
+    .spec-header {
+        padding: 16px;
+        background: var(--bg-card);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .spec-icon {
+        font-size: 32px;
+    }
+
+    .spec-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        color: var(--text-bright);
+    }
+
+    .spec-level {
+        margin-left: auto;
+        background: var(--accent);
+        color: var(--bg-dark);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .spec-content {
+        padding: 16px;
+    }
+
+    .spec-desc {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 12px;
+    }
+
+    .spec-progress {
+        margin-bottom: 12px;
+    }
+
+    .spec-progress-bar {
+        height: 8px;
+        background: var(--bg-dark);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .spec-progress-fill {
+        height: 100%;
+        background: var(--accent);
+        transition: width 0.3s;
+    }
+
+    .spec-progress-text {
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-top: 4px;
+        text-align: right;
+    }
+
+    .spec-upgrades {
+        display: grid;
+        grid-template-columns:repeat(5, 1fr);
+        gap: 4px;
+    }
+
+    .spec-upgrade {
+        aspect-ratio: 1;
+        background: var(--bg-dark);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.15s;
+        position: relative;
+    }
+
+    .spec-upgrade:hover:not(.locked) {
+        border-color: var(--accent);
+        transform: scale(1.1);
+    }
+
+    .spec-upgrade.unlocked {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+    }
+
+    .spec-upgrade.locked {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .spec-upgrade.available {
+        border-color: var(--success);
+        animation: specPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes specPulse {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 0 4px rgba(46, 204, 113, 0);
+        }
+    }
+
+    .spec-invest-btn {
+        width: 100%;
+        margin-top: 12px;
+        padding: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        font-size: 11px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s;
+    }
+
+    .spec-invest-btn:hover:not(:disabled) {
+        background: var(--accent);
+        color: var(--bg-dark);
+    }
+
+    .spec-invest-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .upgrades-grid {
+        display: grid;
+        grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+        gap: 8px;
+    }
+
+    .upgrade-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .upgrade-card:hover:not(.purchased):not(.locked) {
+        border-color: var(--accent);
+    }
+
+    .upgrade-card.can-afford {
+        border-color: var(--success);
+    }
+
+    .upgrade-card.purchased {
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    .upgrade-card.locked {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .upgrade-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 6px;
+    }
+
+    .upgrade-name {
+        font-weight: 600;
+        color: var(--text-bright);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .upgrade-tier {
+        font-size: 9px;
+        padding: 2px 4px;
+        border-radius: 2px;
+        background: var(--bg-card);
+        color: var(--text-dim);
+    }
+
+    .upgrade-cost {
+        font-size: 11px;
+        color: var(--warning);
+    }
+
+    .upgrade-desc {
+        font-size: 11px;
+        color: var(--text-dim);
+    }
+
+    .research-grid {
+        display: grid;
+        grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
+    }
+
+    .research-card {
+        background: var(--bg-panel);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .research-card:hover:not(.purchased):not(.locked) {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+    }
+
+    .research-card.can-afford {
+        border-color: var(--success);
+    }
+
+    .research-card.purchased {
+        border-color: var(--accent);
+        background: rgba(74, 158, 255, 0.1);
+    }
+
+    .research-card.purchased::after {
+        content: '✓';
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        color: var(--success);
+        font-size: 16px;
+    }
+
+    .research-card.locked {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .research-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+    }
+
+    .research-name {
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-bright);
+        margin-bottom: 6px;
+    }
+
+    .research-desc {
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+    }
+
+    .research-cost {
+        font-size: 11px;
+        color: var(--warning);
+        font-family: 'Orbitron', sans-serif;
+    }
+
+    .research-tier {
+        font-size: 9px;
+        color: var(--text-dim);
+        margin-top: 6px;
+        text-transform: uppercase;
+    }
+
+    .prestige-section {
+        margin-bottom: 24px;
+    }
+
+    .prestige-card {
+        background: var(--bg-panel);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 16px;
+    }
+
+    .prestige-card.blueprints {
+        border-color: var(--bp-color);
+    }
+
+    .prestige-card.patents {
+        border-color: var(--patent-color);
+    }
+
+    .prestige-card.corporations {
+        border-color: var(--corp-color);
+    }
+
+    .prestige-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .prestige-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 16px;
+        color: var(--text-bright);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .prestige-current {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 20px;
+    }
+
+    .prestige-current.blueprints {
+        color: var(--bp-color);
+    }
+
+    .prestige-current.patents {
+        color: var(--patent-color);
+    }
+
+    .prestige-current.corporations {
+        color: var(--corp-color);
+    }
+
+    .prestige-info {
+        display: grid;
+        grid-template-columns:repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .prestige-stat {
+        background: var(--bg-card);
+        padding: 12px;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    .prestige-stat-label {
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-bottom: 4px;
+    }
+
+    .prestige-stat-value {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        color: var(--text-bright);
+    }
+
+    .prestige-btn {
+        width: 100%;
+        padding: 14px;
+        background: var(--bg-card);
+        border: 2px solid var(--border);
+        color: var(--text);
+        font-family: 'Orbitron', sans-serif;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.15s;
+    }
+
+    .prestige-btn:hover:not(:disabled) {
+        border-color: var(--gold);
+        color: var(--gold);
+    }
+
+    .prestige-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .prestige-btn.blueprints:hover:not(:disabled) {
+        border-color: var(--bp-color);
+        color: var(--bp-color);
+    }
+
+    .prestige-btn.patents:hover:not(:disabled) {
+        border-color: var(--patent-color);
+        color: var(--patent-color);
+    }
+
+    .prestige-btn.corporations:hover:not(:disabled) {
+        border-color: var(--corp-color);
+        color: var(--corp-color);
+    }
+
+    .prestige-upgrades-grid {
+        display: grid;
+        grid-template-columns:repeat(auto-fill, minmax(200px, 1fr));
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .prestige-upgrade {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .prestige-upgrade:hover:not(.purchased):not(.locked) {
+        border-color: var(--gold);
+    }
+
+    .prestige-upgrade.purchased {
+        opacity: 0.5;
+        cursor: default;
+    }
+
+    .prestige-upgrade.locked {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .challenges-grid {
+        display: grid;
+        grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+        gap: 12px;
+    }
+
+    .challenge-card {
+        background: var(--bg-panel);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+
+    .challenge-card:hover:not(.active):not(.completed):not(.cooldown) {
+        border-color: var(--warning);
+    }
+
+    .challenge-card.active {
+        border-color: var(--warning);
+        animation: challengeActive 1s ease-in-out infinite;
+    }
+
+    @keyframes challengeActive {
+        0%, 100% {
+            box-shadow: 0 0 0 0 rgba(243, 156, 18, 0.4);
+        }
+        50% {
+            box-shadow: 0 0 0 8px rgba(243, 156, 18, 0);
+        }
+    }
+
+    .challenge-card.completed {
+        border-color: var(--success);
+        background: rgba(46, 204, 113, 0.1);
+    }
+
+    .challenge-card.cooldown {
+        opacity: 0.6;
+    }
+
+    .challenge-header {
+        padding: 12px 16px;
+        background: var(--bg-card);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .challenge-icon {
+        font-size: 24px;
+    }
+
+    .challenge-title {
+        flex: 1;
+    }
+
+    .challenge-name {
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-bright);
+    }
+
+    .challenge-type {
+        font-size: 10px;
+        color: var(--text-dim);
+    }
+
+    .challenge-timer {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 14px;
+        color: var(--warning);
+    }
+
+    .challenge-content {
+        padding: 16px;
+    }
+
+    .challenge-desc {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-bottom: 12px;
+    }
+
+    .challenge-progress {
+        margin-bottom: 12px;
+    }
+
+    .challenge-progress-bar {
+        height: 6px;
+        background: var(--bg-dark);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .challenge-progress-fill {
+        height: 100%;
+        background: var(--warning);
+        transition: width 0.2s;
+    }
+
+    .challenge-progress-text {
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-top: 4px;
+    }
+
+    .challenge-rewards {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .challenge-reward {
+        background: var(--bg-card);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 10px;
+        color: var(--success);
+    }
+
+    .challenge-mutators {
+        display: flex;
+        gap: 4px;
+        margin-top: 8px;
+    }
+
+    .challenge-mutator {
+        background: var(--danger);
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 9px;
+    }
+
+    .challenge-btn {
+        width: 100%;
+        padding: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--warning);
+        color: var(--warning);
+        font-size: 11px;
+        cursor: pointer;
+        border-radius: 4px;
+        margin-top: 12px;
+        transition: all 0.15s;
+    }
+
+    .challenge-btn:hover:not(:disabled) {
+        background: var(--warning);
+        color: var(--bg-dark);
+    }
+
+    .challenge-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .stats-dashboard {
+        display: grid;
+        grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+        gap: 16px;
+    }
+
+    .stats-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .stats-card-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 12px;
+        color: var(--accent);
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .stats-grid {
+        display: grid;
+        gap: 8px;
+    }
+
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .stat-row:last-child {
+        border-bottom: none;
+    }
+
+    .stat-label {
+        color: var(--text-dim);
+        font-size: 11px;
+    }
+
+    .stat-value {
+        color: var(--text-bright);
+        font-weight: 600;
+        font-size: 11px;
+    }
+
+    .achievements-grid {
+        display: grid;
+        grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+        gap: 8px;
+    }
+
+    .achievement-card {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.15s;
+    }
+
+    .achievement-card.unlocked {
+        border-left: 3px solid var(--gold);
+    }
+
+    .achievement-card.locked {
+        opacity: 0.4;
+    }
+
+    .achievement-icon {
+        font-size: 24px;
+        width: 40px;
+        text-align: center;
+    }
+
+    .achievement-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .achievement-name {
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--text-bright);
+    }
+
+    .achievement-desc {
+        font-size: 10px;
+        color: var(--text-dim);
+    }
+
+    .achievement-bonus {
+        font-size: 10px;
+        color: var(--success);
+    }
+
+    .mastery-container {
+        display: grid;
+        grid-template-columns:300px 1fr;
+        gap: 20px;
+    }
+
+    .mastery-overview {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .mastery-level {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .mastery-level-number {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 48px;
+        color: var(--gold);
+        line-height: 1;
+    }
+
+    .mastery-level-label {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 4px;
+    }
+
+    .mastery-xp-bar {
+        height: 12px;
+        background: var(--bg-dark);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 8px;
+    }
+
+    .mastery-xp-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--gold), var(--warning));
+        transition: width 0.3s;
+    }
+
+    .mastery-xp-text {
+        font-size: 11px;
+        color: var(--text-dim);
+        text-align: center;
+    }
+
+    .mastery-bonuses {
+        margin-top: 20px;
+    }
+
+    .mastery-bonus-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 11px;
+    }
+
+    .mastery-bonus-item:last-child {
+        border-bottom: none;
+    }
+
+    .mastery-tree {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .mastery-nodes {
+        display: grid;
+        grid-template-columns:repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+    }
+
+    .mastery-node {
+        background: var(--bg-card);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .mastery-node:hover:not(.locked) {
+        border-color: var(--gold);
+    }
+
+    .mastery-node.unlocked {
+        border-color: var(--gold);
+        background: rgba(255, 215, 0, 0.1);
+    }
+
+    .mastery-node.locked {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .mastery-node-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .mastery-node-name {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-bright);
+        margin-bottom: 4px;
+    }
+
+    .mastery-node-desc {
+        font-size: 9px;
+        color: var(--text-dim);
+    }
+
+    .mastery-node-cost {
+        font-size: 10px;
+        color: var(--gold);
+        margin-top: 6px;
+    }
+
+    .tutorial-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .tutorial-overlay.active {
+        display: flex;
+    }
+
+    .tutorial-modal {
+        background: var(--bg-panel);
+        border: 2px solid var(--accent);
+        border-radius: 12px;
+        padding: 32px;
+        max-width: 500px;
+        width: 90%;
+        text-align: center;
+    }
+
+    .tutorial-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    .tutorial-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 20px;
+        color: var(--text-bright);
+        margin-bottom: 12px;
+    }
+
+    .tutorial-text {
+        font-size: 13px;
+        color: var(--text);
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .tutorial-progress {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .tutorial-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--border);
+    }
+
+    .tutorial-dot.active {
+        background: var(--accent);
+    }
+
+    .tutorial-dot.completed {
+        background: var(--success);
+    }
+
+    .tutorial-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+
+    .tutorial-btn {
+        padding: 12px 24px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text);
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.15s;
+    }
+
+    .tutorial-btn.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--bg-dark);
+    }
+
+    .tutorial-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .toasts {
+        position: fixed;
+        top: 60px;
+        right: 16px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--accent);
+        padding: 12px 16px;
+        border-radius: 4px;
+        font-size: 12px;
+        max-width: 300px;
+        animation: toastIn 0.2s ease, toastOut 0.3s ease 2.7s forwards;
+        pointer-events: auto;
+    }
+
+    .toast.success {
+        border-left-color: var(--success);
+    }
+
+    .toast.warning {
+        border-left-color: var(--warning);
+    }
+
+    .toast.achievement {
+        border-left-color: var(--gold);
+    }
+
+    .toast.prestige {
+        border-left-color: var(--purple);
+    }
+
+    @keyframes toastIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes toastOut {
+        to {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-overlay.active {
+        display: flex;
+    }
+
+    .modal {
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+        max-width: 450px;
+        width: 90%;
+    }
+
+    .modal-title {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 16px;
+        color: var(--text-bright);
+        margin-bottom: 12px;
+    }
+
+    .modal-content {
+        font-size: 13px;
+        color: var(--text);
+        margin-bottom: 20px;
+    }
+
+    .modal-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .modal-btn {
+        padding: 10px 20px;
+        border: 1px solid var(--border);
+        background: var(--bg-card);
+        color: var(--text);
+        font-size: 12px;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s;
+    }
+
+    .modal-btn.primary {
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .modal-btn.danger {
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+
+    .modal-btn:hover {
+        background: var(--bg-hover);
+    }
+
+    .options-panel {
+        position: fixed;
+        top: 50px;
+        right: 16px;
+        background: var(--bg-panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        z-index: 1000;
+        min-width: 240px;
+        display: none;
+    }
+
+    .options-panel.active {
+        display: block;
+    }
+
+    .option-group {
+        margin-bottom: 16px;
+    }
+
+    .option-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .option-label {
+        font-size: 10px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .option-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+    }
+
+    .option-row select, .option-row input[type="range"] {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 4px 8px;
+        font-size: 11px;
+        border-radius: 4px;
+    }
+
+    .option-row input[type="range"] {
+        width: 100px;
+    }
+
+    .option-btn {
+        width: 100%;
+        padding: 10px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        color: var(--text);
+        font-size: 11px;
+        cursor: pointer;
+        border-radius: 4px;
+        margin-top: 8px;
+        transition: all 0.15s;
+    }
+
+    .option-btn:hover {
+        border-color: var(--accent);
+    }
+
+    .option-btn.danger {
+        border-color: var(--danger);
+        color: var(--danger);
+    }
+
+    .particle {
+        position: fixed;
+        pointer-events: none;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--success);
+        animation: particleFloat 0.8s ease-out forwards;
+        z-index: 600;
+    }
+
+    @keyframes particleFloat {
+        0% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-40px) scale(0.8);
+        }
+    }
+
+    .golden-gear {
+        position: fixed;
+        font-size: 36px;
+        cursor: pointer;
+        z-index: 500;
+        animation: gearSpin 4s linear infinite;
+        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+    }
+
+    @keyframes gearSpin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .bulk-toggle {
+        display: flex;
+        gap: 2px;
+        background: var(--bg-dark);
+        padding: 2px;
+        border-radius: 4px;
+    }
+
+    .bulk-btn {
+        padding: 4px 8px;
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        font-size: 10px;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: all 0.15s;
+    }
+
+    .bulk-btn:hover {
+        color: var(--text);
+    }
+
+    .bulk-btn.active {
+        background: var(--accent);
+        color: var(--bg-dark);
+    }
+
+    .chain-indicator {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        background: var(--purple);
+        color: white;
+        border-radius: 4px;
+        font-size: 9px;
+    }
+
+    @media (max-width: 900px) {
+        .main-container {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+            max-height: 40vh;
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .resources-panel {
+            display: grid;
+            grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
+            gap: 4px;
+        }
+
+        .nav-tabs {
+            flex-direction: row;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            flex-shrink: 0;
+        }
+
+        .nav-divider {
+            display: none;
+        }
+
+        .production-panel {
+            display: none;
+        }
+
+        .mastery-container {
+            grid-template-columns:1fr;
+        }
+
+        .prestige-indicators {
+            display: none;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .header-title {
+            font-size: 12px;
+        }
+
+        .content-area {
+            padding: 12px;
+        }
+
+        .spec-container, .challenges-grid, .stats-dashboard {
+            grid-template-columns:1fr;
+        }
+
+        .building-card {
+            flex-wrap: wrap;
+        }
+
+        .building-actions {
+            width: 100%;
+            flex-direction: row;
+            margin-top: 8px;
+        }
+    }</style>
+</head>
+<body>
+<header class="header">
+    <div class="header-left"><h1 class="header-title"><span>IDLE</span>FACTORY TYCOON</h1>
+        <div class="prestige-indicators">
+            <div class="prestige-indicator blueprints" id="bpIndicator" title="Blueprints"><span>📐</span><span
+                    class="value" id="bpValue">0</span></div>
+            <div class="prestige-indicator patents" id="patentIndicator" title="Patents"><span>📜</span><span
+                    class="value" id="patentValue">0</span></div>
+            <div class="prestige-indicator corporations" id="corpIndicator" title="Corporations"><span>🏢</span><span
+                    class="value" id="corpValue">0</span></div>
+        </div>
+    </div>
+    <div class="header-controls">
+        <button class="icon-btn" id="tutorialBtn" title="Tutorial">❓</button>
+        <button class="icon-btn" id="saveBtn" title="Save">💾</button>
+        <button class="icon-btn" id="muteBtn" title="Mute">🔊</button>
+        <button class="icon-btn" id="optionsBtn" title="Options">⚙️</button>
+    </div>
+</header>
+<div class="main-container">
+    <aside class="sidebar">
+        <div class="resources-panel" id="resourcesPanel"></div>
+        <div class="production-panel">
+            <button class="main-btn" id="mainBtn">🔧 FABRICATE<span class="subtitle"
+                                                                   id="clickValue">+1 per click</span><span
+                    class="combo-indicator" id="comboIndicator">x1</span></button>
+            <div class="minigame-buttons">
+                <button class="mini-btn" id="overclockBtn" title="Overclock">⚡ Overclock
+                    <div class="cooldown" id="overclockCooldown"></div>
+                </button>
+                <button class="mini-btn" id="qualityBtn" title="Quality Check">🎯 QC Check
+                    <div class="cooldown" id="qualityCooldown"></div>
+                </button>
+            </div>
+        </div>
+        <nav class="nav-tabs" id="navTabs">
+            <button class="nav-tab active" data-tab="buildings">🏭 Buildings</button>
+            <button class="nav-tab" data-tab="specializations">⭐ Specs</button>
+            <button class="nav-tab" data-tab="upgrades">⬆️ Upgrades</button>
+            <button class="nav-tab" data-tab="research">🔬 Research</button>
+            <div class="nav-divider"></div>
+            <button class="nav-tab" data-tab="prestige">🔄 Prestige</button>
+            <button class="nav-tab" data-tab="challenges">🏆 Challenges</button>
+            <div class="nav-divider"></div>
+            <button class="nav-tab" data-tab="mastery">✨ Mastery</button>
+            <button class="nav-tab" data-tab="achievements">🏅 Achievements</button>
+            <button class="nav-tab" data-tab="stats">📊 Stats</button>
+        </nav>
+    </aside>
+    <main class="content-area">
+        <section class="panel active" id="buildingsPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">🏭 Production Facilities</div>
+                    <div class="section-subtitle">Build and upgrade your factory empire</div>
+                </div>
+                <div class="section-actions">
+                    <div class="bulk-toggle" id="bulkToggle">
+                        <button class="bulk-btn active" data-amount="1">×1</button>
+                        <button class="bulk-btn" data-amount="10">×10</button>
+                        <button class="bulk-btn" data-amount="100">×100</button>
+                        <button class="bulk-btn" data-amount="max">MAX</button>
+                    </div>
+                </div>
+            </div>
+            <div class="buildings-grid" id="buildingsGrid"></div>
+        </section>
+        <section class="panel" id="specializationsPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">⭐ Factory Specializations</div>
+                    <div class="section-subtitle">Choose your path to industrial dominance</div>
+                </div>
+            </div>
+            <div class="spec-container" id="specContainer"></div>
+        </section>
+        <section class="panel" id="upgradesPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">⬆️ Upgrades</div>
+                    <div class="section-subtitle" id="upgradeCount">0/0 purchased</div>
+                </div>
+            </div>
+            <div class="upgrades-grid" id="upgradesGrid"></div>
+        </section>
+        <section class="panel" id="researchPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">🔬 Research Lab</div>
+                    <div class="section-subtitle">Spend Widgets on permanent research bonuses</div>
+                </div>
+            </div>
+            <div class="research-grid" id="researchGrid"></div>
+        </section>
+        <section class="panel" id="prestigePanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">🔄 Prestige Layers</div>
+                    <div class="section-subtitle">Reset for powerful permanent bonuses</div>
+                </div>
+            </div>
+            <div id="prestigeContent"></div>
+        </section>
+        <section class="panel" id="challengesPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">🏆 Challenge System</div>
+                    <div class="section-subtitle">Complete challenges for exclusive rewards</div>
+                </div>
+            </div>
+            <div class="challenges-grid" id="challengesGrid"></div>
+        </section>
+        <section class="panel" id="masteryPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">✨ Mastery System</div>
+                    <div class="section-subtitle">Permanent progression across all resets</div>
+                </div>
+            </div>
+            <div class="mastery-container" id="masteryContainer"></div>
+        </section>
+        <section class="panel" id="achievementsPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">🏅 Achievements</div>
+                    <div class="section-subtitle" id="achieveCount">0/0 unlocked</div>
+                </div>
+            </div>
+            <div class="achievements-grid" id="achievementsGrid"></div>
+        </section>
+        <section class="panel" id="statsPanel">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">📊 Statistics Dashboard</div>
+                    <div class="section-subtitle">Track your industrial empire</div>
+                </div>
+            </div>
+            <div class="stats-dashboard" id="statsDashboard"></div>
+        </section>
+    </main>
+</div>
+<div class="toasts" id="toasts"></div>
+<div class="options-panel" id="optionsPanel">
+    <div class="option-group">
+        <div class="option-label">Settings</div>
+        <div class="option-row"><span>Volume</span><input type="range" id="volumeSlider" min="0" max="100" value="50">
+        </div>
+        <div class="option-row"><span>Notation</span><select id="notation">
+            <option value="scientific">Scientific</option>
+            <option value="suffix">Suffix</option>
+            <option value="engineering">Engineering</option>
+        </select></div>
+    </div>
+    <div class="option-group">
+        <div class="option-label">Data</div>
+        <button class="option-btn" id="exportBtn">Export Save</button>
+        <button class="option-btn" id="importBtn">Import Save</button>
+        <button class="option-btn danger" id="resetBtn">Hard Reset</button>
+    </div>
+</div>
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <div class="modal-title" id="modalTitle">Confirm</div>
+        <div class="modal-content" id="modalContent"></div>
+        <div class="modal-buttons">
+            <button class="modal-btn" id="modalCancel">Cancel</button>
+            <button class="modal-btn primary" id="modalConfirm">Confirm</button>
+        </div>
+    </div>
+</div>
+<div class="tutorial-overlay" id="tutorialOverlay">
+    <div class="tutorial-modal">
+        <div class="tutorial-icon" id="tutorialIcon">🏭</div>
+        <div class="tutorial-title" id="tutorialTitle">Welcome to Idle Factory Tycoon!</div>
+        <div class="tutorial-text" id="tutorialText">Build your industrial empire from the ground up. Click to fabricate
+            components,buy buildings for passive production,and unlock new resources!
+        </div>
+        <div class="tutorial-progress" id="tutorialProgress"></div>
+        <div class="tutorial-buttons">
+            <button class="tutorial-btn" id="tutorialSkip">Skip Tutorial</button>
+            <button class="tutorial-btn primary" id="tutorialNext">Next</button>
+        </div>
+    </div>
+</div>
+<script>const D = (v) => new Decimal(v);
+const Audio = {
+    ctx: null, gain: null, muted: false, volume: 0.5, init() {
+        if (this.ctx) return;
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.gain = this.ctx.createGain();
+        this.gain.connect(this.ctx.destination);
+        this.gain.gain.value = this.volume;
+    }, setVolume(v) {
+        this.volume = v;
+        if (this.gain) this.gain.gain.value = this.muted ? 0 : v;
+    }, toggleMute() {
+        this.muted = !this.muted;
+        if (this.gain) this.gain.gain.value = this.muted ? 0 : this.volume;
+        return this.muted;
+    }, play(freq, dur, type = 'sine') {
+        if (!this.ctx || this.muted) return;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = type;
+        o.connect(g);
+        g.connect(this.gain);
+        o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+        g.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+        o.start();
+        o.stop(this.ctx.currentTime + dur);
+    }, click() {
+        this.play(600, 0.05);
+    }, buy() {
+        this.play(800, 0.08);
+        setTimeout(() => this.play(1000, 0.06), 50);
+    }, upgrade() {
+        this.play(400, 0.12);
+        setTimeout(() => this.play(600, 0.1), 80);
+    }, achieve() {
+        [523, 659, 784].forEach((f, i) => setTimeout(() => this.play(f, 0.15), i * 70));
+    }, prestige() {
+        [300, 400, 500, 600, 800].forEach((f, i) => setTimeout(() => this.play(f, 0.25), i * 80));
+    }, golden() {
+        this.play(880, 0.1);
+        this.play(1100, 0.1);
+    }
+};
+const Format = {
+    notation: 'suffix',
+    suffixes: ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc', 'UDc', 'DDc', 'TDc', 'QaDc', 'QiDc'],
+    num(n) {
+        if (!(n instanceof Decimal)) n = D(n);
+        if (n.lt(0)) return '-' + this.num(n.neg());
+        if (n.eq(0)) return '0';
+        if (n.lt(1000)) return n.toFixed(n.lt(10) ? 2 : n.lt(100) ? 1 : 0);
+        if (n.lt(1e6)) return n.toNumber().toLocaleString('en-US', {maximumFractionDigits: 0});
+        const e = Math.floor(n.log10());
+        if (this.notation === 'suffix' && e < 51) {
+            const t = Math.floor(e / 3);
+            if (t < this.suffixes.length) {
+                return n.div(Decimal.pow(10, t * 3)).toFixed(2) + this.suffixes[t];
+            }
+        }
+        if (this.notation === 'engineering') {
+            const eng = Math.floor(e / 3) * 3;
+            const m = n.div(Decimal.pow(10, eng));
+            return m.toFixed(2) + 'e' + eng;
+        }
+        const m = n.div(Decimal.pow(10, e));
+        return m.toFixed(2) + 'e' + e;
+    },
+    time(s) {
+        if (s < 60) return Math.floor(s) + 's';
+        if (s < 3600) return Math.floor(s / 60) + 'm ' + Math.floor(s % 60) + 's';
+        if (s < 86400) return Math.floor(s / 3600) + 'h ' + Math.floor((s % 3600) / 60) + 'm';
+        return Math.floor(s / 86400) + 'd ' + Math.floor((s % 86400) / 3600) + 'h';
+    },
+    percent(n) {
+        return (n * 100).toFixed(1) + '%';
+    }
+};
+const GameData = {
+    resources: [{
+        id: 'components',
+        name: 'Components',
+        icon: '🔩',
+        color: 'var(--comp-color)',
+        base: true
+    }, {
+        id: 'widgets',
+        name: 'Widgets',
+        icon: '⚙️',
+        color: 'var(--widget-color)',
+        unlock: () => Game.state.upgrades.includes('unlockWidgets')
+    }, {
+        id: 'gadgets',
+        name: 'Gadgets',
+        icon: '🔧',
+        color: 'var(--gadget-color)',
+        unlock: () => Game.state.upgrades.includes('unlockGadgets')
+    }, {
+        id: 'prototypes',
+        name: 'Prototypes',
+        icon: '📦',
+        color: 'var(--proto-color)',
+        unlock: () => Game.state.upgrades.includes('unlockPrototypes')
+    }, {
+        id: 'innovations',
+        name: 'Innovations',
+        icon: '💡',
+        color: 'var(--innov-color)',
+        unlock: () => Game.state.upgrades.includes('unlockInnovations')
+    },],
+    buildings: [{
+        id: 'workbench',
+        name: 'Workbench',
+        icon: '🔧',
+        baseCost: D(10),
+        baseProd: D(1),
+        costMult: 1.12,
+        desc: 'Manual assembly station',
+        produces: 'components',
+        unlock: () => true
+    }, {
+        id: 'conveyor',
+        name: 'Conveyor Belt',
+        icon: '🏭',
+        baseCost: D(100),
+        baseProd: D(8),
+        costMult: 1.14,
+        desc: 'Automated transport',
+        produces: 'components',
+        unlock: () => Game.state.buildings.workbench >= 5
+    }, {
+        id: 'assemblyBot',
+        name: 'Assembly Bot',
+        icon: '🤖',
+        baseCost: D(1200),
+        baseProd: D(50),
+        costMult: 1.15,
+        desc: 'Tireless automation',
+        produces: 'components',
+        unlock: () => Game.state.buildings.conveyor >= 5
+    }, {
+        id: 'miniFactory',
+        name: 'Mini Factory',
+        icon: '🏗️',
+        baseCost: D(15000),
+        baseProd: D(300),
+        costMult: 1.15,
+        desc: 'Compact production',
+        produces: 'components',
+        unlock: () => Game.state.buildings.assemblyBot >= 5
+    }, {
+        id: 'powerPlant',
+        name: 'Power Plant',
+        icon: '⚡',
+        baseCost: D(200000),
+        baseProd: D(1800),
+        costMult: 1.16,
+        desc: 'Industrial energy',
+        produces: 'components',
+        unlock: () => Game.state.buildings.miniFactory >= 5
+    }, {
+        id: 'researchLab',
+        name: 'Research Lab',
+        icon: '🔬',
+        baseCost: D(3e6),
+        baseProd: D(12000),
+        costMult: 1.16,
+        desc: 'Scientific advancement',
+        produces: 'components',
+        unlock: () => Game.state.buildings.powerPlant >= 5
+    }, {
+        id: 'distHub',
+        name: 'Distribution Hub',
+        icon: '🌐',
+        baseCost: D(5e7),
+        baseProd: D(80000),
+        costMult: 1.17,
+        desc: 'Global logistics',
+        produces: 'components',
+        unlock: () => Game.state.buildings.researchLab >= 5
+    }, {
+        id: 'launchPad',
+        name: 'Launch Pad',
+        icon: '🚀',
+        baseCost: D(1e9),
+        baseProd: D(600000),
+        costMult: 1.18,
+        desc: 'Orbital operations',
+        produces: 'components',
+        unlock: () => Game.state.buildings.distHub >= 5
+    }, {
+        id: 'quantumForge',
+        name: 'Quantum Forge',
+        icon: '⚛️',
+        baseCost: D(2e10),
+        baseProd: D(5e6),
+        costMult: 1.19,
+        desc: 'Subatomic fabrication',
+        produces: 'components',
+        unlock: () => Game.state.buildings.launchPad >= 5
+    }, {
+        id: 'dimensionalRift',
+        name: 'Dimensional Rift',
+        icon: '🌀',
+        baseCost: D(5e11),
+        baseProd: D(5e7),
+        costMult: 1.20,
+        desc: 'Multiverse extraction',
+        produces: 'components',
+        unlock: () => Game.state.buildings.quantumForge >= 5
+    }, {
+        id: 'widgetMaker',
+        name: 'Widget Maker',
+        icon: '⚙️',
+        baseCost: D(1e5),
+        baseProd: D(1),
+        costMult: 1.15,
+        desc: 'Produces widgets',
+        produces: 'widgets',
+        unlock: () => Game.state.upgrades.includes('unlockWidgets')
+    }, {
+        id: 'widgetFactory',
+        name: 'Widget Factory',
+        icon: '🏭',
+        baseCost: D(1e7),
+        baseProd: D(10),
+        costMult: 1.16,
+        desc: 'Mass widget production',
+        produces: 'widgets',
+        unlock: () => Game.state.buildings.widgetMaker >= 10
+    }, {
+        id: 'gadgetLab',
+        name: 'Gadget Lab',
+        icon: '🔧',
+        baseCost: D(1e8),
+        baseProd: D(0.5),
+        costMult: 1.18,
+        desc: 'Produces gadgets',
+        produces: 'gadgets',
+        unlock: () => Game.state.upgrades.includes('unlockGadgets')
+    }, {
+        id: 'gadgetWorks',
+        name: 'Gadget Works',
+        icon: '🛠️',
+        baseCost: D(1e10),
+        baseProd: D(5),
+        costMult: 1.19,
+        desc: 'Advanced gadget facility',
+        produces: 'gadgets',
+        unlock: () => Game.state.buildings.gadgetLab >= 10
+    }, {
+        id: 'protoStation',
+        name: 'Proto Station',
+        icon: '📦',
+        baseCost: D(1e10),
+        baseProd: D(0.2),
+        costMult: 1.20,
+        desc: 'Produces prototypes',
+        produces: 'prototypes',
+        unlock: () => Game.state.upgrades.includes('unlockPrototypes')
+    }, {
+        id: 'protoFactory',
+        name: 'Proto Factory',
+        icon: '🏭',
+        baseCost: D(1e12),
+        baseProd: D(2),
+        costMult: 1.21,
+        desc: 'Mass prototype production',
+        produces: 'prototypes',
+        unlock: () => Game.state.buildings.protoStation >= 10
+    }, {
+        id: 'innovHub',
+        name: 'Innovation Hub',
+        icon: '💡',
+        baseCost: D(1e12),
+        baseProd: D(0.1),
+        costMult: 1.22,
+        desc: 'Produces innovations',
+        produces: 'innovations',
+        unlock: () => Game.state.upgrades.includes('unlockInnovations')
+    }, {
+        id: 'innovCenter',
+        name: 'Innovation Center',
+        icon: '🧪',
+        baseCost: D(1e14),
+        baseProd: D(1),
+        costMult: 1.23,
+        desc: 'Advanced innovation facility',
+        produces: 'innovations',
+        unlock: () => Game.state.buildings.innovHub >= 10
+    },],
+    synergies: [{source: 'conveyor', target: 'workbench', bonus: 0.02}, {
+        source: 'assemblyBot',
+        target: 'conveyor',
+        bonus: 0.03
+    }, {source: 'miniFactory', target: 'assemblyBot', bonus: 0.04}, {
+        source: 'powerPlant',
+        target: 'miniFactory',
+        bonus: 0.05
+    }, {source: 'researchLab', target: 'powerPlant', bonus: 0.06}, {
+        source: 'distHub',
+        target: 'researchLab',
+        bonus: 0.08
+    }, {source: 'launchPad', target: 'distHub', bonus: 0.10}, {
+        source: 'quantumForge',
+        target: 'launchPad',
+        bonus: 0.12
+    }, {source: 'dimensionalRift', target: 'quantumForge', bonus: 0.15},],
+    specializations: [{
+        id: 'automation',
+        name: 'Automation',
+        icon: '🤖',
+        desc: 'Focus on automatic production and efficiency. Unlock auto-buyers and production multipliers.',
+        color: 'var(--accent)',
+        bonuses: [{level: 1, desc: '+10% production', effect: {type: 'prodMult', value: 1.1}}, {
+            level: 2,
+            desc: 'Auto-buy Workbenches',
+            effect: {type: 'autoBuy', building: 'workbench'}
+        }, {level: 3, desc: '+25% production', effect: {type: 'prodMult', value: 1.25}}, {
+            level: 5,
+            desc: 'Auto-buy Conveyors',
+            effect: {type: 'autoBuy', building: 'conveyor'}
+        }, {level: 8, desc: '+50% production', effect: {type: 'prodMult', value: 1.5}}, {
+            level: 10,
+            desc: 'Auto-buy all basic',
+            effect: {type: 'autoBuyAll'}
+        },],
+    }, {
+        id: 'innovation',
+        name: 'Innovation',
+        icon: '💡',
+        desc: 'Focus on research and development. Cheaper research and widget production.',
+        color: 'var(--success)',
+        bonuses: [{level: 1, desc: '-10% research cost', effect: {type: 'researchCost', value: 0.9}}, {
+            level: 2,
+            desc: '+25% widget prod',
+            effect: {type: 'widgetMult', value: 1.25}
+        }, {level: 3, desc: '-20% research cost', effect: {type: 'researchCost', value: 0.8}}, {
+            level: 5,
+            desc: '+50% widget prod',
+            effect: {type: 'widgetMult', value: 1.5}
+        }, {level: 8, desc: '2x research effects', effect: {type: 'researchPower', value: 2}}, {
+            level: 10,
+            desc: 'Free first research',
+            effect: {type: 'freeResearch'}
+        },],
+    }, {
+        id: 'expansion',
+        name: 'Expansion',
+        icon: '🌍',
+        desc: 'Focus on growth and scaling. Cheaper buildings and higher caps.',
+        color: 'var(--warning)',
+        bonuses: [{level: 1, desc: '-5% building costs', effect: {type: 'buildingCost', value: 0.95}}, {
+            level: 2,
+            desc: '+10% synergy bonus',
+            effect: {type: 'synergyMult', value: 1.1}
+        }, {level: 3, desc: '-10% building costs', effect: {type: 'buildingCost', value: 0.9}}, {
+            level: 5,
+            desc: '+25% synergy bonus',
+            effect: {type: 'synergyMult', value: 1.25}
+        }, {level: 8, desc: '-20% building costs', effect: {type: 'buildingCost', value: 0.8}}, {
+            level: 10,
+            desc: '2x synergies',
+            effect: {type: 'synergyMult', value: 2}
+        },],
+    }, {
+        id: 'efficiency',
+        name: 'Efficiency',
+        icon: '📊',
+        desc: 'Focus on optimization. Better click value and offline progress.',
+        color: 'var(--purple)',
+        bonuses: [{level: 1, desc: '+25% click power', effect: {type: 'clickMult', value: 1.25}}, {
+            level: 2,
+            desc: '+10% offline eff',
+            effect: {type: 'offlineEff', value: 0.1}
+        }, {level: 3, desc: '+50% click power', effect: {type: 'clickMult', value: 1.5}}, {
+            level: 5,
+            desc: '+20% offline eff',
+            effect: {type: 'offlineEff', value: 0.2}
+        }, {level: 8, desc: '2x click power', effect: {type: 'clickMult', value: 2}}, {
+            level: 10,
+            desc: '+4h offline cap',
+            effect: {type: 'offlineCap', value: 14400}
+        },],
+    },],
+    upgrades: [{
+        id: 'click1',
+        name: 'Better Tools',
+        icon: '🔧',
+        cost: D(50),
+        type: 'click',
+        mult: 2,
+        desc: '2× click power',
+        req: () => true
+    }, {
+        id: 'click2',
+        name: 'Power Grip',
+        icon: '✊',
+        cost: D(500),
+        type: 'click',
+        mult: 2,
+        desc: '2× click power',
+        req: () => Game.state.upgrades.includes('click1')
+    }, {
+        id: 'click3',
+        name: 'Turbo Click',
+        icon: '⚡',
+        cost: D(10000),
+        type: 'click',
+        mult: 3,
+        desc: '3× click power',
+        req: () => Game.state.upgrades.includes('click2')
+    }, {
+        id: 'click4',
+        name: 'Divine Touch',
+        icon: '✨',
+        cost: D(1e6),
+        type: 'click',
+        mult: 5,
+        desc: '5× click power',
+        req: () => Game.state.upgrades.includes('click3')
+    }, {
+        id: 'unlockWidgets',
+        name: 'Widget Lab',
+        icon: '⚙️',
+        cost: D(1e5),
+        type: 'unlock',
+        desc: 'Unlock Widget production',
+        req: () => Game.state.resources.components.gte(5e4)
+    }, {
+        id: 'unlockGadgets',
+        name: 'Gadget Workshop',
+        icon: '🔧',
+        cost: D(1e8),
+        costType: 'widgets',
+        type: 'unlock',
+        desc: 'Unlock Gadget production',
+        req: () => Game.state.resources.widgets.gte(100)
+    }, {
+        id: 'unlockPrototypes',
+        name: 'Prototype Bay',
+        icon: '📦',
+        cost: D(1e6),
+        costType: 'gadgets',
+        type: 'unlock',
+        desc: 'Unlock Prototype production',
+        req: () => Game.state.resources.gadgets.gte(100)
+    }, {
+        id: 'unlockInnovations',
+        name: 'Innovation Center',
+        icon: '💡',
+        cost: D(1e6),
+        costType: 'prototypes',
+        type: 'unlock',
+        desc: 'Unlock Innovation production',
+        req: () => Game.state.resources.prototypes.gte(100)
+    }, {
+        id: 'wb1',
+        name: 'Tool Rack',
+        icon: '🛠️',
+        bld: 'workbench',
+        cost: D(200),
+        mult: 2,
+        desc: '2× workbench prod',
+        req: () => Game.state.buildings.workbench >= 5
+    }, {
+        id: 'wb2',
+        name: 'Power Tools',
+        icon: '🔌',
+        bld: 'workbench',
+        cost: D(2000),
+        mult: 2,
+        desc: '2× workbench prod',
+        req: () => Game.state.upgrades.includes('wb1')
+    }, {
+        id: 'cv1',
+        name: 'Speed Belt',
+        icon: '⏩',
+        bld: 'conveyor',
+        cost: D(2000),
+        mult: 2,
+        desc: '2× conveyor prod',
+        req: () => Game.state.buildings.conveyor >= 5
+    }, {
+        id: 'cv2',
+        name: 'Multi-Lane',
+        icon: '🛤️',
+        bld: 'conveyor',
+        cost: D(20000),
+        mult: 2,
+        desc: '2× conveyor prod',
+        req: () => Game.state.upgrades.includes('cv1')
+    }, {
+        id: 'ab1',
+        name: 'AI Brain',
+        icon: '🧠',
+        bld: 'assemblyBot',
+        cost: D(25000),
+        mult: 2,
+        desc: '2× bot prod',
+        req: () => Game.state.buildings.assemblyBot >= 5
+    }, {
+        id: 'mf1',
+        name: 'Lean Manufacturing',
+        icon: '📋',
+        bld: 'miniFactory',
+        cost: D(300000),
+        mult: 2,
+        desc: '2× factory prod',
+        req: () => Game.state.buildings.miniFactory >= 5
+    }, {
+        id: 'synergy1',
+        name: 'Synergy I',
+        icon: '🔗',
+        cost: D(10000),
+        type: 'all',
+        mult: 1.1,
+        desc: '+10% all production',
+        req: () => Game.totalBuildings() >= 20
+    }, {
+        id: 'synergy2',
+        name: 'Synergy II',
+        icon: '🔗',
+        cost: D(1e6),
+        type: 'all',
+        mult: 1.15,
+        desc: '+15% all production',
+        req: () => Game.state.upgrades.includes('synergy1')
+    }, {
+        id: 'synergy3',
+        name: 'Synergy III',
+        icon: '🔗',
+        cost: D(1e9),
+        type: 'all',
+        mult: 1.25,
+        desc: '+25% all production',
+        req: () => Game.state.upgrades.includes('synergy2')
+    }, {
+        id: 'combo1',
+        name: 'Combo Starter',
+        icon: '🔥',
+        cost: D(5000),
+        type: 'combo',
+        desc: 'Enable click combos',
+        req: () => Game.state.clicks >= 100
+    }, {
+        id: 'combo2',
+        name: 'Combo Master',
+        icon: '🔥',
+        cost: D(500000),
+        type: 'combo',
+        desc: 'Higher max combo',
+        req: () => Game.state.upgrades.includes('combo1')
+    },],
+    research: [{
+        id: 'r1',
+        name: 'Efficiency I',
+        icon: '📊',
+        tier: 1,
+        cost: D(50),
+        effect: 'prod',
+        mult: 1.1,
+        desc: '+10% production',
+        req: () => Game.state.upgrades.includes('unlockWidgets')
+    }, {
+        id: 'r2',
+        name: 'Click Amp',
+        icon: '👆',
+        tier: 1,
+        cost: D(75),
+        effect: 'click',
+        mult: 1.5,
+        desc: '+50% click power',
+        req: () => Game.state.upgrades.includes('unlockWidgets')
+    }, {
+        id: 'r3',
+        name: 'Synergy Boost',
+        icon: '🔗',
+        tier: 1,
+        cost: D(100),
+        effect: 'synergy',
+        mult: 1.5,
+        desc: '+50% synergies',
+        req: () => Game.state.upgrades.includes('unlockWidgets')
+    }, {
+        id: 'r4',
+        name: 'Efficiency II',
+        icon: '📈',
+        tier: 2,
+        cost: D(500),
+        effect: 'prod',
+        mult: 1.2,
+        desc: '+20% production',
+        req: () => Game.state.research.includes('r1')
+    }, {
+        id: 'r5',
+        name: 'Widget Flow',
+        icon: '⚙️',
+        tier: 2,
+        cost: D(400),
+        effect: 'widget',
+        mult: 1.5,
+        desc: '+50% widgets',
+        req: () => Game.state.research.includes('r1')
+    }, {
+        id: 'r6',
+        name: 'Auto-Click I',
+        icon: '🤖',
+        tier: 2,
+        cost: D(600),
+        effect: 'autoclick',
+        value: 1,
+        desc: '1 auto-click/sec',
+        req: () => Game.state.research.includes('r2')
+    }, {
+        id: 'r7',
+        name: 'Blueprint Boost',
+        icon: '📐',
+        tier: 2,
+        cost: D(800),
+        effect: 'blueprint',
+        mult: 1.5,
+        desc: '+50% BP bonus',
+        req: () => Game.state.research.includes('r3')
+    }, {
+        id: 'r8',
+        name: 'Efficiency III',
+        icon: '🚀',
+        tier: 3,
+        cost: D(2000),
+        effect: 'prod',
+        mult: 1.3,
+        desc: '+30% production',
+        req: () => Game.state.research.includes('r4')
+    }, {
+        id: 'r9',
+        name: 'Auto-Click II',
+        icon: '🦾',
+        tier: 3,
+        cost: D(3000),
+        effect: 'autoclick',
+        value: 4,
+        desc: '+4 auto-clicks/sec',
+        req: () => Game.state.research.includes('r6')
+    }, {
+        id: 'r10',
+        name: 'Mastery',
+        icon: '🏆',
+        tier: 4,
+        cost: D(10000),
+        effect: 'prod',
+        mult: 1.5,
+        desc: '+50% production',
+        req: () => Game.state.research.includes('r8')
+    },],
+    blueprintUpgrades: [{
+        id: 'bp1',
+        name: 'Head Start',
+        icon: '🏃',
+        cost: 5,
+        desc: 'Start with 5 workbenches',
+        req: () => true
+    }, {
+        id: 'bp2',
+        name: 'Quick Start',
+        icon: '⚡',
+        cost: 10,
+        desc: 'Start with 3 conveyors',
+        req: () => Game.state.blueprintUpgrades.includes('bp1')
+    }, {
+        id: 'bp3',
+        name: 'Efficiency+',
+        icon: '📈',
+        cost: 15,
+        desc: '+25% base production',
+        req: () => Game.state.blueprintUpgrades.includes('bp2')
+    }, {
+        id: 'bp4',
+        name: 'Click Echo',
+        icon: '👆',
+        cost: 8,
+        desc: 'Clicks +1% of prod/s',
+        req: () => Game.state.blueprintUpgrades.includes('bp1')
+    }, {
+        id: 'bp5',
+        name: 'Golden Age',
+        icon: '⭐',
+        cost: 12,
+        desc: '2× golden gear spawn',
+        req: () => Game.state.blueprintUpgrades.includes('bp1')
+    }, {
+        id: 'bp6',
+        name: 'Titan',
+        icon: '🏛️',
+        cost: 30,
+        desc: '+100% base production',
+        req: () => Game.state.blueprintUpgrades.includes('bp3')
+    }, {
+        id: 'bp7',
+        name: 'Widget Flow',
+        icon: '⚙️',
+        cost: 25,
+        desc: '+50% widget production',
+        req: () => Game.state.blueprintUpgrades.includes('bp3')
+    }, {
+        id: 'bp8',
+        name: 'Transcend',
+        icon: '✨',
+        cost: 50,
+        desc: '+10% all multipliers',
+        req: () => Game.state.blueprintUpgrades.includes('bp6')
+    },],
+    patentUpgrades: [{
+        id: 'pt1',
+        name: 'Invention I',
+        icon: '📜',
+        cost: 1,
+        desc: 'Blueprints give +2% per',
+        req: () => true
+    }, {
+        id: 'pt2',
+        name: 'Automation Patent',
+        icon: '🤖',
+        cost: 2,
+        desc: 'Keep automation spec',
+        req: () => Game.state.patentUpgrades.includes('pt1')
+    }, {
+        id: 'pt3',
+        name: 'Research Grant',
+        icon: '🔬',
+        cost: 3,
+        desc: 'Keep research on BP reset',
+        req: () => Game.state.patentUpgrades.includes('pt1')
+    }, {
+        id: 'pt4',
+        name: 'Invention II',
+        icon: '📜',
+        cost: 5,
+        desc: 'Blueprints give +3% per',
+        req: () => Game.state.patentUpgrades.includes('pt3')
+    }, {
+        id: 'pt5',
+        name: 'Quick Patents',
+        icon: '⚡',
+        cost: 8,
+        desc: '+50% patent gain',
+        req: () => Game.state.patentUpgrades.includes('pt4')
+    },],
+    corporationUpgrades: [{
+        id: 'cp1',
+        name: 'Corporate Synergy',
+        icon: '🏢',
+        cost: 1,
+        desc: 'Patents give +5% per',
+        req: () => true
+    }, {
+        id: 'cp2',
+        name: 'Hostile Takeover',
+        icon: '💼',
+        cost: 2,
+        desc: 'Keep all specs on reset',
+        req: () => Game.state.corporationUpgrades.includes('cp1')
+    }, {
+        id: 'cp3',
+        name: 'R&D Division',
+        icon: '🔬',
+        cost: 3,
+        desc: 'Keep BP upgrades on patent reset',
+        req: () => Game.state.corporationUpgrades.includes('cp1')
+    }, {
+        id: 'cp4',
+        name: 'Global Dominance',
+        icon: '🌍',
+        cost: 5,
+        desc: '+100% all production',
+        req: () => Game.state.corporationUpgrades.includes('cp3')
+    }, {
+        id: 'cp5',
+        name: 'Infinite Growth',
+        icon: '📈',
+        cost: 10,
+        desc: '2× prestige gains',
+        req: () => Game.state.corporationUpgrades.includes('cp4')
+    },],
+    challenges: [{
+        id: 'speedStart',
+        name: 'Speed Start',
+        icon: '🚀',
+        type: 'standard',
+        desc: 'Reach 10,000 components',
+        goal: () => Game.state.stats.lifeComponents.gte(10000),
+        duration: 60,
+        reward: {type: 'tempBoost', mult: 2, duration: 300, desc: '2× prod for 5min'},
+        cooldown: 300,
+        unlock: () => Game.state.stats.totalComponents.gte(1000),
+    }, {
+        id: 'clickFrenzy',
+        name: 'Click Frenzy',
+        icon: '👆',
+        type: 'standard',
+        desc: 'Click 100 times',
+        goal: () => Game.challengeProgress >= 100,
+        track: 'clicks',
+        duration: 30,
+        reward: {type: 'tempBoost', mult: 3, duration: 180, target: 'click', desc: '3× clicks for 3min'},
+        cooldown: 240,
+        unlock: () => Game.state.clicks >= 50,
+    }, {
+        id: 'builderRush',
+        name: 'Builder Rush',
+        icon: '🏗️',
+        type: 'standard',
+        desc: 'Own 50 buildings total',
+        goal: () => Game.totalBuildings() >= 50,
+        duration: 120,
+        reward: {type: 'tempBoost', mult: 2, duration: 240, desc: '2× prod for 4min'},
+        cooldown: 360,
+        unlock: () => Game.totalBuildings() >= 20,
+    }, {
+        id: 'noClick',
+        name: 'Idle Master',
+        icon: '😴',
+        type: 'challenge',
+        desc: 'Reach 100K components without clicking (resets on start)',
+        goal: () => Game.state.stats.lifeComponents.gte(100000),
+        duration: 300,
+        mutators: ['No Clicking', 'Fresh Start'],
+        reward: {type: 'permanent', effect: 'idleMaster', desc: '+10% idle prod'},
+        cooldown: 600,
+        unlock: () => Game.state.prestiges >= 1,
+    }, {
+        id: 'speedrun',
+        name: 'Speedrun',
+        icon: '⚡',
+        type: 'endless',
+        desc: 'Reach 1M as fast as possible',
+        goal: () => Game.state.stats.lifeComponents.gte(1e6),
+        duration: Infinity,
+        reward: {type: 'leaderboard', desc: 'Personal best tracking'},
+        cooldown: 60,
+        unlock: () => Game.state.prestiges >= 2,
+    },],
+    achievements: [{
+        id: 'a1',
+        name: 'First Part',
+        icon: '🔩',
+        desc: 'Produce 1 component',
+        bonus: 0.01,
+        check: () => Game.state.stats.totalComponents.gte(1)
+    }, {
+        id: 'a2',
+        name: 'Hundred',
+        icon: '💯',
+        desc: 'Produce 100 components',
+        bonus: 0.01,
+        check: () => Game.state.stats.totalComponents.gte(100)
+    }, {
+        id: 'a3',
+        name: 'Thousandaire',
+        icon: '🔩',
+        desc: 'Produce 10K components',
+        bonus: 0.02,
+        check: () => Game.state.stats.totalComponents.gte(10000)
+    }, {
+        id: 'a4',
+        name: 'Millionaire',
+        icon: '💰',
+        desc: 'Produce 1M components',
+        bonus: 0.02,
+        check: () => Game.state.stats.totalComponents.gte(1e6)
+    }, {
+        id: 'a5',
+        name: 'Billionaire',
+        icon: '🏦',
+        desc: 'Produce 1B components',
+        bonus: 0.05,
+        check: () => Game.state.stats.totalComponents.gte(1e9)
+    }, {
+        id: 'a6',
+        name: 'Trillionaire',
+        icon: '🌟',
+        desc: 'Produce 1T components',
+        bonus: 0.05,
+        check: () => Game.state.stats.totalComponents.gte(1e12)
+    }, {
+        id: 'a7',
+        name: 'Click 10',
+        icon: '👆',
+        desc: 'Click 10 times',
+        bonus: 0.01,
+        check: () => Game.state.clicks >= 10
+    }, {
+        id: 'a8',
+        name: 'Click 100',
+        icon: '👆',
+        desc: 'Click 100 times',
+        bonus: 0.01,
+        check: () => Game.state.clicks >= 100
+    }, {
+        id: 'a9',
+        name: 'Click 1K',
+        icon: '👆',
+        desc: 'Click 1,000 times',
+        bonus: 0.02,
+        check: () => Game.state.clicks >= 1000
+    }, {
+        id: 'a10',
+        name: 'Builder 10',
+        icon: '🏗️',
+        desc: 'Own 10 buildings',
+        bonus: 0.01,
+        check: () => Game.totalBuildings() >= 10
+    }, {
+        id: 'a11',
+        name: 'Builder 50',
+        icon: '🏗️',
+        desc: 'Own 50 buildings',
+        bonus: 0.02,
+        check: () => Game.totalBuildings() >= 50
+    }, {
+        id: 'a12',
+        name: 'Builder 200',
+        icon: '🏗️',
+        desc: 'Own 200 buildings',
+        bonus: 0.05,
+        check: () => Game.totalBuildings() >= 200
+    }, {
+        id: 'a13',
+        name: 'Prestige 1',
+        icon: '🔄',
+        desc: 'First prestige',
+        bonus: 0.05,
+        check: () => Game.state.prestiges >= 1
+    }, {
+        id: 'a14',
+        name: 'Prestige 5',
+        icon: '🔄',
+        desc: '5 prestiges',
+        bonus: 0.1,
+        check: () => Game.state.prestiges >= 5
+    }, {
+        id: 'a15',
+        name: 'Golden Touch',
+        icon: '⭐',
+        desc: 'Click golden gear',
+        bonus: 0.02,
+        check: () => Game.state.goldenClicks >= 1
+    }, {
+        id: 'a16',
+        name: 'Lucky 10',
+        icon: '⭐',
+        desc: 'Click 10 golden gears',
+        bonus: 0.05,
+        check: () => Game.state.goldenClicks >= 10
+    }, {
+        id: 'a17',
+        name: '10 Minutes',
+        icon: '☕',
+        desc: 'Play 10 minutes',
+        bonus: 0.01,
+        check: () => Game.state.stats.playTime >= 600
+    }, {
+        id: 'a18',
+        name: '1 Hour',
+        icon: '⏰',
+        desc: 'Play 1 hour',
+        bonus: 0.02,
+        check: () => Game.state.stats.playTime >= 3600
+    }, {
+        id: 'a19',
+        name: '8 Hours',
+        icon: '💼',
+        desc: 'Play 8 hours',
+        bonus: 0.05,
+        check: () => Game.state.stats.playTime >= 28800
+    },],
+    masteryNodes: [{
+        id: 'm1',
+        name: 'Production I',
+        icon: '📈',
+        cost: 1,
+        desc: '+5% production',
+        effect: {type: 'prod', mult: 1.05}
+    }, {
+        id: 'm2',
+        name: 'Click I',
+        icon: '👆',
+        cost: 1,
+        desc: '+10% click',
+        effect: {type: 'click', mult: 1.1}
+    }, {
+        id: 'm3',
+        name: 'Speed I',
+        icon: '⚡',
+        cost: 2,
+        desc: '+5% game speed',
+        effect: {type: 'speed', mult: 1.05}
+    }, {
+        id: 'm4',
+        name: 'Production II',
+        icon: '📊',
+        cost: 3,
+        desc: '+10% production',
+        effect: {type: 'prod', mult: 1.1},
+        req: 'm1'
+    }, {
+        id: 'm5',
+        name: 'Prestige I',
+        icon: '🔄',
+        cost: 5,
+        desc: '+10% prestige gain',
+        effect: {type: 'prestige', mult: 1.1},
+        req: 'm4'
+    }, {
+        id: 'm6',
+        name: 'Offline I',
+        icon: '😴',
+        cost: 3,
+        desc: '+10% offline eff',
+        effect: {type: 'offline', value: 0.1}
+    }, {
+        id: 'm7',
+        name: 'Golden I',
+        icon: '⭐',
+        cost: 4,
+        desc: '+20% golden rewards',
+        effect: {type: 'golden', mult: 1.2}
+    }, {
+        id: 'm8',
+        name: 'Synergy I',
+        icon: '🔗',
+        cost: 5,
+        desc: '+15% synergies',
+        effect: {type: 'synergy', mult: 1.15},
+        req: 'm4'
+    },],
+    tutorialSteps: [{
+        icon: '🏭',
+        title: 'Welcome to Idle Factory Tycoon!',
+        text: 'Build your industrial empire from the ground up. Click FABRICATE to produce components, then use them to buy buildings!'
+    }, {
+        icon: '🔧',
+        title: 'Buildings',
+        text: 'Buildings produce components automatically. Each type has different production rates and costs. Higher-tier buildings are more efficient!'
+    }, {
+        icon: '⚙️',
+        title: 'Resources',
+        text: 'As you progress, you\'ll unlock new resources: Widgets, Gadgets, Prototypes, and Innovations. Each has unique uses!'
+    }, {
+        icon: '⭐',
+        title: 'Specializations',
+        text: 'Choose from 4 factory specializations. Each offers unique bonuses and unlocks. You can invest in multiple paths!'
+    }, {
+        icon: '🔄',
+        title: 'Prestige',
+        text: 'When progress slows, reset for Blueprints! These provide permanent bonuses. Later, unlock Patents and Corporations!'
+    }, {
+        icon: '🏆',
+        title: 'Challenges',
+        text: 'Complete challenges for temporary boosts and permanent rewards. Daily challenges offer rotating modifiers!'
+    },],
+};
+const Minigames = {
+    overclockActive: false,
+    overclockEnd: 0,
+    overclockCooldownEnd: 0,
+    qualityCooldownEnd: 0,
+    OVERCLOCK_DURATION: 10000,
+    OVERCLOCK_COOLDOWN: 60000,
+    QUALITY_COOLDOWN: 45000,
+    activateOverclock() {
+        if (Date.now() < this.overclockCooldownEnd || this.overclockActive) return;
+        Audio.init();
+        Audio.upgrade();
+        this.overclockActive = true;
+        this.overclockEnd = Date.now() + this.OVERCLOCK_DURATION;
+        this.overclockCooldownEnd = Date.now() + this.OVERCLOCK_DURATION + this.OVERCLOCK_COOLDOWN;
+        UI.toast('⚡ OVERCLOCK ACTIVE! 3× production for 10s!', 'warning');
+    },
+    activateQualityCheck() {
+        if (Date.now() < this.qualityCooldownEnd) return;
+        Audio.init();
+        this.qualityCooldownEnd = Date.now() + this.QUALITY_COOLDOWN;
+        const roll = Math.random();
+        let reward;
+        if (roll < 0.5) {
+            reward = Game.productionPerSec('components').mul(30);
+            Game.state.resources.components = Game.state.resources.components.add(reward);
+            Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(reward);
+            Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(reward);
+            Audio.achieve();
+            UI.toast('🎯 Quality Check: +' + Format.num(reward) + ' components!', 'success');
+        } else if (roll < 0.8) {
+            reward = Game.clickValue().mul(50);
+            Game.state.resources.components = Game.state.resources.components.add(reward);
+            Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(reward);
+            Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(reward);
+            Audio.buy();
+            UI.toast('🎯 Bonus Find: +' + Format.num(reward) + ' components!', 'success');
+        } else {
+            const widgetBonus = Game.productionPerSec('widgets').mul(60);
+            if (widgetBonus.gt(0)) {
+                Game.state.resources.widgets = Game.state.resources.widgets.add(widgetBonus);
+                Audio.golden();
+                UI.toast('🎯 Premium Quality: +' + Format.num(widgetBonus) + ' widgets!', 'achievement');
+            } else {
+                reward = Game.productionPerSec('components').mul(60);
+                Game.state.resources.components = Game.state.resources.components.add(reward);
+                Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(reward);
+                Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(reward);
+                Audio.achieve();
+                UI.toast('🎯 Excellent Quality: +' + Format.num(reward) + ' components!', 'success');
+            }
+        }
+    },
+    update() {
+        if (this.overclockActive && Date.now() >= this.overclockEnd) {
+            this.overclockActive = false;
+            UI.toast('⚡ Overclock ended', '');
+        }
+        const overclockBtn = document.getElementById('overclockBtn');
+        const qualityBtn = document.getElementById('qualityBtn');
+        const overclockCooldown = document.getElementById('overclockCooldown');
+        const qualityCooldown = document.getElementById('qualityCooldown');
+        if (this.overclockActive) {
+            overclockBtn.classList.add('active');
+            overclockBtn.disabled = true;
+            const remaining = (this.overclockEnd - Date.now()) / this.OVERCLOCK_DURATION * 100;
+            overclockCooldown.style.width = remaining + '%';
+            overclockCooldown.style.background = 'var(--success)';
+        } else if (Date.now() < this.overclockCooldownEnd) {
+            overclockBtn.classList.remove('active');
+            overclockBtn.disabled = true;
+            const remaining = (this.overclockCooldownEnd - Date.now()) / this.OVERCLOCK_COOLDOWN * 100;
+            overclockCooldown.style.width = (100 - remaining) + '%';
+            overclockCooldown.style.background = 'var(--accent)';
+        } else {
+            overclockBtn.classList.remove('active');
+            overclockBtn.disabled = false;
+            overclockCooldown.style.width = '100%';
+            overclockCooldown.style.background = 'var(--success)';
+        }
+        if (Date.now() < this.qualityCooldownEnd) {
+            qualityBtn.disabled = true;
+            const remaining = (this.qualityCooldownEnd - Date.now()) / this.QUALITY_COOLDOWN * 100;
+            qualityCooldown.style.width = (100 - remaining) + '%';
+        } else {
+            qualityBtn.disabled = false;
+            qualityCooldown.style.width = '100%';
+            qualityCooldown.style.background = 'var(--success)';
+        }
+    },
+    getProductionMult() {
+        return this.overclockActive ? 3 : 1;
+    }
+};
+const Game = {
+    state: null,
+    challengeProgress: 0,
+    challengeStartValue: 0,
+    comboCount: 0,
+    comboTimer: 0,
+    lastClick: 0,
+    autoBuyTimers: {},
+    newState() {
+        return {
+            resources: {components: D(0), widgets: D(0), gadgets: D(0), prototypes: D(0), innovations: D(0),},
+            buildings: {},
+            upgrades: [],
+            research: [],
+            achievements: [],
+            blueprints: 0,
+            blueprintUpgrades: [],
+            patents: 0,
+            patentUpgrades: [],
+            corporations: 0,
+            corporationUpgrades: [],
+            specLevels: {automation: 0, innovation: 0, expansion: 0, efficiency: 0},
+            specXP: {automation: D(0), innovation: D(0), expansion: D(0), efficiency: D(0)},
+            masteryLevel: 1,
+            masteryXP: 0,
+            masteryNodes: [],
+            activeChallenge: null,
+            challengeStartTime: 0,
+            challengeCooldowns: {},
+            challengeCompletions: [],
+            challengeReward: null,
+            challengeRewardEnd: 0,
+            permanentChallengeEffects: [],
+            stats: {
+                totalComponents: D(0),
+                lifeComponents: D(0),
+                highComponents: D(0),
+                playTime: 0,
+                offlineTime: 0,
+                fastestPrestige: Infinity,
+            },
+            clicks: 0,
+            prestiges: 0,
+            goldenClicks: 0,
+            activeBonus: null,
+            bonusEnd: 0,
+            lastSave: Date.now(),
+            started: Date.now(),
+            tutorialStep: 0,
+            tutorialComplete: false,
+            settings: {muted: false, volume: 0.5, notation: 'suffix'},
+        };
+    },
+    init() {
+        this.state = this.newState();
+        GameData.buildings.forEach(b => this.state.buildings[b.id] = 0);
+    },
+    totalBuildings() {
+        let total = 0;
+        Object.values(this.state.buildings).forEach(n => total += n);
+        return total;
+    },
+    clickValue() {
+        let v = D(1);
+        if (this.state.upgrades.includes('click1')) v = v.mul(2);
+        if (this.state.upgrades.includes('click2')) v = v.mul(2);
+        if (this.state.upgrades.includes('click3')) v = v.mul(3);
+        if (this.state.upgrades.includes('click4')) v = v.mul(5);
+        v = v.mul(this.getResearchMult('click'));
+        v = v.mul(this.getSpecMult('clickMult'));
+        v = v.mul(this.getMasteryMult('click'));
+        v = v.mul(1 + this.state.blueprints * 0.01);
+        v = v.mul(1 + this.achievementBonus());
+        if (this.state.blueprintUpgrades.includes('bp4')) {
+            v = v.add(this.productionPerSec('components').mul(0.01));
+        }
+        if (this.state.upgrades.includes('combo1') && this.comboCount > 0) {
+            const maxCombo = this.state.upgrades.includes('combo2') ? 20 : 10;
+            const combo = Math.min(this.comboCount, maxCombo);
+            v = v.mul(1 + combo * 0.1);
+        }
+        if (this.state.challengeReward?.target === 'click' && Date.now() < this.state.challengeRewardEnd) {
+            v = v.mul(this.state.challengeReward.mult);
+        }
+        return v;
+    },
+    buildingCost(id, n = 1) {
+        const b = GameData.buildings.find(x => x.id === id);
+        if (!b) return D(Infinity);
+        let costMult = 1;
+        costMult *= this.getSpecMult('buildingCost');
+        let total = D(0);
+        const owned = this.state.buildings[id] || 0;
+        for (let i = 0; i < n; i++) {
+            total = total.add(b.baseCost.mul(Decimal.pow(b.costMult, owned + i)).mul(costMult));
+        }
+        return total;
+    },
+    maxBuy(id) {
+        const b = GameData.buildings.find(x => x.id === id);
+        if (!b) return 0;
+        const resource = this.state.resources.components;
+        let n = 0, total = D(0);
+        const owned = this.state.buildings[id] || 0;
+        const costMult = this.getSpecMult('buildingCost');
+        while (n < 1000) {
+            const cost = b.baseCost.mul(Decimal.pow(b.costMult, owned + n)).mul(costMult);
+            if (total.add(cost).gt(resource)) break;
+            total = total.add(cost);
+            n++;
+        }
+        return n;
+    },
+    buildingProd(id) {
+        const b = GameData.buildings.find(x => x.id === id);
+        if (!b) return D(0);
+        let prod = b.baseProd.mul(this.state.buildings[id] || 0);
+        GameData.upgrades.forEach(u => {
+            if (this.state.upgrades.includes(u.id) && u.bld === id) {
+                prod = prod.mul(u.mult);
+            }
+        });
+        GameData.upgrades.forEach(u => {
+            if (this.state.upgrades.includes(u.id) && u.type === 'all') {
+                prod = prod.mul(u.mult);
+            }
+        });
+        prod = prod.mul(this.getSynergyMult(id));
+        prod = prod.mul(1 + this.state.blueprints * 0.01);
+        if (this.state.blueprintUpgrades.includes('bp3')) prod = prod.mul(1.25);
+        if (this.state.blueprintUpgrades.includes('bp6')) prod = prod.mul(2);
+        if (this.state.blueprintUpgrades.includes('bp8')) prod = prod.mul(1.1);
+        prod = prod.mul(this.getResearchMult('prod'));
+        prod = prod.mul(this.getSpecMult('prodMult'));
+        prod = prod.mul(this.getMasteryMult('prod'));
+        prod = prod.mul(1 + this.achievementBonus());
+        if (this.state.corporationUpgrades.includes('cp4')) prod = prod.mul(2);
+        prod = prod.mul(1 + this.state.patents * 0.01);
+        prod = prod.mul(1 + this.state.corporations * 0.05);
+        if (this.state.permanentChallengeEffects.includes('idleMaster')) prod = prod.mul(1.1);
+        return prod;
+    },
+    productionPerSec(resourceId = 'components') {
+        let total = D(0);
+        GameData.buildings.forEach(b => {
+            if (b.produces === resourceId) {
+                total = total.add(this.buildingProd(b.id));
+            }
+        });
+        if (resourceId === 'widgets') {
+            if (this.state.blueprintUpgrades.includes('bp7')) total = total.mul(1.5);
+            total = total.mul(this.getSpecMult('widgetMult'));
+            total = total.mul(this.getResearchMult('widget'));
+        }
+        if (this.state.activeBonus === 'prod' && Date.now() < this.state.bonusEnd) {
+            total = total.mul(2);
+        }
+        if (this.state.challengeReward && !this.state.challengeReward.target && Date.now() < this.state.challengeRewardEnd) {
+            total = total.mul(this.state.challengeReward.mult);
+        }
+        total = total.mul(Minigames.getProductionMult());
+        return total;
+    },
+    getSynergyMult(targetId) {
+        let mult = 1;
+        const synergyBonus = this.getSpecMult('synergyMult') * this.getMasteryMult('synergy');
+        GameData.synergies.forEach(syn => {
+            if (syn.target === targetId) {
+                const sourceCount = this.state.buildings[syn.source] || 0;
+                if (sourceCount > 0) {
+                    mult += syn.bonus * sourceCount * synergyBonus;
+                }
+            }
+        });
+        return mult;
+    },
+    getResearchMult(effectType) {
+        let mult = 1;
+        let researchPower = this.getSpecMult('researchPower');
+        GameData.research.forEach(r => {
+            if (this.state.research.includes(r.id) && r.effect === effectType) {
+                mult *= Math.pow(r.mult, researchPower);
+            }
+        });
+        return mult;
+    },
+    getAutoClickRate() {
+        let rate = 0;
+        GameData.research.forEach(r => {
+            if (this.state.research.includes(r.id) && r.effect === 'autoclick') {
+                rate += r.value;
+            }
+        });
+        return rate;
+    },
+    getSpecMult(effectType) {
+        let mult = 1;
+        GameData.specializations.forEach(spec => {
+            const level = this.state.specLevels[spec.id] || 0;
+            spec.bonuses.forEach(bonus => {
+                if (level >= bonus.level && bonus.effect.type === effectType) {
+                    mult *= bonus.effect.value;
+                }
+            });
+        });
+        return mult;
+    },
+    getAutoBuyBuildings() {
+        const buildings = [];
+        GameData.specializations.forEach(spec => {
+            const level = this.state.specLevels[spec.id] || 0;
+            spec.bonuses.forEach(bonus => {
+                if (level >= bonus.level) {
+                    if (bonus.effect.type === 'autoBuy' && bonus.effect.building) {
+                        buildings.push(bonus.effect.building);
+                    } else if (bonus.effect.type === 'autoBuyAll') {
+                        buildings.push('workbench', 'conveyor', 'assemblyBot', 'miniFactory');
+                    }
+                }
+            });
+        });
+        return [...new Set(buildings)];
+    },
+    getMasteryMult(effectType) {
+        let mult = 1;
+        mult *= 1 + (this.state.masteryLevel - 1) * 0.01;
+        GameData.masteryNodes.forEach(node => {
+            if (this.state.masteryNodes.includes(node.id) && node.effect.type === effectType) {
+                mult *= node.effect.mult || 1;
+            }
+        });
+        return mult;
+    },
+    achievementBonus() {
+        let bonus = 0;
+        GameData.achievements.forEach(a => {
+            if (this.state.achievements.includes(a.id)) {
+                bonus += a.bonus;
+            }
+        });
+        return bonus;
+    },
+    prestigeGain() {
+        if (this.state.stats.lifeComponents.lt(1e9)) return 0;
+        let gain = this.state.stats.lifeComponents.div(1e9).sqrt().toNumber();
+        if (this.state.patentUpgrades.includes('pt1')) gain *= 1 + this.state.blueprints * 0.02;
+        if (this.state.patentUpgrades.includes('pt4')) gain *= 1 + this.state.blueprints * 0.01;
+        if (this.state.patentUpgrades.includes('pt5')) gain *= 1.5;
+        if (this.state.corporationUpgrades.includes('cp5')) gain *= 2;
+        gain *= this.getMasteryMult('prestige');
+        return Math.floor(gain);
+    },
+    patentGain() {
+        if (this.state.blueprints < 100) return 0;
+        let gain = Math.sqrt(this.state.blueprints / 100);
+        if (this.state.corporationUpgrades.includes('cp5')) gain *= 2;
+        return Math.floor(gain);
+    },
+    corporationGain() {
+        if (this.state.patents < 50) return 0;
+        return Math.floor(Math.sqrt(this.state.patents / 50));
+    },
+    offlineEff() {
+        let eff = 0.1;
+        if (this.state.upgrades.includes('offline1')) eff = 0.25;
+        if (this.state.upgrades.includes('offline2')) eff = 0.5;
+        eff += this.getSpecMult('offlineEff') - 1;
+        return Math.min(eff, 1);
+    },
+    offlineCap() {
+        let cap = 8 * 3600;
+        cap += this.getSpecMult('offlineCap');
+        return cap;
+    },
+    doClick(event) {
+        Audio.init();
+        if (this.state.activeChallenge === 'noClick') return;
+        const now = Date.now();
+        const gain = this.clickValue();
+        this.state.resources.components = this.state.resources.components.add(gain);
+        this.state.stats.totalComponents = this.state.stats.totalComponents.add(gain);
+        this.state.stats.lifeComponents = this.state.stats.lifeComponents.add(gain);
+        this.state.clicks++;
+        if (this.state.upgrades.includes('combo1')) {
+            if (now - this.lastClick < 500) {
+                this.comboCount++;
+            } else {
+                this.comboCount = 1;
+            }
+            this.lastClick = now;
+            this.comboTimer = 500;
+        }
+        Audio.click();
+        UI.spawnParticle(event, gain);
+    },
+    buyBuilding(id, n = 1) {
+        Audio.init();
+        const b = GameData.buildings.find(x => x.id === id);
+        if (!b || !b.unlock()) return;
+        if (n === 'max') n = this.maxBuy(id);
+        if (n <= 0) return;
+        const cost = this.buildingCost(id, n);
+        if (this.state.resources.components.gte(cost)) {
+            this.state.resources.components = this.state.resources.components.sub(cost);
+            this.state.buildings[id] += n;
+            Audio.buy();
+            UI.renderBuildings();
+        }
+    },
+    buyUpgrade(id) {
+        Audio.init();
+        const u = GameData.upgrades.find(x => x.id === id);
+        if (!u || this.state.upgrades.includes(id) || !u.req()) return;
+        const costResource = u.costType || 'components';
+        const resource = this.state.resources[costResource];
+        if (resource.gte(u.cost)) {
+            this.state.resources[costResource] = resource.sub(u.cost);
+            this.state.upgrades.push(id);
+            Audio.upgrade();
+            UI.toast('Upgrade: ' + u.name, 'success');
+            UI.renderUpgrades();
+        }
+    },
+    buyResearch(id) {
+        Audio.init();
+        const r = GameData.research.find(x => x.id === id);
+        if (!r || this.state.research.includes(id) || !r.req()) return;
+        let cost = r.cost;
+        cost = cost.mul(this.getSpecMult('researchCost'));
+        if (this.state.resources.widgets.gte(cost)) {
+            this.state.resources.widgets = this.state.resources.widgets.sub(cost);
+            this.state.research.push(id);
+            Audio.upgrade();
+            UI.toast('Research: ' + r.name, 'success');
+            UI.renderResearch();
+        }
+    },
+    buyBlueprintUpgrade(id) {
+        Audio.init();
+        const u = GameData.blueprintUpgrades.find(x => x.id === id);
+        if (!u || this.state.blueprintUpgrades.includes(id) || !u.req()) return;
+        if (this.state.blueprints >= u.cost) {
+            this.state.blueprints -= u.cost;
+            this.state.blueprintUpgrades.push(id);
+            Audio.upgrade();
+            UI.toast('Blueprint Upgrade: ' + u.name, 'prestige');
+            UI.renderPrestige();
+        }
+    },
+    buyPatentUpgrade(id) {
+        Audio.init();
+        const u = GameData.patentUpgrades.find(x => x.id === id);
+        if (!u || this.state.patentUpgrades.includes(id) || !u.req()) return;
+        if (this.state.patents >= u.cost) {
+            this.state.patents -= u.cost;
+            this.state.patentUpgrades.push(id);
+            Audio.upgrade();
+            UI.toast('Patent Upgrade: ' + u.name, 'prestige');
+            UI.renderPrestige();
+        }
+    },
+    buyCorporationUpgrade(id) {
+        Audio.init();
+        const u = GameData.corporationUpgrades.find(x => x.id === id);
+        if (!u || this.state.corporationUpgrades.includes(id) || !u.req()) return;
+        if (this.state.corporations >= u.cost) {
+            this.state.corporations -= u.cost;
+            this.state.corporationUpgrades.push(id);
+            Audio.upgrade();
+            UI.toast('Corporation Upgrade: ' + u.name, 'prestige');
+            UI.renderPrestige();
+        }
+    },
+    investSpec(specId) {
+        const cost = this.getSpecInvestCost(specId);
+        if (this.state.resources.components.gte(cost)) {
+            this.state.resources.components = this.state.resources.components.sub(cost);
+            this.state.specXP[specId] = this.state.specXP[specId].add(1);
+            const xpNeeded = this.getSpecXPNeeded(specId);
+            if (this.state.specXP[specId].gte(xpNeeded)) {
+                this.state.specLevels[specId]++;
+                this.state.specXP[specId] = D(0);
+                UI.toast(specId + ' leveled up!', 'success');
+            }
+            UI.renderSpecializations();
+        }
+    },
+    getSpecInvestCost(specId) {
+        const level = this.state.specLevels[specId] || 0;
+        return this.productionPerSec('components').mul(60).mul(Math.pow(2, level));
+    },
+    getSpecXPNeeded(specId) {
+        const level = this.state.specLevels[specId] || 0;
+        return D(10 * Math.pow(2, level));
+    },
+    doPrestige(layer = 1) {
+        if (layer === 1) {
+            const gain = this.prestigeGain();
+            if (gain <= 0) return;
+            Audio.prestige();
+            const time = (Date.now() - this.state.started) / 1000;
+            if (time < this.state.stats.fastestPrestige) {
+                this.state.stats.fastestPrestige = time;
+            }
+            this.state.prestiges++;
+            this.state.blueprints += gain;
+            this.state.masteryXP += Math.floor(gain / 10);
+            this.checkMasteryLevelUp();
+            const keep = {
+                settings: {...this.state.settings},
+                prestiges: this.state.prestiges,
+                blueprints: this.state.blueprints,
+                blueprintUpgrades: [...this.state.blueprintUpgrades],
+                patents: this.state.patents,
+                patentUpgrades: [...this.state.patentUpgrades],
+                corporations: this.state.corporations,
+                corporationUpgrades: [...this.state.corporationUpgrades],
+                research: this.state.patentUpgrades.includes('pt3') ? [...this.state.research] : [],
+                specLevels: this.state.patentUpgrades.includes('pt2') ? {...this.state.specLevels} : {
+                    automation: 0,
+                    innovation: 0,
+                    expansion: 0,
+                    efficiency: 0
+                },
+                specXP: {automation: D(0), innovation: D(0), expansion: D(0), efficiency: D(0)},
+                achievements: [...this.state.achievements],
+                masteryLevel: this.state.masteryLevel,
+                masteryXP: this.state.masteryXP,
+                masteryNodes: [...this.state.masteryNodes],
+                permanentChallengeEffects: [...this.state.permanentChallengeEffects],
+                stats: {
+                    ...this.state.stats,
+                    lifeComponents: D(0),
+                    highComponents: this.state.stats.highComponents.max(this.state.stats.totalComponents),
+                },
+                clicks: this.state.clicks,
+                goldenClicks: this.state.goldenClicks,
+                tutorialComplete: this.state.tutorialComplete,
+            };
+            this.state = this.newState();
+            GameData.buildings.forEach(b => this.state.buildings[b.id] = 0);
+            Object.assign(this.state, keep);
+            if (this.state.blueprintUpgrades.includes('bp1')) this.state.buildings.workbench = 5;
+            if (this.state.blueprintUpgrades.includes('bp2')) this.state.buildings.conveyor = 3;
+            UI.toast('Prestige! +' + gain + ' 📐', 'prestige');
+            UI.renderAll();
+            SaveSystem.save();
+        } else if (layer === 2) {
+            const gain = this.patentGain();
+            if (gain <= 0) return;
+            Audio.prestige();
+            this.state.patents += gain;
+            const keep = {
+                settings: {...this.state.settings},
+                prestiges: 0,
+                blueprints: 0,
+                blueprintUpgrades: this.state.corporationUpgrades.includes('cp3') ? [...this.state.blueprintUpgrades] : [],
+                patents: this.state.patents,
+                patentUpgrades: [...this.state.patentUpgrades],
+                corporations: this.state.corporations,
+                corporationUpgrades: [...this.state.corporationUpgrades],
+                research: [],
+                specLevels: this.state.corporationUpgrades.includes('cp2') ? {...this.state.specLevels} : {
+                    automation: 0,
+                    innovation: 0,
+                    expansion: 0,
+                    efficiency: 0
+                },
+                specXP: {automation: D(0), innovation: D(0), expansion: D(0), efficiency: D(0)},
+                achievements: [...this.state.achievements],
+                masteryLevel: this.state.masteryLevel,
+                masteryXP: this.state.masteryXP,
+                masteryNodes: [...this.state.masteryNodes],
+                permanentChallengeEffects: [...this.state.permanentChallengeEffects],
+                stats: {
+                    ...this.state.stats,
+                    lifeComponents: D(0),
+                    highComponents: this.state.stats.highComponents.max(this.state.stats.totalComponents),
+                },
+                clicks: this.state.clicks,
+                goldenClicks: this.state.goldenClicks,
+                tutorialComplete: this.state.tutorialComplete,
+            };
+            this.state = this.newState();
+            GameData.buildings.forEach(b => this.state.buildings[b.id] = 0);
+            Object.assign(this.state, keep);
+            UI.toast('Patent Reset! +' + gain + ' 📜', 'prestige');
+            UI.renderAll();
+            SaveSystem.save();
+        } else if (layer === 3) {
+            const gain = this.corporationGain();
+            if (gain <= 0) return;
+            Audio.prestige();
+            this.state.corporations += gain;
+            const keep = {
+                settings: {...this.state.settings},
+                prestiges: 0,
+                blueprints: 0,
+                blueprintUpgrades: [],
+                patents: 0,
+                patentUpgrades: [...this.state.patentUpgrades],
+                corporations: this.state.corporations,
+                corporationUpgrades: [...this.state.corporationUpgrades],
+                research: [],
+                specLevels: {automation: 0, innovation: 0, expansion: 0, efficiency: 0},
+                specXP: {automation: D(0), innovation: D(0), expansion: D(0), efficiency: D(0)},
+                achievements: [...this.state.achievements],
+                masteryLevel: this.state.masteryLevel,
+                masteryXP: this.state.masteryXP,
+                masteryNodes: [...this.state.masteryNodes],
+                permanentChallengeEffects: [...this.state.permanentChallengeEffects],
+                stats: {
+                    ...this.state.stats,
+                    lifeComponents: D(0),
+                    highComponents: this.state.stats.highComponents.max(this.state.stats.totalComponents),
+                },
+                clicks: this.state.clicks,
+                goldenClicks: this.state.goldenClicks,
+                tutorialComplete: this.state.tutorialComplete,
+            };
+            this.state = this.newState();
+            GameData.buildings.forEach(b => this.state.buildings[b.id] = 0);
+            Object.assign(this.state, keep);
+            UI.toast('Corporation! +' + gain + ' 🏢', 'prestige');
+            UI.renderAll();
+            SaveSystem.save();
+        }
+    },
+    checkMasteryLevelUp() {
+        const xpNeeded = this.state.masteryLevel * 100;
+        while (this.state.masteryXP >= xpNeeded) {
+            this.state.masteryXP -= xpNeeded;
+            this.state.masteryLevel++;
+        }
+    },
+    buyMasteryNode(id) {
+        const node = GameData.masteryNodes.find(n => n.id === id);
+        if (!node || this.state.masteryNodes.includes(id)) return;
+        if (node.req && !this.state.masteryNodes.includes(node.req)) return;
+        const spentPoints = this.state.masteryNodes.length;
+        const availablePoints = this.state.masteryLevel - spentPoints;
+        if (availablePoints >= node.cost) {
+            this.state.masteryNodes.push(id);
+            Audio.upgrade();
+            UI.toast('Mastery: ' + node.name, 'achievement');
+            UI.renderMastery();
+        }
+    },
+    startChallenge(id) {
+        const ch = GameData.challenges.find(c => c.id === id);
+        if (!ch || !ch.unlock() || this.state.activeChallenge) return;
+        if (Date.now() < (this.state.challengeCooldowns[id] || 0)) return;
+        this.state.activeChallenge = id;
+        this.state.challengeStartTime = Date.now();
+        this.challengeProgress = 0;
+        if (ch.track === 'clicks') {
+            this.challengeStartValue = this.state.clicks;
+        }
+        if (id === 'noClick') {
+            this.state.stats.lifeComponents = D(0);
+            this.state.resources.components = D(0);
+            GameData.buildings.forEach(b => this.state.buildings[b.id] = 0);
+            if (this.state.blueprintUpgrades.includes('bp1')) this.state.buildings.workbench = 5;
+            if (this.state.blueprintUpgrades.includes('bp2')) this.state.buildings.conveyor = 3;
+        }
+        UI.toast('Challenge started: ' + ch.name, 'warning');
+        UI.renderChallenges();
+    },
+    updateChallenge() {
+        if (!this.state.activeChallenge) return;
+        const ch = GameData.challenges.find(c => c.id === this.state.activeChallenge);
+        if (!ch) return;
+        const elapsed = (Date.now() - this.state.challengeStartTime) / 1000;
+        if (ch.track === 'clicks') {
+            this.challengeProgress = this.state.clicks - this.challengeStartValue;
+        }
+        if (ch.goal()) {
+            this.completeChallenge(ch);
+            return;
+        }
+        if (ch.duration !== Infinity && elapsed >= ch.duration) {
+            this.failChallenge(ch);
+        }
+    },
+    completeChallenge(ch) {
+        this.state.challengeCompletions.push(ch.id);
+        this.state.activeChallenge = null;
+        this.state.challengeCooldowns[ch.id] = Date.now() + ch.cooldown * 1000;
+        if (ch.reward.type === 'tempBoost') {
+            this.state.challengeReward = ch.reward;
+            this.state.challengeRewardEnd = Date.now() + ch.reward.duration * 1000;
+        } else if (ch.reward.type === 'permanent' && ch.reward.effect) {
+            if (!this.state.permanentChallengeEffects.includes(ch.reward.effect)) {
+                this.state.permanentChallengeEffects.push(ch.reward.effect);
+            }
+        }
+        Audio.achieve();
+        UI.toast('Challenge complete! ' + ch.reward.desc, 'success');
+        UI.renderChallenges();
+    },
+    failChallenge(ch) {
+        this.state.activeChallenge = null;
+        this.state.challengeCooldowns[ch.id] = Date.now() + ch.cooldown * 1000;
+        UI.toast('Challenge failed: ' + ch.name, 'warning');
+        UI.renderChallenges();
+    },
+    processAutoBuy() {
+        const buildings = this.getAutoBuyBuildings();
+        buildings.forEach(id => {
+            if (this.maxBuy(id) > 0) {
+                const cost = this.buildingCost(id, 1);
+                if (this.state.resources.components.gte(cost)) {
+                    this.state.resources.components = this.state.resources.components.sub(cost);
+                    this.state.buildings[id]++;
+                }
+            }
+        });
+    },
+    checkAchievements() {
+        let found = false;
+        GameData.achievements.forEach(a => {
+            if (!this.state.achievements.includes(a.id) && a.check()) {
+                this.state.achievements.push(a.id);
+                found = true;
+                Audio.achieve();
+                UI.toast('🏅 ' + a.name, 'achievement');
+            }
+        });
+        if (found) UI.renderAchievements();
+    },
+};
+const SaveSystem = {
+    save(silent = false) {
+        const data = {
+            ...Game.state,
+            resources: {
+                components: Game.state.resources.components.toString(),
+                widgets: Game.state.resources.widgets.toString(),
+                gadgets: Game.state.resources.gadgets.toString(),
+                prototypes: Game.state.resources.prototypes.toString(),
+                innovations: Game.state.resources.innovations.toString(),
+            },
+            specXP: {
+                automation: Game.state.specXP.automation.toString(),
+                innovation: Game.state.specXP.innovation.toString(),
+                expansion: Game.state.specXP.expansion.toString(),
+                efficiency: Game.state.specXP.efficiency.toString(),
+            },
+            stats: {
+                ...Game.state.stats,
+                totalComponents: Game.state.stats.totalComponents.toString(),
+                lifeComponents: Game.state.stats.lifeComponents.toString(),
+                highComponents: Game.state.stats.highComponents.toString(),
+            },
+            lastSave: Date.now(),
+            version: '2.0.0',
+        };
+        try {
+            localStorage.setItem('idleFactoryTycoon', JSON.stringify(data));
+            if (!silent) UI.toast('Game saved!', 'success');
+        } catch (e) {
+            console.error('Save failed:', e);
+        }
+    }, load() {
+        try {
+            const data = JSON.parse(localStorage.getItem('idleFactoryTycoon'));
+            if (!data) return false;
+            Game.state = Game.newState();
+            GameData.buildings.forEach(b => Game.state.buildings[b.id] = 0);
+            Object.assign(Game.state, data);
+            Game.state.resources = {
+                components: D(data.resources?.components || 0),
+                widgets: D(data.resources?.widgets || 0),
+                gadgets: D(data.resources?.gadgets || 0),
+                prototypes: D(data.resources?.prototypes || 0),
+                innovations: D(data.resources?.innovations || 0),
+            };
+            Game.state.specXP = {
+                automation: D(data.specXP?.automation || 0),
+                innovation: D(data.specXP?.innovation || 0),
+                expansion: D(data.specXP?.expansion || 0),
+                efficiency: D(data.specXP?.efficiency || 0),
+            };
+            Game.state.stats.totalComponents = D(data.stats?.totalComponents || 0);
+            Game.state.stats.lifeComponents = D(data.stats?.lifeComponents || 0);
+            Game.state.stats.highComponents = D(data.stats?.highComponents || 0);
+            Game.state.permanentChallengeEffects = data.permanentChallengeEffects || [];
+            return true;
+        } catch (e) {
+            console.error('Load failed:', e);
+            return false;
+        }
+    }, calcOffline() {
+        const now = Date.now();
+        const away = Math.min((now - Game.state.lastSave) / 1000, Game.offlineCap());
+        if (away < 60) return;
+        Game.state.stats.offlineTime += away;
+        const compProd = Game.productionPerSec('components').mul(away * Game.offlineEff());
+        Game.state.resources.components = Game.state.resources.components.add(compProd);
+        Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(compProd);
+        Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(compProd);
+        const widgetProd = Game.productionPerSec('widgets').mul(away * Game.offlineEff());
+        Game.state.resources.widgets = Game.state.resources.widgets.add(widgetProd);
+        UI.showModal('Welcome Back!', '<p>You were away for ' + Format.time(away) + '</p><div style="background:var(--bg-card);padding:12px;margin:12px 0;border-radius:4px;"><div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>🔩 Components</span><span style="color:var(--success);">+' + Format.num(compProd) + '</span></div>' + (widgetProd.gt(0) ? '<div style="display:flex;justify-content:space-between;"><span>⚙️ Widgets</span><span style="color:var(--success);">+' + Format.num(widgetProd) + '</span></div>' : '') + '<div style="font-size:10px;color:var(--text-dim);margin-top:8px;">Offline efficiency: ' + Format.percent(Game.offlineEff()) + '</div></div>', () => {
+        }, {hideCancel: true, confirmText: 'Continue'});
+    }, export() {
+        this.save(true);
+        const data = btoa(localStorage.getItem('idleFactoryTycoon'));
+        navigator.clipboard.writeText(data).then(() => UI.toast('Save copied to clipboard!', 'success')).catch(() => prompt('Copy this save:', data));
+    }, import() {
+        const data = prompt('Paste your save:');
+        if (!data) return;
+        try {
+            localStorage.setItem('idleFactoryTycoon', atob(data));
+            location.reload();
+        } catch (e) {
+            UI.toast('Invalid save data!', 'warning');
+        }
+    }, reset() {
+        UI.showModal('Hard Reset', '<p style="color:var(--danger);">This will DELETE ALL progress permanently!</p><p>Are you sure?</p>', () => {
+            localStorage.removeItem('idleFactoryTycoon');
+            location.reload();
+        }, {confirmClass: 'danger'});
+    }
+};
+const UI = {
+    bulkMode: 1, activeTab: 'buildings', init() {
+        this.setupEvents();
+        this.renderAll();
+        if (!Game.state.tutorialComplete && Game.state.stats.playTime < 60) {
+            this.showTutorial();
+        }
+    }, setupEvents() {
+        document.getElementById('mainBtn').onclick = (e) => Game.doClick(e);
+        document.getElementById('overclockBtn').onclick = () => Minigames.activateOverclock();
+        document.getElementById('qualityBtn').onclick = () => Minigames.activateQualityCheck();
+        document.getElementById('saveBtn').onclick = () => SaveSystem.save();
+        document.getElementById('muteBtn').onclick = () => {
+            Audio.init();
+            const muted = Audio.toggleMute();
+            document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊';
+            Game.state.settings.muted = muted;
+        };
+        document.getElementById('tutorialBtn').onclick = () => this.showTutorial();
+        document.getElementById('optionsBtn').onclick = () => {
+            document.getElementById('optionsPanel').classList.toggle('active');
+        };
+        document.getElementById('volumeSlider').oninput = (e) => {
+            Game.state.settings.volume = e.target.value / 100;
+            Audio.setVolume(Game.state.settings.volume);
+        };
+        document.getElementById('notation').onchange = (e) => {
+            Format.notation = e.target.value;
+            Game.state.settings.notation = e.target.value;
+        };
+        document.getElementById('exportBtn').onclick = () => SaveSystem.export();
+        document.getElementById('importBtn').onclick = () => SaveSystem.import();
+        document.getElementById('resetBtn').onclick = () => SaveSystem.reset();
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('optionsPanel');
+            const btn = document.getElementById('optionsBtn');
+            if (!panel.contains(e.target) && !btn.contains(e.target)) {
+                panel.classList.remove('active');
+            }
+        });
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                this.activeTab = tab.dataset.tab;
+                document.getElementById(tab.dataset.tab + 'Panel').classList.add('active');
+            };
+        });
+        document.querySelectorAll('#bulkToggle .bulk-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('#bulkToggle .bulk-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.bulkMode = btn.dataset.amount === 'max' ? 'max' : parseInt(btn.dataset.amount);
+                this.renderBuildings();
+            };
+        });
+        document.getElementById('modalCancel').onclick = () => {
+            document.getElementById('modalOverlay').classList.remove('active');
+        };
+        document.getElementById('tutorialSkip').onclick = () => this.closeTutorial();
+        document.getElementById('tutorialNext').onclick = () => this.nextTutorialStep();
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            switch (e.key.toLowerCase()) {
+                case' ':
+                case'f':
+                    e.preventDefault();
+                    document.getElementById('mainBtn').click();
+                    break;
+                case's':
+                    SaveSystem.save();
+                    break;
+                case'm':
+                    document.getElementById('muteBtn').click();
+                    break;
+            }
+        });
+    }, renderAll() {
+        this.renderResources();
+        this.renderBuildings();
+        this.renderSpecializations();
+        this.renderUpgrades();
+        this.renderResearch();
+        this.renderPrestige();
+        this.renderChallenges();
+        this.renderMastery();
+        this.renderAchievements();
+        this.renderStats();
+    }, renderResources() {
+        const container = document.getElementById('resourcesPanel');
+        container.innerHTML = '';
+        GameData.resources.forEach(res => {
+            if (!res.base && res.unlock && !res.unlock()) return;
+            const value = Game.state.resources[res.id];
+            const rate = Game.productionPerSec(res.id);
+            const div = document.createElement('div');
+            div.className = 'resource-item';
+            div.innerHTML = '<div class="resource-left"><span class="resource-icon">' + res.icon + '</span><span class="resource-name">' + res.name + '</span></div><div class="resource-right"><div class="resource-value" style="color:' + res.color + '">' + Format.num(value) + '</div><div class="resource-rate ' + (rate.lt(0) ? 'negative' : '') + '">' + (rate.gt(0) ? '+' : '') + Format.num(rate) + '/s</div></div>';
+            container.appendChild(div);
+        });
+        document.getElementById('bpValue').textContent = Game.state.blueprints;
+        document.getElementById('patentValue').textContent = Game.state.patents;
+        document.getElementById('corpValue').textContent = Game.state.corporations;
+        document.getElementById('clickValue').textContent = '+' + Format.num(Game.clickValue()) + '/click';
+        const comboIndicator = document.getElementById('comboIndicator');
+        if (Game.state.upgrades.includes('combo1') && Game.comboCount > 1) {
+            comboIndicator.classList.add('active');
+            comboIndicator.textContent = 'x' + Game.comboCount;
+        } else {
+            comboIndicator.classList.remove('active');
+        }
+    }, renderBuildings() {
+        const grid = document.getElementById('buildingsGrid');
+        grid.innerHTML = '';
+        GameData.buildings.forEach(b => {
+            if (!b.unlock() && Game.state.buildings[b.id] === 0) return;
+            const owned = Game.state.buildings[b.id] || 0;
+            const n = this.bulkMode === 'max' ? Game.maxBuy(b.id) : Math.min(this.bulkMode, Game.maxBuy(b.id) || this.bulkMode);
+            const cost = Game.buildingCost(b.id, n || 1);
+            const canAfford = Game.state.resources.components.gte(cost) && n > 0;
+            const prod = Game.buildingProd(b.id);
+            const synMult = Game.getSynergyMult(b.id);
+            const card = document.createElement('div');
+            card.className = 'building-card' + (canAfford ? ' can-afford' : '') + (!b.unlock() ? ' locked' : '');
+            card.innerHTML = '<div class="building-icon-wrap" data-id="' + b.id + '">' + b.icon + '</div><div class="building-info"><div class="building-header"><span class="building-name">' + b.name + '</span><span class="building-count">' + owned + '</span></div><div class="building-desc">' + b.desc + '</div><div class="building-stats"><span class="building-stat production">+' + Format.num(prod) + '/s</span><span class="building-stat cost">' + Format.num(cost) + '🔩</span>' + (synMult > 1 ? '<span class="building-stat synergy">×' + synMult.toFixed(2) + ' syn</span>' : '') + '</div></div><div class="building-actions"><button class="buy-btn" data-id="' + b.id + '" data-n="1">×1</button><button class="buy-btn" data-id="' + b.id + '" data-n="10">×10</button><button class="buy-btn" data-id="' + b.id + '" data-n="max">MAX</button></div>';
+            grid.appendChild(card);
+        });
+        grid.querySelectorAll('.buy-btn').forEach(btn => {
+            const id = btn.dataset.id;
+            const n = btn.dataset.n === 'max' ? Game.maxBuy(id) : parseInt(btn.dataset.n);
+            btn.disabled = !Game.state.resources.components.gte(Game.buildingCost(id, n)) || n <= 0;
+            btn.onclick = () => Game.buyBuilding(id, btn.dataset.n === 'max' ? 'max' : parseInt(btn.dataset.n));
+        });
+        grid.querySelectorAll('.building-icon-wrap').forEach(icon => {
+            icon.onclick = () => Game.buyBuilding(icon.dataset.id, this.bulkMode);
+        });
+    }, renderSpecializations() {
+        const container = document.getElementById('specContainer');
+        container.innerHTML = '';
+        GameData.specializations.forEach(spec => {
+            const level = Game.state.specLevels[spec.id] || 0;
+            const xp = Game.state.specXP[spec.id];
+            const xpNeeded = Game.getSpecXPNeeded(spec.id);
+            const investCost = Game.getSpecInvestCost(spec.id);
+            const canInvest = Game.state.resources.components.gte(investCost);
+            const card = document.createElement('div');
+            card.className = 'spec-card' + (level > 0 ? ' active' : '');
+            card.innerHTML = '<div class="spec-header"><span class="spec-icon">' + spec.icon + '</span><span class="spec-title">' + spec.name + '</span><span class="spec-level">Lv.' + level + '</span></div><div class="spec-content"><div class="spec-desc">' + spec.desc + '</div><div class="spec-progress"><div class="spec-progress-bar"><div class="spec-progress-fill" style="width:' + xp.div(xpNeeded).mul(100).toNumber() + '%"></div></div><div class="spec-progress-text">' + Format.num(xp) + ' / ' + Format.num(xpNeeded) + ' XP</div></div><div class="spec-upgrades">' + spec.bonuses.map((b, i) => {
+                const unlocked = level >= b.level;
+                return '<div class="spec-upgrade ' + (unlocked ? 'unlocked' : (level === b.level - 1 ? 'available' : 'locked')) + '" title="' + b.desc + '">' + (unlocked ? '✓' : b.level) + '</div>';
+            }).join('') + '</div><button class="spec-invest-btn" data-spec="' + spec.id + '" ' + (canInvest ? '' : 'disabled') + '>Invest ' + Format.num(investCost) + ' 🔩</button></div>';
+            container.appendChild(card);
+        });
+        container.querySelectorAll('.spec-invest-btn').forEach(btn => {
+            btn.onclick = () => Game.investSpec(btn.dataset.spec);
+        });
+    }, renderUpgrades() {
+        const grid = document.getElementById('upgradesGrid');
+        grid.innerHTML = '';
+        document.getElementById('upgradeCount').textContent = Game.state.upgrades.length + '/' + GameData.upgrades.length + ' purchased';
+        GameData.upgrades.forEach(u => {
+            const bought = Game.state.upgrades.includes(u.id);
+            const avail = u.req();
+            if (!avail && !bought) return;
+            const costResource = u.costType || 'components';
+            const resource = Game.state.resources[costResource];
+            const canAfford = resource.gte(u.cost);
+            const icon = costResource === 'widgets' ? '⚙️' : '🔩';
+            const card = document.createElement('div');
+            card.className = 'upgrade-card' + (bought ? ' purchased' : '') + (!avail ? ' locked' : '') + (canAfford && !bought ? ' can-afford' : '');
+            card.innerHTML = '<div class="upgrade-header"><span class="upgrade-name">' + u.icon + ' ' + u.name + '</span>' + (bought ? '<span style="color:var(--success)">✓</span>' : '<span class="upgrade-cost">' + Format.num(u.cost) + icon + '</span>') + '</div><div class="upgrade-desc">' + u.desc + '</div>';
+            if (!bought && avail) {
+                card.onclick = () => Game.buyUpgrade(u.id);
+            }
+            grid.appendChild(card);
+        });
+    }, renderResearch() {
+        const grid = document.getElementById('researchGrid');
+        grid.innerHTML = '';
+        GameData.research.forEach(r => {
+            const bought = Game.state.research.includes(r.id);
+            const avail = r.req();
+            if (!avail && !bought) return;
+            let cost = r.cost.mul(Game.getSpecMult('researchCost'));
+            const canAfford = Game.state.resources.widgets.gte(cost);
+            const card = document.createElement('div');
+            card.className = 'research-card' + (bought ? ' purchased' : '') + (!avail ? ' locked' : '') + (canAfford && !bought ? ' can-afford' : '');
+            card.innerHTML = '<div class="research-icon">' + r.icon + '</div><div class="research-name">' + r.name + '</div><div class="research-desc">' + r.desc + '</div>' + (bought ? '' : '<div class="research-cost">' + Format.num(cost) + ' ⚙️</div>') + '<div class="research-tier">Tier ' + r.tier + '</div>';
+            if (!bought && avail) {
+                card.onclick = () => Game.buyResearch(r.id);
+            }
+            grid.appendChild(card);
+        });
+    }, renderPrestige() {
+        const container = document.getElementById('prestigeContent');
+        const bpGain = Game.prestigeGain();
+        const ptGain = Game.patentGain();
+        const cpGain = Game.corporationGain();
+        let html = '<div class="prestige-card blueprints"><div class="prestige-header"><div class="prestige-title">📐 Blueprints</div><div class="prestige-current blueprints">' + Game.state.blueprints + '</div></div><div class="prestige-info"><div class="prestige-stat"><div class="prestige-stat-label">Current Bonus</div><div class="prestige-stat-value">+' + Game.state.blueprints + '%</div></div><div class="prestige-stat"><div class="prestige-stat-label">Gain on Reset</div><div class="prestige-stat-value" style="color:var(--success)">+' + bpGain + '</div></div><div class="prestige-stat"><div class="prestige-stat-label">Total Prestiges</div><div class="prestige-stat-value">' + Game.state.prestiges + '</div></div></div><button class="prestige-btn blueprints" id="prestigeBpBtn" ' + (bpGain <= 0 ? 'disabled' : '') + '>🔄 FACTORY RESET (+' + bpGain + ' 📐)</button><div class="prestige-upgrades-grid">' + GameData.blueprintUpgrades.map(u => {
+            const bought = Game.state.blueprintUpgrades.includes(u.id);
+            const avail = u.req();
+            const canAfford = Game.state.blueprints >= u.cost;
+            return '<div class="prestige-upgrade ' + (bought ? 'purchased' : '') + (!avail ? 'locked' : '') + (canAfford && !bought ? ' can-afford' : '') + '" data-id="' + u.id + '" data-type="bp"><div class="upgrade-header"><span class="upgrade-name">' + u.icon + ' ' + u.name + '</span>' + (bought ? '<span style="color:var(--success)">✓</span>' : '<span class="upgrade-cost">' + u.cost + ' 📐</span>') + '</div><div class="upgrade-desc">' + u.desc + '</div></div>';
+        }).join('') + '</div></div>';
+        if (Game.state.prestiges >= 1) {
+            html += '<div class="prestige-card patents"><div class="prestige-header"><div class="prestige-title">📜 Patents</div><div class="prestige-current patents">' + Game.state.patents + '</div></div><div class="prestige-info"><div class="prestige-stat"><div class="prestige-stat-label">Requirement</div><div class="prestige-stat-value">100+ Blueprints</div></div><div class="prestige-stat"><div class="prestige-stat-label">Gain on Reset</div><div class="prestige-stat-value" style="color:var(--purple)">+' + ptGain + '</div></div><div class="prestige-stat"><div class="prestige-stat-label">Effect</div><div class="prestige-stat-value">+' + Game.state.patents + '% prod</div></div></div><button class="prestige-btn patents" id="prestigePtBtn" ' + (ptGain <= 0 ? 'disabled' : '') + '>🔄 PATENT RESET (+' + ptGain + ' 📜)</button><div class="prestige-upgrades-grid">' + GameData.patentUpgrades.map(u => {
+                const bought = Game.state.patentUpgrades.includes(u.id);
+                const avail = u.req();
+                const canAfford = Game.state.patents >= u.cost;
+                return '<div class="prestige-upgrade ' + (bought ? 'purchased' : '') + (!avail ? 'locked' : '') + (canAfford && !bought ? ' can-afford' : '') + '" data-id="' + u.id + '" data-type="pt"><div class="upgrade-header"><span class="upgrade-name">' + u.icon + ' ' + u.name + '</span>' + (bought ? '<span style="color:var(--success)">✓</span>' : '<span class="upgrade-cost">' + u.cost + ' 📜</span>') + '</div><div class="upgrade-desc">' + u.desc + '</div></div>';
+            }).join('') + '</div></div>';
+        }
+        if (Game.state.patents >= 10) {
+            html += '<div class="prestige-card corporations"><div class="prestige-header"><div class="prestige-title">🏢 Corporations</div><div class="prestige-current corporations">' + Game.state.corporations + '</div></div><div class="prestige-info"><div class="prestige-stat"><div class="prestige-stat-label">Requirement</div><div class="prestige-stat-value">50+ Patents</div></div><div class="prestige-stat"><div class="prestige-stat-label">Gain on Reset</div><div class="prestige-stat-value" style="color:var(--gold)">+' + cpGain + '</div></div><div class="prestige-stat"><div class="prestige-stat-label">Effect</div><div class="prestige-stat-value">+' + (Game.state.corporations * 5) + '% prod</div></div></div><button class="prestige-btn corporations" id="prestigeCpBtn" ' + (cpGain <= 0 ? 'disabled' : '') + '>🔄 CORPORATE MERGER (+' + cpGain + ' 🏢)</button><div class="prestige-upgrades-grid">' + GameData.corporationUpgrades.map(u => {
+                const bought = Game.state.corporationUpgrades.includes(u.id);
+                const avail = u.req();
+                const canAfford = Game.state.corporations >= u.cost;
+                return '<div class="prestige-upgrade ' + (bought ? 'purchased' : '') + (!avail ? 'locked' : '') + (canAfford && !bought ? ' can-afford' : '') + '" data-id="' + u.id + '" data-type="cp"><div class="upgrade-header"><span class="upgrade-name">' + u.icon + ' ' + u.name + '</span>' + (bought ? '<span style="color:var(--success)">✓</span>' : '<span class="upgrade-cost">' + u.cost + ' 🏢</span>') + '</div><div class="upgrade-desc">' + u.desc + '</div></div>';
+            }).join('') + '</div></div>';
+        }
+        container.innerHTML = html;
+        document.getElementById('prestigeBpBtn').onclick = () => {
+            if (bpGain > 0) {
+                this.showModal('Factory Reset', '<p>Reset your factory for <strong style="color:var(--bp-color)">' + bpGain + ' Blueprints</strong>?</p><p style="color:var(--success);margin-top:8px;">✓ Keep: Blueprints, BP Upgrades, Research (with patent), Achievements, Mastery</p><p style="color:var(--danger);margin-top:4px;">✗ Reset: Components, Buildings, Upgrades, Specializations</p>', () => Game.doPrestige(1));
+            }
+        };
+        const ptBtn = document.getElementById('prestigePtBtn');
+        if (ptBtn) {
+            ptBtn.onclick = () => {
+                if (ptGain > 0) {
+                    this.showModal('Patent Reset', '<p>Reset for <strong style="color:var(--patent-color)">' + ptGain + ' Patents</strong>?</p><p style="color:var(--success);margin-top:8px;">✓ Keep: Patents, Patent Upgrades, Achievements, Mastery</p><p style="color:var(--danger);margin-top:4px;">✗ Reset: Blueprints, BP Upgrades, Research, Specs, Buildings</p>', () => Game.doPrestige(2));
+                }
+            };
+        }
+        const cpBtn = document.getElementById('prestigeCpBtn');
+        if (cpBtn) {
+            cpBtn.onclick = () => {
+                if (cpGain > 0) {
+                    this.showModal('Corporate Merger', '<p>Merge for <strong style="color:var(--corp-color)">' + cpGain + ' Corporations</strong>?</p><p style="color:var(--success);margin-top:8px;">✓ Keep: Corporations, Corp Upgrades, Achievements, Mastery</p><p style="color:var(--danger);margin-top:4px;">✗ Reset: Everything else</p>', () => Game.doPrestige(3));
+                }
+            };
+        }
+        container.querySelectorAll('.prestige-upgrade').forEach(card => {
+            card.onclick = () => {
+                if (!card.classList.contains('purchased') && !card.classList.contains('locked')) {
+                    const type = card.dataset.type;
+                    const id = card.dataset.id;
+                    if (type === 'bp') Game.buyBlueprintUpgrade(id); else if (type === 'pt') Game.buyPatentUpgrade(id); else if (type === 'cp') Game.buyCorporationUpgrade(id);
+                }
+            };
+        });
+    }, renderChallenges() {
+        const grid = document.getElementById('challengesGrid');
+        grid.innerHTML = '';
+        GameData.challenges.forEach(ch => {
+            if (!ch.unlock()) return;
+            const isActive = Game.state.activeChallenge === ch.id;
+            const completed = Game.state.challengeCompletions.includes(ch.id);
+            const onCooldown = Date.now() < (Game.state.challengeCooldowns[ch.id] || 0);
+            const cooldownRemaining = Math.ceil(((Game.state.challengeCooldowns[ch.id] || 0) - Date.now()) / 1000);
+            const elapsed = isActive ? (Date.now() - Game.state.challengeStartTime) / 1000 : 0;
+            const timeLeft = isActive ? Math.max(0, ch.duration - elapsed) : ch.duration;
+            const card = document.createElement('div');
+            card.className = 'challenge-card' + (isActive ? ' active' : '') + (completed ? ' completed' : '') + (onCooldown ? ' cooldown' : '');
+            card.innerHTML = '<div class="challenge-header"><span class="challenge-icon">' + ch.icon + '</span><div class="challenge-title"><div class="challenge-name">' + ch.name + '</div><div class="challenge-type">' + ch.type + '</div></div><span class="challenge-timer">' + (isActive ? Format.time(timeLeft) : (onCooldown ? Format.time(cooldownRemaining) : '')) + '</span></div><div class="challenge-content"><div class="challenge-desc">' + ch.desc + '</div>' + (isActive ? '<div class="challenge-progress"><div class="challenge-progress-bar"><div class="challenge-progress-fill" style="width:' + Math.min(100, (elapsed / ch.duration) * 100) + '%"></div></div><div class="challenge-progress-text">' + Format.time(timeLeft) + ' remaining</div></div>' : '') + '<div class="challenge-rewards"><span class="challenge-reward">' + ch.reward.desc + '</span></div>' + (ch.mutators ? '<div class="challenge-mutators">' + ch.mutators.map(m => '<span class="challenge-mutator">' + m + '</span>').join('') + '</div>' : '') + (!isActive && !onCooldown ? '<button class="challenge-btn" data-id="' + ch.id + '">Start Challenge</button>' : '') + '</div>';
+            grid.appendChild(card);
+        });
+        grid.querySelectorAll('.challenge-btn').forEach(btn => {
+            btn.onclick = () => Game.startChallenge(btn.dataset.id);
+        });
+    }, renderMastery() {
+        const container = document.getElementById('masteryContainer');
+        const level = Game.state.masteryLevel;
+        const xp = Game.state.masteryXP;
+        const xpNeeded = level * 100;
+        const spentPoints = Game.state.masteryNodes.length;
+        const availablePoints = level - spentPoints;
+        container.innerHTML = '<div class="mastery-overview"><div class="mastery-level"><div class="mastery-level-number">' + level + '</div><div class="mastery-level-label">Mastery Level</div></div><div class="mastery-xp-bar"><div class="mastery-xp-fill" style="width:' + (xp / xpNeeded) * 100 + '%"></div></div><div class="mastery-xp-text">' + xp + ' / ' + xpNeeded + ' XP</div><div class="mastery-bonuses"><div class="mastery-bonus-item"><span>Available Points</span><span style="color:var(--gold)">' + availablePoints + '</span></div><div class="mastery-bonus-item"><span>Base Bonus</span><span style="color:var(--success)">+' + ((level - 1) * 1).toFixed(0) + '%</span></div><div class="mastery-bonus-item"><span>Nodes Unlocked</span><span>' + spentPoints + '/' + GameData.masteryNodes.length + '</span></div></div></div><div class="mastery-tree"><div style="margin-bottom:16px;"><div class="section-title">Mastery Nodes</div><div class="section-subtitle">Spend mastery points on permanent bonuses</div></div><div class="mastery-nodes">' + GameData.masteryNodes.map(node => {
+            const unlocked = Game.state.masteryNodes.includes(node.id);
+            const reqMet = !node.req || Game.state.masteryNodes.includes(node.req);
+            const canAfford = availablePoints >= node.cost;
+            const locked = !reqMet || (!unlocked && !canAfford);
+            return '<div class="mastery-node ' + (unlocked ? 'unlocked' : '') + (locked ? 'locked' : '') + '" data-id="' + node.id + '"><div class="mastery-node-icon">' + node.icon + '</div><div class="mastery-node-name">' + node.name + '</div><div class="mastery-node-desc">' + node.desc + '</div>' + (!unlocked ? '<div class="mastery-node-cost">' + node.cost + ' points</div>' : '') + '</div>';
+        }).join('') + '</div></div>';
+        container.querySelectorAll('.mastery-node').forEach(node => {
+            node.onclick = () => {
+                if (!node.classList.contains('locked') && !node.classList.contains('unlocked')) {
+                    Game.buyMasteryNode(node.dataset.id);
+                }
+            };
+        });
+    }, renderAchievements() {
+        const grid = document.getElementById('achievementsGrid');
+        grid.innerHTML = '';
+        document.getElementById('achieveCount').textContent = Game.state.achievements.length + '/' + GameData.achievements.length + ' unlocked';
+        GameData.achievements.forEach(a => {
+            const unlocked = Game.state.achievements.includes(a.id);
+            const card = document.createElement('div');
+            card.className = 'achievement-card' + (unlocked ? ' unlocked' : ' locked');
+            card.innerHTML = '<span class="achievement-icon">' + a.icon + '</span><div class="achievement-info"><div class="achievement-name">' + a.name + '</div><div class="achievement-desc">' + a.desc + '</div>' + (unlocked ? '<div class="achievement-bonus">+' + (a.bonus * 100).toFixed(0) + '% production</div>' : '') + '</div>';
+            grid.appendChild(card);
+        });
+    }, renderStats() {
+        const dashboard = document.getElementById('statsDashboard');
+        const stats = {
+            'Production': [['Components/sec', Format.num(Game.productionPerSec('components'))], ['Widgets/sec', Format.num(Game.productionPerSec('widgets'))], ['Click Value', Format.num(Game.clickValue())], ['Total Buildings', Game.totalBuildings()],],
+            'Progress': [['Total Components', Format.num(Game.state.stats.totalComponents)], ['Lifetime Components', Format.num(Game.state.stats.lifeComponents)], ['Best Components', Format.num(Game.state.stats.highComponents)], ['Total Clicks', Game.state.clicks.toLocaleString()],],
+            'Prestige': [['Blueprints', Game.state.blueprints], ['Patents', Game.state.patents], ['Corporations', Game.state.corporations], ['Total Prestiges', Game.state.prestiges],],
+            'Time': [['Play Time', Format.time(Game.state.stats.playTime)], ['Offline Time', Format.time(Game.state.stats.offlineTime)], ['Fastest Prestige', Game.state.stats.fastestPrestige < Infinity ? Format.time(Game.state.stats.fastestPrestige) : 'N/A'], ['Golden Gears', Game.state.goldenClicks],],
+            'Bonuses': [['Achievement Bonus', '+' + (Game.achievementBonus() * 100).toFixed(1) + '%'], ['Mastery Level', Game.state.masteryLevel], ['Research Count', Game.state.research.length + '/' + GameData.research.length], ['Upgrades', Game.state.upgrades.length + '/' + GameData.upgrades.length],],
+        };
+        dashboard.innerHTML = Object.entries(stats).map(([title, rows]) => '<div class="stats-card"><div class="stats-card-title">' + title + '</div><div class="stats-grid">' + rows.map(([label, value]) => '<div class="stat-row"><span class="stat-label">' + label + '</span><span class="stat-value">' + value + '</span></div>').join('') + '</div></div>').join('');
+    }, toast(msg, type = '') {
+        const t = document.createElement('div');
+        t.className = 'toast ' + type;
+        t.textContent = msg;
+        document.getElementById('toasts').appendChild(t);
+        setTimeout(() => t.remove(), 3000);
+    }, spawnParticle(e, value) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.textContent = '+' + Format.num(value);
+        p.style.left = e.clientX + 'px';
+        p.style.top = e.clientY + 'px';
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+    }, showModal(title, content, onConfirm, options = {}) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalContent').innerHTML = content;
+        document.getElementById('modalOverlay').classList.add('active');
+        const cancelBtn = document.getElementById('modalCancel');
+        const confirmBtn = document.getElementById('modalConfirm');
+        cancelBtn.style.display = options.hideCancel ? 'none' : '';
+        confirmBtn.textContent = options.confirmText || 'Confirm';
+        confirmBtn.className = 'modal-btn ' + (options.confirmClass || 'primary');
+        confirmBtn.onclick = () => {
+            document.getElementById('modalOverlay').classList.remove('active');
+            if (onConfirm) onConfirm();
+        };
+    }, showTutorial() {
+        document.getElementById('tutorialOverlay').classList.add('active');
+        this.renderTutorialStep();
+    }, closeTutorial() {
+        document.getElementById('tutorialOverlay').classList.remove('active');
+        Game.state.tutorialComplete = true;
+    }, nextTutorialStep() {
+        Game.state.tutorialStep++;
+        if (Game.state.tutorialStep >= GameData.tutorialSteps.length) {
+            this.closeTutorial();
+        } else {
+            this.renderTutorialStep();
+        }
+    }, renderTutorialStep() {
+        const step = GameData.tutorialSteps[Game.state.tutorialStep];
+        document.getElementById('tutorialIcon').textContent = step.icon;
+        document.getElementById('tutorialTitle').textContent = step.title;
+        document.getElementById('tutorialText').textContent = step.text;
+        const progress = document.getElementById('tutorialProgress');
+        progress.innerHTML = GameData.tutorialSteps.map((_, i) => '<div class="tutorial-dot ' + (i < Game.state.tutorialStep ? 'completed' : '') + (i === Game.state.tutorialStep ? 'active' : '') + '"></div>').join('');
+        document.getElementById('tutorialNext').textContent = Game.state.tutorialStep === GameData.tutorialSteps.length - 1 ? 'Start Playing!' : 'Next';
+    }
+};
+const GoldenGear = {
+    timer: null, spawn() {
+        if (document.querySelector('.golden-gear')) return;
+        const gear = document.createElement('div');
+        gear.className = 'golden-gear';
+        gear.textContent = '⚙️';
+        const maxX = Math.max(60, window.innerWidth - 60);
+        const maxY = Math.max(150, window.innerHeight - 100);
+        gear.style.left = (30 + Math.random() * (maxX - 60)) + 'px';
+        gear.style.top = (100 + Math.random() * (maxY - 100)) + 'px';
+        gear.onclick = gear.ontouchend = (e) => {
+            e.preventDefault();
+            this.collect(gear);
+        };
+        document.body.appendChild(gear);
+        setTimeout(() => {
+            if (gear.parentNode) gear.remove();
+        }, 10000);
+    }, collect(gear) {
+        Audio.init();
+        Audio.golden();
+        gear.remove();
+        Game.state.goldenClicks++;
+        const mult = Game.getMasteryMult('golden');
+        const roll = Math.random();
+        if (roll < 0.4) {
+            Game.state.activeBonus = 'prod';
+            Game.state.bonusEnd = Date.now() + 30000;
+            UI.toast('⭐ 2× Production for 30s!', 'achievement');
+        } else if (roll < 0.7) {
+            const bonus = Game.productionPerSec('components').mul(60 * mult);
+            Game.state.resources.components = Game.state.resources.components.add(bonus);
+            Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(bonus);
+            Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(bonus);
+            UI.toast('⭐ +' + Format.num(bonus) + ' Components!', 'achievement');
+        } else {
+            const bonus = Game.clickValue().mul(100 * mult);
+            Game.state.resources.components = Game.state.resources.components.add(bonus);
+            Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(bonus);
+            Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(bonus);
+            UI.toast('⭐ +' + Format.num(bonus) + ' (100 clicks)!', 'achievement');
+        }
+    }, schedule() {
+        let time = 120000 + Math.random() * 180000;
+        if (Game.state.blueprintUpgrades.includes('bp5')) time *= 0.5;
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+            this.spawn();
+            this.schedule();
+        }, time);
+    }
+};
+let lastFrame = performance.now();
+let lastUIUpdate = 0;
+let lastFullUpdate = 0;
+let lastAutoSave = 0;
+let lastAutoBuy = 0;
+
+function gameLoop(now) {
+    try {
+        const dt = Math.min((now - lastFrame) / 1000, 0.1);
+        lastFrame = now;
+        Game.state.stats.playTime += dt;
+        const compProd = Game.productionPerSec('components').mul(dt);
+        if (compProd.gt(0)) {
+            Game.state.resources.components = Game.state.resources.components.add(compProd);
+            Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(compProd);
+            Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(compProd);
+        }
+        const widgetProd = Game.productionPerSec('widgets').mul(dt);
+        if (widgetProd.gt(0)) {
+            Game.state.resources.widgets = Game.state.resources.widgets.add(widgetProd);
+        }
+        const gadgetProd = Game.productionPerSec('gadgets').mul(dt);
+        if (gadgetProd.gt(0)) {
+            Game.state.resources.gadgets = Game.state.resources.gadgets.add(gadgetProd);
+        }
+        const protoProd = Game.productionPerSec('prototypes').mul(dt);
+        if (protoProd.gt(0)) {
+            Game.state.resources.prototypes = Game.state.resources.prototypes.add(protoProd);
+        }
+        const innovProd = Game.productionPerSec('innovations').mul(dt);
+        if (innovProd.gt(0)) {
+            Game.state.resources.innovations = Game.state.resources.innovations.add(innovProd);
+        }
+        const autoRate = Game.getAutoClickRate();
+        if (autoRate > 0) {
+            const autoGain = Game.clickValue().mul(dt * autoRate);
+            Game.state.resources.components = Game.state.resources.components.add(autoGain);
+            Game.state.stats.totalComponents = Game.state.stats.totalComponents.add(autoGain);
+            Game.state.stats.lifeComponents = Game.state.stats.lifeComponents.add(autoGain);
+        }
+        if (Game.comboTimer > 0) {
+            Game.comboTimer -= dt * 1000;
+            if (Game.comboTimer <= 0) {
+                Game.comboCount = 0;
+            }
+        }
+        if (Game.state.activeBonus && Date.now() >= Game.state.bonusEnd) {
+            Game.state.activeBonus = null;
+        }
+        if (Game.state.challengeReward && Date.now() >= Game.state.challengeRewardEnd) {
+            Game.state.challengeReward = null;
+        }
+        Game.updateChallenge();
+        Minigames.update();
+        if (now - lastAutoBuy >= 1000) {
+            lastAutoBuy = now;
+            Game.processAutoBuy();
+        }
+        if (now - lastUIUpdate >= 50) {
+            lastUIUpdate = now;
+            UI.renderResources();
+        }
+        if (now - lastFullUpdate >= 500) {
+            lastFullUpdate = now;
+            switch (UI.activeTab) {
+                case'buildings':
+                    UI.renderBuildings();
+                    break;
+                case'upgrades':
+                    UI.renderUpgrades();
+                    break;
+                case'challenges':
+                    UI.renderChallenges();
+                    break;
+                case'prestige':
+                    UI.renderPrestige();
+                    break;
+            }
+            Game.checkAchievements();
+        }
+        if (now - lastAutoSave >= 30000) {
+            lastAutoSave = now;
+            SaveSystem.save(true);
+        }
+    } catch (e) {
+        console.error('Game loop error:', e);
+    }
+    requestAnimationFrame(gameLoop);
+}
+
+function init() {
+    Game.init();
+    const hasSave = SaveSystem.load();
+    if (hasSave) {
+        SaveSystem.calcOffline();
+    }
+    Format.notation = Game.state.settings.notation || 'suffix';
+    Audio.setVolume(Game.state.settings.volume);
+    Audio.muted = Game.state.settings.muted;
+    document.getElementById('volumeSlider').value = Game.state.settings.volume * 100;
+    document.getElementById('notation').value = Game.state.settings.notation || 'suffix';
+    document.getElementById('muteBtn').textContent = Game.state.settings.muted ? '🔇' : '🔊';
+    UI.init();
+    GoldenGear.schedule();
+    requestAnimationFrame(gameLoop);
+    console.log('🏭 Idle Factory Tycoon v2.0.0');
+    console.log('⌨️ Shortcuts: Space/F=Click, S=Save, M=Mute');
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}</script>
+</body>
+</html>

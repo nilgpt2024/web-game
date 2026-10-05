@@ -10,7 +10,11 @@ const gamesData = {
         { name: 'Tilting Maze', path: 'games/Puzzle/Tilting-Maze/index.html', preview: 'games/Puzzle/Tilting-Maze/preview.png', icon: 'fas fa-compass', desc: '重力迷宫' },
         { name: 'Sokoban', path: 'games/Puzzle/Sokoban/index.html', preview: 'games/Puzzle/Sokoban/preview.png', icon: 'fas fa-box', desc: '3D推箱子解谜' },
         { name: 'Tangram', path: 'games/Puzzle/Tangram/index.html', preview: 'games/Puzzle/Tangram/preview.png', icon: 'fas fa-shapes', desc: '七巧板拼图' },
-        { name: 'Cialdini-Persuasion-Lab', path: 'games/Puzzle/Cialdini-Persuasion-Lab/index.html', preview: 'games/Puzzle/Cialdini-Persuasion-Lab/preview.png', icon: 'fas fa-brain', desc: '西奥迪尼影响力原理说服力训练' }
+        { name: 'Cialdini-Persuasion-Lab', path: 'games/Puzzle/Cialdini-Persuasion-Lab/index.html', preview: 'games/Puzzle/Cialdini-Persuasion-Lab/preview.png', icon: 'fas fa-brain', desc: '西奥迪尼影响力原理说服力训练' },
+        { name: 'Wordle', path: 'games/Puzzle/Wordle/index.html', preview: 'games/Puzzle/Wordle/preview.png', icon: 'fas fa-font', desc: '经典五字母猜词游戏' },
+        { name: 'Mastermind', path: 'games/Puzzle/Mastermind/index.html', preview: 'games/Puzzle/Mastermind/preview.png', icon: 'fas fa-circle-dot', desc: '破解密码的经典推理游戏' },
+        { name: 'Nonogram', path: 'games/Puzzle/Nonogram/index.html', preview: 'games/Puzzle/Nonogram/preview.png', icon: 'fas fa-table-cells', desc: '逻辑推理填色游戏' },
+        { name: 'Lights Out', path: 'games/Puzzle/Lights-Out/index.html', preview: 'games/Puzzle/Lights-Out/preview.png', icon: 'fas fa-lightbulb', desc: '经典点灯解谜游戏' },
     ],
     Action: [
         { name: 'Archery', path: 'games/Action/Archery/index.html', preview: 'games/Action/Archery/preview.png', icon: 'fas fa-bullseye', desc: '射箭竞技' },
@@ -31,6 +35,8 @@ const gamesData = {
         { name: 'Reaction Test', path: 'games/Action/Reaction-Test/index.html', preview: 'games/Action/Reaction-Test/preview.png', icon: 'fas fa-bolt', desc: '反应速度测试' },
         { name: 'Ink Raiders', path: 'games/Action/Ink-Raiders/dist/index.html', preview: 'games/Action/Ink-Raiders/dist/preview.png', icon: 'fas fa-fill-drip', desc: '墨水突击：3D竞技场喷射涂地击杀' },
         { name: 'Odyssey Expedition', path: 'games/Action/Odyssey-Expedition/index.html', preview: 'games/Action/Odyssey-Expedition/preview.png', icon: 'fas fa-compass', desc: '奥德赛远征：3D海盗远航冒险' }
+        { name: 'Asteroids', path: 'games/Arcade/Asteroids/index.html', preview: 'games/Arcade/Asteroids/preview.png', icon: 'fas fa-rocket', desc: '经典太空射击街机游戏' },
+        { name: 'Frogger', path: 'games/Arcade/Frogger/index.html', preview: 'games/Arcade/Frogger/preview.png', icon: 'fas fa-frog', desc: '经典过街青蛙游戏' },
     ],
     Arcade: [
         { name: 'Bubble Shooter', path: 'games/Arcade/Bubble-Shooter/index.html', preview: 'games/Arcade/Bubble-Shooter/preview.png', icon: 'fas fa-circle', desc: '泡泡龙射击' },
@@ -41,7 +47,12 @@ const gamesData = {
         { name: 'Space Invaders', path: 'games/Arcade/Space-Invaders/index.html', preview: 'games/Arcade/Space-Invaders/preview.png', icon: 'fas fa-space-shuttle', desc: '太空入侵者' },
         { name: 'Tetris', path: 'games/Arcade/Tetris/index.html', preview: 'games/Arcade/Tetris/preview.png', icon: 'fas fa-square', desc: '俄罗斯方块' },
         { name: 'Tower Blocks', path: 'games/Arcade/Tower-Blocks/index.html', preview: 'games/Arcade/Tower-Blocks/preview.png', icon: 'fas fa-layer-group', desc: '叠叠乐' },
-        { name: 'DiabloJS', path: 'games/Arcade/Diablo-JS/index.html', preview: 'games/Arcade/Diablo-JS/preview.png', icon: 'fas fa-sword', desc: '暗黑风格动作RPG' }
+        { name: 'DiabloJS', path: 'games/Arcade/Diablo-JS/index.html', preview: 'games/Arcade/Diablo-JS/preview.png', icon: 'fas fa-sword', desc: '暗黑风格动作RPG' },
+        { name: 'Connect Four', path: 'games/Board/Connect-Four/index.html', preview: 'games/Board/Connect-Four/preview.png', icon: 'fas fa-circle', desc: '经典四子连珠策略游戏' },
+        { name: 'Blackjack', path: 'games/Board/Blackjack/index.html', preview: 'games/Board/Blackjack/preview.png', icon: 'fas fa-club', desc: '经典21点扑克牌游戏' },
+        { name: 'Checkers', path: 'games/Board/Checkers/index.html', preview: 'games/Board/Checkers/preview.png', icon: 'fas fa-chess-board', desc: '经典西洋跳棋游戏' },
+        { name: 'Poker', path: 'games/Board/Poker/index.html', preview: 'games/Board/Poker/preview.png', icon: 'fas fa-diamond', desc: '经典五张牌扑克游戏' },
+        { name: 'Battleship', path: 'games/Board/Battleship/index.html', preview: 'games/Board/Battleship/preview.png', icon: 'fas fa-ship', desc: '经典海战棋游戏' },
     ],
     Board: [
         { name: 'Gomoku', path: 'games/Board/Gomoku/index.html', preview: 'games/Board/Gomoku/preview.png', icon: 'fas fa-circle-dot', desc: '五子棋对战' },
@@ -49,7 +60,7 @@ const gamesData = {
         { name: 'Tic Tac Toe', path: 'games/Board/Tic-Tac-Toe/index.html', preview: 'games/Board/Tic-Tac-Toe/preview.png', icon: 'fas fa-hashtag', desc: '井字棋' },
         { name: 'Reversi', path: 'games/Board/Reversi/index.html', preview: 'games/Board/Reversi/preview.png', icon: 'fas fa-circle-half-stroke', desc: '3D黑白棋' },
         { name: 'Solitaire', path: 'games/Board/Solitaire/index.html', preview: 'games/Board/Solitaire/preview.png', icon: 'fas fa-layer-group', desc: '纸牌接龙' },
-        { name: 'Mahjong Connect', path: 'games/Board/Mahjong-Connect/index.html', preview: 'games/Board/Mahjong-Connect/preview.png', icon: 'fas fa-border-all', desc: '麻将连连看' }
+        { name: 'Mahjong Connect', path: 'games/Board/Mahjong-Connect/index.html', preview: 'games/Board/Mahjong-Connect/preview.png', icon: 'fas fa-border-all', desc: '麻将连连看' },
     ],
     Memory: [
         { name: 'Color Match', path: 'games/Memory/Color-Match/index.html', icon: 'fas fa-palette', desc: '颜色匹配记忆' },

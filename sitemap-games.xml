@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://game.suipce.com/games/Action/Archery-3D/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Archery-3D/dist/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Archery/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Breakout/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Crossy-Road/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Dodge-Game/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Emoji-Catcher/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Action/Emoji-Horde-Survival/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Flappy-Bird/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Fruit-Slicer/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/dist/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/dashboard/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/htmlReport/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/recorder/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/traceViewer/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Insect-Catch/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Odyssey-Expedition/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Odyssey-Voyage/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -30,6 +36,7 @@
   <url><loc>https://game.suipce.com/games/Arcade/Asteroids/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Ball-Bouncing/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Blobby-Volley/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Arcade/Block-Drop/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Bubble-Break/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Bubble-Shooter/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Candy-Crush/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -56,6 +63,7 @@
   <url><loc>https://game.suipce.com/games/Arcade/Pac-Man/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Peggle/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Pingu-Throw/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Arcade/Pong/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Pulseforge/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Push-Mine/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Arcade/Qix/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -201,6 +209,7 @@
   <url><loc>https://game.suipce.com/games/Board/Solitaire/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Board/Tic-Tac-Toe/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Board/Yahtzee/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Casual/Catch-Circle/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Coloring-Book/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Death-by-AI/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Dice-Roll-Simulator/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -214,6 +223,7 @@
   <url><loc>https://game.suipce.com/games/Casual/Living-RPS/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Menagerie/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Mystery-AI/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Casual/Number-Guess/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Procession/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Quiz/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Rack/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -223,6 +233,7 @@
   <url><loc>https://game.suipce.com/games/Casual/Time-Travel-Agency/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Two-Truths-One-Lie/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Casual/Type-Number-Guessing/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Casual/Whac-A-Mole-HTML/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/FPS/Nazi-Zombies-Portable/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Memory/Color-Match/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Memory/Match-Pairs/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -235,6 +246,10 @@
   <url><loc>https://game.suipce.com/games/Puzzle/Blind-Crest/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/dist/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/dashboard/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/htmlReport/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/recorder/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/traceViewer/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-Persuasion-Lab/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Color-Flood/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Color-Guessing/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -246,6 +261,7 @@
   <url><loc>https://game.suipce.com/games/Puzzle/Firefly-Jar/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Five-Rungs/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Glyphgate/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://game.suipce.com/games/Puzzle/Jigsaw-HTML/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Jigsaw-Puzzle/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Klotski/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Lights-Out/</loc><lastmod>2026-10-07</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>

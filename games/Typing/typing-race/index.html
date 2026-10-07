@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Typing Race</title></head>
+<body style="font-family:system-ui;padding:20px;max-width:750px">
+  <h1>Typing Race</h1>
+  <button id="new">New Sentence</button>
+  <p id="target"></p>
+  <textarea id="in" rows="4" style="width:100%"></textarea>
+  <p id="stats"></p>
+
+<script>
+const samples = [
+  "JavaScript makes the web interactive and fun to build.",
+  "Small games are the best way to practice logic and timing.",
+  "Type carefully, then improve speed one round at a time."
+];
+
+const targetEl = document.querySelector("#target");
+const inputEl = document.querySelector("#in");
+const statsEl = document.querySelector("#stats");
+
+let target = "";
+let start = 0;
+
+function newRound(){
+  target = samples[Math.floor(Math.random()*samples.length)];
+  targetEl.textContent = target;
+  inputEl.value = "";
+  statsEl.textContent = "Start typing…";
+  inputEl.focus();
+  start = 0;
+}
+newRound();
+
+inputEl.addEventListener("input", () => {
+  if (!start) start = performance.now();
+
+  const typed = inputEl.value;
+  const elapsedMin = (performance.now() - start) / 60000;
+
+  const words = typed.trim() ? typed.trim().split(/\s+/).length : 0;
+  const wpm = elapsedMin > 0 ? Math.round(words / elapsedMin) : 0;
+
+  let correct = 0;
+  for (let i=0;i<typed.length;i++){
+    if (typed[i] === target[i]) correct++;
+  }
+  const acc = typed.length ? Math.round((correct/typed.length)*100) : 100;
+
+  statsEl.textContent = `WPM: ${wpm} | Accuracy: ${acc}%`;
+
+  if (typed === target){
+    statsEl.textContent += " ✅ Finished!";
+  }
+});
+
+document.querySelector("#new").addEventListener("click", newRound);
+</script>
+</body>
+</html>

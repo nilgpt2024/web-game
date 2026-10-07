@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Reaction</title>
+<style>
+  #box{width:320px;height:180px;border-radius:16px;display:grid;place-items:center;
+       background:#ccc;user-select:none;cursor:pointer;font-family:system-ui;font-size:20px}
+</style></head>
+<body style="padding:20px">
+  <h1>Reaction Time</h1>
+  <p>Click to start. Wait for green. Click as fast as you can.</p>
+  <div id="box">Click to start</div>
+  <p id="msg"></p>
+
+<script>
+const box = document.querySelector("#box");
+const msg = document.querySelector("#msg");
+
+let state = "idle"; // idle -> waiting -> go
+let startMs = 0;
+let timeoutId = null;
+
+box.addEventListener("click", () => {
+  if (state === "idle") {
+    state = "waiting";
+    msg.textContent = "Wait for green...";
+    box.style.background = "#ccc";
+    box.textContent = "Waiting...";
+
+    const delay = 800 + Math.random()*2000;
+    timeoutId = setTimeout(() => {
+      state = "go";
+      box.style.background = "#8f8";
+      box.textContent = "CLICK!";
+      startMs = performance.now();
+    }, delay);
+  } else if (state === "waiting") {
+    clearTimeout(timeoutId);
+    state = "idle";
+    msg.textContent = "Too soon! Try again.";
+    box.textContent = "Click to start";
+    box.style.background = "#ccc";
+  } else if (state === "go") {
+    const rt = performance.now() - startMs;
+    state = "idle";
+    msg.textContent = `Reaction time: ${rt.toFixed(0)} ms`;
+    box.textContent = "Click to start";
+    box.style.background = "#ccc";
+  }
+});
+</script>
+</body>
+</html>

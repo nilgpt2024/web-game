@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Dice Battle</title></head>
+<body style="font-family:system-ui;padding:20px">
+  <h1>Dice Battle (to 20)</h1>
+  <p>Click Roll. First to 20+ wins.</p>
+  <button id="roll">Roll</button>
+  <button id="new">New</button>
+  <p id="log"></p>
+  <p>You: <span id="p">0</span> | CPU: <span id="c">0</span></p>
+
+<script>
+let p=0, c=0, over=false;
+const log = document.querySelector("#log");
+const pEl = document.querySelector("#p");
+const cEl = document.querySelector("#c");
+
+function die(){ return Math.floor(Math.random()*6)+1; }
+function render(){ pEl.textContent=p; cEl.textContent=c; }
+
+function newGame(){
+  p=0; c=0; over=false;
+  log.textContent="Roll to begin.";
+  render();
+}
+newGame();
+
+document.querySelector("#roll").addEventListener("click", () => {
+  if (over) return;
+
+  const pr = die();
+  p += pr;
+
+  const cr = die();
+  c += cr;
+
+  log.textContent = `You rolled ${pr}. CPU rolled ${cr}.`;
+  render();
+
+  if (p >= 20 || c >= 20){
+    over = true;
+    if (p === c) log.textContent += " It's a tie!";
+    else log.textContent += (p > c) ? " You win!" : " CPU wins!";
+  }
+});
+
+document.querySelector("#new").addEventListener("click", newGame);
+</script>
+</body>
+</html>

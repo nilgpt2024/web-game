@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Pong Lite</title></head>
+<body style="font-family:system-ui;padding:20px">
+<canvas id="c" width="520" height="320" style="border:1px solid #999"></canvas>
+<p>Score: <span id="s">0</span></p>
+
+<script>
+const c = document.querySelector("#c");
+const ctx = c.getContext("2d");
+const sEl = document.querySelector("#s");
+
+const paddle = {x:20,y:120,w:12,h:80};
+const ball = {x:260,y:160,r:8,vx:-3.2,vy:2.2};
+let score = 0;
+
+c.addEventListener("mousemove", (e) => {
+  const rect = c.getBoundingClientRect();
+  const y = e.clientY - rect.top;
+  paddle.y = y - paddle.h/2;
+  paddle.y = Math.max(0, Math.min(c.height-paddle.h, paddle.y));
+});
+
+function tick(){
+  ctx.clearRect(0,0,c.width,c.height);
+
+  ball.x += ball.vx;
+  ball.y += ball.vy;
+
+  if (ball.y-ball.r <= 0 || ball.y+ball.r >= c.height) ball.vy *= -1;
+
+  const hitPaddle =
+    ball.x - ball.r <= paddle.x + paddle.w &&
+    ball.y >= paddle.y && ball.y <= paddle.y + paddle.h &&
+    ball.x > paddle.x;
+
+  if (hitPaddle){
+    ball.vx *= -1.05;
+    score++;
+    sEl.textContent = score;
+  }
+
+  if (ball.x + ball.r < 0){
+    score = 0;
+    sEl.textContent = score;
+    ball.x = 260; ball.y = 160;
+    ball.vx = -3.2; ball.vy = 2.2;
+  }
+
+  ctx.fillRect(paddle.x,paddle.y,paddle.w,paddle.h);
+  ctx.beginPath();
+  ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
+  ctx.fill();
+
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

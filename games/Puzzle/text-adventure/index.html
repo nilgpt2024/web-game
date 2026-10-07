@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Text Adventure</title></head>
+<body style="font-family:system-ui;padding:20px;max-width:750px">
+  <h1>Find the Key (Text Adventure)</h1>
+  <div id="out" style="border:1px solid #aaa;border-radius:12px;padding:12px;min-height:120px;max-height:260px;overflow:auto"></div>
+  <input id="cmd" placeholder="Type: north, south, take key, open door" style="width:100%;padding:10px;font-size:16px" />
+  <button id="go">Go</button>
+
+<script>
+const out = document.querySelector("#out");
+const cmd = document.querySelector("#cmd");
+
+const rooms = {
+  hall:  {desc:"You are in the hall. Doors lead east and south.", exits:{east:"study", south:"kitchen"}},
+  study: {desc:"A quiet study. There is a shiny key here. West returns to hall.", exits:{west:"hall"}, item:"key"},
+  kitchen:{desc:"A kitchen with an exit door to the south. North returns to hall.", exits:{north:"hall", south:"exit"}}
+};
+
+let loc = "hall";
+let inv = new Set();
+let keyTaken = false;
+
+function print(text){
+  out.innerHTML += `<div>${text}</div>`;
+  out.scrollTop = out.scrollHeight;
+}
+
+function look(){
+  const r = rooms[loc];
+  print(`<b>${loc.toUpperCase()}</b>: ${r.desc}`);
+  if (r.item && !keyTaken) print("You see: key");
+  print("Inventory: " + (inv.size ? [...inv].join(", ") : "(empty)"));
+}
+
+function handle(raw){
+  const s = raw.trim().toLowerCase();
+  if (!s) return;
+
+  if (s === "look") { look(); return; }
+
+  if (s.startsWith("take")){
+    if (loc === "study" && !keyTaken){
+      inv.add("key");
+      keyTaken = true;
+      print("You take the key.");
+    } else {
+      print("There is nothing to take.");
+    }
+    return;
+  }
+
+  if (s === "open door" || s === "open"){
+    if (loc !== "kitchen") { print("There is no door here."); return; }
+    if (!inv.has("key")) { print("The door is locked. You need a key."); return; }
+    print("You unlock the door and escape! 🎉");
+    return;
+  }
+
+  const r = rooms[loc];
+  if (["north","south","east","west"].includes(s)){
+    const next = r.exits[s];
+    if (!next) { print("You can't go that way."); return; }
+    if (next === "exit"){
+      print("The exit door is locked. Maybe try: open door");
+      return;
+    }
+    loc = next;
+    look();
+    return;
+  }
+
+  print("Unknown command. Try: look, north/south/east/west, take key, open door");
+}
+
+document.querySelector("#go").addEventListener("click", () => {
+  handle(cmd.value);
+  cmd.value = "";
+  cmd.focus();
+});
+cmd.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.querySelector("#go").click();
+});
+
+print("Welcome! Commands: look, north/south/east/west, take key, open door");
+look();
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Click Sprint</title>
+  <style>
+    body{font-family:system-ui;padding:20px}
+    button{font-size:20px;padding:12px 18px}
+    .row{display:flex;gap:12px;align-items:center;margin:10px 0}
+  </style>
+</head>
+<body>
+  <h1>Click Counter Sprint</h1>
+  <p>Click as many times as you can in 5 seconds.</p>
+  <div class="row">
+    <button id="btn" disabled>Click!</button>
+    <button id="start">Start 5s</button>
+  </div>
+  <p>Time: <span id="time">5.0</span> | Score: <span id="score">0</span></p>
+  <p id="result"></p>
+
+<script>
+const btn = document.querySelector("#btn");
+const startBtn = document.querySelector("#start");
+const timeEl = document.querySelector("#time");
+const scoreEl = document.querySelector("#score");
+const resultEl = document.querySelector("#result");
+
+let score = 0;
+let timeLeft = 5.0;
+let timerId = null;
+let running = false;
+
+btn.addEventListener("click", () => {
+  if (!running) return;
+  score++;
+  scoreEl.textContent = score;
+});
+
+startBtn.addEventListener("click", () => {
+  if (running) return;
+  running = true;
+  score = 0;
+  timeLeft = 5.0;
+  scoreEl.textContent = score;
+  resultEl.textContent = "";
+  btn.disabled = false;
+
+  const startTime = performance.now();
+  timerId = setInterval(() => {
+    const elapsed = (performance.now() - startTime) / 1000;
+    timeLeft = Math.max(0, 5 - elapsed);
+    timeEl.textContent = timeLeft.toFixed(1);
+
+    if (timeLeft <= 0) {
+      clearInterval(timerId);
+      running = false;
+      btn.disabled = true;
+      resultEl.textContent = `Time! Final score: ${score}`;
+    }
+  }, 50);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Runner</title></head>
+<body style="font-family:system-ui;padding:20px">
+<canvas id="c" width="520" height="220" style="border:1px solid #999"></canvas>
+<p id="msg"></p>
+
+<script>
+const c = document.querySelector("#c");
+const ctx = c.getContext("2d");
+const msg = document.querySelector("#msg");
+
+const ground = 190;
+const player = {x:60,y:ground,w:18,h:24,vy:0,onGround:true};
+let obs = [];
+let t = 0;
+let alive = true;
+
+addEventListener("keydown", e => {
+  if (e.code === "Space" && player.onGround && alive){
+    player.vy = -9.5;
+    player.onGround = false;
+  }
+  if (e.code === "Space" && !alive){
+    obs = []; t=0; alive=true; msg.textContent="";
+    player.y=ground; player.vy=0; player.onGround=true;
+  }
+});
+
+function hit(a,b){
+  return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+function tick(){
+  ctx.clearRect(0,0,c.width,c.height);
+
+  ctx.fillRect(0, ground+player.h, c.width, 4);
+
+  if (alive){
+    player.vy += 0.45;
+    player.y += player.vy;
+
+    if (player.y >= ground){
+      player.y = ground;
+      player.vy = 0;
+      player.onGround = true;
+    }
+
+    t++;
+    if (t % 90 === 0){
+      obs.push({x:c.width+20,y:ground+8,w:16,h:16,vx: -4.2});
+    }
+
+    obs.forEach(o => o.x += o.vx);
+    obs = obs.filter(o => o.x + o.w > -10);
+
+    for (const o of obs){
+      if (hit(player, o)){
+        alive = false;
+        msg.textContent = "Game over! Press Space to restart.";
+      }
+    }
+  }
+
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+  obs.forEach(o => ctx.fillRect(o.x,o.y,o.w,o.h));
+
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

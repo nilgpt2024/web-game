@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Catcher</title></head>
+<body style="font-family:system-ui;padding:20px">
+<canvas id="c" width="520" height="320" style="border:1px solid #999"></canvas>
+<p>Score: <span id="s">0</span> Misses: <span id="m">0</span></p>
+
+<script>
+const c = document.querySelector("#c");
+const ctx = c.getContext("2d");
+const sEl = document.querySelector("#s");
+const mEl = document.querySelector("#m");
+
+const basket = {x:240,y:290,w:70,h:14,v:5};
+const keys = new Set();
+let drops = [];
+let score=0, miss=0, spawn=0;
+
+addEventListener("keydown", e => keys.add(e.key));
+addEventListener("keyup", e => keys.delete(e.key));
+
+function spawnDrop(){
+  drops.push({x: Math.random()*c.width, y:-10, r:7, vy:2.2 + Math.random()*1.5});
+}
+
+function tick(){
+  ctx.clearRect(0,0,c.width,c.height);
+
+  if (keys.has("ArrowLeft")) basket.x -= basket.v;
+  if (keys.has("ArrowRight")) basket.x += basket.v;
+  basket.x = Math.max(0, Math.min(c.width-basket.w, basket.x));
+
+  spawn++;
+  if (spawn % 45 === 0) spawnDrop();
+
+  drops = drops.filter(d => {
+    d.y += d.vy;
+
+    const caught =
+      d.x >= basket.x && d.x <= basket.x + basket.w &&
+      d.y + d.r >= basket.y && d.y - d.r <= basket.y + basket.h;
+
+    if (caught){
+      score++; sEl.textContent = score;
+      return false;
+    }
+    if (d.y - d.r > c.height){
+      miss++; mEl.textContent = miss;
+      return false;
+    }
+    return true;
+  });
+
+  ctx.fillRect(basket.x,basket.y,basket.w,basket.h);
+
+  for (const d of drops){
+    ctx.beginPath();
+    ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+    ctx.fill();
+  }
+
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

@@ -37,7 +37,10 @@ const gamesData = {
         { name: '自我', path: 'games/Puzzle/Selfsame/index.html', preview: 'games/Puzzle/Selfsame/preview.webp', icon: 'fas fa-copy', desc: 'AI生成·镜像解谜' },
         { name: '倾斜迷宫', path: 'games/Puzzle/Tilt-Maze/index.html', preview: 'games/Puzzle/Tilt-Maze/preview.webp', icon: 'fas fa-compass', desc: 'AI生成·重力迷宫' },
         { name: '单词搜索', path: 'games/Puzzle/Word-Search/index.html', preview: 'games/Puzzle/Word-Search/preview.webp', icon: 'fas fa-search', desc: 'AI生成·找单词游戏' },,
-        { name: 'HTML拼图', path: 'games/Puzzle/Jigsaw-HTML/index.html', preview: 'games/Puzzle/Jigsaw-HTML/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·网页拼图游戏', isNew: true }
+        { name: 'HTML拼图', path: 'games/Puzzle/Jigsaw-HTML/index.html', preview: 'games/Puzzle/Jigsaw-HTML/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·网页拼图游戏', isNew: true },
+        { name: '冷热搜索', path: 'games/Puzzle/hot-cold-hunt/index.html', preview: 'games/Puzzle/hot-cold-hunt/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·冷热提示寻宝游戏', isNew: true },
+        { name: '迷宫行走', path: 'games/Puzzle/maze-walker/index.html', preview: 'games/Puzzle/maze-walker/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·迷宫探索游戏', isNew: true },
+        { name: '文字冒险', path: 'games/Puzzle/text-adventure/index.html', preview: 'games/Puzzle/text-adventure/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·文字冒险游戏', isNew: true }
     ],
     Action: [
         { name: 'Archery', path: 'games/Action/Archery/index.html', preview: 'games/Action/Archery/preview.webp', icon: 'fas fa-bullseye', desc: '射箭竞技' },
@@ -58,7 +61,9 @@ const gamesData = {
         { name: 'Reaction Test', path: 'games/Action/Reaction-Test/index.html', preview: 'games/Action/Reaction-Test/preview.webp', icon: 'fas fa-bolt', desc: '反应速度测试' },
         { name: 'Ink Raiders', path: 'games/Action/Ink-Raiders/dist/index.html', preview: 'games/Action/Ink-Raiders/dist/preview.webp', icon: 'fas fa-fill-drip', desc: '墨水突击：3D竞技场喷射涂地击杀' },
         { name: 'Odyssey Expedition', path: 'games/Action/Odyssey-Expedition/index.html', preview: 'games/Action/Odyssey-Expedition/preview.webp', icon: 'fas fa-compass', desc: '奥德赛远征：3D海盗远航冒险' },,
-        { name: '表情部落生存', path: 'games/Action/Emoji-Horde-Survival/index.html', preview: 'games/Action/Emoji-Horde-Survival/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·表情生存射击', isNew: true }
+        { name: '表情部落生存', path: 'games/Action/Emoji-Horde-Survival/index.html', preview: 'games/Action/Emoji-Horde-Survival/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·表情生存射击', isNew: true },
+        { name: '键盘躲避', path: 'games/Action/keyboard-dodger/index.html', preview: 'games/Action/keyboard-dodger/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·键盘控制躲避游戏', isNew: true },
+        { name: '瞄准训练', path: 'games/Action/aim-trainer/index.html', preview: 'games/Action/aim-trainer/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·鼠标瞄准训练游戏', isNew: true }
     ],
     Arcade: [
         { name: 'Asteroids', path: 'games/Arcade/Asteroids/index.html', preview: 'games/Arcade/Asteroids/preview.webp', icon: 'fas fa-rocket', hot: true, desc: '经典太空射击街机游戏' },
@@ -111,7 +116,9 @@ const gamesData = {
         { name: '网页工艺', path: 'games/Arcade/Webcraft/index.html', preview: 'games/Arcade/Webcraft/preview.webp', icon: 'fas fa-cube', desc: 'AI生成·网页建造' },
         { name: '魔毯巫师', path: 'games/Arcade/Magic-Carpet-Wizard/index.html', preview: 'games/Arcade/Magic-Carpet-Wizard/preview.webp', icon: 'fas fa-hat-wizard', desc: 'AI生成·魔法飞毯冒险' },,
         { name: '方块掉落', path: 'games/Arcade/Block-Drop/index.html', preview: 'games/Arcade/Block-Drop/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·方块掉落街机游戏', isNew: true },
-        { name: '乒乓', path: 'games/Arcade/Pong/index.html', preview: 'games/Arcade/Pong/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·经典乒乓游戏', isNew: true }
+        { name: '乒乓', path: 'games/Arcade/Pong/index.html', preview: 'games/Arcade/Pong/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·经典乒乓游戏', isNew: true },
+        { name: '乒乓精简版', path: 'games/Arcade/pong-lite/index.html', preview: 'games/Arcade/pong-lite/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·精简版乒乓游戏', isNew: true },
+        { name: '无尽跑酷', path: 'games/Arcade/endless-runner/index.html', preview: 'games/Arcade/endless-runner/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·无尽跑酷游戏', isNew: true }
     ],
     Board: [
         { name: 'Connect Four', path: 'games/Board/Connect-Four/index.html', preview: 'games/Board/Connect-Four/preview.webp', icon: 'fas fa-circle', desc: '经典四子连珠策略游戏' },
@@ -145,7 +152,8 @@ const gamesData = {
         { name: 'Hangman', path: 'games/Typing/Hangman/index.html', icon: 'fas fa-spell-check', desc: '猜单词游戏' },
         { name: 'Speed Typing', path: 'games/Typing/Speed-Typing/index.html', icon: 'fas fa-keyboard', desc: '速度打字练习' },
         { name: 'Type Master', path: 'games/Typing/Type-Master/index.html', icon: 'fas fa-font', desc: '打字大师' },
-        { name: 'Typing Speed Challenge', path: 'games/Typing/Typing-Speed-Challenge/index.html', icon: 'fas fa-stopwatch', desc: '打字速度挑战' },
+        { name: 'Typing Speed Challenge', path: 'games/Typing/Typing-Speed-Challenge/index.html', icon: 'fas fa-stopwatch', desc: '打字速度挑战' },,
+        { name: '打字比赛', path: 'games/Typing/typing-race/index.html', preview: 'games/Typing/typing-race/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·打字速度比赛', isNew: true }
     ],
     Casual: [
         { name: 'AI之死', path: 'games/Casual/Death-by-AI/index.html', preview: 'games/Casual/Death-by-AI/preview.webp', icon: 'fas fa-robot', desc: 'AI生成·AI审判互动' },
@@ -172,7 +180,13 @@ const gamesData = {
         { name: 'Coloring Book', path: 'games/Casual/Coloring-Book/index.html', preview: 'games/Casual/Coloring-Book/preview.webp', icon: 'fas fa-paint-brush', desc: '涂色画册' },,
         { name: '接住圆圈', path: 'games/Casual/Catch-Circle/index.html', preview: 'games/Casual/Catch-Circle/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·休闲反应游戏', isNew: true },
         { name: '数字猜谜', path: 'games/Casual/Number-Guess/index.html', preview: 'games/Casual/Number-Guess/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·猜数字游戏', isNew: true },
-        { name: '打地鼠HTML', path: 'games/Casual/Whac-A-Mole-HTML/index.html', preview: 'games/Casual/Whac-A-Mole-HTML/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·打地鼠游戏', isNew: true }
+        { name: '打地鼠HTML', path: 'games/Casual/Whac-A-Mole-HTML/index.html', preview: 'games/Casual/Whac-A-Mole-HTML/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·打地鼠游戏', isNew: true },
+        { name: '点击冲刺', path: 'games/Casual/click-sprint/index.html', preview: 'games/Casual/click-sprint/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·快速点击反应游戏', isNew: true },
+        { name: '猜数字', path: 'games/Casual/guess-number/index.html', preview: 'games/Casual/guess-number/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·猜数字小游戏', isNew: true },
+        { name: '硬币连胜', path: 'games/Casual/coin-streak/index.html', preview: 'games/Casual/coin-streak/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·抛硬币连胜游戏', isNew: true },
+        { name: '反应测试', path: 'games/Casual/reaction-time/index.html', preview: 'games/Casual/reaction-time/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·反应速度测试', isNew: true },
+        { name: '骰子战斗', path: 'games/Casual/dice-battle/index.html', preview: 'games/Casual/dice-battle/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·骰子对战游戏', isNew: true },
+        { name: '接掉落物', path: 'games/Casual/falling-catcher/index.html', preview: 'games/Casual/falling-catcher/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·接取掉落物游戏', isNew: true }
     ],
     Astra: [
         { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', preview: 'games/Astra/Orbital-Garden/preview.webp', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },

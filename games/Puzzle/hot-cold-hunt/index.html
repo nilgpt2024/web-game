@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Hot Cold</title>
+<style>
+  #area{width:520px;height:320px;border:2px solid #888;border-radius:16px;position:relative}
+  #dot{position:absolute;width:8px;height:8px;border-radius:50%;background:black;transform:translate(-50%,-50%)}
+</style></head>
+<body style="font-family:system-ui;padding:20px">
+  <h1>Hot / Cold Hunt</h1>
+  <button id="new">New</button>
+  <p id="msg">Click inside the box.</p>
+  <div id="area"></div>
+
+<script>
+const area = document.querySelector("#area");
+const msg = document.querySelector("#msg");
+let target = {x:0,y:0};
+let lastDist = null;
+
+function newGame(){
+  target.x = Math.random()*area.clientWidth;
+  target.y = Math.random()*area.clientHeight;
+  lastDist = null;
+  msg.textContent = "New target! Click inside the box.";
+  area.innerHTML = "";
+}
+newGame();
+
+function dist(a,b){
+  const dx = a.x-b.x, dy=a.y-b.y;
+  return Math.hypot(dx, dy);
+}
+
+area.addEventListener("click", (e) => {
+  const rect = area.getBoundingClientRect();
+  const p = {x: e.clientX - rect.left, y: e.clientY - rect.top};
+
+  const d = dist(p, target);
+
+  const dot = document.createElement("div");
+  dot.id = "dot";
+  dot.style.left = p.x + "px";
+  dot.style.top = p.y + "px";
+  area.appendChild(dot);
+
+  if (d < 15){
+    msg.textContent = "Found it! 🎯 Press New.";
+    return;
+  }
+
+  if (lastDist === null) msg.textContent = "Keep going...";
+  else msg.textContent = d < lastDist ? "Hotter 🔥" : "Colder ❄️";
+
+  lastDist = d;
+});
+
+document.querySelector("#new").addEventListener("click", newGame);
+</script>
+</body>
+</html>

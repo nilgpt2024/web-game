@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Aim</title>
+<style>
+  #arena{width:520px;height:320px;border:2px solid #888;border-radius:16px;position:relative}
+  .t{position:absolute;width:30px;height:30px;border-radius:50%;background:#f66;cursor:pointer}
+</style></head>
+<body style="font-family:system-ui;padding:20px">
+  <h1>Aim Trainer</h1>
+  <button id="start">Start</button>
+  <p id="msg"></p>
+  <div id="arena"></div>
+
+<script>
+const arena = document.querySelector("#arena");
+const msg = document.querySelector("#msg");
+
+let hits=0;
+let startTime=0;
+let targetEl=null;
+
+function placeTarget(){
+  if (targetEl) targetEl.remove();
+  targetEl = document.createElement("div");
+  targetEl.className = "t";
+  const x = Math.random()*(arena.clientWidth-30);
+  const y = Math.random()*(arena.clientHeight-30);
+  targetEl.style.left = x+"px";
+  targetEl.style.top = y+"px";
+  arena.appendChild(targetEl);
+
+  targetEl.addEventListener("click", () => {
+    hits++;
+    if (hits >= 10){
+      const ms = performance.now() - startTime;
+      msg.textContent = `Done! ${ms.toFixed(0)} ms for 10 hits.`;
+      return;
+    }
+    placeTarget();
+  }, {once:true});
+}
+
+document.querySelector("#start").addEventListener("click", () => {
+  hits=0;
+  startTime = performance.now();
+  msg.textContent = "Hit 10 targets!";
+  placeTarget();
+});
+</script>
+</body>
+</html>

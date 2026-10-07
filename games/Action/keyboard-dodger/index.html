@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Dodger</title></head>
+<body style="font-family:system-ui;padding:20px">
+  <h1>Keyboard Dodger</h1>
+  <p>Use arrow keys. Don't touch the enemy.</p>
+  <canvas id="c" width="520" height="320" style="border:1px solid #999"></canvas>
+  <p id="status"></p>
+
+<script>
+const c = document.querySelector("#c");
+const ctx = c.getContext("2d");
+const status = document.querySelector("#status");
+
+const player = {x:40,y:40,w:18,h:18,v:3};
+const enemy = {x:200,y:120,w:18,h:18,vx:2.6,vy:2.0};
+const keys = new Set();
+let alive = true;
+
+addEventListener("keydown", e => keys.add(e.key));
+addEventListener("keyup", e => keys.delete(e.key));
+
+function rectHit(a,b){
+  return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+function tick(){
+  ctx.clearRect(0,0,c.width,c.height);
+
+  if (alive){
+    if (keys.has("ArrowLeft")) player.x -= player.v;
+    if (keys.has("ArrowRight")) player.x += player.v;
+    if (keys.has("ArrowUp")) player.y -= player.v;
+    if (keys.has("ArrowDown")) player.y += player.v;
+
+    player.x = Math.max(0, Math.min(c.width-player.w, player.x));
+    player.y = Math.max(0, Math.min(c.height-player.h, player.y));
+
+    enemy.x += enemy.vx; enemy.y += enemy.vy;
+    if (enemy.x <= 0 || enemy.x + enemy.w >= c.width) enemy.vx *= -1;
+    if (enemy.y <= 0 || enemy.y + enemy.h >= c.height) enemy.vy *= -1;
+
+    if (rectHit(player, enemy)){
+      alive = false;
+      status.textContent = "Game over! Refresh to retry.";
+    }
+  }
+
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+  ctx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+
+  requestAnimationFrame(tick);
+}
+tick();
+</script>
+</body>
+</html>

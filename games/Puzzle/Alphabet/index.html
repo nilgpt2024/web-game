@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Improve your typing speed by practicing the alphabet. Track your progress with detailed statistics for each letter and beat your personal records.">
+    <meta name="keywords"
+          content="typing game, alphabet game, typing speed, keyboard practice, typing test, abcdefghijklmnqoprstuvwxyz, abcdefghijklmnqoprstuvwxyz game, abcdefghijklmnopqrstuvwxyz, abcdefghijklmnopqrstuvwxyz game">
+    <meta name="author" content="Typing Speed Trainer">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+    <link rel="canonical" href="https://www.gptgames.dev/games/alphabet.html">
+    <meta property="og:title" content="Alphabet Typing Speed Game | Improve Your Typing Speed">
+    <meta property="og:description"
+          content="Improve your typing speed by practicing the alphabet. Track your progress with detailed statistics for each letter and beat your personal records.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.gptgames.dev/games/alphabet.html">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Alphabet Typing Speed Game | Improve Your Typing Speed">
+    <meta name="twitter:description"
+          content="Improve your typing speed by practicing the alphabet. Track your progress with detailed statistics for each letter and beat your personal records.">
+    <title>Alphabet Typing Speed Game | Improve Your Typing Speed</title>
+    <script src="https://cdn.tailwindcss.com/"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --panel-2: #182234;
+            --border: #334155;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --idle: #64748b;
+            --done: #f1f5f9;
+            --accent: #fbbf24;
+            --accent-dim: #b45309;
+            --error: #ef4444;
+            --best: #22d3ee;
+            --good: #34d399;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text)
+        }
+
+        #alphabet {
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            text-align: center;
+            color: var(--idle)
+        }
+
+        .alphabet-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.5rem
+        }
+
+        #alphabet span {
+            position: relative;
+            transition: color 0.12s ease, transform 0.12s ease;
+            display: inline-block;
+            width: 1.5em;
+            text-align: center;
+            color: var(--idle)
+        }
+
+        #alphabet span.done {
+            color: var(--done)
+        }
+
+        #alphabet span.current {
+            color: var(--accent)
+        }
+
+        #alphabet span.errored {
+            color: var(--error)
+        }
+
+        #alphabet span.current::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            height: 0.5rem;
+            background-color: var(--accent);
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: blink 1s steps(1) infinite
+        }
+
+        .letter-typed {
+            animation: pop 0.12s ease-out
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1)
+            }
+            50% {
+                transform: scale(1.35)
+            }
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        .progress-bar {
+            height: 4px;
+            background-color: #0b1220;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1rem
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent);
+            width: 0%;
+            transition: width 0.12s ease-out, background-color 0.12s ease-out
+        }
+
+        .progress-fill.ahead {
+            background-color: var(--good)
+        }
+
+        .progress-fill.behind {
+            background-color: var(--accent-dim)
+        }
+
+        .metric-card {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: transform 0.15s ease, border-color 0.15s ease
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--idle)
+        }
+
+        .typing-area {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            transition: box-shadow 0.15s ease, border-color 0.15s ease;
+            position: relative;
+            overflow: hidden
+        }
+
+        .typing-area:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25)
+        }
+
+        .typing-area.complete-pulse {
+            animation: completePulse 0.45s ease-out
+        }
+
+        @keyframes completePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.0)
+            }
+            40% {
+                box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.65)
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.0)
+            }
+        }
+
+        .typing-area.best-flash {
+            animation: bestFlash 0.6s ease-out
+        }
+
+        @keyframes bestFlash {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.0)
+            }
+            30% {
+                box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.85)
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.0)
+            }
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: background-color 0.12s ease;
+            cursor: pointer
+        }
+
+        .button-primary {
+            background-color: var(--accent);
+            color: #1f2937
+        }
+
+        .button-primary:hover {
+            background-color: #f0b418
+        }
+
+        .button-secondary {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text)
+        }
+
+        .button-secondary:hover {
+            background-color: #243349
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns:repeat(auto-fill, minmax(70px, 1fr));
+            gap: 0.5rem
+        }
+
+        .letter-stat {
+            padding: 0.5rem;
+            text-align: center;
+            border-radius: 0.375rem;
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            transition: transform 0.15s ease;
+            position: relative
+        }
+
+        .letter-stat:hover {
+            transform: translateY(-2px)
+        }
+
+        .letter-stat-slow {
+            background-color: #3b1d1d;
+            border-color: #7f1d1d
+        }
+
+        .letter-stat-fast {
+            background-color: #143329;
+            border-color: #166534
+        }
+
+        .letter-stat-average {
+            background-color: var(--panel-2)
+        }
+
+        .letter-stat-trigger {
+            background-color: #0b1220
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #020617;
+            color: var(--text);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.2s
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #020617 transparent transparent transparent
+        }
+
+        .error-shake {
+            animation: shake 0.45s cubic-bezier(.36, .07, .19, .97) both
+        }
+
+        @keyframes shake {
+            10%, 90% {
+                transform: translate3d(-1px, 0, 0)
+            }
+            20%, 80% {
+                transform: translate3d(2px, 0, 0)
+            }
+            30%, 50%, 70% {
+                transform: translate3d(-4px, 0, 0)
+            }
+            40%, 60% {
+                transform: translate3d(4px, 0, 0)
+            }
+        }
+
+        .stat-bar {
+            height: 8px;
+            background-color: #0b1220;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .stat-bar-fill {
+            position: absolute;
+            height: 100%;
+            left: 0;
+            top: 0;
+            background-color: var(--accent);
+            min-width: 2px
+        }
+
+        .letter-history-chart {
+            height: 200px;
+            position: relative;
+            margin-top: 1rem
+        }
+
+        .chart-column {
+            position: absolute;
+            bottom: 0;
+            width: calc(100% / 26 - 4px);
+            background-color: #1d4ed8;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s ease
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -20px;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .keyboard-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #0b1220
+        }
+
+        .ghost-delta {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #0b1220;
+            display: none
+        }
+
+        .ghost-delta.ahead {
+            color: var(--good)
+        }
+
+        .ghost-delta.behind {
+            color: var(--accent)
+        }
+
+        .combo-badge {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--muted);
+            display: none
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            font-weight: 600;
+            color: var(--muted)
+        }
+
+        .history-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none
+        }
+
+        .history-table .best-time {
+            color: var(--good);
+            font-weight: 600
+        }
+
+        .progress-chart {
+            height: 200px;
+            width: 100%;
+            position: relative;
+            margin-top: 1rem;
+            border-bottom: 1px solid var(--border);
+            border-left: 1px solid var(--border)
+        }
+
+        .progress-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2
+        }
+
+        .progress-line {
+            position: absolute;
+            height: 2px;
+            background-color: #1d4ed8;
+            z-index: 1
+        }
+
+        .chart-axis-label {
+            position: absolute;
+            font-size: 10px;
+            color: var(--muted)
+        }
+
+        .progress-improvement {
+            position: absolute;
+            font-size: 10px;
+            color: var(--good);
+            font-weight: 600
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem
+        }
+
+        .tab-button {
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer
+        }
+
+        .tab-button.active {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .tab-content {
+            display: none
+        }
+
+        .tab-content.active {
+            display: block
+        }
+
+        .average-time {
+            color: var(--accent);
+            font-weight: 600
+        }
+
+        .data-card {
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem
+        }
+
+        @keyframes blink {
+            0%, 49% {
+                opacity: 1
+            }
+            50%, 100% {
+                opacity: 0
+            }
+        }
+
+        .options-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem
+        }
+
+        .seg {
+            display: inline-flex;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            overflow: hidden
+        }
+
+        .seg button {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--muted);
+            padding: 0.4rem 0.75rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.12s ease, color 0.12s ease
+        }
+
+        .seg button.active {
+            background-color: var(--accent);
+            color: #1f2937
+        }
+
+        .seg button:not(.active):hover {
+            color: var(--text)
+        }
+
+        .seg-label {
+            font-size: 0.7rem;
+            color: var(--idle);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 0.25rem
+        }
+
+        .icon-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.8rem
+        }
+
+        .icon-toggle:hover {
+            color: var(--text)
+        }
+
+        #celebration {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5
+        }
+
+        .particle {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            will-change: transform, opacity
+        }
+
+        @media (max-width: 640px) {
+            #alphabet {
+                font-size: 2.5rem !important
+            }
+
+            #alphabet span {
+                width: 1.2em
+            }
+
+            .alphabet-row {
+                flex-wrap: wrap
+            }
+
+            .typing-area {
+                padding: 6px !important
+            }
+
+            section.grid {
+                grid-template-columns:repeat(2, 1fr)
+            }
+
+            .metric-card {
+                padding: 0.75rem
+            }
+
+            .button {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.875rem
+            }
+
+            .stats-grid {
+                grid-template-columns:repeat(auto-fill, minmax(50px, 1fr))
+            }
+
+            .letter-history-chart, .progress-chart {
+                height: 150px
+            }
+
+            .history-table {
+                font-size: 0.75rem
+            }
+
+            .history-table th, .history-table td {
+                padding: 0.375rem
+            }
+
+            .tab-buttons {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none
+            }
+
+            .tab-buttons::-webkit-scrollbar {
+                display: none
+            }
+
+            .tab-button {
+                padding: 0.5rem 0.75rem;
+                white-space: nowrap;
+                font-size: 0.875rem
+            }
+        }
+
+        @media (max-width: 480px) {
+            #alphabet {
+                font-size: 1.75rem !important
+            }
+
+            #alphabet span {
+                width: 1.1em
+            }
+
+            #alphabet span.current::after {
+                height: 0.4rem;
+                bottom: -2px
+            }
+
+            .data-card {
+                width: 100% !important
+            }
+        }
+
+        @media (max-width: 360px) {
+            #alphabet {
+                font-size: 1.5rem !important
+            }
+
+            #alphabet span {
+                width: 1em
+            }
+        }
+
+        .mobile-keyboard-note {
+            display: none
+        }
+
+        @media (max-width: 767px) {
+            .mobile-keyboard-note {
+                display: block;
+                text-align: center;
+                margin-top: 0.5rem;
+                font-size: 0.875rem;
+                color: var(--muted)
+            }
+
+            .virtual-keyboard {display: grid;}
+        }
+
+        .typing-area.keyboard-focused {
+            border: 2px solid var(--accent)
+        }
+
+        .virtual-keyboard {
+            display: none;
+            grid-template-columns:repeat(9, 1fr);
+            gap: 0.25rem;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0.5rem
+        }
+
+        .vk-key {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 3rem;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text);
+            user-select: none;
+            touch-action: manipulation
+        }
+
+        .vk-key:active {
+            background-color: #243349
+        }
+
+        .vk-key.current {
+            background-color: var(--accent);
+            color: #1f2937
+        }
+
+        @media (max-width: 400px) {
+            .virtual-keyboard {
+                grid-template-columns:repeat(7, 1fr)
+            }
+
+            .vk-key {
+                height: 2.5rem;
+                font-size: 1rem
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-12 px-4 sm:px-6">
+<div class="max-w-3xl mx-auto">
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2" style="color:var(--done)">Alphabet Typing Speed Game</h1>
+        <p class="max-w-lg mx-auto" style="color:var(--muted)">Type the alphabet from A to Z as quickly as you can. Press 'A' to
+            start. Track your performance for each letter to focus on improving your weak spots!</p>
+    </header>
+
+    <main>
+        <div class="options-bar">
+            <div class="seg" id="mode-seg" role="group" aria-label="Sequence mode">
+                <span class="seg-label" style="align-self:center;padding-left:0.5rem">Mode</span>
+                <button data-mode="az" class="active">A→Z</button>
+                <button data-mode="reverse">Z→A</button>
+                <button data-mode="shuffled">Shuffled</button>
+                <button data-mode="weak">Weak letters</button>
+            </div>
+            <div class="seg" id="strict-seg" role="group" aria-label="Strictness">
+                <button data-strict="strict" class="active">Strict</button>
+                <button data-strict="practice">Practice</button>
+            </div>
+            <button class="icon-toggle" id="mute-toggle" aria-label="Toggle sound">
+                <span id="mute-icon">🔊</span><span id="mute-label">Sound</span>
+            </button>
+        </div>
+
+        <section class="typing-area p-4 sm:p-8 mb-8 relative" id="game-area" tabindex="0">
+            <div class="keyboard-info" id="keyboard-info">Press 'A' to start</div>
+            <div class="ghost-delta" id="ghost-delta"></div>
+            <div class="combo-badge" id="combo-badge"></div>
+            <div id="alphabet"
+                 class="text-3xl sm:text-5xl md:text-6xl font-mono tracking-wide py-4"></div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div id="game-message" class="mt-4 text-center text-lg font-medium">Press 'A' to start typing</div>
+            <p class="mobile-keyboard-note">Use the keyboard below to type</p>
+            <div id="celebration"></div>
+        </section>
+
+        <!-- Virtual Keyboard for Mobile -->
+        <section id="virtual-keyboard" class="mb-8 virtual-keyboard"></section>
+
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)">Current Time</div>
+                <div id="result" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">0 ms</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)"><span id="highscore-label">High Score</span></div>
+                <div id="highscore" class="text-xl sm:text-2xl font-bold" style="color:var(--accent)">--</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)">Letters/Sec</div>
+                <div id="letters-per-second" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">0.0</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)">Attempts</div>
+                <div id="attempts" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">0</div>
+            </div>
+        </section>
+
+        <section id="stats-section" class="rounded-lg p-4 sm:p-6 mb-8 hidden" style="background-color:var(--panel);border:1px solid var(--border)">
+            <div class="tab-buttons">
+                <div class="tab-button active" data-tab="progress">Training Progress</div>
+                <div class="tab-button" data-tab="history">History</div>
+                <div class="tab-button" data-tab="letters">Letter Timing</div>
+            </div>
+
+            <div id="progress-tab" class="tab-content active">
+                <div class="flex flex-wrap justify-between mb-4">
+                    <div class="data-card w-full sm:w-[32%]">
+                        <div class="text-sm mb-1" style="color:var(--muted)">Average Time</div>
+                        <div id="average-time" class="text-xl sm:text-2xl font-bold average-time">--</div>
+                    </div>
+                    <div class="data-card w-full sm:w-[32%]">
+                        <div class="text-sm mb-1" style="color:var(--muted)">Best Time</div>
+                        <div id="best-time" class="text-xl sm:text-2xl font-bold" style="color:var(--good)">--</div>
+                    </div>
+                    <div class="data-card w-full sm:w-[32%]">
+                        <div class="text-sm mb-1" style="color:var(--muted)">Recent Improvement</div>
+                        <div id="improvement" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">--</div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Training Progress</h3>
+                <p class="text-sm mb-4" style="color:var(--muted)">Your typing speed over time (last 10 attempts, A→Z)</p>
+                <div id="progress-chart" class="progress-chart"></div>
+            </div>
+
+            <div id="history-tab" class="tab-content">
+                <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Attempt History</h3>
+                <p class="text-sm mb-4" style="color:var(--muted)">Your recent typing sessions (A→Z)</p>
+                <div class="overflow-x-auto">
+                    <table class="history-table">
+                        <thead>
+                        <tr>
+                            <th>Attempt #</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Letters/Sec</th>
+                        </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="letters-tab" class="tab-content">
+                <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Letter Timing Statistics</h3>
+                <div class="flex flex-wrap justify-between items-center mb-4 text-xs sm:text-sm">
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:#7f1d1d"></span>
+                        <span style="color:var(--muted)">Slow</span>
+                    </div>
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:var(--border)"></span>
+                        <span style="color:var(--muted)">Average</span>
+                    </div>
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:#166534"></span>
+                        <span style="color:var(--muted)">Fast</span>
+                    </div>
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:#0b1220"></span>
+                        <span style="color:var(--muted)">Game Trigger</span>
+                    </div>
+                </div>
+                <div id="letter-stats" class="stats-grid"></div>
+
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Letter Performance</h3>
+                    <p class="text-sm mb-4" style="color:var(--muted)">Your average time per letter (last 5 attempts, A→Z)</p>
+                    <div id="letter-history-chart" class="letter-history-chart"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-wrap justify-center gap-2 sm:gap-4">
+            <button id="restart-button" class="button button-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                          clip-rule="evenodd"/>
+                </svg>
+                Restart
+            </button>
+
+            <button id="toggle-stats-button" class="button button-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                </svg>
+                Stats
+            </button>
+
+            <button id="reset-highscore" class="button button-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clip-rule="evenodd"/>
+                </svg>
+                Reset
+            </button>
+        </section>
+    </main>
+
+    <footer class="mt-12 text-center text-sm" style="color:var(--muted)">
+        <p>© 2025 Alphabet Typing Speed Game. Improve your typing skills and track your progress.</p>
+    </footer>
+</div>
+
+<script>
+    const GameState = {READY: 'ready', PLAYING: 'playing', COMPLETED: 'completed', ERROR: 'error'};
+    const BASE_ALPHABET = Array.from("abcdefghijklmnopqrstuvwxyz");
+    const MAX_HISTORY = 10;
+
+    const MODE_LABELS = {az: 'A→Z', reverse: 'Z→A', shuffled: 'Shuffled', weak: 'Weak letters'};
+    const HS_KEYS = {az: 'highScore', reverse: 'highScore_reverse', shuffled: 'highScore_shuffled', weak: 'highScore_weak'};
+    const GHOST_KEYS = {az: 'ghostBest_az', reverse: 'ghostBest_reverse', shuffled: 'ghostBest_shuffled', weak: 'ghostBest_weak'};
+
+    let mode = 'az';
+    let strictness = 'strict';
+    let muted = localStorage.getItem("muted") === "1";
+
+    let currentState = GameState.READY;
+    let activeSequence = BASE_ALPHABET.slice();
+    let currentIndex = 0;
+    let startTime;
+    let elapsedTime = 0;
+    let timerInterval;
+    let letterTimings = [];
+    let letterTimestamps = [];
+    let recordEligible = true;
+    let combo = 0;
+    let ghostBest = null;
+    let letterEls = [];
+    let vkKeys = [];
+    let attempts = parseInt(localStorage.getItem("attempts") || "0");
+
+    const alphabetEl = document.getElementById('alphabet');
+    const resultEl = document.getElementById('result');
+    const highscoreEl = document.getElementById('highscore');
+    const highscoreLabelEl = document.getElementById('highscore-label');
+    const attemptsEl = document.getElementById('attempts');
+    const lpsEl = document.getElementById('letters-per-second');
+    const progressEl = document.getElementById('progress');
+    const gameMessageEl = document.getElementById('game-message');
+    const gameAreaEl = document.getElementById('game-area');
+    const keyboardInfoEl = document.getElementById('keyboard-info');
+    const ghostDeltaEl = document.getElementById('ghost-delta');
+    const comboBadgeEl = document.getElementById('combo-badge');
+    const celebrationEl = document.getElementById('celebration');
+    const restartBtn = document.getElementById('restart-button');
+    const resetHighscoreBtn = document.getElementById('reset-highscore');
+    const letterStatsEl = document.getElementById('letter-stats');
+    const statsSection = document.getElementById('stats-section');
+    const letterHistoryChart = document.getElementById('letter-history-chart');
+    const toggleStatsBtn = document.getElementById('toggle-stats-button');
+    const progressChartEl = document.getElementById('progress-chart');
+    const historyTableBody = document.getElementById('history-table-body');
+    const averageTimeEl = document.getElementById('average-time');
+    const bestTimeEl = document.getElementById('best-time');
+    const improvementEl = document.getElementById('improvement');
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const virtualKeyboardEl = document.getElementById('virtual-keyboard');
+    const modeSeg = document.getElementById('mode-seg');
+    const strictSeg = document.getElementById('strict-seg');
+    const muteToggle = document.getElementById('mute-toggle');
+    const muteIcon = document.getElementById('mute-icon');
+    const muteLabel = document.getElementById('mute-label');
+
+    let audioCtx = null;
+
+    function ensureAudio() {
+        if (muted) return null;
+        if (!audioCtx) {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                return null;
+            }
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+    }
+
+    function playTone(freq, duration, type, gainPeak, startOffset) {
+        const ctx = ensureAudio();
+        if (!ctx) return;
+        const t0 = ctx.currentTime + (startOffset || 0);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.exponentialRampToValueAtTime(gainPeak || 0.15, t0 + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t0);
+        osc.stop(t0 + duration + 0.02);
+    }
+
+    function soundKeystroke() {
+        playTone(660, 0.04, 'square', 0.06, 0);
+    }
+
+    function soundError() {
+        playTone(120, 0.18, 'sawtooth', 0.12, 0);
+        playTone(98, 0.18, 'sawtooth', 0.10, 0.01);
+    }
+
+    function soundComplete() {
+        const notes = [523.25, 659.25, 783.99];
+        notes.forEach((f, i) => playTone(f, 0.16, 'triangle', 0.12, i * 0.09));
+    }
+
+    function soundBest() {
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((f, i) => playTone(f, 0.22, 'triangle', 0.14, i * 0.08));
+        playTone(1318.5, 0.4, 'sine', 0.10, 0.34);
+    }
+
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    }
+
+    function buildSequence(forMode) {
+        if (forMode === 'reverse') return BASE_ALPHABET.slice().reverse();
+        if (forMode === 'shuffled') {
+            const a = BASE_ALPHABET.slice();
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        if (forMode === 'weak') {
+            const history = JSON.parse(localStorage.getItem("letterHistory") || "[]");
+            if (history.length === 0) return BASE_ALPHABET.slice();
+            const avg = {};
+            BASE_ALPHABET.forEach(letter => {
+                let total = 0, count = 0;
+                history.forEach(entry => {
+                    const t = entry.letterTimings.find(x => x.letter === letter);
+                    if (t && letter !== 'a') {
+                        total += t.time;
+                        count++;
+                    }
+                });
+                avg[letter] = count > 0 ? total / count : 0;
+            });
+            return BASE_ALPHABET.slice().sort((x, y) => (avg[y] || 0) - (avg[x] || 0));
+        }
+        return BASE_ALPHABET.slice();
+    }
+
+    function firstLetter() {
+        return activeSequence[0];
+    }
+
+    function firstLetterUpper() {
+        return activeSequence[0].toUpperCase();
+    }
+
+    function renderSequence() {
+        const half = Math.ceil(activeSequence.length / 2);
+        const firstRow = activeSequence.slice(0, half);
+        const secondRow = activeSequence.slice(half);
+        alphabetEl.innerHTML =
+            `<div class="alphabet-row">${firstRow.map(l => `<span class="letter">${l}</span>`).join('')}</div>` +
+            `<div class="alphabet-row">${secondRow.map(l => `<span class="letter">${l}</span>`).join('')}</div>`;
+        letterEls = Array.from(alphabetEl.querySelectorAll('.letter'));
+    }
+
+    function initVirtualKeyboard() {
+        virtualKeyboardEl.innerHTML = "";
+        vkKeys = [];
+        for (let i = 0; i < activeSequence.length; i++) {
+            const key = document.createElement('div');
+            key.className = 'vk-key';
+            key.textContent = activeSequence[i];
+            key.setAttribute('data-key', activeSequence[i]);
+            const letter = activeSequence[i];
+            key.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                handleInput(letter, false);
+            });
+            virtualKeyboardEl.appendChild(key);
+            vkKeys.push(key);
+        }
+    }
+
+    function updateVirtualKeyboard() {
+        for (let i = 0; i < vkKeys.length; i++) {
+            if (i === currentIndex && currentState !== GameState.COMPLETED) {
+                vkKeys[i].classList.add('current');
+            } else {
+                vkKeys[i].classList.remove('current');
+            }
+        }
+    }
+
+    function loadHighScoreDisplay() {
+        highscoreLabelEl.textContent = mode === 'az' ? 'High Score' : `Best (${MODE_LABELS[mode]})`;
+        const hs = localStorage.getItem(HS_KEYS[mode]);
+        if (hs) {
+            highscoreEl.textContent = `${parseInt(hs).toLocaleString()}ms`;
+        } else {
+            highscoreEl.textContent = "--";
+        }
+        const azHs = localStorage.getItem("highScore");
+        bestTimeEl.textContent = azHs ? `${parseInt(azHs).toLocaleString()}ms` : "--";
+    }
+
+    function updateMuteUI() {
+        muteIcon.textContent = muted ? '🔇' : '🔊';
+        muteLabel.textContent = muted ? 'Muted' : 'Sound';
+    }
+
+    function initGame() {
+        activeSequence = buildSequence(mode);
+        renderSequence();
+        initVirtualKeyboard();
+        loadHighScoreDisplay();
+        attemptsEl.textContent = attempts;
+        if (!localStorage.getItem("letterHistory")) {
+            localStorage.setItem("letterHistory", JSON.stringify([]));
+        }
+        if (!localStorage.getItem("totalHistory")) {
+            localStorage.setItem("totalHistory", JSON.stringify([]));
+        }
+        updateMuteUI();
+        gameAreaEl.focus();
+        updateGameState(GameState.READY);
+        updateStatistics();
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(`${button.dataset.tab}-tab`).classList.add('active');
+                if (button.dataset.tab === 'progress') redrawCharts();
+            });
+        });
+        redrawCharts();
+    }
+
+    function updateGameState(newState) {
+        currentState = newState;
+        switch (currentState) {
+            case GameState.READY:
+                gameMessageEl.textContent = `Type ${MODE_LABELS[mode]} as fast as you can — press '${firstLetterUpper()}' to start`;
+                gameMessageEl.style.color = 'var(--muted)';
+                keyboardInfoEl.textContent = `Press '${firstLetterUpper()}' to start`;
+                currentIndex = 0;
+                recordEligible = (strictness === 'strict');
+                combo = 0;
+                resetLetterStyles();
+                updateProgress(0);
+                progressEl.classList.remove('ahead', 'behind');
+                letterTimings = [];
+                letterTimestamps = [];
+                ghostBest = JSON.parse(localStorage.getItem(GHOST_KEYS[mode]) || "null");
+                ghostDeltaEl.style.display = 'none';
+                comboBadgeEl.style.display = 'none';
+                if (letterEls[0]) letterEls[0].classList.add('current');
+                updateVirtualKeyboard();
+                break;
+            case GameState.PLAYING:
+                gameMessageEl.textContent = strictness === 'practice' ? 'Typing… (Practice — no record)' : 'Typing…';
+                gameMessageEl.style.color = 'var(--accent)';
+                keyboardInfoEl.textContent = "Keep typing…";
+                highlightCurrentLetter();
+                updateVirtualKeyboard();
+                break;
+            case GameState.COMPLETED:
+                stopTimer();
+                keyboardInfoEl.textContent = "Well done!";
+                gameMessageEl.style.color = 'var(--good)';
+                letterEls.forEach(el => {
+                    el.classList.add('done');
+                    el.classList.remove('current', 'errored');
+                });
+                ghostDeltaEl.style.display = 'none';
+                comboBadgeEl.style.display = 'none';
+                updateVirtualKeyboard();
+                break;
+            case GameState.ERROR:
+                gameMessageEl.textContent = `Error! Press '${firstLetterUpper()}' to try again`;
+                gameMessageEl.style.color = 'var(--error)';
+                keyboardInfoEl.textContent = "Oops! Try again.";
+                gameAreaEl.classList.add('error-shake');
+                letterEls.forEach(el => el.classList.remove('current'));
+                if (letterEls[0]) letterEls[0].classList.add('current');
+                setTimeout(() => gameAreaEl.classList.remove('error-shake'), 450);
+                stopTimer();
+                ghostDeltaEl.style.display = 'none';
+                comboBadgeEl.style.display = 'none';
+                updateVirtualKeyboard();
+                break;
+        }
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            const live = new Date().getTime() - startTime;
+            resultEl.textContent = `${live.toLocaleString()} ms`;
+            if (currentIndex > 0) {
+                lpsEl.textContent = (currentIndex / (live / 1000)).toFixed(1);
+            }
+        }, 50);
+    }
+
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    function resetLetterStyles() {
+        letterEls.forEach(el => el.classList.remove('done', 'errored', 'current', 'letter-typed'));
+    }
+
+    function highlightCurrentLetter() {
+        for (let i = 0; i < letterEls.length; i++) {
+            letterEls[i].classList.remove('current', 'errored');
+            if (i < currentIndex) letterEls[i].classList.add('done');
+        }
+        if (currentIndex < activeSequence.length) {
+            letterEls[currentIndex].classList.add('current');
+        }
+    }
+
+    function updateProgress(percent) {
+        progressEl.style.width = `${percent}%`;
+    }
+
+    function updateGhost() {
+        if (!ghostBest || currentIndex < 1 || currentIndex >= ghostBest.length + 1) {
+            return;
+        }
+        const elapsed = letterTimestamps[currentIndex] - startTime;
+        const ghostAt = ghostBest[currentIndex - 1];
+        if (ghostAt === undefined) return;
+        const delta = elapsed - ghostAt;
+        ghostDeltaEl.style.display = 'block';
+        if (delta <= 0) {
+            ghostDeltaEl.textContent = `${delta}ms`;
+            ghostDeltaEl.className = 'ghost-delta ahead';
+            progressEl.classList.add('ahead');
+            progressEl.classList.remove('behind');
+        } else {
+            ghostDeltaEl.textContent = `+${delta}ms`;
+            ghostDeltaEl.className = 'ghost-delta behind';
+            progressEl.classList.add('behind');
+            progressEl.classList.remove('ahead');
+        }
+    }
+
+    function showCombo() {
+        if (combo >= 3) {
+            comboBadgeEl.style.display = 'block';
+            comboBadgeEl.textContent = `streak ×${combo}`;
+        } else {
+            comboBadgeEl.style.display = 'none';
+        }
+    }
+
+    function updateHighScoreForMode(time) {
+        const key = HS_KEYS[mode];
+        const hs = localStorage.getItem(key);
+        let isNew = false;
+        if (!hs || time < parseInt(hs, 10)) {
+            localStorage.setItem(key, time);
+            isNew = true;
+        }
+        loadHighScoreDisplay();
+        return isNew;
+    }
+
+    function saveGhost() {
+        const cumulative = [];
+        for (let i = 1; i <= activeSequence.length; i++) {
+            cumulative.push(letterTimestamps[i] - startTime);
+        }
+        localStorage.setItem(GHOST_KEYS[mode], JSON.stringify(cumulative));
+    }
+
+    function spawnCelebration() {
+        celebrationEl.innerHTML = "";
+        const colors = ['#22d3ee', '#fbbf24', '#34d399', '#f1f5f9'];
+        const rect = gameAreaEl.getBoundingClientRect();
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        const count = 28;
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.backgroundColor = colors[i % colors.length];
+            p.style.left = `${cx}px`;
+            p.style.top = `${cy}px`;
+            celebrationEl.appendChild(p);
+            const angle = (Math.PI * 2 * i) / count + Math.random() * 0.3;
+            const dist = 90 + Math.random() * 120;
+            const dx = Math.cos(angle) * dist;
+            const dy = Math.sin(angle) * dist;
+            p.animate([
+                {transform: 'translate(0,0) scale(1)', opacity: 1},
+                {transform: `translate(${dx}px, ${dy}px) scale(0.4)`, opacity: 1, offset: 0.85},
+                {transform: `translate(${dx * 1.1}px, ${dy * 1.1 + 40}px) scale(0.2)`, opacity: 0}
+            ], {duration: 700 + Math.random() * 250, easing: 'cubic-bezier(.17,.67,.43,.99)'});
+        }
+        setTimeout(() => {
+            celebrationEl.innerHTML = "";
+        }, 1100);
+    }
+
+    function slowestLetterOfRun() {
+        let slowIdx = -1, slowVal = -1;
+        for (let i = 1; i < activeSequence.length; i++) {
+            const dt = letterTimestamps[i + 1] - letterTimestamps[i];
+            if (dt > slowVal) {
+                slowVal = dt;
+                slowIdx = i;
+            }
+        }
+        if (slowIdx < 1) return null;
+        return {from: activeSequence[slowIdx - 1], to: activeSequence[slowIdx], ms: slowVal};
+    }
+
+    function finishRun() {
+        elapsedTime = new Date().getTime() - startTime;
+        resultEl.textContent = `${elapsedTime.toLocaleString()}ms`;
+        lpsEl.textContent = (activeSequence.length / (elapsedTime / 1000)).toFixed(1);
+
+        let isNewBest = false;
+        if (recordEligible) {
+            isNewBest = updateHighScoreForMode(elapsedTime);
+            saveGhost();
+            if (mode === 'az') {
+                saveAzData();
+                updateHighScore(elapsedTime);
+            }
+        }
+
+        updateGameState(GameState.COMPLETED);
+
+        const slow = slowestLetterOfRun();
+        const slowText = slow ? ` · slowest: ${slow.from}→${slow.to}, ${slow.ms}ms` : '';
+
+        if (isNewBest) {
+            gameMessageEl.textContent = `New best!${slowText} · Press '${firstLetterUpper()}' to try again`;
+            gameMessageEl.style.color = 'var(--best)';
+            gameAreaEl.classList.add('best-flash');
+            setTimeout(() => gameAreaEl.classList.remove('best-flash'), 600);
+            spawnCelebration();
+            soundBest();
+        } else {
+            const tag = recordEligible ? 'Completed!' : 'Practice run (not recorded).';
+            gameMessageEl.textContent = `${tag}${slowText} · Press '${firstLetterUpper()}' to try again`;
+            gameMessageEl.style.color = 'var(--good)';
+            gameAreaEl.classList.add('complete-pulse');
+            setTimeout(() => gameAreaEl.classList.remove('complete-pulse'), 450);
+            soundComplete();
+        }
+
+        if (mode === 'az') updateStatistics();
+    }
+
+    function handleInput(rawKey, isRepeat) {
+        if (isRepeat) return;
+        const key = (rawKey || '').toLowerCase();
+        if (key.length !== 1 || key < 'a' || key > 'z') return;
+
+        if (currentState !== GameState.PLAYING) {
+            if (key === firstLetter()) {
+                ensureAudio();
+                activeSequence = buildSequence(mode);
+                renderSequence();
+                ghostBest = JSON.parse(localStorage.getItem(GHOST_KEYS[mode]) || "null");
+                currentState = GameState.PLAYING;
+                currentIndex = 0;
+                combo = 0;
+                recordEligible = (strictness === 'strict');
+                attempts++;
+                localStorage.setItem("attempts", attempts);
+                attemptsEl.textContent = attempts;
+                startTime = new Date().getTime();
+                letterTimestamps = [];
+                letterTimestamps[0] = startTime;
+                letterEls[0].classList.add('letter-typed', 'done');
+                currentIndex = 1;
+                letterTimestamps[1] = startTime;
+                combo = 1;
+                updateProgress((currentIndex / activeSequence.length) * 100);
+                gameMessageEl.textContent = strictness === 'practice' ? 'Typing… (Practice — no record)' : 'Typing…';
+                gameMessageEl.style.color = 'var(--accent)';
+                keyboardInfoEl.textContent = "Keep typing…";
+                highlightCurrentLetter();
+                updateVirtualKeyboard();
+                startTimer();
+                soundKeystroke();
+            }
+            return;
+        }
+
+        if (key === activeSequence[currentIndex]) {
+            const el = letterEls[currentIndex];
+            el.classList.remove('letter-typed');
+            void el.offsetWidth;
+            el.classList.add('letter-typed', 'done');
+            el.classList.remove('current', 'errored');
+            currentIndex++;
+            letterTimestamps[currentIndex] = new Date().getTime();
+            combo++;
+            soundKeystroke();
+            updateProgress((currentIndex / activeSequence.length) * 100);
+            updateGhost();
+            showCombo();
+            if (currentIndex === activeSequence.length) {
+                finishRun();
+            } else {
+                letterEls[currentIndex].classList.add('current');
+                updateVirtualKeyboard();
+            }
+        } else {
+            combo = 0;
+            soundError();
+            if (strictness === 'practice') {
+                const el = letterEls[currentIndex];
+                el.classList.add('errored');
+                gameAreaEl.classList.add('error-shake');
+                setTimeout(() => {
+                    gameAreaEl.classList.remove('error-shake');
+                    el.classList.remove('errored');
+                }, 450);
+                comboBadgeEl.style.display = 'none';
+            } else {
+                letterEls[currentIndex].classList.add('errored');
+                updateGameState(GameState.ERROR);
+            }
+        }
+    }
+
+    function handleKeyDown(event) {
+        if (event.metaKey || event.ctrlKey || event.altKey) return;
+        if (event.key && event.key.length === 1) {
+            handleInput(event.key, event.repeat);
+        }
+    }
+
+    function restartGame() {
+        stopTimer();
+        activeSequence = buildSequence(mode);
+        renderSequence();
+        updateGameState(GameState.READY);
+        resultEl.textContent = "0 ms";
+        lpsEl.textContent = "0.0";
+        gameAreaEl.focus();
+    }
+
+    function switchMode(newMode) {
+        if (newMode === mode) return;
+        mode = newMode;
+        modeSeg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+        loadHighScoreDisplay();
+        restartGame();
+    }
+
+    function switchStrictness(newStrict) {
+        if (newStrict === strictness) return;
+        strictness = newStrict;
+        strictSeg.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.strict === strictness));
+        restartGame();
+    }
+
+    function resetAllData() {
+        if (confirm("Are you sure you want to reset all data? This will clear your high score and letter statistics.")) {
+            localStorage.removeItem("highScore");
+            localStorage.removeItem("letterHistory");
+            localStorage.removeItem("totalHistory");
+            localStorage.removeItem("attempts");
+            Object.values(HS_KEYS).forEach(k => { if (k !== 'highScore') localStorage.removeItem(k); });
+            Object.values(GHOST_KEYS).forEach(k => localStorage.removeItem(k));
+            attempts = 0;
+            highscoreEl.textContent = "--";
+            bestTimeEl.textContent = "--";
+            averageTimeEl.textContent = "--";
+            improvementEl.textContent = "--";
+            attemptsEl.textContent = "0";
+            letterHistoryChart.innerHTML = "";
+            progressChartEl.innerHTML = "";
+            historyTableBody.innerHTML = "";
+            letterStatsEl.innerHTML = "";
+            statsSection.classList.add('hidden');
+            restartGame();
+        }
+    }
+
+    function updateHighScore(time) {
+        const highScore = localStorage.getItem("highScore");
+        if (!highScore || time < parseInt(highScore, 10)) {
+            localStorage.setItem("highScore", time);
+            return true;
+        }
+        return false;
+    }
+
+    function saveAzData() {
+        letterTimings = [{letter: activeSequence[0], time: 0}];
+        for (let i = 1; i < activeSequence.length; i++) {
+            const startTs = letterTimestamps[i];
+            const endTs = letterTimestamps[i + 1];
+            letterTimings.push({letter: activeSequence[i], time: endTs - startTs});
+        }
+        let letterHistory = JSON.parse(localStorage.getItem("letterHistory") || "[]");
+        letterHistory.unshift({timestamp: new Date().getTime(), totalTime: elapsedTime, letterTimings: letterTimings});
+        if (letterHistory.length > MAX_HISTORY) letterHistory = letterHistory.slice(0, MAX_HISTORY);
+        localStorage.setItem("letterHistory", JSON.stringify(letterHistory));
+
+        let totalHistory = JSON.parse(localStorage.getItem("totalHistory") || "[]");
+        const lettersPerSecond = (activeSequence.length / (elapsedTime / 1000)).toFixed(1);
+        totalHistory.unshift({
+            timestamp: new Date().getTime(),
+            attemptNumber: attempts,
+            totalTime: elapsedTime,
+            lettersPerSecond: lettersPerSecond
+        });
+        if (totalHistory.length > MAX_HISTORY) totalHistory = totalHistory.slice(0, MAX_HISTORY);
+        localStorage.setItem("totalHistory", JSON.stringify(totalHistory));
+    }
+
+    function updateStatistics() {
+        updateLetterStatistics();
+        updateLetterHistoryChart();
+        updateProgressChart();
+        updateHistoryTable();
+        updateTotalStats();
+        statsSection.classList.remove('hidden');
+    }
+
+    function updateLetterStatistics() {
+        letterStatsEl.innerHTML = "";
+        const history = JSON.parse(localStorage.getItem("letterHistory") || "[]");
+        if (history.length === 0) return;
+        const latestTimings = history[0].letterTimings;
+        let totalTime = 0, slowestTime = 0, fastestTime = Infinity;
+        latestTimings.slice(1).forEach(timing => {
+            totalTime += timing.time;
+            if (timing.time > slowestTime) slowestTime = timing.time;
+            if (timing.time < fastestTime) fastestTime = timing.time;
+        });
+        const averageTime = totalTime / (latestTimings.length - 1);
+        latestTimings.forEach(timing => {
+            const letterStat = document.createElement('div');
+            letterStat.className = "letter-stat";
+            if (timing.letter === 'a') {
+                letterStat.classList.add('letter-stat-trigger', 'tooltip');
+                letterStat.innerHTML = `<div class="text-xl font-mono font-bold mb-1">${timing.letter}</div><div class="text-sm font-medium">0 ms</div><span class="tooltiptext">The letter 'a' always shows 0ms as it triggers the game start</span>`;
+            } else {
+                let speedClass = "letter-stat-average";
+                if (timing.time < averageTime * 0.75) speedClass = "letter-stat-fast";
+                if (timing.time > averageTime * 1.25) speedClass = "letter-stat-slow";
+                letterStat.classList.add(speedClass);
+                const percent = Math.min(100, Math.max(5, (timing.time / slowestTime) * 100));
+                letterStat.innerHTML = `<div class="text-xl font-mono font-bold mb-1">${timing.letter}</div><div class="text-sm font-medium">${timing.time} ms</div><div class="stat-bar mt-1"><div class="stat-bar-fill" style="width:${percent}%"></div></div>`;
+            }
+            letterStatsEl.appendChild(letterStat);
+        });
+    }
+
+    function updateLetterHistoryChart() {
+        const history = JSON.parse(localStorage.getItem("letterHistory") || "[]");
+        if (history.length === 0) return;
+        letterHistoryChart.innerHTML = "";
+        const letterAverages = {};
+        BASE_ALPHABET.forEach(letter => {
+            let total = 0, count = 0;
+            history.forEach(entry => {
+                const timing = entry.letterTimings.find(t => t.letter === letter);
+                if (timing) {
+                    total += timing.time;
+                    count++;
+                }
+            });
+            letterAverages[letter] = count > 0 ? total / count : 0;
+        });
+        let maxTime = 0;
+        Object.entries(letterAverages).forEach(([letter, time]) => {
+            if (letter !== 'a' && time > maxTime) maxTime = time;
+        });
+        Object.entries(letterAverages).forEach(([letter, time], index) => {
+            if (time === 0) return;
+            const isGameTrigger = letter === 'a';
+            const height = isGameTrigger ? 5 : Math.max(5, Math.min(100, (time / maxTime) * 100));
+            const column = document.createElement('div');
+            column.className = "chart-column";
+            column.style.left = `${(index / BASE_ALPHABET.length) * 100}%`;
+            column.style.height = `${height}%`;
+            column.style.backgroundColor = isGameTrigger ? '#475569' : time > maxTime * 0.75 ? '#7f1d1d' : time < maxTime * 0.25 ? '#166534' : '#1d4ed8';
+            const label = document.createElement('div');
+            label.className = "chart-label";
+            label.textContent = letter;
+            label.style.left = "50%";
+            if (isGameTrigger) column.title = "The letter 'a' always shows 0ms as it triggers the game start";
+            column.appendChild(label);
+            letterHistoryChart.appendChild(column);
+        });
+    }
+
+    function redrawCharts() {
+        setTimeout(() => {
+            updateLetterHistoryChart();
+            updateProgressChart();
+        }, 50);
+    }
+
+    function updateProgressChart() {
+        const history = JSON.parse(localStorage.getItem("totalHistory") || "[]");
+        if (history.length < 2) return;
+        progressChartEl.innerHTML = "";
+        const chartWidth = progressChartEl.offsetWidth || 300;
+        let minTime = Infinity, maxTime = 0;
+        history.forEach(entry => {
+            if (entry.totalTime < minTime) minTime = entry.totalTime;
+            if (entry.totalTime > maxTime) maxTime = entry.totalTime;
+        });
+        const range = maxTime - minTime;
+        const padding = range * 0.1;
+        const effectiveMin = Math.max(0, minTime - padding);
+        const effectiveMax = maxTime + padding;
+        const points = [];
+        const ordered = history.slice().reverse();
+        ordered.forEach((entry, index) => {
+            if (index >= MAX_HISTORY) return;
+            const x = index * (chartWidth / (Math.min(ordered.length, MAX_HISTORY) - 1));
+            const y = 180 - ((entry.totalTime - effectiveMin) / (effectiveMax - effectiveMin) * 180);
+            const point = document.createElement('div');
+            point.className = 'progress-point';
+            point.style.left = `${x}px`;
+            point.style.top = `${y}px`;
+            point.title = `Attempt #${entry.attemptNumber}:${entry.totalTime.toLocaleString()}ms`;
+            progressChartEl.appendChild(point);
+            points.push({x, y});
+            const label = document.createElement('div');
+            label.className = 'chart-axis-label';
+            label.textContent = `#${entry.attemptNumber}`;
+            label.style.left = `${x}px`;
+            label.style.bottom = '-20px';
+            label.style.transform = 'translateX(-50%)';
+            progressChartEl.appendChild(label);
+        });
+        for (let i = 0; i < points.length - 1; i++) {
+            const start = points[i];
+            const end = points[i + 1];
+            const length = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+            const angle = Math.atan2(end.y - start.y, end.x - start.x) * 180 / Math.PI;
+            const line = document.createElement('div');
+            line.className = 'progress-line';
+            line.style.width = `${length}px`;
+            line.style.left = `${start.x}px`;
+            line.style.top = `${start.y}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.transformOrigin = '0 0';
+            progressChartEl.appendChild(line);
+        }
+        if (history.length >= 2) {
+            const firstEntry = ordered[0];
+            const lastEntry = ordered[ordered.length - 1];
+            const improvement = firstEntry.totalTime - lastEntry.totalTime;
+            if (improvement > 0) {
+                const improvementLabel = document.createElement('div');
+                improvementLabel.className = 'progress-improvement';
+                improvementLabel.textContent = `↓ ${improvement.toLocaleString()}ms`;
+                improvementLabel.style.right = '10px';
+                improvementLabel.style.top = '10px';
+                progressChartEl.appendChild(improvementLabel);
+            }
+        }
+        const yLabels = [effectiveMin, (effectiveMin + effectiveMax) / 2, effectiveMax];
+        yLabels.forEach((value, index) => {
+            const y = 180 - (index * 90);
+            const label = document.createElement('div');
+            label.className = 'chart-axis-label';
+            label.textContent = `${Math.round(value).toLocaleString()}ms`;
+            label.style.left = '-5px';
+            label.style.top = `${y}px`;
+            label.style.transform = 'translateX(-100%) translateY(-50%)';
+            progressChartEl.appendChild(label);
+        });
+    }
+
+    function updateHistoryTable() {
+        const history = JSON.parse(localStorage.getItem("totalHistory") || "[]");
+        if (history.length === 0) return;
+        historyTableBody.innerHTML = "";
+        let bestTime = Infinity;
+        history.forEach(entry => {
+            if (entry.totalTime < bestTime) bestTime = entry.totalTime;
+        });
+        history.forEach(entry => {
+            const row = document.createElement('tr');
+            const date = new Date(entry.timestamp);
+            const formattedDate = `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`;
+            const isBestTime = entry.totalTime === bestTime;
+            const timeClass = isBestTime ? 'best-time' : '';
+            row.innerHTML = `<td>${entry.attemptNumber}</td><td>${formattedDate}</td><td class="${timeClass}">${entry.totalTime.toLocaleString()} ms</td><td>${entry.lettersPerSecond}</td>`;
+            historyTableBody.appendChild(row);
+        });
+    }
+
+    function updateTotalStats() {
+        const history = JSON.parse(localStorage.getItem("totalHistory") || "[]");
+        if (history.length === 0) return;
+        let totalTime = 0;
+        history.forEach(entry => {
+            totalTime += entry.totalTime;
+        });
+        const averageTime = Math.round(totalTime / history.length);
+        averageTimeEl.textContent = `${averageTime.toLocaleString()} ms`;
+        if (history.length >= 2) {
+            const lastTime = history[0].totalTime;
+            const previousTime = history[1].totalTime;
+            const improvement = previousTime - lastTime;
+            if (improvement > 0) {
+                const improvementPercent = Math.round((improvement / previousTime) * 100);
+                improvementEl.textContent = `↓ ${improvement.toLocaleString()} ms (${improvementPercent}%)`;
+                improvementEl.style.color = 'var(--good)';
+            } else {
+                const decline = Math.abs(improvement);
+                const declinePercent = Math.round((decline / previousTime) * 100);
+                improvementEl.textContent = `↑ ${decline.toLocaleString()} ms (${declinePercent}%)`;
+                improvementEl.style.color = 'var(--error)';
+            }
+        } else {
+            improvementEl.textContent = "--";
+        }
+    }
+
+    window.addEventListener("resize", () => {
+        updateLetterHistoryChart();
+        updateProgressChart();
+    });
+    window.addEventListener("load", redrawCharts);
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) redrawCharts();
+    });
+    document.addEventListener("keydown", handleKeyDown);
+    restartBtn.addEventListener("click", () => { restartGame(); });
+    resetHighscoreBtn.addEventListener("click", resetAllData);
+    toggleStatsBtn.addEventListener("click", () => {
+        statsSection.classList.toggle('hidden');
+        if (!statsSection.classList.contains('hidden')) updateStatistics();
+    });
+    modeSeg.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => switchMode(b.dataset.mode));
+    });
+    strictSeg.querySelectorAll('button').forEach(b => {
+        b.addEventListener('click', () => switchStrictness(b.dataset.strict));
+    });
+    muteToggle.addEventListener('click', () => {
+        muted = !muted;
+        localStorage.setItem("muted", muted ? "1" : "0");
+        updateMuteUI();
+        if (!muted) { ensureAudio(); soundKeystroke(); }
+    });
+    initGame();
+</script>
+
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Game",
+        "name": "Alphabet Typing Speed Game",
+        "description": "Improve your typing speed by practicing the alphabet with detailed letter-by-letter statistics and performance tracking.",
+        "genre": [
+            "Educational",
+            "Typing",
+            "Skill Game"
+        ],
+        "audience": {
+            "@type": "Audience",
+            "audienceType": "Students, Typists, Anyone looking to improve typing skills"
+        }
+    }
+</script>
+
+</body>
+</html>

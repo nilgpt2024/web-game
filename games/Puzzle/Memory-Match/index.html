@@ -1,0 +1,3069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>Neural Overload — Incremental Memory Match Game</title>
+    <meta name="description"
+          content="An incremental memory game that starts simple and spirals into beautiful chaos. Match cards, earn Neural Points, unlock 30+ skills across 6 branches, and watch the board grow to hundreds of cards. How far can you push your brain?"/>
+    <meta name="keywords"
+          content="memory game, card matching, incremental game, skill tree, brain training, puzzle game, free online game"/>
+    <meta name="author" content="GPT Games"/>
+    <meta name="theme-color" content="#06060f"/>
+    <link rel="canonical" href="https://www.gptgames.dev/games/memory_match.html"/>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:title" content="Neural Overload — Incremental Memory Match Game"/>
+    <meta property="og:description"
+          content="Match cards, earn Neural Points, unlock 30+ skills, and watch the board spiral into beautiful chaos. Free browser game — no install needed."/>
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_40.webp"/>
+    <meta property="og:url" content="https://www.gptgames.dev/games/memory_match.html"/>
+    <meta property="og:site_name" content="GPT Games"/>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:title" content="Neural Overload — Incremental Memory Match Game"/>
+    <meta name="twitter:description"
+          content="Match cards, earn Neural Points, unlock 30+ skills, and watch the board spiral into beautiful chaos."/>
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_40.webp"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #06060f;
+            font-family: Inter, system-ui, sans-serif;
+            color: #e8e8f8
+        }
+
+        [hidden] {
+            display: none !important
+        }
+
+        button {
+            font: inherit;
+            color: inherit;
+            cursor: pointer;
+            border: none;
+            background: none
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, .03)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, .12);
+            border-radius: 9px
+        }
+
+        /* ── Layout ── */
+        .app {
+            display: grid;
+            grid-template-rows:auto auto 1fr auto;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden
+        }
+
+        /* ── Top HUD ── */
+        .hud {
+            display: flex;
+            gap: 6px;
+            padding: 8px 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            background: rgba(8, 8, 20, .85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+            z-index: 20
+        }
+
+        .hud-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .04);
+            font-size: .72rem;
+            font-weight: 700;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, .05)
+        }
+
+        .hud-chip .v {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .82rem;
+            font-weight: 900;
+            letter-spacing: -.03em
+        }
+
+        .hud-chip.np {
+            border-color: rgba(168, 130, 255, .25);
+            background: rgba(168, 130, 255, .08)
+        }
+
+        .hud-chip.np .v {
+            color: #c4b5fd
+        }
+
+        .hud-chip.timer {
+            border-color: rgba(255, 100, 120, .2);
+            background: rgba(255, 80, 100, .06)
+        }
+
+        .hud-chip.timer .v {
+            color: #fca5a5
+        }
+
+        .hud-chip.timer.danger {
+            animation: pulseDanger .5s ease infinite alternate;
+            border-color: rgba(255, 60, 60, .5)
+        }
+
+        .hud-chip.combo {
+            border-color: rgba(250, 204, 21, .2);
+            background: rgba(250, 204, 21, .06)
+        }
+
+        .hud-chip.combo .v {
+            color: #fde047
+        }
+
+        .hud-chip.combo.fire {
+            border-color: rgba(255, 120, 50, .4);
+            box-shadow: 0 0 12px rgba(255, 80, 30, .15)
+        }
+
+        .hud-chip.combo.fire .v {
+            color: #fb923c
+        }
+
+        .hud-chip.combo.inferno {
+            border-color: rgba(255, 50, 50, .5);
+            box-shadow: 0 0 20px rgba(255, 40, 40, .2);
+            animation: pulseDanger .3s ease infinite alternate
+        }
+
+        .hud-chip.combo.inferno .v {
+            color: #f87171
+        }
+
+        .hud-spacer {
+            flex: 1;
+            min-width: 8px
+        }
+
+        .act-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            background: rgba(255, 255, 255, .04);
+            font-size: .85rem;
+            display: grid;
+            place-items: center;
+            transition: transform .15s, background .15s
+        }
+
+        .act-btn:hover {
+            background: rgba(255, 255, 255, .1);
+            transform: translateY(-1px)
+        }
+
+        /* ── Progress bar ── */
+        .prog-bar {
+            height: 3px;
+            background: rgba(255, 255, 255, .04)
+        }
+
+        .prog-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #a78bfa, #22d3ee);
+            box-shadow: 0 0 10px rgba(34, 211, 238, .3);
+            transition: width .35s cubic-bezier(.2, .9, .25, 1.1)
+        }
+
+        /* ── Board ── */
+        .board-area {
+            position: relative;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch
+        }
+
+        .board-inner {
+            display: grid;
+            gap: var(--gap);
+            padding: var(--pad);
+            width: max-content;
+            min-width: 100%;
+            min-height: 100%;
+            place-content: center;
+            align-content: center;
+            justify-content: center
+        }
+
+        /* ── Cards ── */
+        .card {
+            position: relative;
+            width: var(--cw);
+            height: var(--ch);
+            border-radius: var(--cr);
+            perspective: 600px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform .15s, opacity .3s;
+        }
+
+        .card:hover:not(.matched):not(.match-flash):not(.locked) {
+            transform: translateY(-2px) scale(1.04)
+        }
+
+        .card:active:not(.matched):not(.match-flash):not(.locked) {
+            transform: scale(.95)
+        }
+
+        .card.dealt {
+            animation: dealIn .35s cubic-bezier(.2, .9, .3, 1.1) both;
+            animation-delay: var(--deal-delay)
+        }
+
+        .card.matched {
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(.7);
+            transition: opacity .4s, transform .4s
+        }
+
+        .card.match-flash {
+            pointer-events: none;
+            transform: scale(1.06);
+            transition: transform .2s ease
+        }
+
+        .card.match-flash .card-back {
+            border-color: rgba(52, 211, 153, .7);
+            box-shadow: 0 0 18px rgba(52, 211, 153, .35), 0 0 4px rgba(52, 211, 153, .6);
+            animation: matchGlow .45s ease
+        }
+
+        .card.matched.respawning {
+            animation: respawnIn .5s ease both;
+            opacity: 1;
+            transform: none
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform .4s cubic-bezier(.2, .8, .25, 1);
+        }
+
+        .card.flipped .card-inner, .card.partial .card-inner, .card.peek .card-inner, .card.match-flash .card-inner, .card.matched .card-inner {
+            transform: rotateY(180deg)
+        }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            backface-visibility: hidden;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, .1);
+        }
+
+        .card-front {
+            background: linear-gradient(145deg, #1e2148, #12152e);
+            box-shadow: inset 0 1px rgba(255, 255, 255, .08), 0 4px 12px rgba(0, 0, 0, .25);
+        }
+
+        .card-front::after {
+            content: "✦";
+            color: rgba(155, 135, 255, .35);
+            font-size: calc(var(--cw) * .3)
+        }
+
+        .xray-hint {
+            position: absolute;
+            opacity: 0;
+            font-size: calc(var(--cw) * .4);
+            line-height: 1;
+            transition: opacity .3s;
+            pointer-events: none;
+            z-index: 1
+        }
+
+        .card.xray .xray-hint {
+            opacity: .22
+        }
+
+        .card.xray .card-front::after {
+            opacity: 0
+        }
+
+        .card.seen:not(.flipped):not(.partial):not(.matched):not(.match-flash) .xray-hint {
+            opacity: .12
+        }
+
+        .card.seen .card-front {
+            border-color: rgba(155, 135, 255, .2)
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, hsl(var(--hue), 70%, 50%), hsl(calc(var(--hue) + 30), 65%, 35%));
+            box-shadow: inset 0 1px rgba(255, 255, 255, .15), 0 4px 12px rgba(0, 0, 0, .25);
+        }
+
+        .card-back .emoji {
+            font-size: calc(var(--cw) * .45);
+            line-height: 1;
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .3))
+        }
+
+        .card.partial .card-face.card-back {
+            border-color: rgba(250, 204, 21, .5);
+            box-shadow: 0 0 12px rgba(250, 204, 21, .15), inset 0 1px rgba(255, 255, 255, .15)
+        }
+
+        .card.wrong .card-inner {
+            animation: cardShake .35s ease
+        }
+
+        .card.chain-reveal .card-inner {
+            transition: transform .25s ease;
+            transform: rotateY(180deg)
+        }
+
+        .card.bonus-reveal .card-inner {
+            transition: transform .25s ease;
+            transform: rotateY(180deg)
+        }
+
+        .card.bonus-reveal {
+            pointer-events: none;
+            opacity: .85
+        }
+
+        .card.wild .card-back {
+            background: linear-gradient(145deg, #a78bfa, #ec4899, #f59e0b, #22d3ee);
+            background-size: 300% 300%;
+            animation: wildShimmer 2s ease infinite
+        }
+
+        /* Score popup */
+        .score-pop {
+            position: absolute;
+            z-index: 30;
+            pointer-events: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .85rem;
+            font-weight: 900;
+            white-space: nowrap;
+            animation: floatUp .8s cubic-bezier(.2, .8, .2, 1) forwards;
+        }
+
+        .score-pop.green {
+            color: #34d399;
+            text-shadow: 0 0 8px rgba(52, 211, 153, .4)
+        }
+
+        .score-pop.gold {
+            color: #fde047;
+            text-shadow: 0 0 12px rgba(253, 224, 71, .4)
+        }
+
+        .score-pop.fire {
+            color: #fb923c;
+            text-shadow: 0 0 16px rgba(251, 146, 60, .5);
+            font-size: 1rem
+        }
+
+        .score-pop.epic {
+            color: #f472b6;
+            text-shadow: 0 0 20px rgba(244, 114, 182, .5);
+            font-size: 1.15rem
+        }
+
+        /* ── Bottom bar ── */
+        .bottom-bar {
+            display: flex;
+            gap: 6px;
+            padding: 8px 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: rgba(8, 8, 20, .85);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255, 255, 255, .06);
+            z-index: 20
+        }
+
+        .game-btn {
+            padding: 7px 14px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            background: rgba(255, 255, 255, .04);
+            font-size: .75rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform .15s, background .15s, border-color .15s;
+        }
+
+        .game-btn:hover {
+            background: rgba(255, 255, 255, .1);
+            border-color: rgba(155, 135, 255, .3);
+            transform: translateY(-1px)
+        }
+
+        .game-btn:active {
+            transform: scale(.95)
+        }
+
+        .game-btn .k {
+            opacity: .35;
+            font-size: .6rem
+        }
+
+        .game-btn.primary {
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            border-color: transparent;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(124, 58, 237, .25)
+        }
+
+        .game-btn.primary:hover {
+            filter: brightness(1.1)
+        }
+
+        .game-btn.danger {
+            background: linear-gradient(135deg, #dc2626, #f87171);
+            border-color: transparent;
+            color: #fff
+        }
+
+        .game-btn:disabled {
+            opacity: .3;
+            pointer-events: none
+        }
+
+        /* ── Modals ── */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            display: grid;
+            place-items: center;
+            background: rgba(3, 3, 12, .8);
+            backdrop-filter: blur(14px);
+            padding: 12px;
+            animation: fadeIn .2s ease
+        }
+
+        .modal {
+            width: min(540px, 100%);
+            max-height: calc(100vh - 24px);
+            overflow-y: auto;
+            padding: clamp(20px, 4vw, 36px);
+            border-radius: 20px;
+            background: radial-gradient(circle at 50% -20%, rgba(120, 80, 255, .12), transparent 50%), #111128;
+            border: 1px solid rgba(255, 255, 255, .07);
+            box-shadow: 0 30px 100px rgba(0, 0, 0, .6);
+            animation: slideUp .3s cubic-bezier(.2, .9, .3, 1.1);
+            text-align: center;
+            position: relative
+        }
+
+        .modal.wide {
+            width: min(800px, 100%)
+        }
+
+        .modal h2 {
+            font-size: clamp(1.4rem, 5vw, 2rem);
+            font-weight: 900;
+            letter-spacing: -.04em;
+            margin-bottom: 8px
+        }
+
+        .modal p {
+            color: rgba(180, 180, 210, .75);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            font-size: .85rem
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px
+        }
+
+        .close-x {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .06);
+            background: rgba(255, 255, 255, .03);
+            color: #888;
+            font-size: .9rem;
+            display: grid;
+            place-items: center
+        }
+
+        /* ── Skill Tree ── */
+        .tree-viewport {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, rgba(20, 18, 50, .95), rgba(6, 6, 15, .98));
+            cursor: grab
+        }
+
+        .tree-viewport:active {
+            cursor: grabbing
+        }
+
+        .tree-world {
+            position: absolute;
+            width: 1400px;
+            height: 1050px;
+            transform-origin: 0 0
+        }
+
+        .tree-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none
+        }
+
+        .tree-edge {
+            stroke-width: 2;
+            fill: none;
+            stroke-linecap: round;
+            opacity: .15;
+            transition: opacity .5s, stroke .5s
+        }
+
+        .tree-edge.active {
+            opacity: .5;
+            filter: drop-shadow(0 0 4px var(--ec))
+        }
+
+        .tree-edge.bright {
+            opacity: .8;
+            filter: drop-shadow(0 0 8px var(--ec))
+        }
+
+        .tree-edge.reveal {
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: edgeDraw .8s ease forwards;
+            opacity: .6
+        }
+
+        .tree-node {
+            position: absolute;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 1.5rem;
+            border: 2.5px solid rgba(255, 255, 255, .1);
+            background: rgba(12, 12, 30, .8);
+            transform: translate(-50%, -50%);
+            transition: transform .3s, opacity .4s, border-color .4s, box-shadow .4s, background .4s;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .tree-node .nd-lvl {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: .55rem;
+            font-weight: 900;
+            display: grid;
+            place-items: center;
+            background: var(--nc, #7c3aed);
+            color: #fff;
+            border: 2px solid rgba(6, 6, 15, .9);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tree-node .nd-name {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .55rem;
+            font-weight: 700;
+            white-space: nowrap;
+            color: rgba(180, 180, 210, .5);
+            pointer-events: none;
+            text-align: center;
+            transition: color .3s;
+        }
+
+        .tree-node.hidden {
+            display: none
+        }
+
+        .tree-node.locked {
+            opacity: .25;
+            filter: grayscale(.7);
+            cursor: default
+        }
+
+        .tree-node.locked .nd-name {
+            display: none
+        }
+
+        .tree-node.available {
+            border-color: color-mix(in srgb, var(--nc) 40%, transparent);
+            cursor: pointer
+        }
+
+        .tree-node.available .nd-name {
+            color: color-mix(in srgb, var(--nc) 60%, rgba(180, 180, 210, .5))
+        }
+
+        .tree-node.affordable {
+            border-color: var(--nc);
+            animation: nodeGlow 2s ease-in-out infinite alternate;
+            cursor: pointer
+        }
+
+        .tree-node.affordable .nd-name {
+            color: var(--nc)
+        }
+
+        .tree-node.allocated {
+            border-color: var(--nc);
+            background: color-mix(in srgb, var(--nc) 18%, rgba(12, 12, 30, .9));
+            box-shadow: 0 0 16px color-mix(in srgb, var(--nc) 30%, transparent)
+        }
+
+        .tree-node.allocated .nd-name {
+            color: rgba(220, 220, 240, .7)
+        }
+
+        .tree-node.maxed {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, .1);
+            box-shadow: 0 0 22px rgba(251, 191, 36, .2), 0 0 6px rgba(251, 191, 36, .4)
+        }
+
+        .tree-node.maxed .nd-name {
+            color: #fbbf24
+        }
+
+        .tree-node.reveal-anim {
+            animation: nodeReveal .6s cubic-bezier(.2, .9, .3, 1.3) both
+        }
+
+        .tree-node:hover:not(.locked):not(.hidden) {
+            transform: translate(-50%, -50%) scale(1.15);
+            z-index: 5
+        }
+
+        .tree-node.core {
+            width: 72px;
+            height: 72px;
+            font-size: 2rem;
+            border-width: 3px;
+            border-color: rgba(168, 130, 255, .4);
+            background: radial-gradient(circle, rgba(168, 130, 255, .15), rgba(12, 12, 30, .9));
+            box-shadow: 0 0 30px rgba(168, 130, 255, .15)
+        }
+
+        .tree-node.core .nd-name {
+            font-size: .7rem;
+            color: rgba(168, 130, 255, .6)
+        }
+
+        /* Node popup */
+        .nd-popup {
+            position: absolute;
+            z-index: 10;
+            width: 220px;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, .08);
+            background: rgba(14, 14, 35, .95);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, .5);
+            animation: slideUp .2s ease;
+            font-size: .75rem;
+            text-align: left;
+            pointer-events: auto;
+        }
+
+        .nd-popup .pp-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px
+        }
+
+        .nd-popup .pp-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            background: color-mix(in srgb, var(--nc) 15%, rgba(255, 255, 255, .03));
+            border: 1px solid color-mix(in srgb, var(--nc) 20%, transparent)
+        }
+
+        .nd-popup .pp-name {
+            font-weight: 800;
+            font-size: .82rem
+        }
+
+        .nd-popup .pp-lvl {
+            font-size: .62rem;
+            color: rgba(180, 180, 210, .5);
+            font-weight: 700
+        }
+
+        .nd-popup .pp-desc {
+            color: rgba(200, 200, 220, .6);
+            line-height: 1.5;
+            margin-bottom: 8px
+        }
+
+        .nd-popup .pp-next {
+            color: var(--nc);
+            font-weight: 700;
+            font-size: .68rem;
+            margin-bottom: 8px
+        }
+
+        .nd-popup .pp-req {
+            color: #f87171;
+            font-size: .62rem;
+            margin-bottom: 6px
+        }
+
+        .nd-popup .upgrade-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            font-size: .82rem;
+            font-weight: 800;
+            text-align: center;
+            cursor: pointer;
+            background: linear-gradient(135deg, #7c3aed, #a78bfa);
+            color: #fff;
+            box-shadow: 0 4px 18px rgba(124, 58, 237, .3);
+            transition: transform .15s, filter .15s;
+        }
+
+        .nd-popup .upgrade-btn:hover:not(:disabled) {
+            transform: scale(1.03);
+            filter: brightness(1.1)
+        }
+
+        .nd-popup .upgrade-btn:active:not(:disabled) {
+            transform: scale(.97)
+        }
+
+        .nd-popup .upgrade-btn:disabled {
+            background: rgba(255, 255, 255, .06);
+            color: rgba(180, 180, 210, .4);
+            box-shadow: none;
+            cursor: default
+        }
+
+        .nd-popup .upgrade-btn.maxed {
+            background: linear-gradient(135deg, #059669, #34d399);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(5, 150, 105, .25)
+        }
+
+        /* Tree header */
+        .tree-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            gap: 8px;
+            background: linear-gradient(to bottom, rgba(6, 6, 15, .9), transparent)
+        }
+
+        .tree-hud .np-pill {
+            padding: 6px 14px;
+            border-radius: 99px;
+            background: rgba(168, 130, 255, .1);
+            border: 1px solid rgba(168, 130, 255, .2);
+            color: #c4b5fd;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: .85rem;
+            font-weight: 900
+        }
+
+        .tree-zoom {
+            display: flex;
+            gap: 4px
+        }
+
+        .tree-zoom button {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, .1);
+            background: rgba(255, 255, 255, .05);
+            color: #ccc;
+            font-size: 1rem;
+            display: grid;
+            place-items: center;
+            cursor: pointer
+        }
+
+        .tree-zoom button:hover {
+            background: rgba(255, 255, 255, .1)
+        }
+
+        /* branch labels */
+        .branch-label {
+            position: absolute;
+            font-size: .65rem;
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--nc);
+            opacity: .4;
+            pointer-events: none;
+            transform: translate(-50%, -50%)
+        }
+
+        @keyframes nodeGlow {
+            from {
+                box-shadow: 0 0 8px color-mix(in srgb, var(--nc) 20%, transparent)
+            }
+            to {
+                box-shadow: 0 0 20px color-mix(in srgb, var(--nc) 40%, transparent)
+            }
+        }
+
+        @keyframes nodeReveal {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0)
+            }
+            60% {
+                transform: translate(-50%, -50%) scale(1.2)
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1)
+            }
+        }
+
+        @keyframes edgeDraw {
+            to {
+                stroke-dashoffset: 0
+            }
+        }
+
+        /* ── Round End ── */
+        .reward-grid {
+            display: grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap: 8px;
+            margin: 14px 0
+        }
+
+        .reward-cell {
+            padding: 10px 6px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, .05);
+            background: rgba(255, 255, 255, .02);
+            text-align: center
+        }
+
+        .reward-cell strong {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 2px
+        }
+
+        .reward-cell span {
+            font-size: .6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: rgba(180, 180, 210, .5)
+        }
+
+        .np-earned {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 99px;
+            background: rgba(168, 130, 255, .1);
+            border: 1px solid rgba(168, 130, 255, .25);
+            color: #c4b5fd;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin: 10px 0
+        }
+
+        /* ── Countdown ── */
+        .countdown-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: grid;
+            place-items: center;
+            background: rgba(3, 3, 12, .5);
+            backdrop-filter: blur(6px)
+        }
+
+        .countdown-num {
+            font-size: clamp(5rem, 18vw, 10rem);
+            font-weight: 950;
+            letter-spacing: -.08em;
+            color: #fff;
+            text-shadow: 0 0 50px rgba(168, 130, 255, .5);
+            animation: countPop .5s ease both
+        }
+
+        /* ── Toasts ── */
+        .toast-area {
+            position: fixed;
+            bottom: 56px;
+            right: 10px;
+            z-index: 70;
+            display: grid;
+            gap: 6px;
+            width: min(260px, calc(100% - 20px));
+            pointer-events: none
+        }
+
+        .toast {
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: rgba(17, 17, 40, .92);
+            border: 1px solid rgba(255, 255, 255, .07);
+            backdrop-filter: blur(12px);
+            font-size: .75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            animation: toastIn .25s ease
+        }
+
+        .toast.out {
+            animation: toastOut .25s ease forwards
+        }
+
+        /* ── Canvas ── */
+        #fx {
+            position: fixed;
+            inset: 0;
+            z-index: 15;
+            pointer-events: none
+        }
+
+        /* ── Keyframes ── */
+        @keyframes fadeIn {
+            from {
+                opacity: 0
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px) scale(.96)
+            }
+        }
+
+        @keyframes dealIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(.5) rotateZ(8deg)
+            }
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        @keyframes respawnIn {
+            from {
+                opacity: 0;
+                transform: scale(.3) rotateZ(-10deg)
+            }
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        @keyframes cardShake {
+            20%, 60% {
+                transform: rotateY(180deg) translateX(-4px)
+            }
+            40%, 80% {
+                transform: rotateY(180deg) translateX(4px)
+            }
+        }
+
+        @keyframes matchGlow {
+            0% {
+                box-shadow: 0 0 0 rgba(52, 211, 153, 0)
+            }
+            50% {
+                box-shadow: 0 0 28px rgba(52, 211, 153, .5), 0 0 6px rgba(52, 211, 153, .8)
+            }
+            100% {
+                box-shadow: 0 0 18px rgba(52, 211, 153, .35)
+            }
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(.7)
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-14px) scale(1.1)
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-40px) scale(.85)
+            }
+        }
+
+        @keyframes pulseDanger {
+            to {
+                background: rgba(255, 50, 50, .12);
+                border-color: rgba(255, 50, 50, .4)
+            }
+        }
+
+        @keyframes countPop {
+            from {
+                opacity: 0;
+                transform: scale(1.5)
+            }
+            35% {
+                opacity: 1
+            }
+            to {
+                opacity: .9;
+                transform: scale(1)
+            }
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(15px)
+            }
+        }
+
+        @keyframes toastOut {
+            to {
+                opacity: 0;
+                transform: translateX(15px)
+            }
+        }
+
+        @keyframes wildShimmer {
+            0%, 100% {
+                background-position: 0 50%
+            }
+            50% {
+                background-position: 100% 50%
+            }
+        }
+
+        @media (max-width: 500px) {
+            .hud, .bottom-bar {
+                padding: 6px 8px;
+                gap: 4px
+            }
+
+            .hud-chip {
+                padding: 4px 7px;
+                font-size: .63rem;
+                gap: 3px
+            }
+
+            .hud-chip .v {
+                font-size: .72rem
+            }
+
+            .reward-grid {
+                grid-template-columns:1fr
+            }
+
+            .reward-cell {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 8px 12px;
+                text-align: left
+            }
+
+            .reward-cell strong, .reward-cell span {
+                margin: 0
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="hud" id="hud">
+        <div class="hud-chip">🧠 <span class="v" id="hRound">1</span></div>
+        <div class="hud-chip np">⬡ <span class="v" id="hNP">0</span></div>
+        <div class="hud-chip timer" id="hTimer">◷ <span class="v" id="hTime">0:07</span></div>
+        <div class="hud-chip">◆ <span class="v" id="hScore">0</span></div>
+        <div class="hud-chip combo" id="hCombo">⚡ <span class="v" id="hComboV">0</span></div>
+        <div class="hud-chip">🎯 <span class="v" id="hPairs">0/4</span></div>
+        <div class="hud-spacer"></div>
+        <button class="act-btn" id="soundBtn" title="Sound">🔊</button>
+    </div>
+    <div class="prog-bar">
+        <div class="prog-fill" id="progFill"></div>
+    </div>
+    <div class="board-area" id="boardArea">
+        <div class="board-inner" id="board"></div>
+    </div>
+    <div class="bottom-bar">
+        <button class="game-btn primary" id="nextRoundBtn" hidden style="padding:8px 20px">▶ Start Round <span
+                id="nextRoundN">1</span></button>
+        <button class="game-btn" id="skillBtn">🌳 Skills <span class="k">S</span></button>
+        <button class="game-btn" id="hintBtn" disabled>👁️ Peek <span id="hintN">0</span> <span class="k">1</span>
+        </button>
+        <button class="game-btn" id="bombBtn" disabled>💣 Boom <span id="bombN">0</span> <span class="k">2</span>
+        </button>
+        <button class="game-btn" id="pauseBtn">⏸ <span class="k">P</span></button>
+    </div>
+</div>
+<canvas id="fx"></canvas>
+<div class="toast-area" id="toastArea"></div>
+
+<!-- Modals -->
+<div class="modal-bg" id="welcomeModal">
+    <div class="modal">
+        <div style="font-size:3rem;margin-bottom:8px">🧠</div>
+        <h2>Neural Overload</h2>
+        <p>An incremental memory game that starts simple and spirals into beautiful chaos. Match cards, earn Neural
+            Points, unlock skills, watch the board grow. How far can you push your brain?</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0">
+            <div style="padding:10px 6px;border-radius:10px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);font-size:.75rem;font-weight:700">
+                <span style="display:block;font-size:1.1rem;margin-bottom:3px">⚡</span>30+ Skills
+            </div>
+            <div style="padding:10px 6px;border-radius:10px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);font-size:.75rem;font-weight:700">
+                <span style="display:block;font-size:1.1rem;margin-bottom:3px">💣</span>Explosions
+            </div>
+            <div style="padding:10px 6px;border-radius:10px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);font-size:.75rem;font-weight:700">
+                <span style="display:block;font-size:1.1rem;margin-bottom:3px">♾️</span>Infinite
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="game-btn primary" id="startBtn" style="padding:12px 28px;font-size:.9rem">Start Round 1 →
+            </button>
+        </div>
+    </div>
+</div>
+<div class="modal-bg" id="skillModal" hidden style="padding:0">
+    <div class="modal wide"
+         style="width:100%;height:100%;max-height:100vh;padding:0;border-radius:0;overflow:hidden;position:relative"></div>
+</div>
+<div class="modal-bg" id="roundEndModal" hidden></div>
+<div class="modal-bg" id="pauseModal" hidden></div>
+<div class="countdown-overlay" id="cdOverlay" hidden>
+    <div class="countdown-num" id="cdNum">3</div>
+</div>
+
+<script>
+    (() => {
+        "use strict";
+        /* ════════════════════ SYMBOLS ════════════════════ */
+        const SYM = [
+            {s: "🦊", n: "fox"}, {s: "🐙", n: "octopus"}, {s: "🦄", n: "unicorn"}, {s: "🐸", n: "frog"}, {
+                s: "🦋",
+                n: "butterfly"
+            },
+            {s: "🐳", n: "whale"}, {s: "🦖", n: "dinosaur"}, {s: "🐝", n: "bee"}, {s: "🌙", n: "moon"}, {s: "⭐", n: "star"},
+            {s: "🌈", n: "rainbow"}, {s: "🔥", n: "fire"}, {s: "🍄", n: "mushroom"}, {s: "🌵", n: "cactus"}, {
+                s: "🍉",
+                n: "watermelon"
+            },
+            {s: "🍩", n: "doughnut"}, {s: "🚀", n: "rocket"}, {s: "🛸", n: "ufo"}, {s: "🎸", n: "guitar"}, {
+                s: "🎲",
+                n: "dice"
+            },
+            {s: "💎", n: "diamond"}, {s: "🔮", n: "orb"}, {s: "🎈", n: "balloon"}, {s: "🧩", n: "puzzle"}, {
+                s: "👾",
+                n: "alien"
+            },
+            {s: "🤖", n: "robot"}, {s: "🍒", n: "cherries"}, {s: "⚡", n: "bolt"}, {s: "🪐", n: "planet"}, {
+                s: "🎯",
+                n: "target"
+            },
+            {s: "🐲", n: "dragon"}, {s: "🦅", n: "eagle"}, {s: "🐧", n: "penguin"}, {s: "🦉", n: "owl"}, {
+                s: "🍀",
+                n: "clover"
+            },
+            {s: "🌻", n: "sunflower"}, {s: "🎭", n: "masks"}, {s: "🗝️", n: "key"}, {s: "🧲", n: "magnet"}, {
+                s: "🎪",
+                n: "circus"
+            },
+            {s: "🏔️", n: "mountain"}, {s: "🌊", n: "wave"}, {s: "🧊", n: "ice"}, {s: "💫", n: "dizzy"}, {
+                s: "🔔",
+                n: "bell"
+            },
+            {s: "🎵", n: "music"}, {s: "🧬", n: "dna"}, {s: "⚗️", n: "alchemy"}, {s: "🔭", n: "telescope"}, {
+                s: "🪄",
+                n: "wand"
+            }
+        ];
+
+        /* ════════════════════ SKILL DEFINITIONS ════════════════════ */
+        const BRANCHES = {
+            perception: {name: "Perception", icon: "👁️", color: "#22d3ee", desc: "See beyond the cards"},
+            speed: {name: "Speed", icon: "⚡", color: "#fbbf24", desc: "Act faster"},
+            destruction: {name: "Destruction", icon: "💣", color: "#f97316", desc: "Blow stuff up"},
+            scaling: {name: "Scaling", icon: "📈", color: "#34d399", desc: "More everything"},
+            time: {name: "Time", icon: "⏰", color: "#a78bfa", desc: "Bend the clock"},
+            chaos: {name: "Chaos", icon: "🎰", color: "#f472b6", desc: "Embrace the madness"}
+        };
+
+        const SK = {
+// ── PERCEPTION ──
+            xray: {
+                b: "perception", name: "X-Ray Vision", icon: "👁️", max: 5, base: 12, mult: 2.4,
+                desc: l => `${[1, 2, 4, 7, 12][l - 1]} cards are slightly transparent`,
+                fx: l => ({xray: [1, 2, 4, 7, 12][l - 1]})
+            },
+            dejavu: {
+                b: "perception", name: "Déjà Vu", icon: "📸", max: 3, base: 35, mult: 2.8, req: {xray: 2},
+                desc: l => `Previously seen cards glow ${[15, 30, 50][l - 1]}%`,
+                fx: l => ({dejavuGlow: [.15, .3, .5][l - 1]})
+            },
+            eagle: {
+                b: "perception", name: "Match Radar", icon: "📡", max: 3, base: 80, mult: 2.5, req: {dejavu: 1},
+                desc: l => `Flipping a card highlights its match for ${[0.8, 1.5, 3][l - 1]}s`,
+                fx: l => ({matchRadar: [0.8, 1.5, 3][l - 1]})
+            },
+            sixth: {
+                b: "perception", name: "Sixth Sense", icon: "🔮", max: 1, base: 200, mult: 1, req: {xray: 3},
+                desc: () => "A random pair pulses every 6 seconds",
+                fx: () => ({sixthSense: true})
+            },
+            omni: {
+                b: "perception", name: "Omniscience", icon: "🌐", max: 1, base: 800, mult: 1, req: {eagle: 2, sixth: 1},
+                desc: () => "ALL cards 20% transparent at all times",
+                fx: () => ({omni: true})
+            },
+
+// ── SPEED ──
+            quickflip: {
+                b: "speed", name: "Quick Flip", icon: "💨", max: 5, base: 10, mult: 2.2,
+                desc: l => `${l * 18}% faster flip cooldown`,
+                fx: l => ({cooldownMult: 1 - l * .18})
+            },
+            turbo: {
+                b: "speed", name: "Turbo Match", icon: "💥", max: 3, base: 40, mult: 2.5, req: {quickflip: 2},
+                desc: l => `Matches clear ${[40, 70, 100][l - 1]}% faster`,
+                fx: l => ({matchSpeed: [.6, .3, 0][l - 1]})
+            },
+            chain: {
+                b: "speed", name: "Chain Lightning", icon: "⚡", max: 5, base: 50, mult: 2.6, req: {quickflip: 3},
+                desc: l => `Auto-flip ${l} adjacent card${l > 1 ? "s" : ""} when you flip`,
+                fx: l => ({chainCount: l})
+            },
+            bullet: {
+                b: "speed", name: "Bullet Time", icon: "🕐", max: 3, base: 120, mult: 2.5, req: {turbo: 2},
+                desc: l => `Timer slows ${[30, 50, 75][l - 1]}% for ${[1, 2, 3][l - 1]}s after match`,
+                fx: l => ({bulletSlow: [.3, .5, .75][l - 1], bulletDur: [1, 2, 3][l - 1]})
+            },
+            hyper: {
+                b: "speed", name: "Hyperspeed", icon: "🌀", max: 1, base: 1200, mult: 1, req: {chain: 3, bullet: 2},
+                desc: () => "Zero cooldown between flips",
+                fx: () => ({zeroCooldown: true})
+            },
+
+// ── DESTRUCTION ──
+            shock: {
+                b: "destruction", name: "Shockwave", icon: "💫", max: 3, base: 30, mult: 2.5,
+                desc: l => `Matches reveal ${[1, 3, 5][l - 1]} nearby cards briefly`,
+                fx: l => ({shockRadius: [1, 3, 5][l - 1]})
+            },
+            explode: {
+                b: "destruction", name: "Explosion", icon: "💣", max: 3, base: 80, mult: 3, req: {shock: 2},
+                desc: l => `Active: reveal ${[9, 25, 49][l - 1]} cards, auto-match pairs found`,
+                fx: l => ({bombSize: [3, 5, 7][l - 1]})
+            },
+            meteor: {
+                b: "destruction", name: "Meteor Strike", icon: "☄️", max: 3, base: 200, mult: 2.5, req: {explode: 2},
+                desc: l => `Active: reveal entire ${["row", "column + row", "cross pattern"][l - 1]}`,
+                fx: l => ({meteorLevel: l})
+            },
+            nuke: {
+                b: "destruction", name: "Nuclear Option", icon: "☢️", max: 1, base: 900, mult: 1, req: {meteor: 2},
+                desc: () => "Active: reveal ALL cards for 1.5 seconds",
+                fx: () => ({nuke: true})
+            },
+            bigbang: {
+                b: "destruction", name: "Big Bang", icon: "🌌", max: 1, base: 2500, mult: 1, req: {nuke: 1},
+                desc: () => "Every match triggers a shockwave automatically",
+                fx: () => ({autoShock: true})
+            },
+
+// ── SCALING ──
+            more: {
+                b: "scaling", name: "More Cards", icon: "🃏", max: 99, base: 8, mult: 1.22,
+                desc: l => `+${l * 2} cards on the board`,
+                fx: l => ({extraCards: l * 2})
+            },
+            lucky: {
+                b: "scaling", name: "Lucky Streak", icon: "🍀", max: 5, base: 20, mult: 2.3,
+                desc: l => `+${[30, 60, 100, 150, 250][l - 1]}% bonus on blind matches`,
+                fx: l => ({luckyBonus: [.3, .6, 1, 1.5, 2.5][l - 1]})
+            },
+            triple: {
+                b: "scaling", name: "Triple Threat", icon: "🔱", max: 3, base: 100, mult: 3, req: {more: 5},
+                desc: l => `${[12, 25, 40][l - 1]}% of groups become triplets`,
+                fx: l => ({tripletChance: [.12, .25, .4][l - 1]})
+            },
+            quad: {
+                b: "scaling", name: "Quad Squad", icon: "🎯", max: 3, base: 250, mult: 3, req: {triple: 2},
+                desc: l => `${[8, 16, 25][l - 1]}% of groups become quads`,
+                fx: l => ({quadChance: [.08, .16, .25][l - 1]})
+            },
+            respawn: {
+                b: "scaling", name: "Card Respawn", icon: "♻️", max: 3, base: 150, mult: 2.8, req: {more: 8},
+                desc: l => `${[15, 30, 50][l - 1]}% of matched cards respawn as new pairs`,
+                fx: l => ({respawnChance: [.15, .3, .5][l - 1]})
+            },
+            pmult: {
+                b: "scaling", name: "Point Multiplier", icon: "✖️", max: 5, base: 60, mult: 2.8, req: {lucky: 2},
+                desc: l => `${[1.5, 2, 3, 5, 10][l - 1]}× score multiplier`,
+                fx: l => ({scoreMult: [1.5, 2, 3, 5, 10][l - 1]})
+            },
+            infinity: {
+                b: "scaling",
+                name: "Infinity Engine",
+                icon: "♾️",
+                max: 1,
+                base: 3000,
+                mult: 1,
+                req: {respawn: 2, quad: 1},
+                desc: () => "+1 new pair added for each match within a round",
+                fx: () => ({infinityEngine: true})
+            },
+
+// ── TIME ──
+            moretime: {
+                b: "time", name: "Extended Time", icon: "⏱️", max: 99, base: 8, mult: 1.18,
+                desc: l => `+${l * 2}s round time`,
+                fx: l => ({extraTime: l * 2})
+            },
+            warp: {
+                b: "time", name: "Time Warp", icon: "⏩", max: 5, base: 35, mult: 2.4, req: {moretime: 3},
+                desc: l => `+${[.5, 1, 1.5, 2, 3][l - 1]}s per match`,
+                fx: l => ({matchTimeBonus: [.5, 1, 1.5, 2, 3][l - 1]})
+            },
+            freeze: {
+                b: "time", name: "Freeze Frame", icon: "❄️", max: 3, base: 100, mult: 2.8, req: {warp: 2},
+                desc: l => `Timer ${[30, 60, 100][l - 1]}% paused during flips`,
+                fx: l => ({freezeRate: [.3, .6, 1][l - 1]})
+            },
+            overtime: {
+                b: "time", name: "Overtime", icon: "🔔", max: 3, base: 120, mult: 2.5, req: {moretime: 5},
+                desc: l => `+${[3, 6, 10][l - 1]}s when timer hits zero (once/round)`,
+                fx: l => ({overtimeSec: [3, 6, 10][l - 1]})
+            },
+            eternity: {
+                b: "time", name: "Eternity", icon: "∞", max: 1, base: 2000, mult: 1, req: {freeze: 2, overtime: 2},
+                desc: () => "Timer fully pauses while any card is face-up",
+                fx: () => ({eternity: true})
+            },
+
+// ── CHAOS ──
+            shufflesk: {
+                b: "chaos", name: "Shuffle", icon: "🔀", max: 3, base: 60, mult: 2.5,
+                desc: l => `Cards shuffle every ${[12, 8, 4][l - 1]}s — chaos builds memory`,
+                fx: l => ({shuffleInterval: [12, 8, 4][l - 1]})
+            },
+            wild: {
+                b: "chaos", name: "Wild Card", icon: "🃏", max: 3, base: 100, mult: 3, req: {shufflesk: 1},
+                desc: l => `${l} wild card${l > 1 ? "s" : ""} that match anything`,
+                fx: l => ({wildCards: l})
+            },
+            quantum: {
+                b: "chaos", name: "Quantum Flip", icon: "⚛️", max: 3, base: 150, mult: 2.8, req: {wild: 1},
+                desc: l => `Flipping a card also flips ${l} random card${l > 1 ? "s" : ""}`,
+                fx: l => ({quantumFlips: l})
+            },
+            magnet: {
+                b: "chaos", name: "Combo Shield", icon: "🛡️", max: 1, base: 400, mult: 1, req: {quantum: 2},
+                desc: () => "Mismatches don't reset your combo streak",
+                fx: () => ({comboShield: true})
+            },
+            rift: {
+                b: "chaos", name: "Second Chance", icon: "🔄", max: 3, base: 500, mult: 2.5, req: {magnet: 1},
+                desc: l => `${[20, 40, 65][l - 1]}% chance mismatched cards stay face-up`,
+                fx: l => ({secondChance: [.2, .4, .65][l - 1]})
+            },
+            singularity: {
+                b: "chaos",
+                name: "Singularity",
+                icon: "🕳️",
+                max: 1,
+                base: 10000,
+                mult: 1,
+                req: {rift: 2, bigbang: 1, infinity: 1, eternity: 1, hyper: 1, omni: 1},
+                desc: () => "Everything. Everywhere. All at once. Good luck.",
+                fx: () => ({singularity: true})
+            }
+        };
+
+        /* ════════════════════ STATE ════════════════════ */
+        const $ = s => document.querySelector(s);
+        const $$ = s => [...document.querySelectorAll(s)];
+        const noMo = window.matchMedia("(prefers-reduced-motion:reduce)").matches;
+        const SAVE_KEY = "neural-overload-v1";
+
+        const defaultState = {round: 1, np: 0, totalNP: 0, skills: {}, sound: true, highestRound: 1};
+        let S = loadState(); // persistent state
+        let R = null; // round state (ephemeral)
+        let timerInt = null, shuffleInt = null, sixthInt = null, bulletTimeout = null;
+        let bulletActive = false, overtimeUsed = false;
+
+        function loadState() {
+            try {
+                const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+                return d ? {...JSON.parse(JSON.stringify(defaultState)), ...d} : JSON.parse(JSON.stringify(defaultState))
+            } catch {
+                return JSON.parse(JSON.stringify(defaultState))
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(S))
+            } catch {
+            }
+        }
+
+        function skLv(id) {
+            return S.skills[id] || 0
+        }
+
+        function skCost(id, lv) {
+            const s = SK[id];
+            return Math.floor(s.base * Math.pow(s.mult, lv))
+        }
+
+        function getFx() {
+            const fx = {
+                xray: 0,
+                dejavuGlow: 0,
+                matchRadar: 0,
+                sixthSense: false,
+                omni: false,
+                cooldownMult: 1,
+                matchSpeed: 1,
+                chainCount: 0,
+                bulletSlow: 0,
+                bulletDur: 0,
+                zeroCooldown: false,
+                shockRadius: 0,
+                bombSize: 0,
+                meteorLevel: 0,
+                nuke: false,
+                autoShock: false,
+                extraCards: 0,
+                luckyBonus: 0,
+                tripletChance: 0,
+                quadChance: 0,
+                respawnChance: 0,
+                scoreMult: 1,
+                infinityEngine: false,
+                extraTime: 0,
+                matchTimeBonus: 0,
+                freezeRate: 0,
+                overtimeSec: 0,
+                eternity: false,
+                shuffleInterval: 0,
+                wildCards: 0,
+                quantumFlips: 0,
+                comboShield: false,
+                secondChance: 0,
+                singularity: false
+            };
+            for (const [id, lv] of Object.entries(S.skills)) {
+                if (lv > 0 && SK[id]) {
+                    const e = SK[id].fx(lv);
+                    Object.assign(fx, e)
+                }
+            }
+            return fx;
+        }
+
+        function canUnlock(id) {
+            const r = SK[id].req;
+            if (!r) return true;
+            return Object.entries(r).every(([k, v]) => skLv(k) >= v)
+        }
+
+        function shuffle(a) {
+            const r = [...a];
+            for (let i = r.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [r[i], r[j]] = [r[j], r[i]]
+            }
+            return r
+        }
+
+        function fmtTime(s) {
+            const t = Math.max(0, Math.ceil(s));
+            return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`
+        }
+
+        function wait(ms) {
+            return new Promise(r => setTimeout(r, ms))
+        }
+
+        /* ════════════════════ AUDIO ════════════════════ */
+        let aC = null;
+
+        function tone(f, d, o = {}) {
+            if (!S.sound) return;
+            if (!aC) {
+                const A = window.AudioContext || window.webkitAudioContext;
+                if (!A) return;
+                aC = new A
+            }
+            if (aC.state === "suspended") aC.resume();
+            const {delay: dl = 0, volume: v = .04, type: tp = "sine", ef = f} = o;
+            const t = aC.currentTime + dl;
+            const os = aC.createOscillator(), g = aC.createGain();
+            os.type = tp;
+            os.frequency.setValueAtTime(f, t);
+            os.frequency.exponentialRampToValueAtTime(Math.max(20, ef), t + d);
+            g.gain.setValueAtTime(.0001, t);
+            g.gain.exponentialRampToValueAtTime(v, t + .015);
+            g.gain.exponentialRampToValueAtTime(.0001, t + d);
+            os.connect(g);
+            g.connect(aC.destination);
+            os.start(t);
+            os.stop(t + d + .02)
+        }
+
+        function snd(t) {
+            if (!S.sound) return;
+            const T = {
+                flip: () => tone(420, .06, {v: .025, ef: 580, tp: "triangle"}),
+                match: () => {
+                    tone(520, .12, {volume: .035, ef: 660});
+                    tone(780, .14, {delay: .06, volume: .03, ef: 920})
+                },
+                miss: () => tone(200, .16, {volume: .025, ef: 130, tp: "triangle"}),
+                combo: () => {
+                    tone(660, .09, {volume: .03, ef: 880});
+                    tone(880, .1, {delay: .04, volume: .025, ef: 1100});
+                    tone(1100, .08, {delay: .08, volume: .02, ef: 1320})
+                },
+                boom: () => {
+                    tone(120, .3, {volume: .04, ef: 40, tp: "sawtooth"});
+                    tone(80, .4, {delay: .1, volume: .03, ef: 30})
+                },
+                win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .22, {
+                    delay: i * .08,
+                    volume: .03,
+                    ef: f * 1.04
+                })),
+                lose: () => [330, 277, 220].forEach((f, i) => tone(f, .24, {
+                    delay: i * .12,
+                    volume: .028,
+                    ef: f * .8,
+                    tp: "triangle"
+                })),
+                count: () => tone(440, .07, {volume: .025, ef: 400}),
+                go: () => tone(560, .1, {volume: .04, ef: 840}),
+                upgrade: () => {
+                    tone(523, .12, {volume: .03, ef: 700});
+                    tone(700, .15, {delay: .06, volume: .025, ef: 1000})
+                },
+                triplet: () => {
+                    tone(523, .1, {volume: .03, ef: 660});
+                    tone(660, .1, {delay: .05, volume: .028, ef: 840});
+                    tone(840, .12, {delay: .1, volume: .025, ef: 1060})
+                },
+                quad: () => {
+                    tone(440, .08, {volume: .03, ef: 600});
+                    tone(600, .08, {delay: .04, volume: .028, ef: 780});
+                    tone(780, .08, {delay: .08, volume: .025, ef: 1000});
+                    tone(1000, .1, {delay: .12, volume: .02, ef: 1300})
+                }
+            };
+            if (T[t]) T[t]()
+        }
+
+        /* ════════════════════ PARTICLES (Canvas) ════════════════════ */
+        const fxCanvas = $('#fx'), fxCtx = fxCanvas.getContext('2d');
+        let particles = [];
+
+        function resizeFx() {
+            const pr = Math.min(devicePixelRatio || 1, 2);
+            fxCanvas.width = innerWidth * pr;
+            fxCanvas.height = innerHeight * pr;
+            fxCanvas.style.width = innerWidth + 'px';
+            fxCanvas.style.height = innerHeight + 'px';
+            fxCtx.setTransform(pr, 0, 0, pr, 0, 0)
+        }
+
+        resizeFx();
+        addEventListener('resize', resizeFx);
+
+        function spawnP(x, y, color, n = 10) {
+            if (noMo) return;
+            for (let i = 0; i < n; i++) {
+                const a = Math.PI * 2 * i / n + (Math.random() - .5) * .5, sp = 1.5 + Math.random() * 3;
+                particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(a) * sp,
+                    vy: Math.sin(a) * sp - 1,
+                    life: 35 + Math.random() * 20,
+                    max: 35 + Math.random() * 20,
+                    sz: 2 + Math.random() * 3,
+                    color,
+                    grav: .06
+                })
+            }
+        }
+
+        function tickParticles() {
+            fxCtx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += p.grav;
+                p.vx *= .98;
+                p.life--;
+                const a = Math.min(1, p.life / (p.max * .3)), s = .3 + .7 * (p.life / p.max);
+                fxCtx.save();
+                fxCtx.globalAlpha = a;
+                fxCtx.fillStyle = p.color;
+                fxCtx.shadowBlur = 6;
+                fxCtx.shadowColor = p.color;
+                fxCtx.beginPath();
+                fxCtx.arc(p.x, p.y, p.sz * s, 0, Math.PI * 2);
+                fxCtx.fill();
+                fxCtx.restore();
+                if (p.life <= 0) particles.splice(i, 1)
+            }
+            if (particles.length) requestAnimationFrame(tickParticles); else fxCtx.clearRect(0, 0, innerWidth, innerHeight)
+        }
+
+        function burstAt(el, color, n = 12) {
+            if (!el) return;
+            const r = el.getBoundingClientRect();
+            spawnP(r.left + r.width / 2, r.top + r.height / 2, color, n);
+            if (particles.length === n) requestAnimationFrame(tickParticles)
+        }
+
+        /* ════════════════════ TOASTS ════════════════════ */
+        function toast(msg, icon = "✦") {
+            const d = document.createElement("div");
+            d.className = "toast";
+            d.innerHTML = `<span>${icon}</span>${msg}`;
+            $('#toastArea').appendChild(d);
+            setTimeout(() => {
+                d.classList.add("out");
+                setTimeout(() => d.remove(), 260)
+            }, 2200)
+        }
+
+        /* ════════════════════ MODALS ════════════════════ */
+        function showModal(id, html) {
+            const el = $('#' + id);
+            el.hidden = false;
+            if (html && id !== 'skillModal') el.innerHTML = `<div class="modal${id === 'skillModal' ? ' wide' : ''}">${html}</div>`;
+            el.querySelector('button')?.focus();
+            if (R) updateHUD()
+        }
+
+        function hideModal(id) {
+            $('#' + id).hidden = true;
+            if (R) updateHUD()
+        }
+
+        function hideAll() {
+            ['welcomeModal', 'skillModal', 'roundEndModal', 'pauseModal'].forEach(hideModal)
+        }
+
+        /* ════════════════════ BOARD GENERATION ════════════════════ */
+        function calcBoardParams() {
+            const fx = getFx();
+            let basePairs = 3 + Math.floor((S.round - 1) * 1.15);
+            basePairs += Math.floor(fx.extraCards / 2);
+            basePairs = Math.max(3, basePairs);
+            const baseTime = 7 + fx.extraTime;
+            return {
+                pairs: basePairs,
+                time: baseTime,
+                tripletChance: fx.tripletChance,
+                quadChance: fx.quadChance,
+                wildCards: fx.wildCards
+            };
+        }
+
+        function generateDeck(params) {
+            const syms = shuffle(SYM);
+            const groups = [];
+            let ci = 0, totalCards = 0;
+            for (let i = 0; i < params.pairs && ci < syms.length; i++) {
+                const roll = Math.random();
+                let sz = 2;
+                if (roll < params.quadChance && totalCards + 4 <= params.pairs * 2 + 10) sz = 4;
+                else if (roll < params.quadChance + params.tripletChance && totalCards + 3 <= params.pairs * 2 + 5) sz = 3;
+                groups.push({...syms[ci], pairId: i, groupSize: sz});
+                totalCards += sz;
+                ci++;
+            }
+            // Add wild cards
+            for (let w = 0; w < params.wildCards && ci < syms.length; w++) {
+                groups.push({s: "🃏", n: "wild", pairId: 900 + w, groupSize: 1, isWild: true});
+                totalCards++;
+                ci++;
+            }
+            // Flatten
+            const deck = shuffle(groups.flatMap(g =>
+                g.isWild ? [{...g, uid: Math.random().toString(36).slice(2)}] :
+                    Array.from({length: g.groupSize}, (_, k) => ({...g, uid: Math.random().toString(36).slice(2)}))
+            ));
+            return deck;
+        }
+
+        function getLayout(count) {
+            const area = $('#boardArea'), aw = area.clientWidth - 16, ah = area.clientHeight - 16;
+            let bestCols = 4, bestSz = 0;
+            for (let c = 2; c <= Math.min(count, 40); c++) {
+                const rows = Math.ceil(count / c), gap = Math.max(2, Math.min(6, 40 / c));
+                const w = (aw - (c - 1) * gap) / c, h = (ah - (rows - 1) * gap) / rows;
+                const sz = Math.min(w, h / 1.28);
+                if (sz > bestSz && sz >= 14) {
+                    bestSz = sz;
+                    bestCols = c
+                }
+            }
+            return {
+                cols: bestCols,
+                sz: Math.min(90, Math.max(14, Math.floor(bestSz))),
+                gap: Math.max(2, Math.min(6, Math.round(40 / bestCols)))
+            };
+        }
+
+        /* ════════════════════ RENDER BOARD ════════════════════ */
+        function renderBoard() {
+            const board = $('#board'), deck = R.deck, lay = getLayout(deck.length);
+            const cr = Math.max(3, Math.round(lay.sz * .15));
+            board.style.setProperty('--cw', lay.sz + 'px');
+            board.style.setProperty('--ch', Math.round(lay.sz * 1.28) + 'px');
+            board.style.setProperty('--cr', cr + 'px');
+            board.style.setProperty('--gap', lay.gap + 'px');
+            board.style.setProperty('--pad', '8px');
+            board.style.gridTemplateColumns = `repeat(${lay.cols},var(--cw))`;
+            board.innerHTML = '';
+
+            const fx = getFx();
+            const xrayIndices = new Set();
+            if (fx.omni) {
+                for (let i = 0; i < deck.length; i++) xrayIndices.add(i)
+            } else if (fx.xray > 0) {
+                const pool = shuffle([...Array(deck.length).keys()]);
+                for (let i = 0; i < Math.min(fx.xray, pool.length); i++) xrayIndices.add(pool[i])
+            }
+            R.xraySet = xrayIndices;
+
+            deck.forEach((card, i) => {
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'card' + (xrayIndices.has(i) ? ' xray' : '');
+                el.dataset.idx = i;
+                const hue = (card.pairId * 67 + 120) % 360;
+                el.style.setProperty('--hue', hue);
+                el.style.setProperty('--deal-delay', (i * 20) + 'ms');
+                el.innerHTML = `<div class="card-inner"><div class="card-face card-front"><span class="xray-hint">${card.s}</span></div><div class="card-face card-back${card.isWild ? ' wild' : ''}"><span class="emoji">${card.s}</span></div></div>`;
+                el.addEventListener('click', () => handleFlip(i));
+                // Deal animation
+                requestAnimationFrame(() => el.classList.add('dealt'));
+                board.appendChild(el);
+            });
+            R.cardEls = [...board.children];
+        }
+
+        /* ════════════════════ HUD ════════════════════ */
+        function updateHUD() {
+            if (!R) return;
+            const fx = getFx(), bp = calcBoardParams();
+            $('#hRound').textContent = S.round;
+            $('#hNP').textContent = S.np.toLocaleString();
+            $('#hTime').textContent = fmtTime(R.timeLeft);
+            const ts = $('#hTimer');
+            ts.classList.toggle('danger', R.timeLeft <= 5 && R.phase === 'playing');
+            $('#hScore').textContent = R.score.toLocaleString();
+            const totalGroups = R.deck.filter((c, i, a) => a.findIndex(x => x.pairId === c.pairId) === i).length - (getFx().wildCards || 0);
+            $('#hPairs').textContent = `${R.matchedGroups}/${totalGroups}`;
+            const hc = $('#hCombo');
+            hc.querySelector('.v').textContent = R.combo;
+            hc.className = 'hud-chip combo' + (R.combo >= 7 ? ' inferno' : R.combo >= 4 ? ' fire' : R.combo >= 2 ? ' active' : '');
+            const prog = totalGroups > 0 ? Math.round(R.matchedGroups / totalGroups * 100) : 0;
+            $('#progFill').style.width = prog + '%';
+            // Active abilities
+            $('#hintBtn').disabled = R.phase !== 'playing' || R.peeksLeft <= 0;
+            $('#hintN').textContent = R.peeksLeft;
+            $('#bombBtn').disabled = R.phase !== 'playing' || R.bombsLeft <= 0 || !fx.bombSize;
+            $('#bombN').textContent = R.bombsLeft;
+            // Pause only while playing
+            $('#pauseBtn').disabled = R.phase !== 'playing';
+            // Next round button — visible when between rounds (won/lost) and no modal is open
+            const betweenRounds = R.phase === 'won' || R.phase === 'lost';
+            const anyModal = !!['welcomeModal', 'skillModal', 'roundEndModal', 'pauseModal'].find(id => !$('#' + id).hidden);
+            $('#nextRoundBtn').hidden = !betweenRounds || anyModal;
+            $('#nextRoundN').textContent = S.round;
+        }
+
+        function scorePop(el, pts, tier = 'green') {
+            if (!el || noMo) return;
+            const pop = document.createElement('div');
+            pop.className = 'score-pop ' + tier;
+            pop.textContent = '+' + pts;
+            pop.style.left = '50%';
+            pop.style.top = '30%';
+            el.style.position = 'relative';
+            el.appendChild(pop);
+            setTimeout(() => pop.remove(), 850);
+        }
+
+        /* ════════════════════ GAME MECHANICS ════════════════════ */
+        function handleFlip(idx) {
+            if (!R || R.phase !== 'playing' || R.locked) return;
+            const fx = getFx();
+            // Cooldown check
+            const now = performance.now();
+            const cd = fx.zeroCooldown ? 0 : 300 * fx.cooldownMult;
+            if (now - R.lastFlipTime < cd) return;
+            R.lastFlipTime = now;
+
+            const card = R.deck[idx], el = R.cardEls[idx];
+            if (!el || el.classList.contains('flipped') || el.classList.contains('partial') || el.classList.contains('matched') || el.classList.contains('match-flash') || el.classList.contains('bonus-reveal')) return;
+
+            snd('flip');
+            el.classList.add('flipped');
+            R.flipped.push(idx);
+            R.seen.add(idx);
+            if (el.classList.contains('xray')) el.classList.remove('xray');
+            if (fx.dejavuGlow > 0) el.classList.add('seen');
+
+            // Match Radar: briefly highlight the match for this card
+            if (fx.matchRadar && !card.isWild) {
+                const matchIdx = R.deck.findIndex((c, i) => i !== idx && c.pairId === card.pairId && !R.cardEls[i]?.classList.contains('matched') && !R.cardEls[i]?.classList.contains('match-flash') && !R.cardEls[i]?.classList.contains('flipped') && !R.cardEls[i]?.classList.contains('partial'));
+                if (matchIdx >= 0) {
+                    const mel = R.cardEls[matchIdx];
+                    if (mel) {
+                        mel.style.boxShadow = `0 0 14px ${BRANCHES[SK.eagle ? SK.eagle.b : 'perception'].color}`;
+                        R.seen.add(matchIdx);
+                        setTimeout(() => {
+                            if (mel) mel.style.boxShadow = ''
+                        }, fx.matchRadar * 400)
+                    }
+                }
+            }
+
+            // Quantum flip — BONUS REVEALS (don't go into R.flipped)
+            if (fx.quantumFlips > 0) {
+                const pool = R.deck.map((_, i) => i).filter(i => i !== idx && !R.cardEls[i].classList.contains('flipped') && !R.cardEls[i].classList.contains('partial') && !R.cardEls[i].classList.contains('matched') && !R.cardEls[i].classList.contains('bonus-reveal'));
+                shuffle(pool).slice(0, fx.quantumFlips).forEach(qi => doBonusReveal(qi, 1000));
+            }
+            // Chain lightning — BONUS REVEALS
+            if (fx.chainCount > 0) doChainLightning(idx, fx.chainCount);
+
+            // Check for matches among PLAYER-FLIPPED cards only
+            checkMatches();
+        }
+
+// Bonus reveal: show a card briefly for memorization, then auto-hide. Does NOT participate in matching.
+        function doBonusReveal(idx, duration = 1200) {
+            if (!R) return;
+            const el = R.cardEls[idx];
+            if (!el || el.classList.contains('flipped') || el.classList.contains('partial') || el.classList.contains('matched') || el.classList.contains('match-flash') || el.classList.contains('bonus-reveal')) return;
+            el.classList.add('bonus-reveal');
+            R.seen.add(idx);
+            const fx = getFx();
+            if (fx.dejavuGlow > 0) el.classList.add('seen');
+            setTimeout(() => {
+                if (!R) return;
+                if (el && !el.classList.contains('flipped') && !el.classList.contains('partial') && !el.classList.contains('matched'))
+                    el.classList.remove('bonus-reveal');
+            }, duration);
+        }
+
+        function doChainLightning(idx, count) {
+            const lay = getLayout(R.deck.length), cols = lay.cols;
+            const row = Math.floor(idx / cols), col = idx % cols;
+            const adj = [];
+            [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([dr, dc]) => {
+                const nr = row + dr, nc = col + dc, ni = nr * cols + nc;
+                if (nr >= 0 && nc >= 0 && nc < cols && ni >= 0 && ni < R.deck.length) {
+                    const el = R.cardEls[ni];
+                    if (el && !el.classList.contains('flipped') && !el.classList.contains('partial') && !el.classList.contains('matched') && !el.classList.contains('bonus-reveal')) adj.push(ni);
+                }
+            });
+            shuffle(adj).slice(0, count).forEach((ai, t) => {
+                setTimeout(() => {
+                    if (!R || R.phase !== 'playing') return;
+                    doBonusReveal(ai, 1200);
+                }, (t + 1) * 80);
+            });
+        }
+
+        function checkMatches() {
+            // Only consider PLAYER-FLIPPED cards (not bonus reveals)
+            const flipped = R.flipped;
+            if (flipped.length < 2) return;
+
+            const byGroup = {};
+            const wildIndices = [];
+            flipped.forEach(i => {
+                const c = R.deck[i];
+                if (c.isWild) wildIndices.push(i);
+                else {
+                    if (!byGroup[c.pairId]) byGroup[c.pairId] = [];
+                    byGroup[c.pairId].push(i);
+                }
+            });
+
+            const fx = getFx();
+            let madeMatch = false;
+
+            // Check each group
+            for (const [pid, indices] of Object.entries(byGroup)) {
+                const card = R.deck[indices[0]];
+                const needed = card.groupSize;
+                const alreadyPartial = R.partials[pid] || [];
+                const allFound = [...new Set([...alreadyPartial, ...indices])];
+
+                if (allFound.length >= needed) {
+                    madeMatch = true;
+                    const matchIndices = allFound.slice(0, needed);
+                    completeMatch(matchIndices, card, needed);
+                    delete R.partials[pid];
+                    R.flipped = R.flipped.filter(i => !matchIndices.includes(i));
+                } else if (allFound.length >= 2 && allFound.length < needed) {
+                    // PARTIAL — keep face up, waiting for more
+                    R.partials[pid] = allFound;
+                    allFound.forEach(i => {
+                        R.cardEls[i].classList.remove('flipped');
+                        R.cardEls[i].classList.add('partial');
+                    });
+                    R.flipped = R.flipped.filter(i => !allFound.includes(i));
+                    scorePop(R.cardEls[allFound[0]], 25, 'green');
+                    R.score += 25;
+                }
+            }
+
+            // Wild card matches
+            if (wildIndices.length > 0) {
+                const nonWildFlipped = R.flipped.filter(i => !R.deck[i].isWild && !R.cardEls[i].classList.contains('matched'));
+                wildIndices.forEach(wi => {
+                    if (nonWildFlipped.length > 0) {
+                        const partner = nonWildFlipped.shift();
+                        madeMatch = true;
+                        completeMatch([wi, partner], R.deck[partner], 2);
+                        R.flipped = R.flipped.filter(i => i !== wi && i !== partner);
+                    }
+                });
+            }
+
+            // If 2+ non-matching cards among PLAYER flips → mismatch
+            if (!madeMatch) {
+                const groups = new Set(R.flipped.map(i => R.deck[i].pairId));
+                if (R.flipped.length >= 2 && groups.size >= 2) {
+                    R.moves++;
+                    R.misses++;
+
+                    // Combo Shield: mismatches don't reset combo
+                    if (!fx.comboShield) R.combo = 0;
+
+                    // Second Chance: % chance cards stay face-up
+                    if (fx.secondChance > 0 && Math.random() < fx.secondChance) {
+                        toast("Second chance!", "🔄");
+                        // Don't flip back, but clear from flipped so player can try again
+                        R.flipped = [];
+                        R.locked = false;
+                        updateHUD();
+                        return;
+                    }
+
+                    snd('miss');
+                    R.flipped.forEach(i => {
+                        R.cardEls[i].classList.add('wrong')
+                    });
+                    R.locked = true;
+                    setTimeout(() => {
+                        if (!R) return;
+                        R.flipped.forEach(i => {
+                            const el = R.cardEls[i];
+                            if (el) {
+                                el.classList.remove('flipped', 'wrong')
+                            }
+                        });
+                        R.flipped = [];
+                        R.locked = false;
+                        updateHUD();
+                    }, 650);
+                }
+            }
+            updateHUD();
+        }
+
+        function completeMatch(indices, card, groupSize) {
+            const fx = getFx();
+            R.moves++;
+            R.combo++;
+            R.bestCombo = Math.max(R.bestCombo, R.combo);
+            R.matchedGroups++;
+
+            // Lucky match bonus?
+            const allSeen = indices.every(i => R.seen.has(i));
+            const lucky = !allSeen;
+            const luckyMult = lucky ? (1 + fx.luckyBonus) : 1;
+
+            // Points
+            const baseP = groupSize === 4 ? 600 : groupSize === 3 ? 300 : 100;
+            const comboB = Math.max(0, R.combo - 1) * 30;
+            const pts = Math.round((baseP + comboB) * fx.scoreMult * luckyMult);
+            R.score += pts;
+            if (lucky) R.luckyMatches++;
+
+            const tier = pts >= 500 ? 'epic' : pts >= 200 ? 'fire' : pts >= 100 ? 'gold' : 'green';
+            const soundName = groupSize === 4 ? 'quad' : groupSize === 3 ? 'triplet' : R.combo >= 4 ? 'combo' : 'match';
+            snd(soundName);
+
+            if (lucky && fx.luckyBonus > 0) toast(`Lucky match! ×${luckyMult.toFixed(1)}`, "🍀");
+
+            indices.forEach(i => {
+                const el = R.cardEls[i];
+                el.classList.remove('flipped', 'partial', 'chain-reveal');
+                el.classList.add('match-flash');
+                scorePop(el, pts, tier);
+                const hue = (R.deck[i].pairId * 67 + 120) % 360;
+                burstAt(el, `hsl(${hue},80%,65%)`, groupSize >= 3 ? 20 : 10);
+            });
+
+            // After a brief glow, fade out
+            setTimeout(() => {
+                indices.forEach(i => {
+                    const el = R.cardEls[i];
+                    if (el) {
+                        el.classList.remove('match-flash');
+                        el.classList.add('matched')
+                    }
+                });
+            }, 450);
+
+            // Time warp bonus
+            if (fx.matchTimeBonus > 0) {
+                R.timeLeft += fx.matchTimeBonus;
+                toast(`+${fx.matchTimeBonus}s`, "⏩")
+            }
+
+            // Bullet time
+            if (fx.bulletSlow > 0 && !bulletActive) {
+                bulletActive = true;
+                clearTimeout(bulletTimeout);
+                bulletTimeout = setTimeout(() => {
+                    bulletActive = false
+                }, fx.bulletDur * 1000);
+            }
+
+            // Auto-shockwave
+            if (fx.autoShock && fx.shockRadius > 0) doShockwave(indices[0], fx.shockRadius);
+
+            // Infinity engine
+            if (fx.infinityEngine) {
+                addNewPair();
+                toast("+1 pair spawned", "♾️")
+            }
+
+            // Card respawn
+            if (fx.respawnChance > 0) {
+                indices.forEach(i => {
+                    if (Math.random() < fx.respawnChance / indices.length) {
+                        setTimeout(() => respawnCard(i), 800 + Math.random() * 1500);
+                    }
+                });
+            }
+
+            // Check win — delay to let match animation play out
+            const totalGroups = R.deck.filter((c, ii, a) => a.findIndex(x => x.pairId === c.pairId) === ii).length - (fx.wildCards || 0);
+            if (R.matchedGroups >= totalGroups) setTimeout(() => winRound(), 900);
+            else {
+                R.locked = false;
+                updateHUD()
+            }
+        }
+
+        function addNewPair() {
+            const usedSyms = new Set(R.deck.map(c => c.s));
+            const avail = SYM.filter(s => !usedSyms.has(s.s));
+            const sym = avail.length > 0 ? avail[Math.floor(Math.random() * avail.length)] : SYM[Math.floor(Math.random() * SYM.length)];
+            const pid = R.nextPairId++;
+            for (let k = 0; k < 2; k++) {
+                const card = {...sym, pairId: pid, groupSize: 2, uid: Math.random().toString(36).slice(2)};
+                R.deck.push(card);
+                const hue = (pid * 67 + 120) % 360;
+                const idx = R.deck.length - 1;
+                const el = document.createElement('button');
+                el.type = 'button';
+                el.className = 'card';
+                el.dataset.idx = idx;
+                el.style.setProperty('--hue', hue);
+                el.innerHTML = `<div class="card-inner"><div class="card-face card-front"><span class="xray-hint">${card.s}</span></div><div class="card-face card-back"><span class="emoji">${card.s}</span></div></div>`;
+                el.addEventListener('click', () => handleFlip(idx));
+                el.classList.add('dealt');
+                // Insert at random position visually
+                const board = $('#board');
+                const children = [...board.children];
+                const insertAt = Math.floor(Math.random() * children.length);
+                board.insertBefore(el, children[insertAt] || null);
+                R.cardEls[idx] = el;
+            }
+        }
+
+        function respawnCard(idx) {
+            if (!R || R.phase !== 'playing') return;
+            const el = R.cardEls[idx];
+            if (!el) return;
+            // Pick a new symbol
+            const sym = SYM[Math.floor(Math.random() * SYM.length)];
+            const pid = R.nextPairId++;
+            // Respawn this card as one of a new pair
+            R.deck[idx] = {...sym, pairId: pid, groupSize: 2, uid: Math.random().toString(36).slice(2)};
+            const hue = (pid * 67 + 120) % 360;
+            el.style.setProperty('--hue', hue);
+            el.querySelector('.emoji').textContent = sym.s;
+            el.classList.remove('matched');
+            el.classList.add('respawning');
+            setTimeout(() => el.classList.remove('respawning'), 600);
+            // Add the partner at a random position after a delay
+            setTimeout(() => {
+                if (!R || R.phase !== 'playing') return;
+                addPartnerCard(sym, pid);
+            }, 500 + Math.random() * 2000);
+        }
+
+        function addPartnerCard(sym, pid) {
+            const card = {...sym, pairId: pid, groupSize: 2, uid: Math.random().toString(36).slice(2)};
+            R.deck.push(card);
+            const idx = R.deck.length - 1;
+            const hue = (pid * 67 + 120) % 360;
+            const el = document.createElement('button');
+            el.type = 'button';
+            el.className = 'card dealt respawning';
+            el.dataset.idx = idx;
+            el.style.setProperty('--hue', hue);
+            el.innerHTML = `<div class="card-inner"><div class="card-face card-front"><span class="xray-hint">${card.s}</span></div><div class="card-face card-back"><span class="emoji">${card.s}</span></div></div>`;
+            el.addEventListener('click', () => handleFlip(idx));
+            const board = $('#board');
+            const children = [...board.children];
+            board.insertBefore(el, children[Math.floor(Math.random() * children.length)] || null);
+            R.cardEls[idx] = el;
+            setTimeout(() => el.classList.remove('respawning'), 600);
+        }
+
+        /* ════════════════════ ACTIVE ABILITIES ════════════════════ */
+        function usePeek() {
+            if (!R || R.phase !== 'playing' || R.peeksLeft <= 0) return;
+            R.peeksLeft--;
+            R.locked = true;
+            R.cardEls.forEach(el => {
+                if (!el.classList.contains('matched')) el.classList.add('peek')
+            });
+            snd('flip');
+            toast("Quick peek!", "👁️");
+            setTimeout(() => {
+                if (!R) return;
+                R.cardEls.forEach(el => el.classList.remove('peek'));
+                R.locked = false;
+                updateHUD();
+            }, 900);
+        }
+
+        function useBomb() {
+            if (!R || R.phase !== 'playing' || R.bombsLeft <= 0) return;
+            const fx = getFx();
+            if (!fx.bombSize) return;
+            R.bombsLeft--;
+            snd('boom');
+            // Find center card (first flipped or random unmatched)
+            let center = R.flipped[0];
+            if (center === undefined) {
+                const pool = R.deck.map((_, i) => i).filter(i => !R.cardEls[i]?.classList.contains('matched'));
+                center = pool[Math.floor(Math.random() * pool.length)];
+            }
+            doExplosion(center, fx.bombSize);
+            updateHUD();
+        }
+
+        function doExplosion(centerIdx, size) {
+            const lay = getLayout(R.deck.length), cols = lay.cols;
+            const cr = Math.floor(centerIdx / cols), cc = centerIdx % cols;
+            const half = Math.floor(size / 2);
+            const revealed = [];
+            for (let dr = -half; dr <= half; dr++) {
+                for (let dc = -half; dc <= half; dc++) {
+                    const nr = cr + dr, nc = cc + dc, ni = nr * cols + nc;
+                    if (nr >= 0 && nc >= 0 && nc < cols && ni >= 0 && ni < R.deck.length) {
+                        const el = R.cardEls[ni];
+                        if (el && !el.classList.contains('matched')) {
+                            el.classList.add('chain-reveal');
+                            revealed.push(ni);
+                            R.seen.add(ni);
+                            burstAt(el, '#f97316', 4);
+                        }
+                    }
+                }
+            }
+            // Auto-match pairs in revealed area
+            const groups = {};
+            revealed.forEach(i => {
+                const c = R.deck[i];
+                if (!c.isWild) {
+                    if (!groups[c.pairId]) groups[c.pairId] = [];
+                    groups[c.pairId].push(i)
+                }
+            });
+            let delay = 300;
+            for (const [pid, indices] of Object.entries(groups)) {
+                const card = R.deck[indices[0]];
+                const needed = card.groupSize;
+                const existing = R.partials[pid] || [];
+                const all = [...new Set([...existing, ...indices])];
+                if (all.length >= needed) {
+                    setTimeout(() => {
+                        if (!R) return;
+                        completeMatch(all.slice(0, needed), card, needed);
+                        delete R.partials[pid]
+                    }, delay);
+                    delay += 200;
+                }
+            }
+            // Hide non-matched revealed cards after a bit
+            setTimeout(() => {
+                if (!R) return;
+                revealed.forEach(i => {
+                    const el = R.cardEls[i];
+                    if (el && !el.classList.contains('matched') && !el.classList.contains('partial'))
+                        el.classList.remove('chain-reveal', 'flipped');
+                });
+            }, 1200);
+        }
+
+        function doShockwave(centerIdx, radius) {
+            const lay = getLayout(R.deck.length), cols = lay.cols;
+            const cr = Math.floor(centerIdx / cols), cc = centerIdx % cols;
+            const nearby = [];
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = cr + dr, nc = cc + dc, ni = nr * cols + nc;
+                    if (nr >= 0 && nc >= 0 && nc < cols && ni >= 0 && ni < R.deck.length) {
+                        const el = R.cardEls[ni];
+                        if (el && !el.classList.contains('matched') && !el.classList.contains('match-flash')) nearby.push(ni);
+                    }
+                }
+            }
+            shuffle(nearby).slice(0, radius).forEach((ni, t) => {
+                setTimeout(() => {
+                    if (!R) return;
+                    const el = R.cardEls[ni];
+                    if (!el) return;
+                    el.classList.add('chain-reveal');
+                    R.seen.add(ni);
+                    setTimeout(() => {
+                        if (el && !el.classList.contains('matched') && !el.classList.contains('partial')) el.classList.remove('chain-reveal')
+                    }, 800);
+                }, t * 60);
+            });
+        }
+
+        /* ════════════════════ SHUFFLE MECHANIC ════════════════════ */
+        function startShuffle(interval) {
+            clearInterval(shuffleInt);
+            if (interval <= 0) return;
+            shuffleInt = setInterval(() => {
+                if (!R || R.phase !== 'playing') return;
+                const board = $('#board');
+                const els = [...board.children];
+                shuffle(els).forEach(el => board.appendChild(el));
+                toast("Shuffled!", "🔀");
+            }, interval * 1000);
+        }
+
+        /* ════════════════════ SIXTH SENSE ════════════════════ */
+        function startSixthSense() {
+            clearInterval(sixthInt);
+            sixthInt = setInterval(() => {
+                if (!R || R.phase !== 'playing') return;
+                const unmatched = R.deck.map((_, i) => i).filter(i => !R.cardEls[i]?.classList.contains('matched') && !R.cardEls[i]?.classList.contains('partial'));
+                const groups = {};
+                unmatched.forEach(i => {
+                    const pid = R.deck[i].pairId;
+                    if (!groups[pid]) groups[pid] = [];
+                    groups[pid].push(i)
+                });
+                const validGroups = Object.values(groups).filter(g => g.length >= 2);
+                if (validGroups.length === 0) return;
+                const pair = validGroups[Math.floor(Math.random() * validGroups.length)];
+                pair.forEach(i => {
+                    const el = R.cardEls[i];
+                    if (!el) return;
+                    el.style.boxShadow = '0 0 12px rgba(168,130,255,.4)';
+                    setTimeout(() => {
+                        if (el) el.style.boxShadow = ''
+                    }, 1500);
+                });
+            }, 6000);
+        }
+
+        /* ════════════════════ TIMER ════════════════════ */
+        function startTimer() {
+            clearInterval(timerInt);
+            timerInt = setInterval(() => {
+                if (!R || R.phase !== 'playing') return;
+                const fx = getFx();
+                // Eternity: pause while any card is face up
+                if (fx.eternity && (R.flipped.length > 0 || Object.keys(R.partials).length > 0)) return;
+                // Freeze frame: partial pause during flips
+                if (fx.freezeRate > 0 && R.flipped.length > 0) {
+                    R.timeLeft -= 0.1 * (1 - fx.freezeRate);
+                } else {
+                    // Bullet time slowdown
+                    const slowMult = bulletActive ? (1 - fx.bulletSlow) : 1;
+                    R.timeLeft -= 0.1 * slowMult;
+                }
+                R.timeLeft = Math.max(0, R.timeLeft);
+                updateHUD();
+                if (R.timeLeft <= 0) {
+                    if (!overtimeUsed && fx.overtimeSec > 0) {
+                        overtimeUsed = true;
+                        R.timeLeft = fx.overtimeSec;
+                        toast(`Overtime! +${fx.overtimeSec}s`, "🔔");
+                        snd('go');
+                    } else {
+                        loseRound();
+                    }
+                }
+            }, 100);
+        }
+
+        /* ════════════════════ ROUND LIFECYCLE ════════════════════ */
+        async function startRound() {
+            const params = calcBoardParams(), fx = getFx();
+            R = {
+                phase: 'countdown', deck: generateDeck(params),
+                flipped: [], partials: {}, seen: new Set(),
+                score: 0, moves: 0, misses: 0, combo: 0, bestCombo: 0, luckyMatches: 0, matchedGroups: 0,
+                timeLeft: params.time, timeTotal: params.time, locked: false, lastFlipTime: 0,
+                peeksLeft: 1, bombsLeft: fx.bombSize ? 1 : 0,
+                cardEls: [], xraySet: new Set(), nextPairId: params.pairs + 100
+            };
+            overtimeUsed = false;
+            bulletActive = false;
+            hideAll();
+            renderBoard();
+            updateHUD();
+
+            // Countdown
+            const co = $('#cdOverlay');
+            co.hidden = false;
+            for (const v of ['3', '2', '1']) {
+                const cn = $('#cdNum');
+                cn.textContent = v;
+                cn.style.animation = 'none';
+                void cn.offsetWidth;
+                cn.style.animation = '';
+                snd('count');
+                await wait(500);
+            }
+            const cn = $('#cdNum');
+            cn.textContent = 'GO!';
+            cn.style.animation = 'none';
+            void cn.offsetWidth;
+            cn.style.animation = '';
+            snd('go');
+            await wait(350);
+            co.hidden = true;
+
+            R.phase = 'playing';
+            R.locked = false;
+            startTimer();
+            if (fx.shuffleInterval > 0) startShuffle(fx.shuffleInterval);
+            if (fx.sixthSense) startSixthSense();
+            const tripCount = R.deck.filter((c, i, a) => c.groupSize >= 3 && a.findIndex(x => x.pairId === c.pairId) === i).length;
+            const quadCount = R.deck.filter((c, i, a) => c.groupSize >= 4 && a.findIndex(x => x.pairId === c.pairId) === i).length;
+            let info = `${R.deck.length} cards · ${fmtTime(params.time)}`;
+            if (tripCount) info += ` · ${tripCount} triplet${tripCount > 1 ? 's' : ''}`;
+            if (quadCount) info += ` · ${quadCount} quad${quadCount > 1 ? 's' : ''}`;
+            toast(info, "🧠");
+            updateHUD();
+        }
+
+        function winRound() {
+            if (!R || R.phase === 'won') return;
+            R.phase = 'won';
+            clearInterval(timerInt);
+            clearInterval(shuffleInt);
+            clearInterval(sixthInt);
+            const fx = getFx();
+            const baseNP = 15 + S.round * 6;
+            const comboBonus = R.bestCombo * 3;
+            const perfectBonus = R.misses === 0 ? Math.round(baseNP * .5) : 0;
+            const luckyBonus = R.luckyMatches * 5;
+            const earned = baseNP + comboBonus + perfectBonus + luckyBonus;
+            S.np += earned;
+            S.totalNP += earned;
+            S.round++;
+            S.highestRound = Math.max(S.highestRound, S.round);
+            saveState();
+            snd(R.misses === 0 ? 'combo' : 'win');
+
+            // Particles
+            for (let i = 0; i < 6; i++) {
+                spawnP(Math.random() * innerWidth, Math.random() * innerHeight * .5 + 100, '#a78bfa', 15)
+            }
+            requestAnimationFrame(tickParticles);
+
+            setTimeout(() => {
+                const elapsed = Math.round(R.timeTotal - R.timeLeft);
+                const acc = R.moves > 0 ? Math.round(R.matchedGroups / R.moves * 100) : 100;
+                showModal('roundEndModal', `
+            <div style="font-size:2.5rem;margin-bottom:6px">${R.misses === 0 ? '💎' : '🏆'}</div>
+            <h2>${R.misses === 0 ? 'Flawless!' : 'Round Complete!'}</h2>
+            <p>Round ${S.round - 1} cleared${R.misses === 0 ? ' — not a single miss' : ` in ${elapsed}s`}.</p>
+            <div class="np-earned">⬡ +${earned} NP</div>
+            <div style="font-size:.65rem;color:rgba(180,180,210,.5);margin-bottom:12px">
+                Base ${baseNP} + Combo ${comboBonus}${perfectBonus ? ' + Perfect ' + perfectBonus : ''}${luckyBonus ? ' + Lucky ' + luckyBonus : ''}
+            </div>
+            <div class="reward-grid">
+                <div class="reward-cell"><strong>${R.score.toLocaleString()}</strong><span>Score</span></div>
+                <div class="reward-cell"><strong>${R.bestCombo}×</strong><span>Best Combo</span></div>
+                <div class="reward-cell"><strong>${acc}%</strong><span>Accuracy</span></div>
+            </div>
+            <div class="modal-actions">
+                <button class="game-btn primary" onclick="startRound()" style="padding:10px 24px">Round ${S.round} →</button>
+                <button class="game-btn" onclick="openSkills()">🌳 Skills</button>
+            </div>
+        `);
+            }, 500);
+        }
+
+        function loseRound() {
+            if (!R || R.phase === 'lost') return;
+            R.phase = 'lost';
+            clearInterval(timerInt);
+            clearInterval(shuffleInt);
+            clearInterval(sixthInt);
+            const earned = Math.max(1, Math.round(R.matchedGroups * 4 + R.luckyMatches * 2));
+            S.np += earned;
+            S.totalNP += earned;
+            saveState();
+            snd('lose');
+            setTimeout(() => {
+                const totalGroups = R.deck.filter((c, ii, a) => a.findIndex(x => x.pairId === c.pairId) === ii).length - (getFx().wildCards || 0);
+                const pct = totalGroups > 0 ? Math.round(R.matchedGroups / totalGroups * 100) : 0;
+                const tip = pct < 30 ? 'Try upgrading Extended Time ⏱️ or Quick Flip 💨' : pct < 60 ? 'Getting there! X-Ray Vision 👁️ might help' : 'So close! One more upgrade could do it';
+                showModal('roundEndModal', `
+            <div style="font-size:2.5rem;margin-bottom:6px">⏳</div>
+            <h2>Time's Up!</h2>
+            <p>${R.matchedGroups}/${totalGroups} groups found (${pct}%). ${tip}.</p>
+            <div class="np-earned">⬡ +${earned} NP</div>
+            <div class="reward-grid">
+                <div class="reward-cell"><strong>${R.score.toLocaleString()}</strong><span>Score</span></div>
+                <div class="reward-cell"><strong>${R.bestCombo}×</strong><span>Best Combo</span></div>
+                <div class="reward-cell"><strong>${R.moves}</strong><span>Moves</span></div>
+            </div>
+            <div class="modal-actions">
+                <button class="game-btn primary" onclick="startRound()" style="padding:10px 24px">Retry Round ${S.round} →</button>
+                <button class="game-btn" onclick="openSkills()">🌳 Skills</button>
+            </div>
+        `);
+            }, 400);
+        }
+
+        function pauseRound() {
+            if (!R || R.phase !== 'playing') return;
+            R.phase = 'paused';
+            clearInterval(timerInt);
+            clearInterval(shuffleInt);
+            showModal('pauseModal', `
+        <div style="font-size:2.5rem;margin-bottom:6px">⏸️</div>
+        <h2>Paused</h2>
+        <p>Round ${S.round} · ${S.np.toLocaleString()} NP</p>
+        <div class="modal-actions">
+            <button class="game-btn primary" onclick="resumeRound()">Resume</button>
+            <button class="game-btn" onclick="openSkills()">🌳 Skills</button>
+            <button class="game-btn danger" onclick="resetSave()">Reset All</button>
+        </div>
+    `);
+        }
+
+        function resumeRound() {
+            if (!R || R.phase !== 'paused') return;
+            hideModal('pauseModal');
+            R.phase = 'playing';
+            startTimer();
+            const fx = getFx();
+            if (fx.shuffleInterval > 0) startShuffle(fx.shuffleInterval);
+        }
+
+        /* ════════════════════ SKILL TREE UI ════════════════════ */
+        const TREE_POS = {
+            // Core
+            core: {x: 700, y: 500},
+            // Perception (upper-left)
+            xray: {x: 520, y: 340},
+            dejavu: {x: 390, y: 255},
+            eagle: {x: 265, y: 185},
+            sixth: {x: 570, y: 210},
+            omni: {x: 360, y: 100},
+            // Speed (upper-right)
+            quickflip: {x: 880, y: 340},
+            turbo: {x: 1000, y: 260},
+            chain: {x: 830, y: 210},
+            bullet: {x: 1110, y: 190},
+            hyper: {x: 1000, y: 105},
+            // Time (left)
+            moretime: {x: 395, y: 550},
+            warp: {x: 250, y: 510},
+            freeze: {x: 120, y: 455},
+            overtime: {x: 260, y: 640},
+            eternity: {x: 95, y: 555},
+            // Destruction (right)
+            shock: {x: 1005, y: 550},
+            explode: {x: 1140, y: 500},
+            meteor: {x: 1265, y: 440},
+            nuke: {x: 1150, y: 620},
+            bigbang: {x: 1310, y: 545},
+            // Scaling (lower-left)
+            more: {x: 510, y: 670},
+            lucky: {x: 370, y: 735},
+            pmult: {x: 240, y: 800},
+            triple: {x: 565, y: 775},
+            quad: {x: 500, y: 865},
+            respawn: {x: 345, y: 860},
+            infinity: {x: 420, y: 955},
+            // Chaos (lower-right)
+            shufflesk: {x: 890, y: 670},
+            wild: {x: 1020, y: 740},
+            quantum: {x: 920, y: 820},
+            magnet: {x: 1060, y: 860},
+            rift: {x: 990, y: 945},
+            // Singularity (bottom center)
+            singularity: {x: 700, y: 990}
+        };
+        const TREE_EDGES = [
+            // Core connections
+            {f: 'core', t: 'xray'}, {f: 'core', t: 'quickflip'}, {f: 'core', t: 'moretime'}, {
+                f: 'core',
+                t: 'shock'
+            }, {f: 'core', t: 'more'}, {f: 'core', t: 'shufflesk'},
+            // Perception
+            {f: 'xray', t: 'dejavu'}, {f: 'dejavu', t: 'eagle'}, {f: 'xray', t: 'sixth'}, {
+                f: 'eagle',
+                t: 'omni'
+            }, {f: 'sixth', t: 'omni'},
+            // Speed
+            {f: 'quickflip', t: 'turbo'}, {f: 'quickflip', t: 'chain'}, {f: 'turbo', t: 'bullet'}, {
+                f: 'chain',
+                t: 'hyper'
+            }, {f: 'bullet', t: 'hyper'},
+            // Time
+            {f: 'moretime', t: 'warp'}, {f: 'warp', t: 'freeze'}, {f: 'moretime', t: 'overtime'}, {
+                f: 'freeze',
+                t: 'eternity'
+            }, {f: 'overtime', t: 'eternity'},
+            // Destruction
+            {f: 'shock', t: 'explode'}, {f: 'explode', t: 'meteor'}, {f: 'meteor', t: 'nuke'}, {
+                f: 'nuke',
+                t: 'bigbang'
+            },
+            // Scaling
+            {f: 'more', t: 'lucky'}, {f: 'lucky', t: 'pmult'}, {f: 'more', t: 'triple'}, {
+                f: 'triple',
+                t: 'quad'
+            }, {f: 'more', t: 'respawn'}, {f: 'respawn', t: 'infinity'}, {f: 'quad', t: 'infinity'},
+            // Chaos
+            {f: 'shufflesk', t: 'wild'}, {f: 'wild', t: 'quantum'}, {f: 'quantum', t: 'magnet'}, {
+                f: 'magnet',
+                t: 'rift'
+            },
+            // Cross-branch to singularity
+            {f: 'rift', t: 'singularity'}, {f: 'bigbang', t: 'singularity'}, {
+                f: 'infinity',
+                t: 'singularity'
+            }, {f: 'eternity', t: 'singularity'}, {f: 'hyper', t: 'singularity'}, {f: 'omni', t: 'singularity'}
+        ];
+        const BRANCH_LABELS = {
+            perception: {x: 420, y: 130, name: "PERCEPTION"}, speed: {x: 980, y: 130, name: "SPEED"},
+            time: {x: 130, y: 390, name: "TIME"}, destruction: {x: 1270, y: 390, name: "DESTRUCTION"},
+            scaling: {x: 300, y: 950, name: "SCALING"}, chaos: {x: 1100, y: 950, name: "CHAOS"}
+        };
+
+        let treePan = {x: 0, y: 0}, treeZoom = 0.6, treeDrag = null, prevVisible = new Set(), activePopup = null;
+
+        function isNodeVisible(id) {
+            if (id === 'core') return true;
+            if (!SK[id]) return false;
+            const s = SK[id];
+            if (!s.req) return true; // root of branch
+            return Object.keys(s.req).some(k => skLv(k) > 0);
+        }
+
+        function nodeState(id) {
+            if (id === 'core') return 'core';
+            if (!isNodeVisible(id)) return 'hidden';
+            const lv = skLv(id), s = SK[id];
+            if (lv >= s.max) return 'maxed';
+            if (lv > 0) {
+                // Can afford next level? Add affordable class via extra logic in render
+                return 'allocated';
+            }
+            if (canUnlock(id)) {
+                const cost = skCost(id, lv);
+                return S.np >= cost ? 'affordable' : 'available';
+            }
+            return 'locked';
+        }
+
+        function openSkills() {
+            hideAll();
+            prevVisible = new Set(Object.keys(TREE_POS).filter(isNodeVisible));
+            renderTree();
+        }
+
+        function renderTree() {
+            const el = $('#skillModal');
+            el.hidden = false;
+            const modal = el.querySelector('.modal');
+            const betweenRounds = R && (R.phase === 'won' || R.phase === 'lost');
+            const contBtn = betweenRounds ? `<button class="game-btn primary" onclick="hideModal('skillModal');startRound()" style="padding:8px 18px;font-size:.8rem">▶ ${R.phase === 'won' ? 'Round' : 'Retry'} ${S.round} →</button>` : '';
+
+            // Build SVG edges
+            let svgEdges = '';
+            TREE_EDGES.forEach(e => {
+                const fp = TREE_POS[e.f], tp = TREE_POS[e.t];
+                if (!fp || !tp) return;
+                const fVis = isNodeVisible(e.f) || e.f === 'core', tVis = isNodeVisible(e.t);
+                if (!fVis && !tVis) return;
+                const fState = nodeState(e.f), tState = nodeState(e.t);
+                const bright = (fState === 'allocated' || fState === 'maxed' || fState === 'core') && (tState === 'allocated' || tState === 'maxed');
+                const active = fVis && tVis && tState !== 'hidden';
+                const isNew = tVis && !prevVisible.has(e.t);
+                const cls = isNew ? 'reveal' : (bright ? 'bright' : (active ? 'active' : ''));
+                const bc = SK[e.t] ? BRANCHES[SK[e.t].b].color : '#a78bfa';
+                svgEdges += `<line class="tree-edge ${cls}" x1="${fp.x}" y1="${fp.y}" x2="${tp.x}" y2="${tp.y}" stroke="${bc}" style="--ec:${bc}"/>`;
+            });
+
+            // Build nodes
+            let nodes = '';
+            // Branch labels
+            Object.entries(BRANCH_LABELS).forEach(([b, lb]) => {
+                nodes += `<div class="branch-label" style="left:${lb.x}px;top:${lb.y}px;--nc:${BRANCHES[b].color}">${lb.name}</div>`;
+            });
+            // Core
+            const cp = TREE_POS.core;
+            nodes += `<div class="tree-node core" style="left:${cp.x}px;top:${cp.y}px"><span>🧠</span><div class="nd-name">Neural Core</div></div>`;
+            // Skill nodes
+            Object.entries(SK).forEach(([id, s]) => {
+                const p = TREE_POS[id];
+                if (!p) return;
+                const st = nodeState(id), lv = skLv(id), bc = BRANCHES[s.b].color;
+                const isNew = isNodeVisible(id) && !prevVisible.has(id);
+                const cls = `tree-node ${st}${isNew ? ' reveal-anim' : ''}`;
+                const lvBadge = lv > 0 ? `<div class="nd-lvl" style="background:${st === 'maxed' ? '#fbbf24' : bc}">${lv}</div>` : '';
+                nodes += `<div class="${cls}" style="left:${p.x}px;top:${p.y}px;--nc:${bc}" data-sk="${id}" onclick="showNodePopup(event,'${id}')">
+            <span>${s.icon}</span>${lvBadge}<div class="nd-name">${s.name}</div>
+        </div>`;
+            });
+
+            modal.innerHTML = `
+        <div class="tree-hud">
+            <div style="display:flex;gap:8px;align-items:center">
+                <button class="close-x" onclick="closeSkillsAndResume()" style="position:static">✕</button>
+                <span style="font-weight:800;font-size:.9rem">🌳 Skill Tree</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+                ${contBtn}
+                <div class="np-pill">⬡ ${S.np.toLocaleString()}</div>
+                <div class="tree-zoom">
+                    <button onclick="treeZoomBy(-.1)">−</button>
+                    <button onclick="treeZoomBy(.1)">+</button>
+                </div>
+            </div>
+        </div>
+        <div class="tree-viewport" id="treeVP">
+            <div class="tree-world" id="treeWorld">
+                <svg class="tree-svg" viewBox="0 0 1400 1050">${svgEdges}</svg>
+                ${nodes}
+            </div>
+        </div>`;
+
+            applyTreeTransform();
+            initTreePan();
+            // Update prevVisible
+            prevVisible = new Set(Object.keys(TREE_POS).filter(isNodeVisible));
+            if (R) updateHUD();
+        }
+
+        function applyTreeTransform() {
+            const w = $('#treeWorld');
+            if (!w) return;
+            w.style.transform = `translate(${treePan.x}px,${treePan.y}px) scale(${treeZoom})`;
+        }
+
+        window.treeZoomBy = function (d) {
+            treeZoom = Math.max(.3, Math.min(1.2, treeZoom + d));
+            applyTreeTransform()
+        };
+
+        function zoomAtPoint(delta, cx, cy) {
+            const vp = $('#treeVP');
+            if (!vp) return;
+            const rect = vp.getBoundingClientRect();
+            const px = cx - rect.left, py = cy - rect.top;
+            // World point under cursor
+            const wx = (px - treePan.x) / treeZoom, wy = (py - treePan.y) / treeZoom;
+            const oldZ = treeZoom;
+            treeZoom = Math.max(.3, Math.min(1.2, treeZoom + delta));
+            // Adjust pan so same world point stays under cursor
+            treePan.x = px - wx * treeZoom;
+            treePan.y = py - wy * treeZoom;
+            applyTreeTransform();
+        }
+
+        function initTreePan() {
+            const vp = $('#treeVP');
+            if (!vp) return;
+            // Center the tree initially
+            const vr = vp.getBoundingClientRect();
+            treePan.x = (vr.width - 1400 * treeZoom) / 2;
+            treePan.y = (vr.height - 1050 * treeZoom) / 2;
+            applyTreeTransform();
+
+            let drag = null;
+            vp.onmousedown = e => {
+                if (e.target === vp || e.target.closest('.tree-world') && !e.target.closest('.tree-node') && !e.target.closest('.nd-popup')) {
+                    drag = {x: e.clientX - treePan.x, y: e.clientY - treePan.y};
+                    activePopup?.remove();
+                    activePopup = null
+                }
+            };
+            vp.onmousemove = e => {
+                if (drag) {
+                    treePan.x = e.clientX - drag.x;
+                    treePan.y = e.clientY - drag.y;
+                    applyTreeTransform()
+                }
+            };
+            vp.onmouseup = () => {
+                drag = null
+            };
+            vp.onmouseleave = () => {
+                drag = null
+            };
+
+            // Touch: 1-finger pan, 2-finger pinch-to-zoom at midpoint
+            let touchDrag = null, lastPinchDist = 0;
+            vp.ontouchstart = e => {
+                if (e.touches.length === 1) {
+                    const t = e.touches[0];
+                    touchDrag = {x: t.clientX - treePan.x, y: t.clientY - treePan.y};
+                } else if (e.touches.length === 2) {
+                    touchDrag = null;
+                    lastPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                }
+            };
+            vp.ontouchmove = e => {
+                if (e.touches.length === 1 && touchDrag) {
+                    const t = e.touches[0];
+                    treePan.x = t.clientX - touchDrag.x;
+                    treePan.y = t.clientY - touchDrag.y;
+                    applyTreeTransform();
+                    e.preventDefault();
+                } else if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    const delta = (dist - lastPinchDist) * 0.003;
+                    const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    zoomAtPoint(delta, mx, my);
+                    lastPinchDist = dist;
+                }
+            };
+            vp.ontouchend = e => {
+                if (e.touches.length < 2) lastPinchDist = 0;
+                if (e.touches.length === 0) touchDrag = null
+            };
+
+            // Wheel zoom centered on cursor
+            vp.onwheel = e => {
+                e.preventDefault();
+                zoomAtPoint(e.deltaY > 0 ? -.06 : .06, e.clientX, e.clientY)
+            };
+        }
+
+        window.showNodePopup = function (e, id) {
+            e.stopPropagation();
+            activePopup?.remove();
+            const s = SK[id], st = nodeState(id);
+            if (st === 'hidden') return;
+            const lv = skLv(id), maxed = lv >= s.max, can = canUnlock(id);
+            const cost = maxed ? 0 : skCost(id, lv);
+            const bc = BRANCHES[s.b].color;
+            const descText = lv > 0 ? s.desc(lv) : s.desc(1);
+            const nextText = !maxed && lv > 0 && lv < s.max ? `<div class="pp-next">Next: ${s.desc(lv + 1)}</div>` : '';
+            let reqText = '';
+            if (s.req && !can) reqText = `<div class="pp-req">🔒 Requires: ${Object.entries(s.req).map(([k, v]) => `${SK[k].name} Lv${v}`).join(', ')}</div>`;
+
+            const affordable = can && S.np >= cost;
+            let btnHtml = '';
+            if (maxed) btnHtml = `<button class="upgrade-btn maxed" disabled>✓ MAX</button>`;
+            else if (!can) btnHtml = `<button class="upgrade-btn" disabled>🔒 Locked</button>`;
+            else btnHtml = `<button class="upgrade-btn" ${!affordable ? 'disabled' : ''} onclick="doUpgrade('${id}')">⬡ ${cost.toLocaleString()}</button>`;
+
+            const popup = document.createElement('div');
+            popup.className = 'nd-popup';
+            popup.style.setProperty('--nc', bc);
+            popup.innerHTML = `
+        <div class="pp-head"><div class="pp-icon">${s.icon}</div><div><div class="pp-name">${s.name}</div><div class="pp-lvl">Lv ${lv}${s.max < 99 ? ' / ' + s.max : ''} · ${BRANCHES[s.b].name}</div></div></div>
+        <div class="pp-desc">${descText}</div>
+        ${nextText}${reqText}${btnHtml}`;
+
+            // Position near the node
+            const p = TREE_POS[id];
+            popup.style.left = (p.x + 40) + 'px';
+            popup.style.top = (p.y - 30) + 'px';
+            $('#treeWorld').appendChild(popup);
+            activePopup = popup;
+
+            // Close on click outside
+            const closeHandler = ev => {
+                if (!popup.contains(ev.target) && !ev.target.closest(`[data-sk="${id}"]`)) {
+                    popup.remove();
+                    activePopup = null;
+                    document.removeEventListener('mousedown', closeHandler)
+                }
+            };
+            setTimeout(() => document.addEventListener('mousedown', closeHandler), 50);
+        };
+
+        window.doUpgrade = function (id) {
+            const s = SK[id], lv = skLv(id);
+            if (lv >= s.max || !canUnlock(id)) return;
+            const cost = skCost(id, lv);
+            if (S.np < cost) return;
+            S.np -= cost;
+            S.skills[id] = (lv || 0) + 1;
+            saveState();
+            snd('upgrade');
+            toast(`${s.name} → Lv ${S.skills[id]}`, "⬆️");
+
+            // Particle burst on the node
+            burstAt($(`[data-sk="${id}"]`), BRANCHES[s.b].color, 16);
+
+            // Re-render tree (this will detect newly visible nodes and animate them)
+            renderTree();
+
+            // Re-open the popup for the same skill so the player can chain upgrades
+            const nodeEl = $(`[data-sk="${id}"]`);
+            if (nodeEl) {
+                const fakeEvent = {
+                    stopPropagation: () => {
+                    }
+                };
+                showNodePopup(fakeEvent, id);
+            }
+        };
+
+        window.closeSkillsAndResume = function () {
+            activePopup?.remove();
+            activePopup = null;
+            hideModal('skillModal');
+            if (R && R.phase === 'paused') resumeRound();
+            updateHUD();
+        };
+
+        /* ════════════════════ SAVE MANAGEMENT ════════════════════ */
+        window.resetSave = function () {
+            if (!confirm('Reset ALL progress? This cannot be undone.')) return;
+            localStorage.removeItem(SAVE_KEY);
+            S = JSON.parse(JSON.stringify(defaultState));
+            R = null;
+            clearInterval(timerInt);
+            clearInterval(shuffleInt);
+            clearInterval(sixthInt);
+            hideAll();
+            showWelcome();
+        };
+
+        /* ════════════════════ EVENTS ════════════════════ */
+        function showWelcome() {
+            const el = $('#welcomeModal');
+            el.hidden = false;
+            if (S.round > 1) {
+                el.querySelector('h2').textContent = 'Welcome Back';
+                el.querySelector('.game-btn.primary').textContent = `Continue Round ${S.round} →`;
+            }
+        }
+
+        $('#startBtn').addEventListener('click', startRound);
+        $('#nextRoundBtn').addEventListener('click', startRound);
+        $('#skillBtn').addEventListener('click', () => {
+            if (R && R.phase === 'playing') pauseRound();
+            openSkills()
+        });
+        $('#hintBtn').addEventListener('click', usePeek);
+        $('#bombBtn').addEventListener('click', useBomb);
+        $('#pauseBtn').addEventListener('click', pauseRound);
+        $('#soundBtn').addEventListener('click', () => {
+            S.sound = !S.sound;
+            saveState();
+            $('#soundBtn').textContent = S.sound ? '🔊' : '🔇';
+            toast(S.sound ? 'Sound on' : 'Sound off', S.sound ? '🔊' : '🔇')
+        });
+        $('#soundBtn').textContent = S.sound ? '🔊' : '🔇';
+
+// Expose for onclick in modals
+        window.startRound = startRound;
+        window.openSkills = openSkills;
+        window.resumeRound = resumeRound;
+
+        document.addEventListener('keydown', e => {
+            if (e.repeat) return;
+            const k = e.key.toLowerCase();
+            const anyModal = $$('.modal-bg').find(m => !m.hidden);
+            if (k === 'p' && !$('#pauseModal').hidden) {
+                e.preventDefault();
+                resumeRound()
+            } else if (k === 'p' && !anyModal && R?.phase === 'playing') {
+                e.preventDefault();
+                pauseRound()
+            }
+            if (k === 's') {
+                e.preventDefault();
+                if (R && R.phase === 'playing') pauseRound();
+                openSkills()
+            }
+            if (k === 'h' && !anyModal) {
+                e.preventDefault();
+                usePeek()
+            }
+            if (k === 'b' && !anyModal) {
+                e.preventDefault();
+                useBomb()
+            }
+            if (e.key === 'Escape' && !$('#skillModal').hidden) {
+                closeSkillsAndResume()
+            } else if (e.key === 'Escape' && R?.phase === 'playing') {
+                pauseRound()
+            }
+            // 1-9 hotkeys for active abilities during gameplay
+            if (!anyModal && R?.phase === 'playing') {
+                const n = parseInt(e.key);
+                if (n >= 1 && n <= 9) {
+                    e.preventDefault();
+                    const actions = [usePeek, useBomb]; // 1=peek, 2=bomb, more can be added
+                    if (actions[n - 1]) actions[n - 1]();
+                }
+            }
+            // In skill tree: 1-6 to switch branches
+            if (!$('#skillModal').hidden) {
+                const n = parseInt(e.key);
+                if (n >= 1 && n <= 6) {
+                    e.preventDefault();
+                    // no-op for now, tree is visual not tabbed
+                }
+            }
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && R?.phase === 'playing') pauseRound()
+        });
+        addEventListener('resize', () => {
+            if (R && R.cardEls.length > 0) {/* re-layout */
+                const lay = getLayout(R.deck.length);
+                $('#board').style.gridTemplateColumns = `repeat(${lay.cols},var(--cw))`;
+                $('#board').style.setProperty('--cw', lay.sz + 'px');
+                $('#board').style.setProperty('--ch', Math.round(lay.sz * 1.28) + 'px');
+                $('#board').style.setProperty('--cr', Math.max(3, Math.round(lay.sz * .15)) + 'px');
+                $('#board').style.setProperty('--gap', lay.gap + 'px')
+            }
+        });
+
+// Init
+        updateHUD();
+        showWelcome();
+
+    })();
+</script>
+
+</body>
+</html>

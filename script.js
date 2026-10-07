@@ -286,6 +286,11 @@ const gamesData = {
 let currentCategory = 'all';
 let allGames = [];
 let i18nInitialized = false;
+// 分页加载
+const PAGE_SIZE = 24;
+let currentPage = 1;
+let filteredGames = [];
+let isLoading = false;
 
 document.addEventListener('i18n:initialized', () => {
     i18nInitialized = true;
@@ -324,6 +329,7 @@ function initializeApp() {
 function renderGames(category = 'all', searchTerm = '') {
     const gamesGrid = document.getElementById('gamesGrid');
     gamesGrid.innerHTML = '';
+    currentPage = 1;
 
     let gamesToShow = allGames;
 
@@ -340,10 +346,7 @@ function renderGames(category = 'all', searchTerm = '') {
         });
     }
 
-    gamesToShow.forEach((game, index) => {
-        const gameCard = createGameCard(game, index);
-        gamesGrid.appendChild(gameCard);
-    });
+    filteredGames = gamesToShow;
 
     if (gamesToShow.length === 0) {
         const emptyDiv = document.createElement('div');
@@ -354,7 +357,71 @@ function renderGames(category = 'all', searchTerm = '') {
             <p class="empty-state-text">${window.i18n?.t('games.try_other') || '试试其他关键词或分类'}</p>
         `;
         gamesGrid.appendChild(emptyDiv);
+        return;
     }
+
+    // 只渲染第一页
+    const firstPage = gamesToShow.slice(0, PAGE_SIZE);
+    firstPage.forEach((game, index) => {
+        const gameCard = createGameCard(game, index);
+        gamesGrid.appendChild(gameCard);
+    });
+
+    // 如果还有更多，添加加载更多按钮
+    if (gamesToShow.length > PAGE_SIZE) {
+        addLoadMoreButton(gamesGrid);
+    }
+}
+
+function addLoadMoreButton(container) {
+    // 移除旧的加载更多按钮
+    const oldBtn = document.getElementById('loadMoreBtn');
+    if (oldBtn) oldBtn.remove();
+
+    const remaining = filteredGames.length - currentPage * PAGE_SIZE;
+    if (remaining <= 0) return;
+
+    const btn = document.createElement('button');
+    btn.id = 'loadMoreBtn';
+    btn.className = 'load-more-btn';
+    btn.innerHTML = `<i class="fas fa-plus"></i> 加载更多 (还有 ${remaining} 个)`;
+    btn.onclick = loadMoreGames;
+    container.appendChild(btn);
+}
+
+function loadMoreGames() {
+    if (isLoading) return;
+    isLoading = true;
+
+    const gamesGrid = document.getElementById('gamesGrid');
+    const btn = document.getElementById('loadMoreBtn');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加载中...';
+        btn.disabled = true;
+    }
+
+    // 模拟轻微延迟，避免卡顿
+    setTimeout(() => {
+        currentPage++;
+        const start = (currentPage - 1) * PAGE_SIZE;
+        const end = start + PAGE_SIZE;
+        const nextPage = filteredGames.slice(start, end);
+
+        nextPage.forEach((game, index) => {
+            const gameCard = createGameCard(game, start + index);
+            gamesGrid.insertBefore(gameCard, btn);
+        });
+
+        const remaining = filteredGames.length - currentPage * PAGE_SIZE;
+        if (remaining > 0) {
+            btn.innerHTML = `<i class="fas fa-plus"></i> 加载更多 (还有 ${remaining} 个)`;
+            btn.disabled = false;
+        } else {
+            btn.remove();
+        }
+
+        isLoading = false;
+    }, 100);
 }
 
 function createGameCard(game, index) {

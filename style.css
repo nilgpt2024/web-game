@@ -777,6 +777,39 @@ body {
     color: var(--text-secondary);
 }
 
+/* 加载更多按钮 */
+.load-more-btn {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px auto 0;
+    padding: 14px 40px;
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(52, 211, 153, 0.15));
+    border: 1px solid rgba(129, 140, 248, 0.3);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.load-more-btn:hover {
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.25), rgba(52, 211, 153, 0.25));
+    border-color: rgba(129, 140, 248, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(129, 140, 248, 0.2);
+}
+
+.load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* ============================================
    统计区域
    ============================================ */

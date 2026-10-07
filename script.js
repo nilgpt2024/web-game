@@ -1,17 +1,17 @@
 const gamesData = {
     Puzzle: [
-        { name: '2048', path: 'games/Puzzle/2048/index.html', preview: 'games/Puzzle/2048/preview.webp', icon: 'fas fa-th', desc: '经典数字合并益智游戏' },
+        { name: '2048', path: 'games/Puzzle/2048/index.html', preview: 'games/Puzzle/2048/preview.webp', icon: 'fas fa-th', hot: true, desc: '经典数字合并益智游戏' },
         { name: 'Jigsaw Puzzle', path: 'games/Puzzle/Jigsaw-Puzzle/index.html', preview: 'games/Puzzle/Jigsaw-Puzzle/preview.webp', icon: 'fas fa-puzzle-piece', desc: '趣味拼图挑战' },
         { name: 'Klotski', path: 'games/Puzzle/Klotski/index.html', preview: 'games/Puzzle/Klotski/preview.webp', icon: 'fas fa-chess-board', desc: '华容道滑块解谜' },
         { name: 'Maze Escape', path: 'games/Puzzle/Maze-Escape/index.html', preview: 'games/Puzzle/Maze-Escape/preview.webp', icon: 'fas fa-route', desc: '迷宫逃脱冒险' },
-        { name: 'Minesweeper', path: 'games/Puzzle/Minesweeper/index.html', preview: 'games/Puzzle/Minesweeper/preview.webp', icon: 'fas fa-bomb', desc: '经典扫雷游戏' },
+        { name: 'Minesweeper', path: 'games/Puzzle/Minesweeper/index.html', preview: 'games/Puzzle/Minesweeper/preview.webp', icon: 'fas fa-bomb', hot: true, desc: '经典扫雷游戏' },
         { name: 'Spot Difference', path: 'games/Puzzle/Spot-Difference/index.html', preview: 'games/Puzzle/Spot-Difference/preview.webp', icon: 'fas fa-search', desc: '找不同挑战' },
-        { name: 'Sudoku', path: 'games/Puzzle/Sudoku/index.html', preview: 'games/Puzzle/Sudoku/preview.webp', icon: 'fas fa-table-cells', desc: '数独逻辑游戏' },
+        { name: 'Sudoku', path: 'games/Puzzle/Sudoku/index.html', preview: 'games/Puzzle/Sudoku/preview.webp', icon: 'fas fa-table-cells', hot: true, desc: '数独逻辑游戏' },
         { name: 'Tilting Maze', path: 'games/Puzzle/Tilting-Maze/index.html', preview: 'games/Puzzle/Tilting-Maze/preview.webp', icon: 'fas fa-compass', desc: '重力迷宫' },
-        { name: 'Sokoban', path: 'games/Puzzle/Sokoban/index.html', preview: 'games/Puzzle/Sokoban/preview.webp', icon: 'fas fa-box', desc: '3D推箱子解谜' },
+        { name: 'Sokoban', path: 'games/Puzzle/Sokoban/index.html', preview: 'games/Puzzle/Sokoban/preview.webp', icon: 'fas fa-box', hot: true, desc: '3D推箱子解谜' },
         { name: 'Tangram', path: 'games/Puzzle/Tangram/index.html', preview: 'games/Puzzle/Tangram/preview.webp', icon: 'fas fa-shapes', desc: '七巧板拼图' },
         { name: 'Cialdini-Persuasion-Lab', path: 'games/Puzzle/Cialdini-Persuasion-Lab/index.html', preview: 'games/Puzzle/Cialdini-Persuasion-Lab/preview.webp', icon: 'fas fa-brain', desc: '西奥迪尼影响力原理说服力训练' },
-        { name: 'Wordle', path: 'games/Puzzle/Wordle/index.html', preview: 'games/Puzzle/Wordle/preview.webp', icon: 'fas fa-font', desc: '经典五字母猜词游戏' },
+        { name: 'Wordle', path: 'games/Puzzle/Wordle/index.html', preview: 'games/Puzzle/Wordle/preview.webp', icon: 'fas fa-font', hot: true, desc: '经典五字母猜词游戏' },
         { name: 'Mastermind', path: 'games/Puzzle/Mastermind/index.html', preview: 'games/Puzzle/Mastermind/preview.webp', icon: 'fas fa-circle-dot', desc: '破解密码的经典推理游戏' },
         { name: 'Nonogram', path: 'games/Puzzle/Nonogram/index.html', preview: 'games/Puzzle/Nonogram/preview.webp', icon: 'fas fa-table-cells', desc: '逻辑推理填色游戏' },
         { name: 'Lights Out', path: 'games/Puzzle/Lights-Out/index.html', preview: 'games/Puzzle/Lights-Out/preview.webp', icon: 'fas fa-lightbulb', desc: '经典点灯解谜游戏' },
@@ -41,7 +41,7 @@ const gamesData = {
     Action: [
         { name: 'Archery', path: 'games/Action/Archery/index.html', preview: 'games/Action/Archery/preview.webp', icon: 'fas fa-bullseye', desc: '射箭竞技' },
         { name: 'Mount & Blade', path: 'games/Action/Archery-3D/dist/index.html', preview: 'games/Action/Archery-3D/dist/preview.webp', icon: 'fas fa-horse-head', desc: '骑马与砍杀：3D马上战场混战' },
-        { name: 'Breakout', path: 'games/Action/Breakout/index.html', preview: 'games/Action/Breakout/preview.webp', icon: 'fas fa-cube', desc: '打砖块游戏' },
+        { name: 'Breakout', path: 'games/Action/Breakout/index.html', preview: 'games/Action/Breakout/preview.webp', icon: 'fas fa-cube', hot: true, desc: '打砖块游戏' },
         { name: 'Crossy Road', path: 'games/Action/Crossy-Road/index.html', preview: 'games/Action/Crossy-Road/preview.webp', icon: 'fas fa-road', desc: '过马路挑战' },
         { name: 'Emoji Catcher', path: 'games/Action/Emoji-Catcher/index.html', preview: 'games/Action/Emoji-Catcher/preview.webp', icon: 'fas fa-smile', desc: '表情符号捕捉' },
         { name: 'Flappy Bird', path: 'games/Action/Flappy-Bird/index.html', preview: 'games/Action/Flappy-Bird/preview.webp', icon: 'fas fa-dove', desc: '飞翔的小鸟' },
@@ -59,15 +59,15 @@ const gamesData = {
         { name: 'Odyssey Expedition', path: 'games/Action/Odyssey-Expedition/index.html', preview: 'games/Action/Odyssey-Expedition/preview.webp', icon: 'fas fa-compass', desc: '奥德赛远征：3D海盗远航冒险' },
     ],
     Arcade: [
-        { name: 'Asteroids', path: 'games/Arcade/Asteroids/index.html', preview: 'games/Arcade/Asteroids/preview.webp', icon: 'fas fa-rocket', desc: '经典太空射击街机游戏' },
-        { name: 'Frogger', path: 'games/Arcade/Frogger/index.html', preview: 'games/Arcade/Frogger/preview.webp', icon: 'fas fa-frog', desc: '经典过街青蛙游戏' },
+        { name: 'Asteroids', path: 'games/Arcade/Asteroids/index.html', preview: 'games/Arcade/Asteroids/preview.webp', icon: 'fas fa-rocket', hot: true, desc: '经典太空射击街机游戏' },
+        { name: 'Frogger', path: 'games/Arcade/Frogger/index.html', preview: 'games/Arcade/Frogger/preview.webp', icon: 'fas fa-frog', hot: true, desc: '经典过街青蛙游戏' },
         { name: 'Bubble Shooter', path: 'games/Arcade/Bubble-Shooter/index.html', preview: 'games/Arcade/Bubble-Shooter/preview.webp', icon: 'fas fa-circle', desc: '泡泡龙射击' },
         { name: 'Candy Crush', path: 'games/Arcade/Candy-Crush/index.html', preview: 'games/Arcade/Candy-Crush/preview.webp', icon: 'fas fa-candy-cane', desc: '糖果消消乐' },
         { name: 'Jump Game', path: 'games/Arcade/Jump-Game/index.html', preview: 'games/Arcade/Jump-Game/preview.webp', icon: 'fas fa-person-running', desc: '跳跃冒险' },
-        { name: 'Pac-Man', path: 'games/Arcade/Pac-Man/index.html', preview: 'games/Arcade/Pac-Man/preview.webp', icon: 'fas fa-ghost', desc: '经典吃豆人' },
-        { name: 'Snake', path: 'games/Arcade/Snake/index.html', preview: 'games/Arcade/Snake/preview.webp', icon: 'fas fa-worm', desc: '贪吃蛇' },
+        { name: 'Pac-Man', path: 'games/Arcade/Pac-Man/index.html', preview: 'games/Arcade/Pac-Man/preview.webp', icon: 'fas fa-ghost', hot: true, desc: '经典吃豆人' },
+        { name: 'Snake', path: 'games/Arcade/Snake/index.html', preview: 'games/Arcade/Snake/preview.webp', icon: 'fas fa-worm', hot: true, desc: '贪吃蛇' },
         { name: 'Space Invaders', path: 'games/Arcade/Space-Invaders/index.html', preview: 'games/Arcade/Space-Invaders/preview.webp', icon: 'fas fa-space-shuttle', desc: '太空入侵者' },
-        { name: 'Tetris', path: 'games/Arcade/Tetris/index.html', preview: 'games/Arcade/Tetris/preview.webp', icon: 'fas fa-square', desc: '俄罗斯方块' },
+        { name: 'Tetris', path: 'games/Arcade/Tetris/index.html', preview: 'games/Arcade/Tetris/preview.webp', icon: 'fas fa-square', hot: true, desc: '俄罗斯方块' },
         { name: 'Tower Blocks', path: 'games/Arcade/Tower-Blocks/index.html', preview: 'games/Arcade/Tower-Blocks/preview.webp', icon: 'fas fa-layer-group', desc: '叠叠乐' },
         { name: 'DiabloJS', path: 'games/Arcade/Diablo-JS/index.html', preview: 'games/Arcade/Diablo-JS/preview.webp', icon: 'fas fa-sword', desc: '暗黑风格动作RPG' },
         { name: '3D 小行星', path: 'games/Arcade/Asteroids-3D/index.html', preview: 'games/Arcade/Asteroids-3D/preview.webp', icon: 'fas fa-rocket', desc: 'AI生成的3D太空射击游戏' },
@@ -126,7 +126,7 @@ const gamesData = {
         { name: 'Rock Paper Scissors', path: 'games/Board/Rock-Paper-Scissors/index.html', preview: 'games/Board/Rock-Paper-Scissors/preview.webp', icon: 'fas fa-hand-scissors', desc: '石头剪刀布' },
         { name: 'Tic Tac Toe', path: 'games/Board/Tic-Tac-Toe/index.html', preview: 'games/Board/Tic-Tac-Toe/preview.webp', icon: 'fas fa-hashtag', desc: '井字棋' },
         { name: 'Reversi', path: 'games/Board/Reversi/index.html', preview: 'games/Board/Reversi/preview.webp', icon: 'fas fa-circle-half-stroke', desc: '3D黑白棋' },
-        { name: 'Solitaire', path: 'games/Board/Solitaire/index.html', preview: 'games/Board/Solitaire/preview.webp', icon: 'fas fa-layer-group', desc: '纸牌接龙' },
+        { name: 'Solitaire', path: 'games/Board/Solitaire/index.html', preview: 'games/Board/Solitaire/preview.webp', icon: 'fas fa-layer-group', hot: true, desc: '纸牌接龙' },
         { name: 'Mahjong Connect', path: 'games/Board/Mahjong-Connect/index.html', preview: 'games/Board/Mahjong-Connect/preview.webp', icon: 'fas fa-border-all', desc: '麻将连连看' },
     ],
     Memory: [
@@ -169,7 +169,7 @@ const gamesData = {
     ],
     Astra: [
         { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', preview: 'games/Astra/Orbital-Garden/preview.webp', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },
-        { name: 'Thunderfall', path: 'games/Astra/Thunderfall/index.html', preview: 'games/Astra/Thunderfall/preview.webp', icon: 'fas fa-rocket', desc: '雷霆战机·天穹远征：纵向弹幕射击' },
+        { name: 'Thunderfall', path: 'games/Astra/Thunderfall/index.html', preview: 'games/Astra/Thunderfall/preview.webp', icon: 'fas fa-rocket', hot: true, desc: '雷霆战机·天穹远征：纵向弹幕射击' },
         { name: 'APEX CLUB', path: 'games/Astra/Apex-Club/index.html', preview: 'games/Astra/Apex-Club/preview.webp', icon: 'fas fa-car', desc: 'Bay Circuit 3D卡丁车大奖赛' },
         { name: 'Mosswing', path: 'games/Astra/Mosswing/index.html', preview: 'games/Astra/Mosswing/preview.webp', icon: 'fas fa-leaf', desc: '物理沙盒：动量重力与软体' },
         { name: 'Melon Lab', path: 'games/Astra/Melon-Lab/index.html', preview: 'games/Astra/Melon-Lab/preview.webp', icon: 'fas fa-apple-whole', desc: '瓜体实验室：甜瓜物理沙盒' },
@@ -315,6 +315,7 @@ function initializeApp() {
     }
 
     renderGames();
+    renderHotGames();
     bindEvents();
     setupNavigation();
     setupBackToTop();
@@ -324,6 +325,20 @@ function initializeApp() {
     
     console.log('%c🎮 WebGameHub v2.0', 'font-size: 20px; font-weight: bold; color: #0d9488;');
     console.log(`%c${window.i18n?.t('hero.stats.games') || 'Total games'}: ${allGames.length}`, 'color: #ea580c;');
+}
+
+function renderHotGames() {
+    const hotGrid = document.getElementById('hotGrid');
+    if (!hotGrid) return;
+
+    // 取标记为hot的游戏，最多12个
+    const hotGames = allGames.filter(g => g.hot).slice(0, 12);
+    hotGrid.innerHTML = '';
+
+    hotGames.forEach((game, index) => {
+        const card = createGameCard(game, index);
+        hotGrid.appendChild(card);
+    });
 }
 
 function renderGames(category = 'all', searchTerm = '') {
@@ -437,10 +452,23 @@ function createGameCard(game, index) {
     const localizedDesc = window.i18n?.t(`games.${game.name}_desc`) || game.desc;
     const localizedCategory = getCategoryName(game.category);
 
+    // 标签：AI生成、热门、新品
+    const tags = [];
+    if (game.category === 'Astra' || game.category === 'GenArt') {
+        tags.push('<span class="game-tag tag-ai">AI</span>');
+    }
+    if (game.hot) {
+        tags.push('<span class="game-tag tag-hot">🔥 热门</span>');
+    }
+    if (game.isNew) {
+        tags.push('<span class="game-tag tag-new">NEW</span>');
+    }
+
     card.innerHTML = `
         <div class="card-shell">
             <div class="card-thumb">
                 <span class="category-tag">${localizedCategory}</span>
+                ${tags.join('')}
                 ${game.preview ? `<img src="${game.preview}" alt="${localizedName}" loading="lazy" class="card-img">` : `<i class="thumb-icon ${game.icon}"></i>`}
             </div>
             <div class="card-body">

@@ -734,6 +734,39 @@ body {
     z-index: 2;
 }
 
+/* 游戏标签 */
+.game-tag {
+    position: absolute;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    z-index: 3;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tag-ai {
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+    color: white;
+}
+
+.tag-hot {
+    top: 42px;
+    right: 12px;
+    background: linear-gradient(135deg, #EF4444, #F59E0B);
+    color: white;
+}
+
+.tag-new {
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #10B981, #059669);
+    color: white;
+}
+
 /* 卡片内容 */
 .card-body {
     padding: 16px 18px 20px;
@@ -755,6 +788,26 @@ body {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* 热门推荐区域 */
+.hot-section {
+    padding: 60px 0 40px;
+}
+
+.hot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+}
+
+.hot-grid .game-card {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* 空状态 */

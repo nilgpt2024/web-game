@@ -133,6 +133,7 @@ const gamesData = {
         { name: '两真一假', path: 'games/Casual/Two-Truths-One-Lie/index.html', preview: 'games/Casual/Two-Truths-One-Lie/preview.png', icon: 'fas fa-theater-masks', desc: 'AI生成·猜谎游戏' },
         { name: '猴子打字', path: 'games/Typing/MonkeyType/index.html', preview: 'games/Typing/MonkeyType/preview.png', icon: 'fas fa-keyboard', desc: 'AI生成·打字测试' },
         { name: '文字雨', path: 'games/Typing/Word-Rain/index.html', preview: 'games/Typing/Word-Rain/preview.png', icon: 'fas fa-cloud-rain', desc: 'AI生成·打字雨' },
+        { name: '魔毯巫师', path: 'games/Arcade/Magic-Carpet-Wizard/index.html', preview: 'games/Arcade/Magic-Carpet-Wizard/preview.png', icon: 'fas fa-hat-wizard', desc: 'AI生成·魔法飞毯冒险' },
     ],
     Board: [
         { name: 'Gomoku', path: 'games/Board/Gomoku/index.html', preview: 'games/Board/Gomoku/preview.png', icon: 'fas fa-circle-dot', desc: '五子棋对战' },

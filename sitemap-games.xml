@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://game.suipce.com/games/Action/Archery-3D/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Action/Archery-3D/dist/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Archery/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Breakout/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Crossy-Road/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -11,11 +10,6 @@
   <url><loc>https://game.suipce.com/games/Action/Flappy-Bird/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Fruit-Slicer/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/dist/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/dashboard/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/htmlReport/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/recorder/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Action/Ink-Raiders/node_modules/playwright-core/lib/vite/traceViewer/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Insect-Catch/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Odyssey-Expedition/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Odyssey-Voyage/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -27,7 +21,6 @@
   <url><loc>https://game.suipce.com/games/Action/Reaction-Test/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Shape-Clicker/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Space-Shooter-3D/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Action/Space-Shooter-3D/dist/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Space-Shooter/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/Whack-A-Mole/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Action/aim-trainer/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -382,11 +375,6 @@
   <url><loc>https://game.suipce.com/games/Puzzle/Animals/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Blind-Crest/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/dist/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/dashboard/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/htmlReport/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/recorder/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-3D/node_modules/playwright-core/lib/vite/traceViewer/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Cialdini-Persuasion-Lab/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Color-Flood/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://game.suipce.com/games/Puzzle/Color-Guessing/</loc><lastmod>2026-10-08</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>

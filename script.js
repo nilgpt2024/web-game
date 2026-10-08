@@ -70,7 +70,8 @@ const gamesData = {
         { name: 'Tile Tap', path: 'games/Puzzle/tile-tap/index.html', preview: 'games/Puzzle/tile-tap/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Tile Tap游戏', isNew: true },
         { name: 'Unruly', path: 'games/Puzzle/unruly/index.html', preview: 'games/Puzzle/unruly/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Unruly游戏', isNew: true },
         { name: 'Math Quest', path: 'games/Puzzle/math-quest/index.html', preview: 'games/Puzzle/math-quest/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Math Quest游戏', isNew: true },
-        { name: 'Words Of Wonder', path: 'games/Puzzle/words-of-wonder/index.html', preview: 'games/Puzzle/words-of-wonder/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Words Of Wonder游戏', isNew: true }
+        { name: 'Words Of Wonder', path: 'games/Puzzle/words-of-wonder/index.html', preview: 'games/Puzzle/words-of-wonder/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Words Of Wonder游戏', isNew: true },
+        { name: 'Silent Meridian', path: 'games/Astra/Silent-Meridian/index.html', preview: 'games/Astra/Silent-Meridian/preview.webp', icon: 'fas fa-compass', desc: '静默子午线：网页解谜游戏' },
     ],
     Action: [
         { name: 'Archery', path: 'games/Action/Archery/index.html', preview: 'games/Action/Archery/preview.webp', icon: 'fas fa-bullseye', desc: '射箭竞技' },
@@ -133,7 +134,9 @@ const gamesData = {
         { name: 'Tower Shooter', path: 'games/Action/tower-shooter/index.html', preview: 'games/Action/tower-shooter/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Tower Shooter游戏', isNew: true },
         { name: 'Trench Defence', path: 'games/Action/trench-defence/index.html', preview: 'games/Action/trench-defence/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Trench Defence游戏', isNew: true },
         { name: 'Vaccine Shooter', path: 'games/Action/vaccine-shooter/index.html', preview: 'games/Action/vaccine-shooter/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Vaccine Shooter游戏', isNew: true },
-        { name: 'Window Shooter', path: 'games/Action/window-shooter/index.html', preview: 'games/Action/window-shooter/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Window Shooter游戏', isNew: true }
+        { name: 'Window Shooter', path: 'games/Action/window-shooter/index.html', preview: 'games/Action/window-shooter/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Window Shooter游戏', isNew: true },
+        { name: 'Last Beacon', path: 'games/Astra/Last-Beacon/index.html', preview: 'games/Astra/Last-Beacon/preview.webp', icon: 'fas fa-tower-broadcast', desc: '最后的灯塔：3D海岛塔防' },
+        { name: 'Dual Realms', path: 'games/Astra/Dual-Realms/index.html', preview: 'games/Astra/Dual-Realms/preview.webp', icon: 'fas fa-khanda', desc: '时域·放学路：中文横版动作' },
     ],
     Arcade: [
         { name: 'Asteroids', path: 'games/Arcade/Asteroids/index.html', preview: 'games/Arcade/Asteroids/preview.webp', icon: 'fas fa-rocket', hot: true, desc: '经典太空射击街机游戏' },
@@ -234,7 +237,11 @@ const gamesData = {
         { name: 'Straight Rush', path: 'games/Arcade/straight-rush/index.html', preview: 'games/Arcade/straight-rush/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Straight Rush游戏', isNew: true },
         { name: 'Survival Run', path: 'games/Arcade/survival-run/index.html', preview: 'games/Arcade/survival-run/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Survival Run游戏', isNew: true },
         { name: 'Two Cars', path: 'games/Arcade/two-cars/index.html', preview: 'games/Arcade/two-cars/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Two Cars游戏', isNew: true },
-        { name: 'Two Cars Ai', path: 'games/Arcade/two-cars-ai/index.html', preview: 'games/Arcade/two-cars-ai/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Two Cars Ai游戏', isNew: true }
+        { name: 'Two Cars Ai', path: 'games/Arcade/two-cars-ai/index.html', preview: 'games/Arcade/two-cars-ai/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Two Cars Ai游戏', isNew: true },
+        { name: 'Thunderfall', path: 'games/Astra/Thunderfall/index.html', preview: 'games/Astra/Thunderfall/preview.webp', icon: 'fas fa-rocket', hot: true, desc: '雷霆战机·天穹远征：纵向弹幕射击' },
+        { name: 'APEX CLUB', path: 'games/Astra/Apex-Club/index.html', preview: 'games/Astra/Apex-Club/preview.webp', icon: 'fas fa-car', desc: 'Bay Circuit 3D卡丁车大奖赛' },
+        { name: 'Fruit Ninja', path: 'games/Astra/Fruit-Ninja-Dojo/index.html', preview: 'games/Astra/Fruit-Ninja-Dojo/preview.webp', icon: 'fas fa-apple-whole', desc: '水果忍者·再来一刀：经典切水果' },
+        { name: 'Race Jimothy', path: 'games/Astra/Race-Jimothy/index.html', preview: 'games/Astra/Race-Jimothy/preview.webp', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' },
     ],
     Board: [
         { name: 'Connect Four', path: 'games/Board/Connect-Four/index.html', preview: 'games/Board/Connect-Four/preview.webp', icon: 'fas fa-circle', desc: '经典四子连珠策略游戏' },
@@ -339,123 +346,115 @@ const gamesData = {
         { name: 'Cricket 123', path: 'games/Casual/cricket-123/index.html', preview: 'games/Casual/cricket-123/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Cricket 123游戏', isNew: true },
         { name: 'Football', path: 'games/Casual/football/index.html', preview: 'games/Casual/football/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Football游戏', isNew: true },
         { name: 'Penalty', path: 'games/Casual/penalty/index.html', preview: 'games/Casual/penalty/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Penalty游戏', isNew: true },
-        { name: 'Table Tennis', path: 'games/Casual/table-tennis/index.html', preview: 'games/Casual/table-tennis/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Table Tennis游戏', isNew: true }
-    ],
-    Astra: [
-        { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', preview: 'games/Astra/Orbital-Garden/preview.webp', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },
-        { name: 'Thunderfall', path: 'games/Astra/Thunderfall/index.html', preview: 'games/Astra/Thunderfall/preview.webp', icon: 'fas fa-rocket', hot: true, desc: '雷霆战机·天穹远征：纵向弹幕射击' },
-        { name: 'APEX CLUB', path: 'games/Astra/Apex-Club/index.html', preview: 'games/Astra/Apex-Club/preview.webp', icon: 'fas fa-car', desc: 'Bay Circuit 3D卡丁车大奖赛' },
+        { name: 'Table Tennis', path: 'games/Casual/table-tennis/index.html', preview: 'games/Casual/table-tennis/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Table Tennis游戏', isNew: true },
         { name: 'Mosswing', path: 'games/Astra/Mosswing/index.html', preview: 'games/Astra/Mosswing/preview.webp', icon: 'fas fa-leaf', desc: '物理沙盒：动量重力与软体' },
         { name: 'Melon Lab', path: 'games/Astra/Melon-Lab/index.html', preview: 'games/Astra/Melon-Lab/preview.webp', icon: 'fas fa-apple-whole', desc: '瓜体实验室：甜瓜物理沙盒' },
-        { name: 'Last Beacon', path: 'games/Astra/Last-Beacon/index.html', preview: 'games/Astra/Last-Beacon/preview.webp', icon: 'fas fa-tower-broadcast', desc: '最后的灯塔：3D海岛塔防' },
-        { name: 'Silent Meridian', path: 'games/Astra/Silent-Meridian/index.html', preview: 'games/Astra/Silent-Meridian/preview.webp', icon: 'fas fa-compass', desc: '静默子午线：网页解谜游戏' },
-        { name: 'Dual Realms', path: 'games/Astra/Dual-Realms/index.html', preview: 'games/Astra/Dual-Realms/preview.webp', icon: 'fas fa-khanda', desc: '时域·放学路：中文横版动作' },
-        { name: 'Race Jimothy', path: 'games/Astra/Race-Jimothy/index.html', preview: 'games/Astra/Race-Jimothy/preview.webp', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' },
-        { name: 'Fruit Ninja', path: 'games/Astra/Fruit-Ninja-Dojo/index.html', preview: 'games/Astra/Fruit-Ninja-Dojo/preview.webp', icon: 'fas fa-apple-whole', desc: '水果忍者·再来一刀：经典切水果' },
-    ],
-    GenArt: [
-        { name: '极光观测台', path: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/index.html', preview: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '形态编辑', path: 'games/Astra/MiaAI-Experiences/002-form-editorial/index.html', preview: 'games/Astra/MiaAI-Experiences/002-form-editorial/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '动力时间', path: 'games/Astra/MiaAI-Experiences/003-kinetic-time/index.html', preview: 'games/Astra/MiaAI-Experiences/003-kinetic-time/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '沙丘居所', path: 'games/Astra/MiaAI-Experiences/004-dune-residence/index.html', preview: 'games/Astra/MiaAI-Experiences/004-dune-residence/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '深渊声纳', path: 'games/Astra/MiaAI-Experiences/005-abyss-sonar/index.html', preview: 'games/Astra/MiaAI-Experiences/005-abyss-sonar/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: 'A面唱片', path: 'games/Astra/MiaAI-Experiences/006-side-a-records/index.html', preview: 'games/Astra/MiaAI-Experiences/006-side-a-records/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '植物标本馆', path: 'games/Astra/MiaAI-Experiences/007-herbarium/index.html', preview: 'games/Astra/MiaAI-Experiences/007-herbarium/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '珍珠香水', path: 'games/Astra/MiaAI-Experiences/008-nacre-parfum/index.html', preview: 'games/Astra/MiaAI-Experiences/008-nacre-parfum/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '非常规练习', path: 'games/Astra/MiaAI-Experiences/009-unusual-practice/index.html', preview: 'games/Astra/MiaAI-Experiences/009-unusual-practice/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '熔岩酒廊', path: 'games/Astra/MiaAI-Experiences/010-lava-lounge/index.html', preview: 'games/Astra/MiaAI-Experiences/010-lava-lounge/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '远方明信片', path: 'games/Astra/MiaAI-Experiences/011-postcards-from-elsewhere/index.html', preview: 'games/Astra/MiaAI-Experiences/011-postcards-from-elsewhere/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '文字花园', path: 'games/Astra/MiaAI-Experiences/012-word-garden/index.html', preview: 'games/Astra/MiaAI-Experiences/012-word-garden/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '像素果园', path: 'games/Astra/MiaAI-Experiences/013-pixel-orchard/index.html', preview: 'games/Astra/MiaAI-Experiences/013-pixel-orchard/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '风暴之窗', path: 'games/Astra/MiaAI-Experiences/014-storm-window/index.html', preview: 'games/Astra/MiaAI-Experiences/014-storm-window/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '折纸工作室', path: 'games/Astra/MiaAI-Experiences/015-fold-studio/index.html', preview: 'games/Astra/MiaAI-Experiences/015-fold-studio/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '光之蓝图', path: 'games/Astra/MiaAI-Experiences/016-blueprint-of-light/index.html', preview: 'games/Astra/MiaAI-Experiences/016-blueprint-of-light/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '水母芭蕾', path: 'games/Astra/MiaAI-Experiences/017-jellyfish-ballet/index.html', preview: 'games/Astra/MiaAI-Experiences/017-jellyfish-ballet/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '迷宫俱乐部', path: 'games/Astra/MiaAI-Experiences/018-labyrinth-club/index.html', preview: 'games/Astra/MiaAI-Experiences/018-labyrinth-club/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '木漏日厨房', path: 'games/Astra/MiaAI-Experiences/019-komorebi-kitchen/index.html', preview: 'games/Astra/MiaAI-Experiences/019-komorebi-kitchen/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '色度场', path: 'games/Astra/MiaAI-Experiences/020-chroma-field/index.html', preview: 'games/Astra/MiaAI-Experiences/020-chroma-field/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '出发时刻表', path: 'games/Astra/MiaAI-Experiences/021-departure-board/index.html', preview: 'games/Astra/MiaAI-Experiences/021-departure-board/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '线与形', path: 'games/Astra/MiaAI-Experiences/022-thread-and-form/index.html', preview: 'games/Astra/MiaAI-Experiences/022-thread-and-form/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '山脊线', path: 'games/Astra/MiaAI-Experiences/023-ridgeline/index.html', preview: 'games/Astra/MiaAI-Experiences/023-ridgeline/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '小小胜利', path: 'games/Astra/MiaAI-Experiences/024-small-victories/index.html', preview: 'games/Astra/MiaAI-Experiences/024-small-victories/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '航空形态', path: 'games/Astra/MiaAI-Experiences/025-aero-form/index.html', preview: 'games/Astra/MiaAI-Experiences/025-aero-form/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '潮汐时刻', path: 'games/Astra/MiaAI-Experiences/026-tidal-hours/index.html', preview: 'games/Astra/MiaAI-Experiences/026-tidal-hours/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '矿物陈列柜', path: 'games/Astra/MiaAI-Experiences/027-mineral-cabinet/index.html', preview: 'games/Astra/MiaAI-Experiences/027-mineral-cabinet/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '月历', path: 'games/Astra/MiaAI-Experiences/028-lunar-calendar/index.html', preview: 'games/Astra/MiaAI-Experiences/028-lunar-calendar/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '花粉图谱', path: 'games/Astra/MiaAI-Experiences/029-pollen-atlas/index.html', preview: 'games/Astra/MiaAI-Experiences/029-pollen-atlas/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '等高线办公室', path: 'games/Astra/MiaAI-Experiences/030-contour-office/index.html', preview: 'games/Astra/MiaAI-Experiences/030-contour-office/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '鲸鱼频率', path: 'games/Astra/MiaAI-Experiences/031-whale-frequency/index.html', preview: 'games/Astra/MiaAI-Experiences/031-whale-frequency/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '蕨类温室', path: 'games/Astra/MiaAI-Experiences/032-fern-house/index.html', preview: 'games/Astra/MiaAI-Experiences/032-fern-house/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '气压计房间', path: 'games/Astra/MiaAI-Experiences/033-barometer-room/index.html', preview: 'games/Astra/MiaAI-Experiences/033-barometer-room/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '日食密室', path: 'games/Astra/MiaAI-Experiences/034-eclipse-chamber/index.html', preview: 'games/Astra/MiaAI-Experiences/034-eclipse-chamber/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '珊瑚礁保护区', path: 'games/Astra/MiaAI-Experiences/035-reef-reserve/index.html', preview: 'games/Astra/MiaAI-Experiences/035-reef-reserve/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '北极日记', path: 'games/Astra/MiaAI-Experiences/036-arctic-journal/index.html', preview: 'games/Astra/MiaAI-Experiences/036-arctic-journal/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '迁徙地图', path: 'games/Astra/MiaAI-Experiences/037-migration-map/index.html', preview: 'games/Astra/MiaAI-Experiences/037-migration-map/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '棱镜工作室', path: 'games/Astra/MiaAI-Experiences/038-prism-studio/index.html', preview: 'games/Astra/MiaAI-Experiences/038-prism-studio/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '沙之记忆', path: 'games/Astra/MiaAI-Experiences/039-sand-memory/index.html', preview: 'games/Astra/MiaAI-Experiences/039-sand-memory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '太阳花园', path: 'games/Astra/MiaAI-Experiences/040-solar-garden/index.html', preview: 'games/Astra/MiaAI-Experiences/040-solar-garden/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '灯笼节', path: 'games/Astra/MiaAI-Experiences/041-lantern-festival/index.html', preview: 'games/Astra/MiaAI-Experiences/041-lantern-festival/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '纸张博物馆', path: 'games/Astra/MiaAI-Experiences/042-paper-museum/index.html', preview: 'games/Astra/MiaAI-Experiences/042-paper-museum/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '日晷庭院', path: 'games/Astra/MiaAI-Experiences/043-sundial-courtyard/index.html', preview: 'games/Astra/MiaAI-Experiences/043-sundial-courtyard/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '思维网络', path: 'games/Astra/MiaAI-Experiences/044-thought-network/index.html', preview: 'games/Astra/MiaAI-Experiences/044-thought-network/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '种子图书馆', path: 'games/Astra/MiaAI-Experiences/045-seed-library/index.html', preview: 'games/Astra/MiaAI-Experiences/045-seed-library/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '风之礼拜堂', path: 'games/Astra/MiaAI-Experiences/046-wind-chapel/index.html', preview: 'games/Astra/MiaAI-Experiences/046-wind-chapel/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '冰芯档案', path: 'games/Astra/MiaAI-Experiences/047-ice-core-archive/index.html', preview: 'games/Astra/MiaAI-Experiences/047-ice-core-archive/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '梦境索引', path: 'games/Astra/MiaAI-Experiences/048-dream-index/index.html', preview: 'games/Astra/MiaAI-Experiences/048-dream-index/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '墨水扩散', path: 'games/Astra/MiaAI-Experiences/049-ink-diffusion/index.html', preview: 'games/Astra/MiaAI-Experiences/049-ink-diffusion/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '星辰导航', path: 'games/Astra/MiaAI-Experiences/050-star-navigation/index.html', preview: 'games/Astra/MiaAI-Experiences/050-star-navigation/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '茶道', path: 'games/Astra/MiaAI-Experiences/051-tea-ceremony/index.html', preview: 'games/Astra/MiaAI-Experiences/051-tea-ceremony/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '液压平衡', path: 'games/Astra/MiaAI-Experiences/052-hydraulic-balance/index.html', preview: 'games/Astra/MiaAI-Experiences/052-hydraulic-balance/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '字体标本', path: 'games/Astra/MiaAI-Experiences/053-type-specimen/index.html', preview: 'games/Astra/MiaAI-Experiences/053-type-specimen/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '月球规划器', path: 'games/Astra/MiaAI-Experiences/054-lunar-planner/index.html', preview: 'games/Astra/MiaAI-Experiences/054-lunar-planner/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '色彩混合器', path: 'games/Astra/MiaAI-Experiences/055-chromatic-mixer/index.html', preview: 'games/Astra/MiaAI-Experiences/055-chromatic-mixer/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '午夜电台', path: 'games/Astra/MiaAI-Experiences/056-midnight-radio/index.html', preview: 'games/Astra/MiaAI-Experiences/056-midnight-radio/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '禅石', path: 'games/Astra/MiaAI-Experiences/057-zen-stones/index.html', preview: 'games/Astra/MiaAI-Experiences/057-zen-stones/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '档案金库', path: 'games/Astra/MiaAI-Experiences/058-archive-vault/index.html', preview: 'games/Astra/MiaAI-Experiences/058-archive-vault/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '冲刺时钟', path: 'games/Astra/MiaAI-Experiences/059-sprint-clock/index.html', preview: 'games/Astra/MiaAI-Experiences/059-sprint-clock/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '意面餐桌', path: 'games/Astra/MiaAI-Experiences/060-pasta-table/index.html', preview: 'games/Astra/MiaAI-Experiences/060-pasta-table/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '地铁地图', path: 'games/Astra/MiaAI-Experiences/061-metro-map/index.html', preview: 'games/Astra/MiaAI-Experiences/061-metro-map/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '星图', path: 'games/Astra/MiaAI-Experiences/062-star-atlas/index.html', preview: 'games/Astra/MiaAI-Experiences/062-star-atlas/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '声音形状', path: 'games/Astra/MiaAI-Experiences/063-sound-shapes/index.html', preview: 'games/Astra/MiaAI-Experiences/063-sound-shapes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '第四维度', path: 'games/Astra/MiaAI-Experiences/064-fourth-dimension/index.html', preview: 'games/Astra/MiaAI-Experiences/064-fourth-dimension/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '绽放实验室', path: 'games/Astra/MiaAI-Experiences/065-bloom-lab/index.html', preview: 'games/Astra/MiaAI-Experiences/065-bloom-lab/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '骑士巡游', path: 'games/Astra/MiaAI-Experiences/066-knights-tour/index.html', preview: 'games/Astra/MiaAI-Experiences/066-knights-tour/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '冰川研究', path: 'games/Astra/MiaAI-Experiences/067-glacier-study/index.html', preview: 'games/Astra/MiaAI-Experiences/067-glacier-study/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '田野笔记', path: 'games/Astra/MiaAI-Experiences/068-field-notes/index.html', preview: 'games/Astra/MiaAI-Experiences/068-field-notes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '夜车票', path: 'games/Astra/MiaAI-Experiences/069-night-ticket/index.html', preview: 'games/Astra/MiaAI-Experiences/069-night-ticket/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '动力平衡', path: 'games/Astra/MiaAI-Experiences/070-kinetic-balance/index.html', preview: 'games/Astra/MiaAI-Experiences/070-kinetic-balance/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '专注房间', path: 'games/Astra/MiaAI-Experiences/071-focus-room/index.html', preview: 'games/Astra/MiaAI-Experiences/071-focus-room/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '像素拼布', path: 'games/Astra/MiaAI-Experiences/072-pixel-quilt/index.html', preview: 'games/Astra/MiaAI-Experiences/072-pixel-quilt/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '酒窖笔记', path: 'games/Astra/MiaAI-Experiences/073-cellar-notes/index.html', preview: 'games/Astra/MiaAI-Experiences/073-cellar-notes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '轨道预算', path: 'games/Astra/MiaAI-Experiences/074-orbit-budget/index.html', preview: 'games/Astra/MiaAI-Experiences/074-orbit-budget/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '云作曲家', path: 'games/Astra/MiaAI-Experiences/075-cloud-composer/index.html', preview: 'games/Astra/MiaAI-Experiences/075-cloud-composer/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '工作室平面图', path: 'games/Astra/MiaAI-Experiences/076-atelier-plan/index.html', preview: 'games/Astra/MiaAI-Experiences/076-atelier-plan/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '金缮修复', path: 'games/Astra/MiaAI-Experiences/077-golden-repair/index.html', preview: 'games/Astra/MiaAI-Experiences/077-golden-repair/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '午夜影院', path: 'games/Astra/MiaAI-Experiences/078-midnight-cinema/index.html', preview: 'games/Astra/MiaAI-Experiences/078-midnight-cinema/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '岛屿图谱', path: 'games/Astra/MiaAI-Experiences/079-island-atlas/index.html', preview: 'games/Astra/MiaAI-Experiences/079-island-atlas/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '时间物件', path: 'games/Astra/MiaAI-Experiences/080-hour-object/index.html', preview: 'games/Astra/MiaAI-Experiences/080-hour-object/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '色彩礼拜堂', path: 'games/Astra/MiaAI-Experiences/081-chromatic-chapel/index.html', preview: 'games/Astra/MiaAI-Experiences/081-chromatic-chapel/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '黏土形态', path: 'games/Astra/MiaAI-Experiences/082-clay-form/index.html', preview: 'games/Astra/MiaAI-Experiences/082-clay-form/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '字母铸造厂', path: 'games/Astra/MiaAI-Experiences/083-letter-foundry/index.html', preview: 'games/Astra/MiaAI-Experiences/083-letter-foundry/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '环形世界', path: 'games/Astra/MiaAI-Experiences/084-ring-world/index.html', preview: 'games/Astra/MiaAI-Experiences/084-ring-world/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '夜行列车', path: 'games/Astra/MiaAI-Experiences/085-night-train/index.html', preview: 'games/Astra/MiaAI-Experiences/085-night-train/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '编织记忆', path: 'games/Astra/MiaAI-Experiences/086-woven-memory/index.html', preview: 'games/Astra/MiaAI-Experiences/086-woven-memory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '大理石房间', path: 'games/Astra/MiaAI-Experiences/087-marble-room/index.html', preview: 'games/Astra/MiaAI-Experiences/087-marble-room/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '焚香时刻', path: 'games/Astra/MiaAI-Experiences/088-incense-hour/index.html', preview: 'games/Astra/MiaAI-Experiences/088-incense-hour/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '黑胶之夜', path: 'games/Astra/MiaAI-Experiences/089-vinyl-evening/index.html', preview: 'games/Astra/MiaAI-Experiences/089-vinyl-evening/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '玻璃温室', path: 'games/Astra/MiaAI-Experiences/090-glasshouse/index.html', preview: 'games/Astra/MiaAI-Experiences/090-glasshouse/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '水墨山水', path: 'games/Astra/MiaAI-Experiences/091-ink-mountains/index.html', preview: 'games/Astra/MiaAI-Experiences/091-ink-mountains/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '航空邮件', path: 'games/Astra/MiaAI-Experiences/092-aerogram/index.html', preview: 'games/Astra/MiaAI-Experiences/092-aerogram/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '093 Cellar Notes', path: 'games/Astra/MiaAI-Experiences/093-cellar-notes/index.html', preview: 'games/Astra/MiaAI-Experiences/093-cellar-notes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '缎带排练', path: 'games/Astra/MiaAI-Experiences/094-ribbon-rehearsal/index.html', preview: 'games/Astra/MiaAI-Experiences/094-ribbon-rehearsal/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '光之时辰', path: 'games/Astra/MiaAI-Experiences/095-light-hour/index.html', preview: 'games/Astra/MiaAI-Experiences/095-light-hour/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '磁性物质', path: 'games/Astra/MiaAI-Experiences/096-magnetic-matter/index.html', preview: 'games/Astra/MiaAI-Experiences/096-magnetic-matter/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '小小神谕', path: 'games/Astra/MiaAI-Experiences/097-small-oracle/index.html', preview: 'games/Astra/MiaAI-Experiences/097-small-oracle/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '泳池边俱乐部', path: 'games/Astra/MiaAI-Experiences/098-poolside-club/index.html', preview: 'games/Astra/MiaAI-Experiences/098-poolside-club/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '旁注', path: 'games/Astra/MiaAI-Experiences/099-marginalia/index.html', preview: 'games/Astra/MiaAI-Experiences/099-marginalia/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
-        { name: '有机波实验室', path: 'games/Astra/MiaAI-Experiences/100-organic-wave-lab/index.html', preview: 'games/Astra/MiaAI-Experiences/100-organic-wave-lab/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
     ],
 };
+// 生成艺术体验（AI 生成交互体验合集）：独立于玩法分类展示，不参与筛选与计数
+const genArtExperiences = [
+    { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', preview: 'games/Astra/Orbital-Garden/preview.webp', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },
+    { name: '极光观测台', path: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/index.html', preview: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '形态编辑', path: 'games/Astra/MiaAI-Experiences/002-form-editorial/index.html', preview: 'games/Astra/MiaAI-Experiences/002-form-editorial/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '动力时间', path: 'games/Astra/MiaAI-Experiences/003-kinetic-time/index.html', preview: 'games/Astra/MiaAI-Experiences/003-kinetic-time/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '沙丘居所', path: 'games/Astra/MiaAI-Experiences/004-dune-residence/index.html', preview: 'games/Astra/MiaAI-Experiences/004-dune-residence/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '深渊声纳', path: 'games/Astra/MiaAI-Experiences/005-abyss-sonar/index.html', preview: 'games/Astra/MiaAI-Experiences/005-abyss-sonar/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: 'A面唱片', path: 'games/Astra/MiaAI-Experiences/006-side-a-records/index.html', preview: 'games/Astra/MiaAI-Experiences/006-side-a-records/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '植物标本馆', path: 'games/Astra/MiaAI-Experiences/007-herbarium/index.html', preview: 'games/Astra/MiaAI-Experiences/007-herbarium/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '珍珠香水', path: 'games/Astra/MiaAI-Experiences/008-nacre-parfum/index.html', preview: 'games/Astra/MiaAI-Experiences/008-nacre-parfum/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '非常规练习', path: 'games/Astra/MiaAI-Experiences/009-unusual-practice/index.html', preview: 'games/Astra/MiaAI-Experiences/009-unusual-practice/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '熔岩酒廊', path: 'games/Astra/MiaAI-Experiences/010-lava-lounge/index.html', preview: 'games/Astra/MiaAI-Experiences/010-lava-lounge/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '远方明信片', path: 'games/Astra/MiaAI-Experiences/011-postcards-from-elsewhere/index.html', preview: 'games/Astra/MiaAI-Experiences/011-postcards-from-elsewhere/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '文字花园', path: 'games/Astra/MiaAI-Experiences/012-word-garden/index.html', preview: 'games/Astra/MiaAI-Experiences/012-word-garden/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '像素果园', path: 'games/Astra/MiaAI-Experiences/013-pixel-orchard/index.html', preview: 'games/Astra/MiaAI-Experiences/013-pixel-orchard/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '风暴之窗', path: 'games/Astra/MiaAI-Experiences/014-storm-window/index.html', preview: 'games/Astra/MiaAI-Experiences/014-storm-window/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '折纸工作室', path: 'games/Astra/MiaAI-Experiences/015-fold-studio/index.html', preview: 'games/Astra/MiaAI-Experiences/015-fold-studio/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '光之蓝图', path: 'games/Astra/MiaAI-Experiences/016-blueprint-of-light/index.html', preview: 'games/Astra/MiaAI-Experiences/016-blueprint-of-light/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '水母芭蕾', path: 'games/Astra/MiaAI-Experiences/017-jellyfish-ballet/index.html', preview: 'games/Astra/MiaAI-Experiences/017-jellyfish-ballet/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '迷宫俱乐部', path: 'games/Astra/MiaAI-Experiences/018-labyrinth-club/index.html', preview: 'games/Astra/MiaAI-Experiences/018-labyrinth-club/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '木漏日厨房', path: 'games/Astra/MiaAI-Experiences/019-komorebi-kitchen/index.html', preview: 'games/Astra/MiaAI-Experiences/019-komorebi-kitchen/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '色度场', path: 'games/Astra/MiaAI-Experiences/020-chroma-field/index.html', preview: 'games/Astra/MiaAI-Experiences/020-chroma-field/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '出发时刻表', path: 'games/Astra/MiaAI-Experiences/021-departure-board/index.html', preview: 'games/Astra/MiaAI-Experiences/021-departure-board/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '线与形', path: 'games/Astra/MiaAI-Experiences/022-thread-and-form/index.html', preview: 'games/Astra/MiaAI-Experiences/022-thread-and-form/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '山脊线', path: 'games/Astra/MiaAI-Experiences/023-ridgeline/index.html', preview: 'games/Astra/MiaAI-Experiences/023-ridgeline/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '小小胜利', path: 'games/Astra/MiaAI-Experiences/024-small-victories/index.html', preview: 'games/Astra/MiaAI-Experiences/024-small-victories/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '航空形态', path: 'games/Astra/MiaAI-Experiences/025-aero-form/index.html', preview: 'games/Astra/MiaAI-Experiences/025-aero-form/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '潮汐时刻', path: 'games/Astra/MiaAI-Experiences/026-tidal-hours/index.html', preview: 'games/Astra/MiaAI-Experiences/026-tidal-hours/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '矿物陈列柜', path: 'games/Astra/MiaAI-Experiences/027-mineral-cabinet/index.html', preview: 'games/Astra/MiaAI-Experiences/027-mineral-cabinet/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '月历', path: 'games/Astra/MiaAI-Experiences/028-lunar-calendar/index.html', preview: 'games/Astra/MiaAI-Experiences/028-lunar-calendar/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '花粉图谱', path: 'games/Astra/MiaAI-Experiences/029-pollen-atlas/index.html', preview: 'games/Astra/MiaAI-Experiences/029-pollen-atlas/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '等高线办公室', path: 'games/Astra/MiaAI-Experiences/030-contour-office/index.html', preview: 'games/Astra/MiaAI-Experiences/030-contour-office/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '鲸鱼频率', path: 'games/Astra/MiaAI-Experiences/031-whale-frequency/index.html', preview: 'games/Astra/MiaAI-Experiences/031-whale-frequency/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '蕨类温室', path: 'games/Astra/MiaAI-Experiences/032-fern-house/index.html', preview: 'games/Astra/MiaAI-Experiences/032-fern-house/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '气压计房间', path: 'games/Astra/MiaAI-Experiences/033-barometer-room/index.html', preview: 'games/Astra/MiaAI-Experiences/033-barometer-room/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '日食密室', path: 'games/Astra/MiaAI-Experiences/034-eclipse-chamber/index.html', preview: 'games/Astra/MiaAI-Experiences/034-eclipse-chamber/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '珊瑚礁保护区', path: 'games/Astra/MiaAI-Experiences/035-reef-reserve/index.html', preview: 'games/Astra/MiaAI-Experiences/035-reef-reserve/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '北极日记', path: 'games/Astra/MiaAI-Experiences/036-arctic-journal/index.html', preview: 'games/Astra/MiaAI-Experiences/036-arctic-journal/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '迁徙地图', path: 'games/Astra/MiaAI-Experiences/037-migration-map/index.html', preview: 'games/Astra/MiaAI-Experiences/037-migration-map/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '棱镜工作室', path: 'games/Astra/MiaAI-Experiences/038-prism-studio/index.html', preview: 'games/Astra/MiaAI-Experiences/038-prism-studio/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '沙之记忆', path: 'games/Astra/MiaAI-Experiences/039-sand-memory/index.html', preview: 'games/Astra/MiaAI-Experiences/039-sand-memory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '太阳花园', path: 'games/Astra/MiaAI-Experiences/040-solar-garden/index.html', preview: 'games/Astra/MiaAI-Experiences/040-solar-garden/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '灯笼节', path: 'games/Astra/MiaAI-Experiences/041-lantern-festival/index.html', preview: 'games/Astra/MiaAI-Experiences/041-lantern-festival/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '纸张博物馆', path: 'games/Astra/MiaAI-Experiences/042-paper-museum/index.html', preview: 'games/Astra/MiaAI-Experiences/042-paper-museum/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '日晷庭院', path: 'games/Astra/MiaAI-Experiences/043-sundial-courtyard/index.html', preview: 'games/Astra/MiaAI-Experiences/043-sundial-courtyard/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '思维网络', path: 'games/Astra/MiaAI-Experiences/044-thought-network/index.html', preview: 'games/Astra/MiaAI-Experiences/044-thought-network/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '种子图书馆', path: 'games/Astra/MiaAI-Experiences/045-seed-library/index.html', preview: 'games/Astra/MiaAI-Experiences/045-seed-library/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '风之礼拜堂', path: 'games/Astra/MiaAI-Experiences/046-wind-chapel/index.html', preview: 'games/Astra/MiaAI-Experiences/046-wind-chapel/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '冰芯档案', path: 'games/Astra/MiaAI-Experiences/047-ice-core-archive/index.html', preview: 'games/Astra/MiaAI-Experiences/047-ice-core-archive/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '梦境索引', path: 'games/Astra/MiaAI-Experiences/048-dream-index/index.html', preview: 'games/Astra/MiaAI-Experiences/048-dream-index/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '墨水扩散', path: 'games/Astra/MiaAI-Experiences/049-ink-diffusion/index.html', preview: 'games/Astra/MiaAI-Experiences/049-ink-diffusion/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '星辰导航', path: 'games/Astra/MiaAI-Experiences/050-star-navigation/index.html', preview: 'games/Astra/MiaAI-Experiences/050-star-navigation/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '茶道', path: 'games/Astra/MiaAI-Experiences/051-tea-ceremony/index.html', preview: 'games/Astra/MiaAI-Experiences/051-tea-ceremony/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '液压平衡', path: 'games/Astra/MiaAI-Experiences/052-hydraulic-balance/index.html', preview: 'games/Astra/MiaAI-Experiences/052-hydraulic-balance/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '字体标本', path: 'games/Astra/MiaAI-Experiences/053-type-specimen/index.html', preview: 'games/Astra/MiaAI-Experiences/053-type-specimen/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '月球规划器', path: 'games/Astra/MiaAI-Experiences/054-lunar-planner/index.html', preview: 'games/Astra/MiaAI-Experiences/054-lunar-planner/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '色彩混合器', path: 'games/Astra/MiaAI-Experiences/055-chromatic-mixer/index.html', preview: 'games/Astra/MiaAI-Experiences/055-chromatic-mixer/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '午夜电台', path: 'games/Astra/MiaAI-Experiences/056-midnight-radio/index.html', preview: 'games/Astra/MiaAI-Experiences/056-midnight-radio/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '禅石', path: 'games/Astra/MiaAI-Experiences/057-zen-stones/index.html', preview: 'games/Astra/MiaAI-Experiences/057-zen-stones/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '档案金库', path: 'games/Astra/MiaAI-Experiences/058-archive-vault/index.html', preview: 'games/Astra/MiaAI-Experiences/058-archive-vault/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '冲刺时钟', path: 'games/Astra/MiaAI-Experiences/059-sprint-clock/index.html', preview: 'games/Astra/MiaAI-Experiences/059-sprint-clock/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '意面餐桌', path: 'games/Astra/MiaAI-Experiences/060-pasta-table/index.html', preview: 'games/Astra/MiaAI-Experiences/060-pasta-table/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '地铁地图', path: 'games/Astra/MiaAI-Experiences/061-metro-map/index.html', preview: 'games/Astra/MiaAI-Experiences/061-metro-map/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '星图', path: 'games/Astra/MiaAI-Experiences/062-star-atlas/index.html', preview: 'games/Astra/MiaAI-Experiences/062-star-atlas/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '声音形状', path: 'games/Astra/MiaAI-Experiences/063-sound-shapes/index.html', preview: 'games/Astra/MiaAI-Experiences/063-sound-shapes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '第四维度', path: 'games/Astra/MiaAI-Experiences/064-fourth-dimension/index.html', preview: 'games/Astra/MiaAI-Experiences/064-fourth-dimension/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '绽放实验室', path: 'games/Astra/MiaAI-Experiences/065-bloom-lab/index.html', preview: 'games/Astra/MiaAI-Experiences/065-bloom-lab/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '骑士巡游', path: 'games/Astra/MiaAI-Experiences/066-knights-tour/index.html', preview: 'games/Astra/MiaAI-Experiences/066-knights-tour/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '冰川研究', path: 'games/Astra/MiaAI-Experiences/067-glacier-study/index.html', preview: 'games/Astra/MiaAI-Experiences/067-glacier-study/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '田野笔记', path: 'games/Astra/MiaAI-Experiences/068-field-notes/index.html', preview: 'games/Astra/MiaAI-Experiences/068-field-notes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '夜车票', path: 'games/Astra/MiaAI-Experiences/069-night-ticket/index.html', preview: 'games/Astra/MiaAI-Experiences/069-night-ticket/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '动力平衡', path: 'games/Astra/MiaAI-Experiences/070-kinetic-balance/index.html', preview: 'games/Astra/MiaAI-Experiences/070-kinetic-balance/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '专注房间', path: 'games/Astra/MiaAI-Experiences/071-focus-room/index.html', preview: 'games/Astra/MiaAI-Experiences/071-focus-room/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '像素拼布', path: 'games/Astra/MiaAI-Experiences/072-pixel-quilt/index.html', preview: 'games/Astra/MiaAI-Experiences/072-pixel-quilt/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '酒窖笔记', path: 'games/Astra/MiaAI-Experiences/073-cellar-notes/index.html', preview: 'games/Astra/MiaAI-Experiences/073-cellar-notes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '轨道预算', path: 'games/Astra/MiaAI-Experiences/074-orbit-budget/index.html', preview: 'games/Astra/MiaAI-Experiences/074-orbit-budget/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '云作曲家', path: 'games/Astra/MiaAI-Experiences/075-cloud-composer/index.html', preview: 'games/Astra/MiaAI-Experiences/075-cloud-composer/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '工作室平面图', path: 'games/Astra/MiaAI-Experiences/076-atelier-plan/index.html', preview: 'games/Astra/MiaAI-Experiences/076-atelier-plan/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '金缮修复', path: 'games/Astra/MiaAI-Experiences/077-golden-repair/index.html', preview: 'games/Astra/MiaAI-Experiences/077-golden-repair/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '午夜影院', path: 'games/Astra/MiaAI-Experiences/078-midnight-cinema/index.html', preview: 'games/Astra/MiaAI-Experiences/078-midnight-cinema/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '岛屿图谱', path: 'games/Astra/MiaAI-Experiences/079-island-atlas/index.html', preview: 'games/Astra/MiaAI-Experiences/079-island-atlas/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '时间物件', path: 'games/Astra/MiaAI-Experiences/080-hour-object/index.html', preview: 'games/Astra/MiaAI-Experiences/080-hour-object/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '色彩礼拜堂', path: 'games/Astra/MiaAI-Experiences/081-chromatic-chapel/index.html', preview: 'games/Astra/MiaAI-Experiences/081-chromatic-chapel/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '黏土形态', path: 'games/Astra/MiaAI-Experiences/082-clay-form/index.html', preview: 'games/Astra/MiaAI-Experiences/082-clay-form/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '字母铸造厂', path: 'games/Astra/MiaAI-Experiences/083-letter-foundry/index.html', preview: 'games/Astra/MiaAI-Experiences/083-letter-foundry/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '环形世界', path: 'games/Astra/MiaAI-Experiences/084-ring-world/index.html', preview: 'games/Astra/MiaAI-Experiences/084-ring-world/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '夜行列车', path: 'games/Astra/MiaAI-Experiences/085-night-train/index.html', preview: 'games/Astra/MiaAI-Experiences/085-night-train/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '编织记忆', path: 'games/Astra/MiaAI-Experiences/086-woven-memory/index.html', preview: 'games/Astra/MiaAI-Experiences/086-woven-memory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '大理石房间', path: 'games/Astra/MiaAI-Experiences/087-marble-room/index.html', preview: 'games/Astra/MiaAI-Experiences/087-marble-room/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '焚香时刻', path: 'games/Astra/MiaAI-Experiences/088-incense-hour/index.html', preview: 'games/Astra/MiaAI-Experiences/088-incense-hour/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '黑胶之夜', path: 'games/Astra/MiaAI-Experiences/089-vinyl-evening/index.html', preview: 'games/Astra/MiaAI-Experiences/089-vinyl-evening/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '玻璃温室', path: 'games/Astra/MiaAI-Experiences/090-glasshouse/index.html', preview: 'games/Astra/MiaAI-Experiences/090-glasshouse/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '水墨山水', path: 'games/Astra/MiaAI-Experiences/091-ink-mountains/index.html', preview: 'games/Astra/MiaAI-Experiences/091-ink-mountains/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '航空邮件', path: 'games/Astra/MiaAI-Experiences/092-aerogram/index.html', preview: 'games/Astra/MiaAI-Experiences/092-aerogram/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '093 Cellar Notes', path: 'games/Astra/MiaAI-Experiences/093-cellar-notes/index.html', preview: 'games/Astra/MiaAI-Experiences/093-cellar-notes/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '缎带排练', path: 'games/Astra/MiaAI-Experiences/094-ribbon-rehearsal/index.html', preview: 'games/Astra/MiaAI-Experiences/094-ribbon-rehearsal/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '光之时辰', path: 'games/Astra/MiaAI-Experiences/095-light-hour/index.html', preview: 'games/Astra/MiaAI-Experiences/095-light-hour/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '磁性物质', path: 'games/Astra/MiaAI-Experiences/096-magnetic-matter/index.html', preview: 'games/Astra/MiaAI-Experiences/096-magnetic-matter/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '小小神谕', path: 'games/Astra/MiaAI-Experiences/097-small-oracle/index.html', preview: 'games/Astra/MiaAI-Experiences/097-small-oracle/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '泳池边俱乐部', path: 'games/Astra/MiaAI-Experiences/098-poolside-club/index.html', preview: 'games/Astra/MiaAI-Experiences/098-poolside-club/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '旁注', path: 'games/Astra/MiaAI-Experiences/099-marginalia/index.html', preview: 'games/Astra/MiaAI-Experiences/099-marginalia/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+    { name: '有机波实验室', path: 'games/Astra/MiaAI-Experiences/100-organic-wave-lab/index.html', preview: 'games/Astra/MiaAI-Experiences/100-organic-wave-lab/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
+];
 
 let currentCategory = 'all';
 let allGames = [];
@@ -499,7 +498,6 @@ const CATEGORY_EN = {
     'Memory': 'Memory',
     'Typing': 'Typing',
     'Casual': 'Casual',
-    'Astra': 'AI Generated',
     'GenArt': 'Generative Art',
     'Adventure': 'Adventure'
 };
@@ -529,6 +527,7 @@ function initializeApp() {
     renderTagCloud();
     fillCounts();
     renderGames();
+    renderGenArtSection();
     renderHotGames();
     bindEvents();
     setupNavigation();
@@ -559,6 +558,7 @@ function fillCounts() {
         else if (key === 'categories') value = categoriesWithGames;
         else if (key === 'cat:all') value = total;
         else if (key.indexOf('cat:') === 0) value = byCat[key.slice(4)] || 0;
+        else if (key === 'genart') value = genArtExperiences.filter(Boolean).length;
         if (value !== null) el.textContent = value;
     });
 }
@@ -759,7 +759,7 @@ function createGameCard(game, index) {
 
     // 标签：AI生成、热门、新品
     const tags = [];
-    if (game.category === 'Astra' || game.category === 'GenArt') {
+    if (game.category === 'GenArt') {
         tags.push('<span class="game-tag tag-ai">AI</span>');
     }
     if (game.hot) {
@@ -817,7 +817,6 @@ function getCategoryName(category) {
         'Memory': 'games.filter.memory',
         'Typing': 'games.filter.typing',
         'Casual': 'games.filter.casual',
-        'Astra': 'games.filter.astra',
         'GenArt': 'games.filter.genart'
     };
     const key = i18nKeys[category];
@@ -1092,6 +1091,7 @@ function initHeroCanvas() {
 
 document.addEventListener('i18n:languageChanged', () => {
     renderGames(currentCategory, document.getElementById('searchInput').value);
+    renderGenArtSection(); // 底部生成艺术区块跟随语言重渲染
     renderTagCloud(); // 技术标签（HTML5/原生 JavaScript/即开即玩）跟随语言重渲染；玩法标签为中文关键词，不翻译
 });
 
@@ -1139,3 +1139,80 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+// 底部「生成艺术体验」独立展示区：101 款 AI 生成交互体验，不参与玩法分类筛选与计数
+let genArtCurrentPage = 1;
+const GEN_ART_PAGE_SIZE = 24;
+let genArtLoading = false;
+
+function renderGenArtSection() {
+    const grid = document.getElementById('genartGrid');
+    if (!grid) return;
+
+    genArtCurrentPage = 1;
+    grid.innerHTML = '';
+
+    const firstPage = genArtExperiences.filter(Boolean).slice(0, GEN_ART_PAGE_SIZE);
+    firstPage.forEach((game, index) => {
+        const card = createGameCard({ ...game, category: 'GenArt' }, index);
+        grid.appendChild(card);
+    });
+
+    if (genArtExperiences.filter(Boolean).length > GEN_ART_PAGE_SIZE) {
+        addGenArtLoadMoreButton(grid);
+    }
+}
+
+function addGenArtLoadMoreButton(container) {
+    const oldBtn = document.getElementById('genArtLoadMoreBtn');
+    if (oldBtn) oldBtn.remove();
+
+    const remaining = genArtExperiences.filter(Boolean).length - genArtCurrentPage * GEN_ART_PAGE_SIZE;
+    if (remaining <= 0) return;
+
+    const label = window.i18n?.t('games.load_more') || '加载更多';
+    const btn = document.createElement('button');
+    btn.id = 'genArtLoadMoreBtn';
+    btn.className = 'load-more-btn';
+    btn.innerHTML = `<i class="fas fa-plus"></i> ${label} (${remaining})`;
+    btn.onclick = loadMoreGenArt;
+    container.appendChild(btn);
+}
+
+function loadMoreGenArt() {
+    if (genArtLoading) return;
+    genArtLoading = true;
+
+    const grid = document.getElementById('genartGrid');
+    const btn = document.getElementById('genArtLoadMoreBtn');
+    const loadingLabel = window.i18n?.t('games.loading') || '加载中...';
+    if (btn) {
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingLabel}`;
+        btn.disabled = true;
+    }
+
+    // 与主目录一致：轻微延迟避免卡顿
+    setTimeout(() => {
+        genArtCurrentPage++;
+        const start = (genArtCurrentPage - 1) * GEN_ART_PAGE_SIZE;
+        const end = start + GEN_ART_PAGE_SIZE;
+        const nextPage = genArtExperiences.filter(Boolean).slice(start, end);
+
+        nextPage.forEach((game, index) => {
+            const card = createGameCard({ ...game, category: 'GenArt' }, start + index);
+            grid.insertBefore(card, btn);
+        });
+
+        const remaining = genArtExperiences.filter(Boolean).length - genArtCurrentPage * GEN_ART_PAGE_SIZE;
+        if (remaining > 0) {
+            const label = window.i18n?.t('games.load_more') || '加载更多';
+            btn.innerHTML = `<i class="fas fa-plus"></i> ${label} (${remaining})`;
+            btn.disabled = false;
+        } else {
+            btn.remove();
+        }
+
+        genArtLoading = false;
+    }, 100);
+}

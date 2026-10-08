@@ -546,3 +546,12 @@ section[id]{scroll-margin-top:96px}
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
   html{scroll-behavior:auto}
 }
+/* ============ 生成艺术体验独立区块 ============ */
+.genart-section{
+  padding-block:96px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.genart-section .section-head{
+  flex-direction:row;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px;
+}
+.genart-section .section-subtitle{max-width:46ch}

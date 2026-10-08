@@ -68,7 +68,6 @@ const TRANSLATIONS = {
                 "memory": "记忆训练",
                 "typing": "打字练习",
                 "casual": "休闲娱乐",
-                "astra": "AI生成",
                 "genart": "生成艺术"
             },
             "empty": {
@@ -194,6 +193,12 @@ const TRANSLATIONS = {
             "Coloring Book": "涂色画册",
             "Coloring Book_desc": "创意涂色游戏"
         },
+        "genart": {
+            "eyebrow": "生成艺术体验",
+            "title": "AI 生成的艺术，同样打开即玩",
+            "subtitle_pre": "独立于玩法分类，收录 ",
+            "subtitle_post": " 款 AI 生成交互体验，持续更新中。"
+        },
         "footer": {
             "desc_pre": "WebGameHub 收录 ",
             "desc_post": " 款 AI 生成游戏合集，浏览器即开即玩，持续收录中。",
@@ -294,7 +299,6 @@ const TRANSLATIONS = {
                 "memory": "Memory",
                 "typing": "Typing",
                 "casual": "Casual",
-                "astra": "AI Generated",
                 "genart": "Generative Art"
             },
             "empty": {
@@ -419,6 +423,12 @@ const TRANSLATIONS = {
             "Rhythm Game_desc": "Rhythm music game",
             "Coloring Book": "Coloring Book",
             "Coloring Book_desc": "Creative coloring game"
+        },
+        "genart": {
+            "eyebrow": "Generative Art Experiences",
+            "title": "AI-generated art, playable instantly",
+            "subtitle_pre": "Separate from gameplay categories — ",
+            "subtitle_post": " AI-generated interactive experiences, continuously updated."
         },
         "footer": {
             "desc_pre": "A collection of ",

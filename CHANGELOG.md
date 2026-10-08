@@ -153,6 +153,8 @@ Format: `MAJOR.MINOR.PATCH`
 - [ ] 游戏开发工具
 - [ ] 社区论坛
 
+
+- 说明：Hit And Run Web 与 The Free Game 因 Cloudflare Pages 限制（单文件 25 MiB / 免费版 2 万文件上限）无法部署上线，源码目录保留于本地仓库并 gitignore，游戏目录后续可在支持大文件的托管方案下单独上线。
 ---
 
 ## 贡献者 | Contributors

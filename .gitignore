@@ -41,6 +41,10 @@ dist/
 build/
 out/
 
+# 超 Cloudflare Pages 限制（25MiB/文件、2万文件）暂不入库的本地游戏目录
+games/Action/Hit-And-Run-Web/
+games/Casual/The-Free-Game/
+
 # Environment Variables
 .env
 .env.local

@@ -1092,6 +1092,7 @@ function initHeroCanvas() {
 
 document.addEventListener('i18n:languageChanged', () => {
     renderGames(currentCategory, document.getElementById('searchInput').value);
+    renderTagCloud(); // 技术标签（HTML5/原生 JavaScript/即开即玩）跟随语言重渲染；玩法标签为中文关键词，不翻译
 });
 
 let konamiCode = [];

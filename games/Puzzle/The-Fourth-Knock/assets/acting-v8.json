@@ -1,0 +1,58 @@
+{
+  "victor": {
+    "width": 1536,
+    "height": 1024,
+    "file": "./assets/victor-standing-v8-packed.png",
+    "status": "PRODUCTION_INTEGRATED",
+    "states": {
+      "polished": {
+        "file": "./assets/victor-standing-v8-packed.png",
+        "rect": [
+          51,
+          155,
+          480,
+          901
+        ],
+        "head": [
+          140,
+          155,
+          350,
+          341
+        ],
+        "footX": 267
+      },
+      "dismissive": {
+        "file": "./assets/victor-standing-v8-packed.png",
+        "rect": [
+          545,
+          162,
+          1020,
+          898
+        ],
+        "head": [
+          672,
+          162,
+          885,
+          348
+        ],
+        "footX": 799
+      },
+      "annoyed": {
+        "file": "./assets/victor-standing-v8-packed.png",
+        "rect": [
+          1107,
+          159,
+          1466,
+          902
+        ],
+        "head": [
+          1191,
+          159,
+          1400,
+          348
+        ],
+        "footX": 1298
+      }
+    }
+  }
+}

@@ -450,9 +450,10 @@ section[id]{scroll-margin-top:96px}
 .play-btn i{font-size:11px}
 .game-card:hover .play-btn{background:var(--palette-brand-deep);box-shadow:var(--shadow-hover)}
 .game-card:active .play-btn{transform:scale(.96)}
-/* 正文：一句话玩法描述（无作者行） */
-.card-body{padding:16px 18px 18px;display:flex}
+/* 正文：一句话玩法描述 + 开源署名行（作者/来源/源码） */
+.card-body{padding:16px 18px 18px;display:flex;flex-direction:column}
 .game-desc{font-size:14px;line-height:1.43;color:var(--palette-text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.game-credit{font-size:11px;line-height:1.5;color:var(--palette-text-tertiary);margin-top:6px;overflow:hidden;word-break:break-all}
 
 /* 空态 */
 .empty-state{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:12px;padding:72px 24px;text-align:center}

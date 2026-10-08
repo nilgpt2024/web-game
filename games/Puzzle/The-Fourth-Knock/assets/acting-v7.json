@@ -1,0 +1,222 @@
+﻿{
+    "elias":  {
+                  "states":  {
+                                 "concerned":  {
+                                                   "footX":  768,
+                                                   "rect":  [
+                                                                631,
+                                                                7,
+                                                                954,
+                                                                507
+                                                            ],
+                                                   "head":  [
+                                                                683,
+                                                                7,
+                                                                888,
+                                                                156
+                                                            ],
+                                                   "file":  "./assets/elias-acting-v7.png"
+                                               },
+                                 "back":  {
+                                              "footX":  788,
+                                              "rect":  [
+                                                           646,
+                                                           517,
+                                                           945,
+                                                           1012
+                                                       ],
+                                              "head":  [
+                                                           678,
+                                                           517,
+                                                           906,
+                                                           665
+                                                       ],
+                                              "file":  "./assets/elias-acting-v7.png"
+                                          },
+                                 "helpful":  {
+                                                 "footX":  315,
+                                                 "rect":  [
+                                                              100,
+                                                              517,
+                                                              501,
+                                                              1013
+                                                          ],
+                                                 "head":  [
+                                                              213,
+                                                              517,
+                                                              421,
+                                                              665
+                                                          ],
+                                                 "file":  "./assets/elias-acting-v7.png"
+                                             },
+                                 "shock":  {
+                                               "footX":  1255,
+                                               "rect":  [
+                                                            1120,
+                                                            6,
+                                                            1442,
+                                                            508
+                                                        ],
+                                               "head":  [
+                                                            1172,
+                                                            6,
+                                                            1378,
+                                                            156
+                                                        ],
+                                               "file":  "./assets/elias-acting-v7.png"
+                                           },
+                                 "calm":  {
+                                              "footX":  282,
+                                              "rect":  [
+                                                           141,
+                                                           4,
+                                                           466,
+                                                           507
+                                                       ],
+                                              "head":  [
+                                                           195,
+                                                           4,
+                                                           401,
+                                                           154
+                                                       ],
+                                              "file":  "./assets/elias-acting-v7.png"
+                                          }
+                             },
+                  "width":  1536,
+                  "file":  "./assets/elias-acting-v7.png",
+                  "height":  1024
+              },
+    "victor":  {
+                   "states":  {
+                                  "still":  {
+                                                "footX":  1056,
+                                                "rect":  [
+                                                             44,
+                                                             226,
+                                                             1498,
+                                                             794
+                                                         ],
+                                                "head":  [
+                                                             140,
+                                                             226,
+                                                             1059,
+                                                             396
+                                                         ],
+                                                "file":  "./assets/victor-rest-v7.png"
+                                            }
+                              },
+                   "width":  1536,
+                   "file":  "./assets/victor-rest-v7.png",
+                   "height":  1024
+               },
+    "mira":  {
+                 "states":  {
+                                "concerned":  {
+                                                  "footX":  756,
+                                                  "rect":  [
+                                                               661,
+                                                               9,
+                                                               953,
+                                                               509
+                                                           ],
+                                                  "head":  [
+                                                               676,
+                                                               9,
+                                                               821,
+                                                               158
+                                                           ],
+                                                  "file":  "./assets/support-acting-v7.png"
+                                              },
+                                "guarded":  {
+                                                "footX":  1248,
+                                                "rect":  [
+                                                             1156,
+                                                             9,
+                                                             1444,
+                                                             509
+                                                         ],
+                                                "head":  [
+                                                             1173,
+                                                             9,
+                                                             1315,
+                                                             158
+                                                         ],
+                                                "file":  "./assets/support-acting-v7.png"
+                                            },
+                                "skeptical":  {
+                                                  "footX":  256,
+                                                  "rect":  [
+                                                               165,
+                                                               10,
+                                                               452,
+                                                               509
+                                                           ],
+                                                  "head":  [
+                                                               176,
+                                                               10,
+                                                               327,
+                                                               159
+                                                           ],
+                                                  "file":  "./assets/support-acting-v7.png"
+                                              }
+                            },
+                 "width":  1536,
+                 "file":  "./assets/support-acting-v7.png",
+                 "height":  1024
+             },
+    "ada":  {
+                "states":  {
+                               "guarded":  {
+                                               "footX":  1277,
+                                               "rect":  [
+                                                            1159,
+                                                            526,
+                                                            1414,
+                                                            1012
+                                                        ],
+                                               "head":  [
+                                                            1178,
+                                                            526,
+                                                            1400,
+                                                            671
+                                                        ],
+                                               "file":  "./assets/support-acting-v7.png"
+                                           },
+                               "practical":  {
+                                                 "footX":  273,
+                                                 "rect":  [
+                                                              125,
+                                                              520,
+                                                              410,
+                                                              1012
+                                                          ],
+                                                 "head":  [
+                                                              144,
+                                                              520,
+                                                              394,
+                                                              667
+                                                          ],
+                                                 "file":  "./assets/support-acting-v7.png"
+                                             },
+                               "shock":  {
+                                             "footX":  784,
+                                             "rect":  [
+                                                          654,
+                                                          520,
+                                                          922,
+                                                          1012
+                                                      ],
+                                             "head":  [
+                                                          680,
+                                                          520,
+                                                          907,
+                                                          667
+                                                      ],
+                                             "file":  "./assets/support-acting-v7.png"
+                                         }
+                           },
+                "width":  1536,
+                "file":  "./assets/support-acting-v7.png",
+                "height":  1024
+            }
+}

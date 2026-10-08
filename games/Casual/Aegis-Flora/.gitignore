@@ -1,0 +1,9 @@
+.DS_Store
+*.pyc
+__pycache__/
+.system_generated/
+*.log
+
+# Electron / Desktop Build
+desktop/node_modules/
+desktop/dist/

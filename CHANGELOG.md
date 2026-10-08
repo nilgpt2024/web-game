@@ -27,6 +27,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-10-08
+
+### 新增 | Added
+- 🎮 从 astragames 上游清单（awesome-gpt-6-astra）收录 21 款开源 AI 游戏，卡片标注作者、来源与 GitHub 源码地址
+- 🕹️ 新增游戏：Surge For Oinja、Astra Floor、CityMaker、Dwellcraft、Sandline、Magic Carpet Wizard、Clock Out Unseen、Toy2Game、Sunjing Puzzles、Three Kingdoms、Blackwater、The Free Game、Jelly Baby、Hit And Run Web、Voidbound、Voidrunner、Neural Sight、Aegis Flora、The Fourth Knock、Saber Descent、Mario Mix 2
+- 🏷️ 游戏卡片新增署名行：作者 / 来源 / 源码地址
+
+---
+
 ## [1.0.0] - 2025-10-28
 
 ### 新增 | Added

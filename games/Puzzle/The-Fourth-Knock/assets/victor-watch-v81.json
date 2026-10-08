@@ -1,0 +1,25 @@
+{
+  "id": "victor_watch_check",
+  "status": "PRODUCTION_INTEGRATED",
+  "file": "./assets/victor-watch-v81.png",
+  "width": 1024,
+  "height": 1536,
+  "rect": [
+    146,
+    28,
+    896,
+    1524
+  ],
+  "head": [
+    334,
+    28,
+    670,
+    358
+  ],
+  "footX": 530,
+  "mirrorX": true,
+  "sourceFacing": "right",
+  "integration": "Original source preserved. Mirrored UVs normalize facing to the existing Victor atlas. The authored 8:37 montage selects this gesture for 1.8 seconds.",
+  "generatedOn": "2026-09-24",
+  "sha256": "199807f54d8ee02ae92b164e6ab2cc1e852181f1d2ed796d96fd56dcc1ffc734"
+}

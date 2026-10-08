@@ -6,6 +6,9 @@ const TRANSLATIONS = {
             "home": "首页",
             "games": "游戏",
             "stats": "统计",
+            "directory": "作品目录",
+            "guide": "玩法指南",
+            "tags": "标签云",
             "about": "关于我们",
             "contact": "联系我们",
             "privacy": "隐私政策",
@@ -13,21 +16,49 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie设置"
         },
         "hero": {
-            "eyebrow": "439款AI生成游戏 · 免费畅玩",
-            "title": "AI 生成游戏集合",
-            "subtitle": "AI 生成游戏，浏览器直接玩",
-            "description": "精选 439 款 AI 生成游戏，涵盖动作射击、益智解谜、生成艺术、竞速赛车等类型，无需下载，打开即玩，持续更新中。",
-            "stats": {
-                "games": "游戏总数",
-                "categories": "游戏分类",
-                "free": "免费畅玩"
-            },
-            "cta": "开始游戏"
+            "badge": "款 AI 生成游戏 · 持续收录中",
+            "title_1": "AI 生成游戏，不止于收藏",
+            "title_2": "收录即可玩，打开即上手",
+            "desc_pre": "WebGameHub 收录 ",
+            "desc_post": " 款由 AI 生成并持续更新的浏览器游戏：益智解谜、动作反应、经典街机、生成艺术……无需下载、无需注册，打开即玩，持续收录中。",
+            "cta_play": "开始试玩",
+            "cta_guide": "查看玩法指南",
+            "scroll": "向下滚动",
+            "stat_games": "收录作品",
+            "stat_categories": "游戏分类",
+            "stat_playable": "可直接试玩"
+        },
+        "directory": {
+            "eyebrow": "作品目录",
+            "title": "收录即可玩，不是收藏夹",
+            "subtitle_pre": "全部 ",
+            "subtitle_post": " 款游戏均可直接试玩，分类筛选、即时搜索，找到即玩。"
+        },
+        "tags": {
+            "eyebrow": "标签云",
+            "title": "玩法标签云",
+            "subtitle": "从每款游戏的玩法描述中提炼的真实关键词，点击标签即可搜索",
+            "tech_title": "技术能力",
+            "tech_html5": "HTML5",
+            "tech_js": "原生 JavaScript",
+            "tech_play": "即开即玩"
+        },
+        "guide": {
+            "eyebrow": "指南",
+            "title": "玩法与创作指南",
+            "subtitle": "从选择到上手，再到理解收录背后的标准",
+            "card1_title": "作品选择指南",
+            "card1_head": "从分类与关键词快速定位作品",
+            "card1_desc": "从分类、玩法关键词或直接搜索入手，快速定位你想试玩的作品。",
+            "card2_title": "玩法指南",
+            "card2_head": "打开即玩，无需下载注册",
+            "card2_desc": "全部游戏均在浏览器中直接运行，无需下载、无需注册，桌面与移动端打开即玩。",
+            "card3_title": "收录与创作指南",
+            "card3_head": "每款收录作品都经过可玩性核验",
+            "card3_desc": "每款收录作品均由 AI 生成并逐项核验可运行，持续收录，保证收录即可玩。",
+            "read": "阅读指南"
         },
         "games": {
-            "section_eyebrow": "🎮 游戏库",
-            "title": "游戏大厅",
-            "subtitle": "选择你喜欢的类别，开始畅玩",
             "filter": {
                 "all": "全部",
                 "puzzle": "益智解谜",
@@ -44,9 +75,12 @@ const TRANSLATIONS = {
                 "title": "未找到游戏",
                 "description": "试试其他关键词或分类"
             },
-            "search_placeholder": "搜索游戏...",
+            "search_placeholder": "搜索游戏或玩法",
             "no_results": "未找到游戏",
             "try_other": "试试其他关键词或分类",
+            "play": "开始试玩",
+            "load_more": "加载更多",
+            "loading": "加载中...",
             "2048": "2048",
             "2048_desc": "经典数字合并益智游戏",
             "Jigsaw Puzzle": "拼图挑战",
@@ -160,20 +194,13 @@ const TRANSLATIONS = {
             "Coloring Book": "涂色画册",
             "Coloring Book_desc": "创意涂色游戏"
         },
-        "stats": {
-            "section_eyebrow": "📊 分类统计",
-            "title": "分类统计",
-            "subtitle": "7大类别，各有精彩",
-            "puzzle": "益智解谜",
-            "action": "动作反应",
-            "arcade": "经典街机",
-            "board": "棋牌策略",
-            "memory": "记忆训练",
-            "typing": "打字练习",
-            "casual": "休闲娱乐"
-        },
         "footer": {
-            "description": "55款精品HTML5游戏，随时随地畅玩无限",
+            "desc_pre": "WebGameHub 收录 ",
+            "desc_post": " 款 AI 生成游戏合集，浏览器即开即玩，持续收录中。",
+            "note": "每款收录游戏均可直接在浏览器中试玩，无需下载或注册。",
+            "col_site": "网站信息",
+            "col_dir": "目录",
+            "col_legal": "合规",
             "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "回到顶部",
@@ -205,6 +232,9 @@ const TRANSLATIONS = {
             "home": "Home",
             "games": "Games",
             "stats": "Stats",
+            "directory": "Directory",
+            "guide": "How to Play",
+            "tags": "Tags",
             "about": "About",
             "contact": "Contact",
             "privacy": "Privacy Policy",
@@ -212,21 +242,49 @@ const TRANSLATIONS = {
             "cookie_settings": "Cookie Settings"
         },
         "hero": {
-            "eyebrow": "439 AI-Generated Games · Free to Play",
-            "title": "AI Generated Games Collection",
-            "subtitle": "AI-generated games, play in browser",
-            "description": "Curated 439 AI-generated games: action, puzzle, racing, arcade & generative art. No download, play instantly, updated regularly.",
-            "stats": {
-                "games": "Total Games",
-                "categories": "Categories",
-                "free": "Free to Play"
-            },
-            "cta": "Start Playing"
+            "badge": "AI Generated Games · Continuously Curated",
+            "title_1": "AI-Generated Games, Not Just a Collection",
+            "title_2": "Curated to Play, Instant to Start",
+            "desc_pre": "A curated collection of ",
+            "desc_post": " AI-generated, continuously updated browser games: puzzle, action, arcade classics, generative art… No download, no sign-up — open and play.",
+            "cta_play": "Start Playing",
+            "cta_guide": "View Guide",
+            "scroll": "SCROLL",
+            "stat_games": "Games Curated",
+            "stat_categories": "Categories",
+            "stat_playable": "Playable Instantly"
+        },
+        "directory": {
+            "eyebrow": "Directory",
+            "title": "Curated to Play, Not Just Collected",
+            "subtitle_pre": "All ",
+            "subtitle_post": " games are instantly playable — filter by category, search by keyword, click and play."
+        },
+        "tags": {
+            "eyebrow": "Tags",
+            "title": "Play-Style Tags",
+            "subtitle": "Real keywords mined from every game's description — click a tag to search",
+            "tech_title": "Tech Stack",
+            "tech_html5": "HTML5",
+            "tech_js": "Vanilla JavaScript",
+            "tech_play": "Instant Play"
+        },
+        "guide": {
+            "eyebrow": "Guide",
+            "title": "How to Play & Create",
+            "subtitle": "From choosing a game to understanding how this collection is built",
+            "card1_title": "Game Selection Guide",
+            "card1_head": "Find your next game by category or keyword",
+            "card1_desc": "Start from categories, play-style tags, or direct search to quickly find the game you want to try.",
+            "card2_title": "How to Play",
+            "card2_head": "Open and play — no download, no sign-up",
+            "card2_desc": "Every game runs directly in your browser — no download, no sign-up. Open and play on desktop or mobile.",
+            "card3_title": "Curation & Creation",
+            "card3_head": "Every entry is verified playable",
+            "card3_desc": "Every listed work is AI-generated and verified playable; the collection keeps growing.",
+            "read": "Read Guide"
         },
         "games": {
-            "section_eyebrow": "🎮 Game Library",
-            "title": "Game Lobby",
-            "subtitle": "Choose your favorite category and start playing",
             "filter": {
                 "all": "All",
                 "puzzle": "Puzzle",
@@ -243,9 +301,12 @@ const TRANSLATIONS = {
                 "title": "No games found",
                 "description": "Try other keywords or categories"
             },
-            "search_placeholder": "Search games...",
+            "search_placeholder": "Search games or play styles",
             "no_results": "No games found",
             "try_other": "Try other keywords or categories",
+            "play": "Play Now",
+            "load_more": "Load More",
+            "loading": "Loading...",
             "2048": "2048",
             "2048_desc": "Classic number merging puzzle game",
             "Jigsaw Puzzle": "Jigsaw Puzzle",
@@ -359,20 +420,13 @@ const TRANSLATIONS = {
             "Coloring Book": "Coloring Book",
             "Coloring Book_desc": "Creative coloring game"
         },
-        "stats": {
-            "section_eyebrow": "📊 Category Stats",
-            "title": "Category Stats",
-            "subtitle": "7 Categories, Each with Excellence",
-            "puzzle": "Puzzle",
-            "action": "Action",
-            "arcade": "Arcade",
-            "board": "Board",
-            "memory": "Memory",
-            "typing": "Typing",
-            "casual": "Casual"
-        },
         "footer": {
-            "description": "55 Premium HTML5 Games, Play Anywhere, Anytime",
+            "desc_pre": "A collection of ",
+            "desc_post": " AI-generated games — play instantly in your browser, continuously updated.",
+            "note": "Every curated game is playable directly in your browser — no download, no sign-up.",
+            "col_site": "Site",
+            "col_dir": "Directory",
+            "col_legal": "Legal",
             "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "Back to Top",
@@ -428,6 +482,22 @@ class I18n {
     t(key, fallback = '') {
         const keys = key.split('.');
         let value = this.translations[this.currentLang];
+        
+        for (const k of keys) {
+            if (value && typeof value === 'object') {
+                value = value[k];
+            } else {
+                return fallback;
+            }
+        }
+        
+        return value || fallback;
+    }
+
+    // 按指定语言取值（不改变当前语言），供脚本生成英文副标题等场景使用
+    tLang(lang, key, fallback = '') {
+        const keys = key.split('.');
+        let value = this.translations[lang];
         
         for (const k of keys) {
             if (value && typeof value === 'object') {

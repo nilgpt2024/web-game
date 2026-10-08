@@ -466,6 +466,44 @@ let currentPage = 1;
 let filteredGames = [];
 let isLoading = false;
 
+// 玩法标签云：关键词必须能在真实 desc/name 文本中命中，点击标签即按该关键词搜索
+const TAG_KEYWORDS = [
+    { label: 'AI 生成', kw: '生成' },
+    { label: '体验', kw: '体验' },
+    { label: '经典', kw: '经典' },
+    { label: '棋', kw: '棋' },
+    { label: '解谜', kw: '解谜' },
+    { label: '射击', kw: '射击' },
+    { label: '冒险', kw: '冒险' },
+    { label: '猜', kw: '猜' },
+    { label: '记忆', kw: '记忆' },
+    { label: '球', kw: '球' },
+    { label: '打字', kw: '打字' },
+    { label: '牌', kw: '牌' },
+    { label: '挑战', kw: '挑战' },
+    { label: '物理', kw: '物理' },
+    { label: '迷宫', kw: '迷宫' },
+    { label: '策略', kw: '策略' },
+    { label: '反应', kw: '反应' },
+    { label: '数字', kw: '数字' },
+    { label: '速度', kw: '速度' },
+    { label: '拼图', kw: '拼图' }
+];
+
+// 分类英文名（用于卡片英文副标题，均为真实分类映射）
+const CATEGORY_EN = {
+    'Puzzle': 'Puzzle',
+    'Action': 'Action',
+    'Arcade': 'Arcade',
+    'Board': 'Board',
+    'Memory': 'Memory',
+    'Typing': 'Typing',
+    'Casual': 'Casual',
+    'Astra': 'AI Generated',
+    'GenArt': 'Generative Art',
+    'Adventure': 'Adventure'
+};
+
 document.addEventListener('i18n:initialized', () => {
     i18nInitialized = true;
     initializeApp();
@@ -488,6 +526,8 @@ function initializeApp() {
         });
     }
 
+    renderTagCloud();
+    fillCounts();
     renderGames();
     renderHotGames();
     bindEvents();
@@ -496,9 +536,95 @@ function initializeApp() {
     setupMobileMenu();
     setupScrollReveal();
     setupNavbarScroll();
+    setupInteractions();
+    initHeroCanvas();
     
-    console.log('%c🎮 WebGameHub v2.0', 'font-size: 20px; font-weight: bold; color: #0d9488;');
-    console.log(`%c${window.i18n?.t('hero.stats.games') || 'Total games'}: ${allGames.length}`, 'color: #ea580c;');
+    console.log('%c🎮 WebGameHub v2.1', 'font-size: 20px; font-weight: bold; color: #7C6CFF;');
+    console.log(`%c${window.i18n?.t('hero.stat_games') || 'Total games'}: ${allGames.length}`, 'color: #ea580c;');
+}
+
+// 用运行时 gamesData 统计结果填充页面所有计数（hero/统计/筛选/标语/footer）
+function fillCounts() {
+    const byCat = {};
+    for (const category in gamesData) {
+        byCat[category] = (gamesData[category] || []).filter(Boolean).length;
+    }
+    const total = allGames.length;
+    const categoriesWithGames = Object.keys(gamesData).filter(c => byCat[c] > 0).length;
+
+    document.querySelectorAll('[data-count]').forEach(el => {
+        const key = el.getAttribute('data-count');
+        let value = null;
+        if (key === 'total') value = total;
+        else if (key === 'categories') value = categoriesWithGames;
+        else if (key === 'cat:all') value = total;
+        else if (key.indexOf('cat:') === 0) value = byCat[key.slice(4)] || 0;
+        if (value !== null) el.textContent = value;
+    });
+}
+
+// 标签云：marquee 无缝滚动带（46s，双份列表）；玩法标签按真实命中数渲染，技术标签只声明全站成立的能力
+const TECH_TAGS = [
+    { icon: 'fab fa-html5', key: 'tags.tech_html5', label: 'HTML5' },
+    { icon: 'fas fa-code', key: 'tags.tech_js', label: '原生 JavaScript' },
+    { icon: 'fas fa-bolt', key: 'tags.tech_play', label: '即开即玩' }
+];
+
+function renderTagCloud() {
+    const track = document.getElementById('tagCloud');
+    if (!track) return;
+
+    const counts = {};
+    for (const t of TAG_KEYWORDS) {
+        let n = 0;
+        for (const g of allGames) {
+            const text = (g.desc || '') + (g.name || '');
+            if (text.indexOf(t.kw) !== -1) n++;
+        }
+        counts[t.kw] = n;
+    }
+
+    const sorted = TAG_KEYWORDS.slice().sort((a, b) => counts[b.kw] - counts[a.kw]);
+
+    const buildList = (target) => {
+        target.innerHTML = '';
+        sorted.forEach(t => {
+            const li = document.createElement('li');
+            li.innerHTML = `<button type="button" class="tag-chip" data-kw="${t.kw}"><span class="tag-label">${t.label}</span><span class="tag-count">${counts[t.kw]}</span></button><span class="tag-dot" aria-hidden="true">·</span>`;
+            target.appendChild(li);
+        });
+        TECH_TAGS.forEach(t => {
+            const li = document.createElement('li');
+            const label = window.i18n?.t(t.key) || t.label;
+            li.innerHTML = `<span class="tag-chip tech-tag"><i class="${t.icon}"></i>${label}</span><span class="tag-dot" aria-hidden="true">·</span>`;
+            target.appendChild(li);
+        });
+    };
+
+    const list1 = document.createElement('ul');
+    list1.className = 'marquee-list';
+    buildList(list1);
+    const list2 = list1.cloneNode(true);
+    list2.setAttribute('aria-hidden', 'true');
+
+    track.innerHTML = '';
+    track.appendChild(list1);
+    track.appendChild(list2);
+
+    // 点击任一玩法标签（含克隆份）→ 同步三输入框 + 按关键词搜索 + 滚动到目录
+    track.querySelectorAll('.tag-chip[data-kw]').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const kw = chip.dataset.kw;
+            const inputs = ['searchInput', 'directorySearchInput', 'mobileSearchInput'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = kw;
+            });
+            renderGames(currentCategory, kw);
+            const dir = document.getElementById('directory');
+            if (dir) dir.scrollIntoView({ behavior: 'smooth' });
+        });
+    });
 }
 
 function renderHotGames() {
@@ -570,10 +696,11 @@ function addLoadMoreButton(container) {
     const remaining = filteredGames.length - currentPage * PAGE_SIZE;
     if (remaining <= 0) return;
 
+    const label = window.i18n?.t('games.load_more') || '加载更多';
     const btn = document.createElement('button');
     btn.id = 'loadMoreBtn';
     btn.className = 'load-more-btn';
-    btn.innerHTML = `<i class="fas fa-plus"></i> 加载更多 (还有 ${remaining} 个)`;
+    btn.innerHTML = `<i class="fas fa-plus"></i> ${label} (${remaining})`;
     btn.onclick = loadMoreGames;
     container.appendChild(btn);
 }
@@ -584,8 +711,9 @@ function loadMoreGames() {
 
     const gamesGrid = document.getElementById('gamesGrid');
     const btn = document.getElementById('loadMoreBtn');
+    const loadingLabel = window.i18n?.t('games.loading') || '加载中...';
     if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 加载中...';
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingLabel}`;
         btn.disabled = true;
     }
 
@@ -603,7 +731,8 @@ function loadMoreGames() {
 
         const remaining = filteredGames.length - currentPage * PAGE_SIZE;
         if (remaining > 0) {
-            btn.innerHTML = `<i class="fas fa-plus"></i> 加载更多 (还有 ${remaining} 个)`;
+            const label = window.i18n?.t('games.load_more') || '加载更多';
+            btn.innerHTML = `<i class="fas fa-plus"></i> ${label} (${remaining})`;
             btn.disabled = false;
         } else {
             btn.remove();
@@ -620,11 +749,13 @@ function createGameCard(game, index) {
     card.target = '_blank';
     card.rel = 'noopener noreferrer';
     card.dataset.category = game.category;
-    card.style.animationDelay = `${index * 35}ms`;
+    // 网格入场阶梯延迟：55ms × min(索引,9)，封顶 9
+    card.style.animationDelay = `${55 * Math.min(index, 9)}ms`;
 
     const localizedName = window.i18n?.t(`games.${game.name}`) || game.name;
     const localizedDesc = window.i18n?.t(`games.${game.name}_desc`) || game.desc;
     const localizedCategory = getCategoryName(game.category);
+    const subtitle = getEnSubtitle(game, localizedName, localizedCategory);
 
     // 标签：AI生成、热门、新品
     const tags = [];
@@ -638,21 +769,43 @@ function createGameCard(game, index) {
         tags.push('<span class="game-tag tag-new">NEW</span>');
     }
 
+    const playLabel = window.i18n?.t('games.play') || '开始试玩';
+
+    // 封面：有 preview 用图；无 preview 用「游戏名哈希取色 + 首字母缩写」兜底
+    let coverInner;
+    if (game.preview) {
+        coverInner = `<img src="${game.preview}" alt="${localizedName}" loading="lazy" class="card-img">`;
+    } else {
+        const hue = hashHue(game.name);
+        const initials = (localizedName || game.name).slice(0, 2).toUpperCase();
+        coverInner = `<div class="cover-fallback" style="background:linear-gradient(135deg,hsl(${hue},45%,20%),hsl(${hue + 40},45%,10%))"><span class="grid-veil"></span><span class="initials">${initials}</span></div>`;
+    }
+
     card.innerHTML = `
-        <div class="card-shell">
-            <div class="card-thumb">
-                <span class="category-tag">${localizedCategory}</span>
-                ${tags.join('')}
-                ${game.preview ? `<img src="${game.preview}" alt="${localizedName}" loading="lazy" class="card-img">` : `<i class="thumb-icon ${game.icon}"></i>`}
-            </div>
-            <div class="card-body">
+        <div class="card-cover">
+            <div class="cover-bg">${coverInner}</div>
+            <span class="card-cat">${localizedCategory}</span>
+            ${tags.length ? `<div class="card-tags">${tags.join('')}</div>` : ''}
+            <div class="cover-shade"></div>
+            <div class="cover-meta">
                 <h3 class="game-name">${localizedName}</h3>
-                <p class="game-desc">${localizedDesc}</p>
+                <p class="game-sub">${subtitle}</p>
             </div>
+            <span class="play-btn"><i class="fas fa-play"></i> ${playLabel}</span>
+        </div>
+        <div class="card-body">
+            <p class="game-desc">${localizedDesc}</p>
         </div>
     `;
 
     return card;
+}
+
+// 由游戏名生成确定性的封面兜底色相（不虚构数据，仅视觉 fallback）
+function hashHue(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) % 360;
+    return h;
 }
 
 function getCategoryName(category) {
@@ -672,6 +825,24 @@ function getCategoryName(category) {
     return window.i18n?.t(key) || category;
 }
 
+// 卡片英文副标题：优先取 i18n en 翻译；无翻译且原名本身是英文则用原名；
+// 否则退化为分类英文名。全部来自既有数据，不虚构作者或玩法描述。
+function getEnSubtitle(game, localizedName, localizedCategory) {
+    let enName = null;
+    if (window.i18n && typeof window.i18n.tLang === 'function') {
+        enName = window.i18n.tLang('en', `games.${game.name}`, null);
+    }
+    if (!enName && /^[\x20-\x7E]+$/.test(game.name)) {
+        enName = game.name;
+    }
+    const enCategory = CATEGORY_EN[game.category] || localizedCategory;
+    if (!enName) return enCategory;
+    if (enName === localizedName) {
+        return `${enName} · ${enCategory}`;
+    }
+    return enName;
+}
+
 function bindEvents() {
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -688,15 +859,19 @@ function bindEvents() {
         });
     });
 
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', (e) => {
-        renderGames(currentCategory, e.target.value);
-    });
+    // 三个搜索输入框（导航栏 / 目录区 / 移动端抽屉）共享同一套搜索逻辑，输入时互相同步
+    const searchInputs = ['searchInput', 'directorySearchInput', 'mobileSearchInput']
+        .map(id => document.getElementById(id))
+        .filter(el => !!el);
 
-    const mobileSearchInput = document.getElementById('mobileSearchInput');
-    mobileSearchInput.addEventListener('input', (e) => {
-        searchInput.value = e.target.value;
-        renderGames(currentCategory, e.target.value);
+    searchInputs.forEach(input => {
+        input.addEventListener('input', (e) => {
+            const value = e.target.value;
+            searchInputs.forEach(other => {
+                if (other !== input) other.value = value;
+            });
+            renderGames(currentCategory, value);
+        });
     });
 }
 
@@ -818,6 +993,101 @@ function setupNavbarScroll() {
             ticking = true;
         }
     });
+}
+
+// 光标交互：hero 鼠标光斑 + 卡片 3D 倾角与光斑（事件委托，重渲染后依然生效）
+function setupInteractions() {
+    const hero = document.querySelector('.hero');
+    if (hero) {
+        hero.addEventListener('pointermove', (e) => {
+            const r = hero.getBoundingClientRect();
+            hero.style.setProperty('--spot-x', `${((e.clientX - r.left) / r.width) * 100}%`);
+            hero.style.setProperty('--spot-y', `${((e.clientY - r.top) / r.height) * 100}%`);
+        });
+    }
+
+    if (!window.matchMedia('(hover: hover)').matches) return; // 触屏不做 3D 倾角
+
+    const grid = document.getElementById('gamesGrid');
+    if (!grid) return;
+    grid.addEventListener('pointermove', (e) => {
+        const card = e.target.closest('.game-card');
+        if (!card) return;
+        const r = card.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width;
+        const py = (e.clientY - r.top) / r.height;
+        card.style.setProperty('--tilt-x', `${(0.5 - py) * 7}deg`);
+        card.style.setProperty('--tilt-y', `${(px - 0.5) * 9}deg`);
+        card.style.setProperty('--spot-x', `${px * 100}%`);
+        card.style.setProperty('--spot-y', `${py * 100}%`);
+    });
+    grid.addEventListener('pointerleave', () => {
+        grid.querySelectorAll('.game-card').forEach(card => {
+            card.style.setProperty('--tilt-x', '0deg');
+            card.style.setProperty('--tilt-y', '0deg');
+        });
+    });
+}
+
+// Hero 粒子层：轻量星点漂移，尊重 prefers-reduced-motion
+function initHeroCanvas() {
+    const canvas = document.getElementById('heroCanvas');
+    if (!canvas) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    let w = 0, h = 0;
+    let particles = [];
+    const COUNT = 56;
+
+    function seed() {
+        particles = Array.from({ length: COUNT }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 1.6 + 0.4,
+            vy: -(Math.random() * 0.25 + 0.06),
+            vx: (Math.random() - 0.5) * 0.08,
+            a: Math.random() * 0.5 + 0.12,
+            violet: Math.random() > 0.7
+        }));
+    }
+
+    function resize() {
+        const parent = canvas.parentElement;
+        const rect = parent.getBoundingClientRect();
+        w = rect.width;
+        h = rect.height;
+        canvas.width = Math.max(1, Math.round(w * DPR));
+        canvas.height = Math.max(1, Math.round(h * DPR));
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        seed();
+    }
+
+    function tick() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.y < -4) { p.y = h + 4; p.x = Math.random() * w; }
+            if (p.x < -4) p.x = w + 4;
+            else if (p.x > w + 4) p.x = -4;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.violet ? `rgba(139,92,246,${p.a})` : `rgba(246,243,240,${p.a})`;
+            ctx.fill();
+        }
+        raf = requestAnimationFrame(tick);
+    }
+
+    let raf = null;
+    resize();
+    window.addEventListener('resize', resize);
+    raf = requestAnimationFrame(tick);
 }
 
 document.addEventListener('i18n:languageChanged', () => {

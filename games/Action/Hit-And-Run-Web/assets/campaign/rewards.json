@@ -1,0 +1,632 @@
+[
+  {
+    "id": "famil_v",
+    "path": "art/cars/famil_v.p3d",
+    "type": "car",
+    "quest": "defaultcar",
+    "level": 1,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "cletu_v",
+    "path": "art/cars/cletu_v.p3d",
+    "type": "car",
+    "quest": "bonusmission",
+    "level": 1,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "elect_v",
+    "path": "art/cars/elect_v.p3d",
+    "type": "car",
+    "quest": "streetrace",
+    "level": 1,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "plowk_v",
+    "path": "art/cars/plowk_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 1,
+    "cost": 150,
+    "seller": "simpson"
+  },
+  {
+    "id": "cduff",
+    "path": "art/cars/cduff.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 1,
+    "cost": 125,
+    "seller": "gil"
+  },
+  {
+    "id": "cvan",
+    "path": "art/cars/cvan.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 1,
+    "cost": 100,
+    "seller": "gil"
+  },
+  {
+    "id": "homer",
+    "path": "art/chars/homer_m.p3d",
+    "type": "skin",
+    "quest": "defaultskin",
+    "level": 1,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "h_undrwr",
+    "path": "art/chars/h_undr_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 1,
+    "cost": 100,
+    "seller": "interior"
+  },
+  {
+    "id": "h_fat",
+    "path": "art/chars/h_fat_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 1,
+    "cost": 125,
+    "seller": "interior"
+  },
+  {
+    "id": "h_stcrobe",
+    "path": "art/chars/h_stcr_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 1,
+    "cost": 150,
+    "seller": "interior"
+  },
+  {
+    "id": "honor_v",
+    "path": "art/cars/honor_v.p3d",
+    "type": "car",
+    "quest": "defaultcar",
+    "level": 2,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "gramp_v",
+    "path": "art/cars/gramp_v.p3d",
+    "type": "car",
+    "quest": "bonusmission",
+    "level": 2,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "moe_v",
+    "path": "art/cars/moe_v.p3d",
+    "type": "car",
+    "quest": "streetrace",
+    "level": 2,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "mrplo_v",
+    "path": "art/cars/mrplo_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 2,
+    "cost": 200,
+    "seller": "simpson"
+  },
+  {
+    "id": "climo",
+    "path": "art/cars/climo.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 2,
+    "cost": 150,
+    "seller": "gil"
+  },
+  {
+    "id": "cfire_v",
+    "path": "art/cars/cfire_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 2,
+    "cost": 250,
+    "seller": "gil"
+  },
+  {
+    "id": "bart",
+    "path": "art/chars/bart_m.p3d",
+    "type": "skin",
+    "quest": "defaultskin",
+    "level": 2,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "b_tall",
+    "path": "art/chars/b_tall_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 2,
+    "cost": 150,
+    "seller": "interior"
+  },
+  {
+    "id": "b_football",
+    "path": "art/chars/b_foot_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 2,
+    "cost": 200,
+    "seller": "interior"
+  },
+  {
+    "id": "b_ninja",
+    "path": "art/chars/b_ninj_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 2,
+    "cost": 250,
+    "seller": "interior"
+  },
+  {
+    "id": "lisa_v",
+    "path": "art/cars/lisa_v.p3d",
+    "type": "car",
+    "quest": "defaultcar",
+    "level": 3,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "skinn_v",
+    "path": "art/cars/skinn_v.p3d",
+    "type": "car",
+    "quest": "bonusmission",
+    "level": 3,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "bookb_v",
+    "path": "art/cars/bookb_v.p3d",
+    "type": "car",
+    "quest": "streetrace",
+    "level": 3,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "otto_v",
+    "path": "art/cars/otto_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 3,
+    "cost": 300,
+    "seller": "simpson"
+  },
+  {
+    "id": "cdonut",
+    "path": "art/cars/cdonut.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 3,
+    "cost": 250,
+    "seller": "gil"
+  },
+  {
+    "id": "cnerd",
+    "path": "art/cars/cnerd.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 3,
+    "cost": 250,
+    "seller": "gil"
+  },
+  {
+    "id": "lisa",
+    "path": "art/chars/lisa_m.p3d",
+    "type": "skin",
+    "quest": "defaultskin",
+    "level": 3,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "l_cool",
+    "path": "art/chars/l_cool_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 3,
+    "cost": 250,
+    "seller": "interior"
+  },
+  {
+    "id": "l_florida",
+    "path": "art/chars/l_flor_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 3,
+    "cost": 250,
+    "seller": "interior"
+  },
+  {
+    "id": "l_jersey",
+    "path": "art/chars/l_jers_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 3,
+    "cost": 300,
+    "seller": "interior"
+  },
+  {
+    "id": "marge_v",
+    "path": "art/cars/marge_v.p3d",
+    "type": "car",
+    "quest": "defaultcar",
+    "level": 4,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "comic_v",
+    "path": "art/cars/comic_v.p3d",
+    "type": "car",
+    "quest": "bonusmission",
+    "level": 4,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "krust_v",
+    "path": "art/cars/krust_v.p3d",
+    "type": "car",
+    "quest": "streetrace",
+    "level": 4,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "willi_v",
+    "path": "art/cars/willi_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 4,
+    "cost": 400,
+    "seller": "simpson"
+  },
+  {
+    "id": "cklimo",
+    "path": "art/cars/cklimo.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 4,
+    "cost": 350,
+    "seller": "gil"
+  },
+  {
+    "id": "ccurator",
+    "path": "art/cars/ccurator.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 4,
+    "cost": 300,
+    "seller": "gil"
+  },
+  {
+    "id": "marge",
+    "path": "art/chars/marge_m.p3d",
+    "type": "skin",
+    "quest": "defaultskin",
+    "level": 4,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "m_prison",
+    "path": "art/chars/m_pris_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 4,
+    "cost": 300,
+    "seller": "interior"
+  },
+  {
+    "id": "m_pink",
+    "path": "art/chars/m_pink_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 4,
+    "cost": 350,
+    "seller": "interior"
+  },
+  {
+    "id": "m_police",
+    "path": "art/chars/m_poli_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 4,
+    "cost": 400,
+    "seller": "interior"
+  },
+  {
+    "id": "apu_v",
+    "path": "art/cars/apu_v.p3d",
+    "type": "car",
+    "quest": "defaultcar",
+    "level": 5,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "frink_v",
+    "path": "art/cars/frink_v.p3d",
+    "type": "car",
+    "quest": "bonusmission",
+    "level": 5,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "bbman_v",
+    "path": "art/cars/bbman_v.p3d",
+    "type": "car",
+    "quest": "streetrace",
+    "level": 5,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "carhom_v",
+    "path": "art/cars/carhom_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 5,
+    "cost": 500,
+    "seller": "simpson"
+  },
+  {
+    "id": "wiggu_v",
+    "path": "art/cars/wiggu_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 5,
+    "cost": 425,
+    "seller": "gil"
+  },
+  {
+    "id": "ccola",
+    "path": "art/cars/ccola.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 5,
+    "cost": 350,
+    "seller": "gil"
+  },
+  {
+    "id": "apu",
+    "path": "art/chars/apu_m.p3d",
+    "type": "skin",
+    "quest": "defaultskin",
+    "level": 5,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "a_army",
+    "path": "art/chars/a_army_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 5,
+    "cost": 375,
+    "seller": "interior"
+  },
+  {
+    "id": "a_american",
+    "path": "art/chars/a_amer_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 5,
+    "cost": 425,
+    "seller": "interior"
+  },
+  {
+    "id": "a_besharp",
+    "path": "art/chars/a_besh_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 5,
+    "cost": 475,
+    "seller": "interior"
+  },
+  {
+    "id": "bart_v",
+    "path": "art/cars/bart_v.p3d",
+    "type": "car",
+    "quest": "defaultcar",
+    "level": 6,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "snake_v",
+    "path": "art/cars/snake_v.p3d",
+    "type": "car",
+    "quest": "bonusmission",
+    "level": 6,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "burns_v",
+    "path": "art/cars/burns_v.p3d",
+    "type": "car",
+    "quest": "streetrace",
+    "level": 6,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "scorp_v",
+    "path": "art/cars/scorp_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 6,
+    "cost": 600,
+    "seller": "simpson"
+  },
+  {
+    "id": "carmor",
+    "path": "art/cars/carmor.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 6,
+    "cost": 400,
+    "seller": "gil"
+  },
+  {
+    "id": "csedan",
+    "path": "art/cars/csedan.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 6,
+    "cost": 500,
+    "seller": "gil"
+  },
+  {
+    "id": "bart",
+    "path": "art/chars/bart_m.p3d",
+    "type": "skin",
+    "quest": "defaultskin",
+    "level": 6,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "b_hugo",
+    "path": "art/chars/b_hugo_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 6,
+    "cost": 400,
+    "seller": "interior"
+  },
+  {
+    "id": "b_military",
+    "path": "art/chars/b_mili_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 6,
+    "cost": 500,
+    "seller": "interior"
+  },
+  {
+    "id": "b_man",
+    "path": "art/chars/b_man_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 6,
+    "cost": 600,
+    "seller": "interior"
+  },
+  {
+    "id": "homer_v",
+    "path": "art/cars/homer_v.p3d",
+    "type": "car",
+    "quest": "defaultcar",
+    "level": 7,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "smith_v",
+    "path": "art/cars/smith_v.p3d",
+    "type": "car",
+    "quest": "bonusmission",
+    "level": 7,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "fone_v",
+    "path": "art/cars/fone_v.p3d",
+    "type": "car",
+    "quest": "streetrace",
+    "level": 7,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "zombi_v",
+    "path": "art/cars/zombi_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 7,
+    "cost": 500,
+    "seller": "simpson"
+  },
+  {
+    "id": "hbike_v",
+    "path": "art/cars/hbike_v.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 7,
+    "cost": 1000,
+    "seller": "gil"
+  },
+  {
+    "id": "chears",
+    "path": "art/cars/chears.p3d",
+    "type": "car",
+    "quest": "forsale",
+    "level": 7,
+    "cost": 750,
+    "seller": "gil"
+  },
+  {
+    "id": "homer",
+    "path": "art/chars/homer_m.p3d",
+    "type": "skin",
+    "quest": "defaultskin",
+    "level": 7,
+    "cost": 0,
+    "seller": ""
+  },
+  {
+    "id": "h_scuzzy",
+    "path": "art/chars/h_scuz_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 7,
+    "cost": 400,
+    "seller": "interior"
+  },
+  {
+    "id": "h_evil",
+    "path": "art/chars/h_evil_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 7,
+    "cost": 450,
+    "seller": "interior"
+  },
+  {
+    "id": "h_donut",
+    "path": "art/chars/h_donu_m.p3d",
+    "type": "skin",
+    "quest": "forsale",
+    "level": 7,
+    "cost": 500,
+    "seller": "interior"
+  }
+]

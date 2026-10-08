@@ -1,8 +1,8 @@
 # 🛠️ 开发指南 | Development Guide
 
-完整的WebGameHub开发指南，帮助你快速上手项目开发。
+完整的AIGameHub开发指南，帮助你快速上手项目开发。
 
-Complete development guide for WebGameHub to help you get started quickly.
+Complete development guide for AIGameHub to help you get started quickly.
 
 **[中文](#中文) | [English](#english)**
 
@@ -64,7 +64,7 @@ Complete development guide for WebGameHub to help you get started quickly.
 ### 📁 项目结构
 
 ```
-WebGameHub/
+AIGameHub/
 ├── .github/                    # GitHub配置
 │   ├── ISSUE_TEMPLATE/        # Issue模板
 │   │   ├── bug_report.md
@@ -113,7 +113,7 @@ WebGameHub/
 
 ```bash
 git clone https://github.com/nilgpt2024/web-game.git
-cd WebGameHub
+cd AIGameHub
 ```
 
 #### 2. 创建开发分支

@@ -1,0 +1,125 @@
+{
+  "cars": [
+    {
+      "car": "cpolice",
+      "triangles": 33322,
+      "meshObjects": 22,
+      "beacons": 2,
+      "bytes": 1714708
+    },
+    {
+      "car": "chears",
+      "triangles": 32897,
+      "meshObjects": 31,
+      "beacons": 2,
+      "bytes": 1737276
+    },
+    {
+      "car": "burnsarm",
+      "triangles": 24394,
+      "meshObjects": 8,
+      "beacons": 0,
+      "bytes": 1170632
+    },
+    {
+      "car": "fishtruc",
+      "triangles": 23564,
+      "meshObjects": 7,
+      "beacons": 0,
+      "bytes": 1131744
+    },
+    {
+      "car": "glastruc",
+      "triangles": 25643,
+      "meshObjects": 11,
+      "beacons": 0,
+      "bytes": 1245012
+    },
+    {
+      "car": "hallo",
+      "triangles": 22597,
+      "meshObjects": 7,
+      "beacons": 0,
+      "bytes": 1090852
+    },
+    {
+      "car": "sportsb",
+      "triangles": 22589,
+      "meshObjects": 8,
+      "beacons": 0,
+      "bytes": 1091292
+    },
+    {
+      "car": "suva",
+      "triangles": 22030,
+      "meshObjects": 7,
+      "beacons": 0,
+      "bytes": 1071596
+    },
+    {
+      "car": "witchcar",
+      "triangles": 25292,
+      "meshObjects": 5,
+      "beacons": 0,
+      "bytes": 1146620
+    }
+  ],
+  "sourceLights": [
+    {
+      "car": "cpolice",
+      "sourceBounds": [
+        [
+          -0.7135828137397766,
+          0.2167932093143463,
+          1.2512937784194946
+        ],
+        [
+          0.7135828733444214,
+          0.4519064128398895,
+          1.4466438293457031
+        ]
+      ],
+      "palette": [
+        [
+          199,
+          20,
+          68
+        ],
+        [
+          4,
+          52,
+          177
+        ]
+      ]
+    },
+    {
+      "car": "chears",
+      "sourceBounds": [
+        [
+          -0.49104058742523193,
+          0.24816341698169708,
+          1.3506429195404053
+        ],
+        [
+          0.4653676450252533,
+          0.41986802220344543,
+          1.4807097911834717
+        ]
+      ],
+      "palette": [
+        [
+          0,
+          163,
+          96
+        ],
+        [
+          255,
+          123,
+          0
+        ]
+      ]
+    }
+  ],
+  "tyreNormal": "pursuit-tyre-normal.png",
+  "errors": []
+}

@@ -1,0 +1,79 @@
+{
+  "asphalt": {
+    "roughness": 0.94,
+    "metalness": 0,
+    "bump": 0.022,
+    "scale": 12,
+    "detail": "remaster/detail-asphalt.png"
+  },
+  "grass": {
+    "roughness": 0.98,
+    "metalness": 0,
+    "bump": 0.035,
+    "scale": 9,
+    "detail": "remaster/detail-grass.png"
+  },
+  "concrete": {
+    "roughness": 0.9,
+    "metalness": 0,
+    "bump": 0.015,
+    "scale": 10,
+    "detail": "remaster/detail-concrete.png"
+  },
+  "brick": {
+    "roughness": 0.88,
+    "metalness": 0,
+    "bump": 0.025,
+    "scale": 5,
+    "detail": "remaster/detail-brick.png"
+  },
+  "wood": {
+    "roughness": 0.8,
+    "metalness": 0,
+    "bump": 0.018,
+    "scale": 4,
+    "detail": "remaster/detail-wood.png"
+  },
+  "roof": {
+    "roughness": 0.88,
+    "metalness": 0,
+    "bump": 0.018,
+    "scale": 7,
+    "detail": "remaster/detail-roof.png"
+  },
+  "metal": {
+    "roughness": 0.48,
+    "metalness": 0.52,
+    "bump": 0.004,
+    "scale": 6,
+    "detail": "remaster/detail-metal.png"
+  },
+  "glass": {
+    "roughness": 0.21,
+    "metalness": 0.12,
+    "bump": 0,
+    "scale": 1,
+    "detail": "remaster/detail-glass.png"
+  },
+  "foliage": {
+    "roughness": 0.96,
+    "metalness": 0,
+    "bump": 0.008,
+    "scale": 6,
+    "detail": "remaster/detail-foliage.png"
+  },
+  "paint": {
+    "roughness": 0.81,
+    "metalness": 0,
+    "bump": 0.006,
+    "scale": 8,
+    "detail": "remaster/detail-paint.png"
+  },
+  "art": {
+    "roughness": 0.86,
+    "metalness": 0,
+    "bump": 0.003,
+    "scale": 8,
+    "detail": "remaster/detail-art.png"
+  }
+}

@@ -1,0 +1,178 @@
+[
+  {
+    "source": "demo.rmv",
+    "file": "campaign/movies/demo.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 1598,
+    "fps": 25,
+    "duration": 63.92,
+    "audioLanguageIndex": 0,
+    "bytes": 24242617
+  },
+  {
+    "source": "fmv1a.rmv",
+    "file": "campaign/movies/fmv1a.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 965,
+    "fps": 25,
+    "duration": 38.6,
+    "audioLanguageIndex": 0,
+    "bytes": 14393660
+  },
+  {
+    "source": "fmv2.rmv",
+    "file": "campaign/movies/fmv2.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 1111,
+    "fps": 25,
+    "duration": 44.434,
+    "audioLanguageIndex": 0,
+    "bytes": 16818869
+  },
+  {
+    "source": "fmv3.rmv",
+    "file": "campaign/movies/fmv3.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 1366,
+    "fps": 25,
+    "duration": 54.622,
+    "audioLanguageIndex": 0,
+    "bytes": 20260754
+  },
+  {
+    "source": "fmv4.rmv",
+    "file": "campaign/movies/fmv4.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 1550,
+    "fps": 25,
+    "duration": 61.996,
+    "audioLanguageIndex": 0,
+    "bytes": 24409383
+  },
+  {
+    "source": "fmv5.rmv",
+    "file": "campaign/movies/fmv5.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 3504,
+    "fps": 25,
+    "duration": 140.16,
+    "audioLanguageIndex": 0,
+    "bytes": 54458543
+  },
+  {
+    "source": "fmv6.rmv",
+    "file": "campaign/movies/fmv6.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 1092,
+    "fps": 25,
+    "duration": 43.668,
+    "audioLanguageIndex": 0,
+    "bytes": 16823749
+  },
+  {
+    "source": "fmv7.rmv",
+    "file": "campaign/movies/fmv7.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 2533,
+    "fps": 25,
+    "duration": 101.301,
+    "audioLanguageIndex": 0,
+    "bytes": 39388851
+  },
+  {
+    "source": "fmv8.rmv",
+    "file": "campaign/movies/fmv8.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 1372,
+    "fps": 25,
+    "duration": 54.88,
+    "audioLanguageIndex": 0,
+    "bytes": 20820240
+  },
+  {
+    "source": "foxlogo.rmv",
+    "file": "campaign/movies/foxlogo.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 513,
+    "fps": 25,
+    "duration": 20.52,
+    "audioLanguageIndex": 0,
+    "bytes": 7000667
+  },
+  {
+    "source": "gracie.rmv",
+    "file": "campaign/movies/gracie.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 157,
+    "fps": 25,
+    "duration": 6.28,
+    "audioLanguageIndex": 0,
+    "bytes": 1351500
+  },
+  {
+    "source": "intro.rmv",
+    "file": "campaign/movies/intro.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 1245,
+    "fps": 25,
+    "duration": 49.8,
+    "audioLanguageIndex": 0,
+    "bytes": 19547211
+  },
+  {
+    "source": "loot.rmv",
+    "file": "campaign/movies/loot.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 292,
+    "fps": 25,
+    "duration": 11.679002,
+    "audioLanguageIndex": 0,
+    "bytes": 3618653
+  },
+  {
+    "source": "radlogo.rmv",
+    "file": "campaign/movies/radlogo.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 101,
+    "fps": 25,
+    "duration": 4.038,
+    "audioLanguageIndex": 0,
+    "bytes": 902215
+  },
+  {
+    "source": "tele.rmv",
+    "file": "campaign/movies/tele.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 485,
+    "fps": 25,
+    "duration": 19.387,
+    "audioLanguageIndex": 0,
+    "bytes": 7462534
+  },
+  {
+    "source": "vuglogo.rmv",
+    "file": "campaign/movies/vuglogo.mp4",
+    "width": 640,
+    "height": 512,
+    "frames": 169,
+    "fps": 25,
+    "duration": 6.76,
+    "audioLanguageIndex": 0,
+    "bytes": 2081160
+  }
+]

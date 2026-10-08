@@ -112,7 +112,7 @@ function resetStats() {
 }
 
 // ==================== Game Functions ====================
-// Project: WebGameHub
+// Project: AIGameHub
 function initGame() {
   const config = difficultyConfig[currentDifficulty];
   secretNumber = Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;

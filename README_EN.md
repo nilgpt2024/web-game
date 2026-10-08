@@ -1,11 +1,11 @@
 <div align="center">
 
-# 🎮 WebGameHub - Premium Game Collection
+# 🎮 AIGameHub - Premium Game Collection
 
-[![GitHub stars](https://img.shields.io/github/stars/SinceraXY/WebGameHub?style=social)](https://github.com/nilgpt2024/web-game/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/SinceraXY/WebGameHub?style=social)](https://github.com/nilgpt2024/web-game/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/SinceraXY/WebGameHub)](https://github.com/nilgpt2024/web-game/issues)
-[![GitHub license](https://img.shields.io/github/license/SinceraXY/WebGameHub)](https://github.com/nilgpt2024/web-game/blob/main/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/SinceraXY/AIGameHub?style=social)](https://github.com/nilgpt2024/web-game/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/SinceraXY/AIGameHub?style=social)](https://github.com/nilgpt2024/web-game/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/SinceraXY/AIGameHub)](https://github.com/nilgpt2024/web-game/issues)
+[![GitHub license](https://img.shields.io/github/license/SinceraXY/AIGameHub)](https://github.com/nilgpt2024/web-game/blob/main/LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/nilgpt2024/web-game/pulls)
 
 **[中文](README.md) | [English](README_EN.md)**
@@ -25,7 +25,7 @@ A beautiful and cool HTML5 game collection homepage featuring 42 carefully categ
 1. **Clone the project**
    ```bash
    git clone https://github.com/nilgpt2024/web-game.git
-   cd WebGameHub
+   cd AIGameHub
    ```
 
 2. **Open the homepage**
@@ -95,7 +95,7 @@ For online deployment, refer to [Deployment Guide](docs/DEPLOYMENT.md), supporti
 ## 📁 Project Structure
 
 ```
-WebGameHub/
+AIGameHub/
 ├── index.html          # Main page
 ├── style.css           # Stylesheet
 ├── script.js           # Interactive scripts
@@ -298,7 +298,7 @@ Thanks to all game developers for their hard work!
 
 If you have any questions or suggestions, feel free to reach out!
 
-- 🐙 **GitHub**: [SinceraXY/WebGameHub](https://github.com/nilgpt2024/web-game)
+- 🐙 **GitHub**: [SinceraXY/AIGameHub](https://github.com/nilgpt2024/web-game)
 - 📧 **Email**: 2952671670@qq.com
 - 💬 **QQ**: 2952671670
 
@@ -306,13 +306,13 @@ If you have any questions or suggestions, feel free to reach out!
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=SinceraXY/WebGameHub&type=Date)](https://star-history.com/#SinceraXY/WebGameHub&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=SinceraXY/AIGameHub&type=Date)](https://star-history.com/#SinceraXY/AIGameHub&Date)
 
 ---
 
 <div align="center">
 
-**🎮 WebGameHub - Make Gaming More Fun!**
+**🎮 AIGameHub - Make Gaming More Fun!**
 
 Made with ❤️ for gamers
 

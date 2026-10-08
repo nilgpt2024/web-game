@@ -1,0 +1,61 @@
+{
+  "levels": [
+    {
+      "level": 1,
+      "roads": 99,
+      "segments": 966,
+      "junctions": 44,
+      "props": 1067,
+      "extraScenes": 12
+    },
+    {
+      "level": 2,
+      "roads": 125,
+      "segments": 781,
+      "junctions": 56,
+      "props": 649,
+      "extraScenes": 5
+    },
+    {
+      "level": 3,
+      "roads": 92,
+      "segments": 1108,
+      "junctions": 45,
+      "props": 589,
+      "extraScenes": 9
+    },
+    {
+      "level": 4,
+      "roads": 105,
+      "segments": 985,
+      "junctions": 47,
+      "props": 1087,
+      "extraScenes": 12
+    },
+    {
+      "level": 5,
+      "roads": 125,
+      "segments": 781,
+      "junctions": 56,
+      "props": 621,
+      "extraScenes": 5
+    },
+    {
+      "level": 6,
+      "roads": 92,
+      "segments": 1108,
+      "junctions": 45,
+      "props": 586,
+      "extraScenes": 9
+    },
+    {
+      "level": 7,
+      "roads": 78,
+      "segments": 765,
+      "junctions": 34,
+      "props": 887,
+      "extraScenes": 9
+    }
+  ],
+  "errors": []
+}

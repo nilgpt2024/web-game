@@ -1,0 +1,5 @@
+const CACHE="sandline-83cd69eab7e7";const FILES=["./assets/index-B1ygv7Dw.js","./assets/index-D4EVXDLD.css","./assets/main-Brfk6a5z.css","./assets/main-xwzqXkYQ.js","./assets/startup-C6uIeOHg.js","./assets/three-BM3wBiUQ.js","./icon-192.png","./icon-512.png","./icon.svg","./index.html","./manifest.webmanifest","./site-config.js"];
+self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
+self.addEventListener('activate',event=>event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('sandline-')&&k!==CACHE).map(k=>caches.delete(k)))),self.clients.claim()])));
+self.addEventListener('message',event=>{if(event.data==='CACHE_STATUS')event.ports[0]?.postMessage({ready:true,version:CACHE});});
+self.addEventListener('fetch',event=>{if(event.request.method!=='GET'||new URL(event.request.url).origin!==self.location.origin)return;event.respondWith(caches.open(CACHE).then(async c=>{const hit=event.request.mode==='navigate'?await c.match('./index.html',{ignoreVary:true}):await c.match(event.request,{ignoreVary:true});return hit||fetch(event.request);}));});

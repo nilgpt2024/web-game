@@ -1,8 +1,8 @@
 # ⚫ Gomoku - 五子棋 | Five in a Row
 
-![GitHub stars](https://img.shields.io/github/stars/SinceraXY/WebGameHub?style=social&label=Star)
-![GitHub forks](https://img.shields.io/github/forks/SinceraXY/WebGameHub?style=social&label=Fork)
-![License](https://img.shields.io/github/license/SinceraXY/WebGameHub)
+![GitHub stars](https://img.shields.io/github/stars/SinceraXY/AIGameHub?style=social&label=Star)
+![GitHub forks](https://img.shields.io/github/forks/SinceraXY/AIGameHub?style=social&label=Fork)
+![License](https://img.shields.io/github/license/SinceraXY/AIGameHub)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
@@ -10,7 +10,7 @@
 
 **经典策略棋类游戏！双人对弈，连成五子获胜，挑战你的策略思维！**
 
-[🎮 在线体验](https://sinceraxy.github.io/WebGameHub/games/board/gomoku/index.html) | [📖 完整文档](#) | [🐛 反馈问题](https://github.com/nilgpt2024/web-game/issues)
+[🎮 在线体验](https://sinceraxy.github.io/AIGameHub/games/board/gomoku/index.html) | [📖 完整文档](#) | [🐛 反馈问题](https://github.com/nilgpt2024/web-game/issues)
 
 ---
 
@@ -50,7 +50,7 @@ Gomoku（五子棋），又称连珠、五目棋，是一款源于中国的传�
 
 ### 方式一：在线游玩（推荐）
 
-直接访问：**[🎮 点击开始游戏](https://sinceraxy.github.io/WebGameHub/games/board/gomoku/index.html)**
+直接访问：**[🎮 点击开始游戏](https://sinceraxy.github.io/AIGameHub/games/board/gomoku/index.html)**
 
 无需下载，打开浏览器即可畅玩！
 
@@ -59,7 +59,7 @@ Gomoku（五子棋），又称连珠、五目棋，是一款源于中国的传�
 ```bash
 # 1. 克隆项目
 git clone https://github.com/nilgpt2024/web-game.git
-cd WebGameHub
+cd AIGameHub
 
 # 2. 打开游戏文件
 # 直接双击 games/board/gomoku/index.html
@@ -406,7 +406,7 @@ games/board/gomoku/
 
 如有问题、建议或贡献意向，欢迎通过以下方式联系：
 
-- 🐙 **GitHub**: [SinceraXY/WebGameHub](https://github.com/nilgpt2024/web-game)
+- 🐙 **GitHub**: [SinceraXY/AIGameHub](https://github.com/nilgpt2024/web-game)
   - 🐛 [提交 Issue](https://github.com/nilgpt2024/web-game/issues)
   - 💾 [Pull Request](https://github.com/nilgpt2024/web-game/pulls)
 - 📧 **Email**: <2952671670@qq.com>
@@ -428,6 +428,6 @@ games/board/gomoku/
 
 **Made with ❤️ by [SinceraXY](https://github.com/SinceraXY)**
 
-**Powered by [WebGameHub](https://github.com/nilgpt2024/web-game)**
+**Powered by [AIGameHub](https://github.com/nilgpt2024/web-game)**
 
 </div>

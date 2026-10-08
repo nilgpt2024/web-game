@@ -407,7 +407,7 @@ class TetrisGame {
             // Check bounds
             if (newX < 0 || newX >= this.BOARD_WIDTH || newY >= this.BOARD_HEIGHT) {
                 return false;
-// Project: WebGameHub
+// Project: AIGameHub
             }
             
             // Check collision with existing pieces (ignore negative Y for spawn area)

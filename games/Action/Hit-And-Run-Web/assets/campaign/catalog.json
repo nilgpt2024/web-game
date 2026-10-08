@@ -1,0 +1,687 @@
+{
+  "levels": [
+    {
+      "id": 1,
+      "missions": [
+        {
+          "id": "m0",
+          "title": "The Cola Caper",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m1",
+          "title": "S-M-R-T",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m2",
+          "title": "Petty Theft Homer",
+          "transition": false,
+          "stages": 12
+        },
+        {
+          "id": "m3",
+          "title": "Office Spaced",
+          "transition": false,
+          "stages": 4
+        },
+        {
+          "id": "m4",
+          "title": "Blind Big Brother",
+          "transition": false,
+          "stages": 4
+        },
+        {
+          "id": "m5",
+          "title": "Flowers By Irene",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m6",
+          "title": "Bonestorm Storm",
+          "transition": false,
+          "stages": 4
+        },
+        {
+          "id": "m7",
+          "title": "The Fat and Furious",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "sr1",
+          "title": "Race 1:  Time Trial",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr2",
+          "title": "Race 2:  Circuit Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr3",
+          "title": "Race 3:  Checkpoint Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "gr1",
+          "title": "Race 4:  Wager Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "bm1",
+          "title": "This Old Shanty",
+          "transition": false,
+          "stages": 7
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "missions": [
+        {
+          "id": "m1",
+          "title": "Detention Deficit Disorder",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m2",
+          "title": "Weapons of Mass Delinquency",
+          "transition": false,
+          "stages": 21
+        },
+        {
+          "id": "m3",
+          "title": "Vox Nerduli",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m4",
+          "title": "Bart 'n' Frink",
+          "transition": false,
+          "stages": 8
+        },
+        {
+          "id": "m5",
+          "title": "Better Than Beef",
+          "transition": false,
+          "stages": 7
+        },
+        {
+          "id": "m6",
+          "title": "Monkey See Monkey D'oh",
+          "transition": false,
+          "stages": 7
+        },
+        {
+          "id": "m7",
+          "title": "Cell-Outs",
+          "transition": false,
+          "stages": 8
+        },
+        {
+          "id": "m8",
+          "title": "Level transition",
+          "transition": true,
+          "stages": 1
+        },
+        {
+          "id": "sr1",
+          "title": "Race 1:  Time Trial",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr2",
+          "title": "Race 2:  Circuit Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr3",
+          "title": "Race 3:  Checkpoint Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "gr1",
+          "title": "Race 4:  Wager Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "bm1",
+          "title": "Dial B for Blood",
+          "transition": false,
+          "stages": 15
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "missions": [
+        {
+          "id": "m1",
+          "title": "Nerd Race Queen",
+          "transition": false,
+          "stages": 5
+        },
+        {
+          "id": "m2",
+          "title": "Clueless",
+          "transition": false,
+          "stages": 12
+        },
+        {
+          "id": "m3",
+          "title": "Bonfire of the Manatees",
+          "transition": false,
+          "stages": 5
+        },
+        {
+          "id": "m4",
+          "title": "Operation Hellfish",
+          "transition": false,
+          "stages": 8
+        },
+        {
+          "id": "m5",
+          "title": "Slithery Sleuthing",
+          "transition": false,
+          "stages": 4
+        },
+        {
+          "id": "m6",
+          "title": "Fishy Deals",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "m7",
+          "title": "The Old Pirate and the Sea",
+          "transition": false,
+          "stages": 8
+        },
+        {
+          "id": "sr1",
+          "title": "Race 1:  Time Trial",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr2",
+          "title": "Race 2:  Circuit Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr3",
+          "title": "Race 3:  Checkpoint Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "gr1",
+          "title": "Race 4:  Wager Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "bm1",
+          "title": "Princi-pal",
+          "transition": false,
+          "stages": 16
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "missions": [
+        {
+          "id": "m1",
+          "title": "For A Few Donuts More",
+          "transition": false,
+          "stages": 8
+        },
+        {
+          "id": "m2",
+          "title": "Redneck Roundup",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "m3",
+          "title": "Ketchup Logic",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m4",
+          "title": "Return of the Nearly-Dead",
+          "transition": false,
+          "stages": 1
+        },
+        {
+          "id": "m5",
+          "title": "Wolves Stole My Pills",
+          "transition": false,
+          "stages": 19
+        },
+        {
+          "id": "m6",
+          "title": "The Cola Wars",
+          "transition": false,
+          "stages": 1
+        },
+        {
+          "id": "m7",
+          "title": "From Outer Space",
+          "transition": false,
+          "stages": 9
+        },
+        {
+          "id": "sr1",
+          "title": "Race 1:  Time Trial",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr2",
+          "title": "Race 2:  Circuit Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr3",
+          "title": "Race 3:  Checkpoint Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "gr1",
+          "title": "Race 4:  Wager Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "bm1",
+          "title": "Beached Love",
+          "transition": false,
+          "stages": 6
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "missions": [
+        {
+          "id": "m1",
+          "title": "Incriminating Caffeine",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m2",
+          "title": ". . . and Baby Makes 8",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m3",
+          "title": "Eight is Too Much",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m4",
+          "title": "This Little Piggy",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m5",
+          "title": "Never Trust a Snake",
+          "transition": false,
+          "stages": 8
+        },
+        {
+          "id": "m6",
+          "title": "Kwik Cash",
+          "transition": false,
+          "stages": 9
+        },
+        {
+          "id": "m7",
+          "title": "Curious Curator",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m8",
+          "title": "Level transition",
+          "transition": true,
+          "stages": 1
+        },
+        {
+          "id": "sr1",
+          "title": "Race 1:  Time Trial",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr2",
+          "title": "Race 2:  Circuit Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr3",
+          "title": "Race 3:  Checkpoint Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "gr1",
+          "title": "Race 4:  Wager Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "bm1",
+          "title": "Kinky Frinky",
+          "transition": false,
+          "stages": 4
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "missions": [
+        {
+          "id": "m1",
+          "title": "Going to the Lu'",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m2",
+          "title": "Getting Down with the Clown",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m3",
+          "title": "Lab Coat Caper",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "m4",
+          "title": "Duff for Me, Duff for You",
+          "transition": false,
+          "stages": 5
+        },
+        {
+          "id": "m5",
+          "title": "Full Metal Jackass",
+          "transition": false,
+          "stages": 1
+        },
+        {
+          "id": "m6",
+          "title": "Set to Kill",
+          "transition": false,
+          "stages": 6
+        },
+        {
+          "id": "m7",
+          "title": "Kang and Kodos Strike Back",
+          "transition": false,
+          "stages": 1
+        },
+        {
+          "id": "m8",
+          "title": "Level transition",
+          "transition": true,
+          "stages": 1
+        },
+        {
+          "id": "sr1",
+          "title": "Race 1:  Time Trial",
+          "transition": false,
+          "stages": 0
+        },
+        {
+          "id": "sr2",
+          "title": "Race 2:  Circuit Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr3",
+          "title": "Race 3:  Checkpoint Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "gr1",
+          "title": "Race 4:  Wager Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "bm1",
+          "title": "Milking the Pigs",
+          "transition": false,
+          "stages": 7
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "missions": [
+        {
+          "id": "m1",
+          "title": "Rigor Motors",
+          "transition": false,
+          "stages": 11
+        },
+        {
+          "id": "m2",
+          "title": "Long Black Probes",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m3",
+          "title": "Pocket Protector",
+          "transition": false,
+          "stages": 3
+        },
+        {
+          "id": "m4",
+          "title": "There's Something About Monty",
+          "transition": false,
+          "stages": 5
+        },
+        {
+          "id": "m5",
+          "title": "Alien \"Auto\"topsy Part I",
+          "transition": false,
+          "stages": 5
+        },
+        {
+          "id": "m6",
+          "title": "Alien \"Auto\"topsy Part II",
+          "transition": false,
+          "stages": 5
+        },
+        {
+          "id": "m7",
+          "title": "Alien \"Auto\"topsy Part III",
+          "transition": false,
+          "stages": 7
+        },
+        {
+          "id": "m8",
+          "title": "Level transition",
+          "transition": true,
+          "stages": 1
+        },
+        {
+          "id": "sr1",
+          "title": "Race 1:  Time Trial",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr2",
+          "title": "Race 2:  Circuit Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "sr3",
+          "title": "Race 3:  Checkpoint Race",
+          "transition": false,
+          "stages": 2
+        },
+        {
+          "id": "gr1",
+          "title": "Race 4:  Wager Race",
+          "transition": false,
+          "stages": 0
+        },
+        {
+          "id": "bm1",
+          "title": "Flaming Tires",
+          "transition": false,
+          "stages": 9
+        }
+      ]
+    }
+  ],
+  "missionCount": 89,
+  "stageCount": 610,
+  "objectiveTypes": {
+    "talkto": 93,
+    "dialogue": 153,
+    "getin": 35,
+    "goto": 163,
+    "interior": 16,
+    "race": 35,
+    "gooutside": 4,
+    "buycar": 6,
+    "destroy": 15,
+    "delivery": 13,
+    "fmv": 3,
+    "follow": 7,
+    "timer": 23,
+    "dump": 13,
+    "coins": 6,
+    "losetail": 13,
+    "buyskin": 4,
+    "pickupitem": 4,
+    "destroyboss": 4
+  },
+  "conditionTypes": {
+    "race": 8,
+    "timeout": 144,
+    "outofvehicle": 92,
+    "damage": 109,
+    "followdistance": 11,
+    "position": 17,
+    "keepbarrel": 10
+  },
+  "commandCounts": {
+    "SetMaxTraffic": 117,
+    "SetHUDIcon": 387,
+    "SetStageMessageIndex": 436,
+    "AddObjective": 582,
+    "AddNPC": 314,
+    "AddObjectiveNPCWaypoint": 176,
+    "SetTalkToTarget": 93,
+    "CloseObjective": 582,
+    "SetPresentationBitmap": 58,
+    "AmbientAnimationRandomize": 194,
+    "SetConversationCam": 341,
+    "AddAmbientNpcAnimation": 428,
+    "AddAmbientPcAnimation": 430,
+    "SetCamBestSide": 90,
+    "SetDialogueInfo": 153,
+    "SetDialoguePositions": 125,
+    "SetObjTargetVehicle": 83,
+    "RESET_TO_HERE": 111,
+    "ShowStageComplete": 106,
+    "SetDestination": 183,
+    "SetCollectibleEffect": 278,
+    "TurnGotoDialogOff": 40,
+    "SetCompletionDialog": 37,
+    "AddStageVehicle": 124,
+    "ActivateVehicle": 36,
+    "AddStageWaypoint": 292,
+    "AddCollectible": 506,
+    "AddCondition": 391,
+    "SetCondTargetVehicle": 124,
+    "CloseCondition": 391,
+    "AddStageMusicChange": 11,
+    "SetStageMusicAlwaysOn": 15,
+    "SetStageTime": 95,
+    "AddStageTime": 61,
+    "AllowMissionAbort": 3,
+    "SetCondTime": 92,
+    "SetCondMinHealth": 105,
+    "SetVehicleAIParams": 52,
+    "StageStartMusicEvent": 14,
+    "MustActionTrigger": 8,
+    "SetFMVInfo": 3,
+    "SetStageAITargetCatchupParams": 7,
+    "SetFollowDistances": 11,
+    "SetFadeOut": 13,
+    "StayInBlack": 5,
+    "AddStageCharacter": 11,
+    "SetDurationTime": 23,
+    "StartCountdown": 41,
+    "AddToCountdownSequence": 167,
+    "SwapInDefaultCar": 10,
+    "SetSwapDefaultCarLocator": 10,
+    "SetSwapForcedCarLocator": 10,
+    "SetSwapPlayerLocator": 10,
+    "SetStageAIRaceCatchupParams": 40,
+    "DisableHitAndRun": 23,
+    "PlacePlayerCar": 23,
+    "PutMFPlayerInCar": 24,
+    "NoTrafficForStage": 20,
+    "SetRaceLaps": 13,
+    "SetConditionPosition": 17,
+    "SetCoinFee": 6,
+    "UseElapsedTime": 6,
+    "SetRaceEnteryFee": 6,
+    "SetParTime": 6,
+    "SetObjDistance": 13,
+    "SetMusicState": 9,
+    "SetIrisWipe": 6,
+    "RemoveDriver": 6,
+    "RemoveNPC": 3,
+    "AddDriver": 1,
+    "AddSafeZone": 4,
+    "BindCollectibleTo": 36,
+    "SetCharacterToHide": 1,
+    "SetLevelOver": 1,
+    "AddCollectibleStateProp": 2,
+    "SetPickupTarget": 4,
+    "SetObjTargetBoss": 4,
+    "AllowRockOut": 1,
+    "GoToPsScreenWhenDone": 3
+  },
+  "missingLocators": []
+}

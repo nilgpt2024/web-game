@@ -19,7 +19,7 @@ const TRANSLATIONS = {
             "badge": "款 AI 生成游戏 · 持续收录中",
             "title_1": "AI 生成游戏，不止于收藏",
             "title_2": "收录即可玩，打开即上手",
-            "desc_pre": "WebGameHub 收录 ",
+            "desc_pre": "AIGameHub 收录 ",
             "desc_post": " 款由 AI 生成并持续更新的浏览器游戏：益智解谜、动作反应、经典街机、生成艺术……无需下载、无需注册，打开即玩，持续收录中。",
             "cta_play": "开始试玩",
             "cta_guide": "查看玩法指南",
@@ -200,13 +200,13 @@ const TRANSLATIONS = {
             "subtitle_post": " 款 AI 生成交互体验，持续更新中。"
         },
         "footer": {
-            "desc_pre": "WebGameHub 收录 ",
+            "desc_pre": "AIGameHub 收录 ",
             "desc_post": " 款 AI 生成游戏合集，浏览器即开即玩，持续收录中。",
             "note": "每款收录游戏均可直接在浏览器中试玩，无需下载或注册。",
             "col_site": "网站信息",
             "col_dir": "目录",
             "col_legal": "合规",
-            "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
+            "copyright": "© 2025 AIGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "回到顶部",
         "a11y": {
@@ -437,7 +437,7 @@ const TRANSLATIONS = {
             "col_site": "Site",
             "col_dir": "Directory",
             "col_legal": "Legal",
-            "copyright": "© 2025 WebGameHub. Made with ❤️ for gamers"
+            "copyright": "© 2025 AIGameHub. Made with ❤️ for gamers"
         },
         "back_to_top": "Back to Top",
         "a11y": {
@@ -468,7 +468,7 @@ const TRANSLATIONS = {
 class I18n {
     constructor() {
         const urlLang = new URLSearchParams(window.location.search).get('lang');
-        this.currentLang = urlLang || localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
+        this.currentLang = urlLang || localStorage.getItem('AIGameHub-lang') || this.detectLanguage();
         this.translations = TRANSLATIONS;
         this.availableLangs = ['zh-CN', 'en'];
     }
@@ -526,7 +526,7 @@ class I18n {
         }
         
         this.currentLang = lang;
-        localStorage.setItem('WebGameHub-lang', lang);
+        localStorage.setItem('AIGameHub-lang', lang);
         this.render();
         
         // Dispatch custom event for language change

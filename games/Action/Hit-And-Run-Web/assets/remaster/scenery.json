@@ -1,0 +1,719 @@
+{
+  "scenes": [
+    "l1_terra",
+    "l1r1",
+    "l1r2",
+    "l1r3",
+    "l1r4a",
+    "l1r4b",
+    "l1r6",
+    "l1r7",
+    "l1z1",
+    "l1z2",
+    "l1z3",
+    "l1z4",
+    "l1z6",
+    "l1z7",
+    "l1i00",
+    "l1i01",
+    "l1i02",
+    "l2_terra",
+    "l2r1",
+    "l2r2",
+    "l2r3",
+    "l2r4",
+    "l2z1",
+    "l2z2",
+    "l2z3",
+    "l2z4",
+    "l2i03",
+    "l2i04",
+    "l3_terra",
+    "l3r1",
+    "l3r2",
+    "l3r3",
+    "l3r4",
+    "l3r5",
+    "l3r5_dam",
+    "l3z1",
+    "l3z2",
+    "l3z3",
+    "l3z4",
+    "l3z5",
+    "l3i05",
+    "l3i06",
+    "l4_terra",
+    "l4r1",
+    "l4r2",
+    "l4r3",
+    "l4r4a",
+    "l4r4b",
+    "l4r6",
+    "l4r7",
+    "l4z1",
+    "l4z2",
+    "l4z3",
+    "l4z4",
+    "l4z6",
+    "l4z7",
+    "l4i00",
+    "l4i01",
+    "l4i02",
+    "l4i07",
+    "l5_terra",
+    "l5r1",
+    "l5r2",
+    "l5r3",
+    "l5r4",
+    "l5z1",
+    "l5z2",
+    "l5z3",
+    "l5z4",
+    "l5i03",
+    "l5i04",
+    "l6_terra",
+    "l6r1",
+    "l6r2",
+    "l6r3",
+    "l6r4",
+    "l6r5",
+    "l6r5_dam",
+    "l6z1",
+    "l6z2",
+    "l6z3",
+    "l6z4",
+    "l6z5",
+    "l6i05",
+    "l6i06",
+    "l7_terra",
+    "l7r1",
+    "l7r2",
+    "l7r3",
+    "l7r6",
+    "l7r7",
+    "l7z1",
+    "l7z2",
+    "l7z3",
+    "l7z6",
+    "l7z7",
+    "l7i00",
+    "l7i01",
+    "l7i02",
+    "l7i07"
+  ],
+  "materials": {
+    "art": 1117,
+    "paint": 107,
+    "roof": 32,
+    "asphalt": 31,
+    "wood": 52,
+    "metal": 108,
+    "foliage": 20,
+    "concrete": 26,
+    "brick": 79,
+    "grass": 9,
+    "glass": 91
+  },
+  "geometry": {
+    "l1_terra": {
+      "sourceTriangles": 484,
+      "triangles": 484,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l1r1": {
+      "sourceTriangles": 11941,
+      "triangles": 25485,
+      "bevelledParts": 21,
+      "collisionPreserved": true
+    },
+    "l1r2": {
+      "sourceTriangles": 12420,
+      "triangles": 26157,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l1r3": {
+      "sourceTriangles": 18729,
+      "triangles": 38299,
+      "bevelledParts": 25,
+      "collisionPreserved": true
+    },
+    "l1r4a": {
+      "sourceTriangles": 9526,
+      "triangles": 21597,
+      "bevelledParts": 13,
+      "collisionPreserved": true
+    },
+    "l1r4b": {
+      "sourceTriangles": 7772,
+      "triangles": 10745,
+      "bevelledParts": 9,
+      "collisionPreserved": true
+    },
+    "l1r6": {
+      "sourceTriangles": 9096,
+      "triangles": 17407,
+      "bevelledParts": 29,
+      "collisionPreserved": true
+    },
+    "l1r7": {
+      "sourceTriangles": 16616,
+      "triangles": 26344,
+      "bevelledParts": 23,
+      "collisionPreserved": true
+    },
+    "l1z1": {
+      "sourceTriangles": 13697,
+      "triangles": 27714,
+      "bevelledParts": 30,
+      "collisionPreserved": true
+    },
+    "l1z2": {
+      "sourceTriangles": 13823,
+      "triangles": 21754,
+      "bevelledParts": 19,
+      "collisionPreserved": true
+    },
+    "l1z3": {
+      "sourceTriangles": 11177,
+      "triangles": 17154,
+      "bevelledParts": 19,
+      "collisionPreserved": true
+    },
+    "l1z4": {
+      "sourceTriangles": 12122,
+      "triangles": 25211,
+      "bevelledParts": 25,
+      "collisionPreserved": true
+    },
+    "l1z6": {
+      "sourceTriangles": 11391,
+      "triangles": 28554,
+      "bevelledParts": 6,
+      "collisionPreserved": true
+    },
+    "l1z7": {
+      "sourceTriangles": 10927,
+      "triangles": 19349,
+      "bevelledParts": 27,
+      "collisionPreserved": true
+    },
+    "l1i00": {
+      "sourceTriangles": 5211,
+      "triangles": 5211,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l1i01": {
+      "sourceTriangles": 6063,
+      "triangles": 6150,
+      "bevelledParts": 1,
+      "collisionPreserved": true
+    },
+    "l1i02": {
+      "sourceTriangles": 8001,
+      "triangles": 8379,
+      "bevelledParts": 2,
+      "collisionPreserved": true
+    },
+    "l2_terra": {
+      "sourceTriangles": 0,
+      "triangles": 0,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l2r1": {
+      "sourceTriangles": 11489,
+      "triangles": 17012,
+      "bevelledParts": 21,
+      "collisionPreserved": true
+    },
+    "l2r2": {
+      "sourceTriangles": 12180,
+      "triangles": 24216,
+      "bevelledParts": 20,
+      "collisionPreserved": true
+    },
+    "l2r3": {
+      "sourceTriangles": 18054,
+      "triangles": 25485,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l2r4": {
+      "sourceTriangles": 5975,
+      "triangles": 7752,
+      "bevelledParts": 7,
+      "collisionPreserved": true
+    },
+    "l2z1": {
+      "sourceTriangles": 24199,
+      "triangles": 31710,
+      "bevelledParts": 24,
+      "collisionPreserved": true
+    },
+    "l2z2": {
+      "sourceTriangles": 14645,
+      "triangles": 25748,
+      "bevelledParts": 27,
+      "collisionPreserved": true
+    },
+    "l2z3": {
+      "sourceTriangles": 10620,
+      "triangles": 18097,
+      "bevelledParts": 31,
+      "collisionPreserved": true
+    },
+    "l2z4": {
+      "sourceTriangles": 17845,
+      "triangles": 27338,
+      "bevelledParts": 33,
+      "collisionPreserved": true
+    },
+    "l2i03": {
+      "sourceTriangles": 11063,
+      "triangles": 12976,
+      "bevelledParts": 1,
+      "collisionPreserved": true
+    },
+    "l2i04": {
+      "sourceTriangles": 5862,
+      "triangles": 5862,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l3_terra": {
+      "sourceTriangles": 0,
+      "triangles": 0,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l3r1": {
+      "sourceTriangles": 13653,
+      "triangles": 19697,
+      "bevelledParts": 24,
+      "collisionPreserved": true
+    },
+    "l3r2": {
+      "sourceTriangles": 7852,
+      "triangles": 12564,
+      "bevelledParts": 17,
+      "collisionPreserved": true
+    },
+    "l3r3": {
+      "sourceTriangles": 5233,
+      "triangles": 8680,
+      "bevelledParts": 15,
+      "collisionPreserved": true
+    },
+    "l3r4": {
+      "sourceTriangles": 10956,
+      "triangles": 18695,
+      "bevelledParts": 4,
+      "collisionPreserved": true
+    },
+    "l3r5": {
+      "sourceTriangles": 6886,
+      "triangles": 14806,
+      "bevelledParts": 5,
+      "collisionPreserved": true
+    },
+    "l3r5_dam": {
+      "sourceTriangles": 3405,
+      "triangles": 4156,
+      "bevelledParts": 3,
+      "collisionPreserved": true
+    },
+    "l3z1": {
+      "sourceTriangles": 8368,
+      "triangles": 12686,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l3z2": {
+      "sourceTriangles": 9148,
+      "triangles": 12911,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l3z3": {
+      "sourceTriangles": 12917,
+      "triangles": 27589,
+      "bevelledParts": 37,
+      "collisionPreserved": true
+    },
+    "l3z4": {
+      "sourceTriangles": 15348,
+      "triangles": 21498,
+      "bevelledParts": 13,
+      "collisionPreserved": true
+    },
+    "l3z5": {
+      "sourceTriangles": 10250,
+      "triangles": 15323,
+      "bevelledParts": 8,
+      "collisionPreserved": true
+    },
+    "l3i05": {
+      "sourceTriangles": 6593,
+      "triangles": 7753,
+      "bevelledParts": 2,
+      "collisionPreserved": true
+    },
+    "l3i06": {
+      "sourceTriangles": 19642,
+      "triangles": 44242,
+      "bevelledParts": 23,
+      "collisionPreserved": true
+    },
+    "l4_terra": {
+      "sourceTriangles": 0,
+      "triangles": 0,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l4r1": {
+      "sourceTriangles": 12241,
+      "triangles": 25795,
+      "bevelledParts": 21,
+      "collisionPreserved": true
+    },
+    "l4r2": {
+      "sourceTriangles": 13615,
+      "triangles": 27274,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l4r3": {
+      "sourceTriangles": 18990,
+      "triangles": 38047,
+      "bevelledParts": 27,
+      "collisionPreserved": true
+    },
+    "l4r4a": {
+      "sourceTriangles": 9786,
+      "triangles": 21857,
+      "bevelledParts": 13,
+      "collisionPreserved": true
+    },
+    "l4r4b": {
+      "sourceTriangles": 8090,
+      "triangles": 11107,
+      "bevelledParts": 9,
+      "collisionPreserved": true
+    },
+    "l4r6": {
+      "sourceTriangles": 9312,
+      "triangles": 11668,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l4r7": {
+      "sourceTriangles": 17215,
+      "triangles": 27157,
+      "bevelledParts": 23,
+      "collisionPreserved": true
+    },
+    "l4z1": {
+      "sourceTriangles": 13903,
+      "triangles": 27904,
+      "bevelledParts": 30,
+      "collisionPreserved": true
+    },
+    "l4z2": {
+      "sourceTriangles": 14258,
+      "triangles": 22166,
+      "bevelledParts": 19,
+      "collisionPreserved": true
+    },
+    "l4z3": {
+      "sourceTriangles": 11495,
+      "triangles": 17446,
+      "bevelledParts": 19,
+      "collisionPreserved": true
+    },
+    "l4z4": {
+      "sourceTriangles": 12659,
+      "triangles": 25620,
+      "bevelledParts": 25,
+      "collisionPreserved": true
+    },
+    "l4z6": {
+      "sourceTriangles": 11115,
+      "triangles": 28278,
+      "bevelledParts": 6,
+      "collisionPreserved": true
+    },
+    "l4z7": {
+      "sourceTriangles": 11409,
+      "triangles": 19833,
+      "bevelledParts": 27,
+      "collisionPreserved": true
+    },
+    "l4i00": {
+      "sourceTriangles": 5173,
+      "triangles": 5173,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l4i01": {
+      "sourceTriangles": 6063,
+      "triangles": 6150,
+      "bevelledParts": 1,
+      "collisionPreserved": true
+    },
+    "l4i02": {
+      "sourceTriangles": 7873,
+      "triangles": 7855,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l4i07": {
+      "sourceTriangles": 9153,
+      "triangles": 9103,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l5_terra": {
+      "sourceTriangles": 0,
+      "triangles": 0,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l5r1": {
+      "sourceTriangles": 11614,
+      "triangles": 17230,
+      "bevelledParts": 21,
+      "collisionPreserved": true
+    },
+    "l5r2": {
+      "sourceTriangles": 12234,
+      "triangles": 24253,
+      "bevelledParts": 20,
+      "collisionPreserved": true
+    },
+    "l5r3": {
+      "sourceTriangles": 18170,
+      "triangles": 25510,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l5r4": {
+      "sourceTriangles": 6012,
+      "triangles": 7661,
+      "bevelledParts": 7,
+      "collisionPreserved": true
+    },
+    "l5z1": {
+      "sourceTriangles": 24002,
+      "triangles": 31518,
+      "bevelledParts": 24,
+      "collisionPreserved": true
+    },
+    "l5z2": {
+      "sourceTriangles": 14835,
+      "triangles": 25961,
+      "bevelledParts": 28,
+      "collisionPreserved": true
+    },
+    "l5z3": {
+      "sourceTriangles": 10699,
+      "triangles": 11806,
+      "bevelledParts": 13,
+      "collisionPreserved": true
+    },
+    "l5z4": {
+      "sourceTriangles": 19021,
+      "triangles": 28484,
+      "bevelledParts": 33,
+      "collisionPreserved": true
+    },
+    "l5i03": {
+      "sourceTriangles": 11063,
+      "triangles": 12976,
+      "bevelledParts": 1,
+      "collisionPreserved": true
+    },
+    "l5i04": {
+      "sourceTriangles": 5862,
+      "triangles": 5862,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l6_terra": {
+      "sourceTriangles": 0,
+      "triangles": 0,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l6r1": {
+      "sourceTriangles": 13701,
+      "triangles": 19752,
+      "bevelledParts": 25,
+      "collisionPreserved": true
+    },
+    "l6r2": {
+      "sourceTriangles": 7693,
+      "triangles": 12606,
+      "bevelledParts": 17,
+      "collisionPreserved": true
+    },
+    "l6r3": {
+      "sourceTriangles": 5233,
+      "triangles": 8794,
+      "bevelledParts": 15,
+      "collisionPreserved": true
+    },
+    "l6r4": {
+      "sourceTriangles": 10944,
+      "triangles": 10944,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l6r5": {
+      "sourceTriangles": 6881,
+      "triangles": 15065,
+      "bevelledParts": 5,
+      "collisionPreserved": true
+    },
+    "l6r5_dam": {
+      "sourceTriangles": 3405,
+      "triangles": 4146,
+      "bevelledParts": 3,
+      "collisionPreserved": true
+    },
+    "l6z1": {
+      "sourceTriangles": 8317,
+      "triangles": 12651,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l6z2": {
+      "sourceTriangles": 9028,
+      "triangles": 12736,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l6z3": {
+      "sourceTriangles": 13386,
+      "triangles": 29496,
+      "bevelledParts": 38,
+      "collisionPreserved": true
+    },
+    "l6z4": {
+      "sourceTriangles": 15348,
+      "triangles": 21541,
+      "bevelledParts": 13,
+      "collisionPreserved": true
+    },
+    "l6z5": {
+      "sourceTriangles": 10251,
+      "triangles": 15469,
+      "bevelledParts": 8,
+      "collisionPreserved": true
+    },
+    "l6i05": {
+      "sourceTriangles": 6615,
+      "triangles": 7774,
+      "bevelledParts": 2,
+      "collisionPreserved": true
+    },
+    "l6i06": {
+      "sourceTriangles": 19736,
+      "triangles": 31890,
+      "bevelledParts": 6,
+      "collisionPreserved": true
+    },
+    "l7_terra": {
+      "sourceTriangles": 0,
+      "triangles": 0,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l7r1": {
+      "sourceTriangles": 12148,
+      "triangles": 25258,
+      "bevelledParts": 20,
+      "collisionPreserved": true
+    },
+    "l7r2": {
+      "sourceTriangles": 13939,
+      "triangles": 26249,
+      "bevelledParts": 15,
+      "collisionPreserved": true
+    },
+    "l7r3": {
+      "sourceTriangles": 5613,
+      "triangles": 11953,
+      "bevelledParts": 12,
+      "collisionPreserved": true
+    },
+    "l7r6": {
+      "sourceTriangles": 10419,
+      "triangles": 12792,
+      "bevelledParts": 16,
+      "collisionPreserved": true
+    },
+    "l7r7": {
+      "sourceTriangles": 18164,
+      "triangles": 27887,
+      "bevelledParts": 22,
+      "collisionPreserved": true
+    },
+    "l7z1": {
+      "sourceTriangles": 14179,
+      "triangles": 28034,
+      "bevelledParts": 28,
+      "collisionPreserved": true
+    },
+    "l7z2": {
+      "sourceTriangles": 13930,
+      "triangles": 21779,
+      "bevelledParts": 17,
+      "collisionPreserved": true
+    },
+    "l7z3": {
+      "sourceTriangles": 13614,
+      "triangles": 24205,
+      "bevelledParts": 21,
+      "collisionPreserved": true
+    },
+    "l7z6": {
+      "sourceTriangles": 5534,
+      "triangles": 5914,
+      "bevelledParts": 1,
+      "collisionPreserved": true
+    },
+    "l7z7": {
+      "sourceTriangles": 11428,
+      "triangles": 19586,
+      "bevelledParts": 26,
+      "collisionPreserved": true
+    },
+    "l7i00": {
+      "sourceTriangles": 7052,
+      "triangles": 7052,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    },
+    "l7i01": {
+      "sourceTriangles": 9058,
+      "triangles": 9145,
+      "bevelledParts": 1,
+      "collisionPreserved": true
+    },
+    "l7i02": {
+      "sourceTriangles": 9234,
+      "triangles": 9594,
+      "bevelledParts": 2,
+      "collisionPreserved": true
+    },
+    "l7i07": {
+      "sourceTriangles": 8822,
+      "triangles": 8780,
+      "bevelledParts": 0,
+      "collisionPreserved": true
+    }
+  }
+}

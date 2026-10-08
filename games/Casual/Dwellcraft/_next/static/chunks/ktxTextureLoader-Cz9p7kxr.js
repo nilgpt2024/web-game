@@ -1,0 +1,1 @@
+import{si as e}from"./engine-CFAEWRTR.js";export{e as _KTXTextureLoader};

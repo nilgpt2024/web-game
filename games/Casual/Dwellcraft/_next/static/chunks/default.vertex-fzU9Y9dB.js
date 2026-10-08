@@ -1,0 +1,1 @@
+import{Gn as e}from"./engine-CFAEWRTR.js";export{e as defaultVertexShader};

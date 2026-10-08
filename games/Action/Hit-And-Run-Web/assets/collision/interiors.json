@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "scenes": [
+    {
+      "scene": "l1i00",
+      "shapes": 16,
+      "sha256": "bb37174c264e1684f78e23a27d505c107335492dea4049288562b3f0e5748a3c"
+    },
+    {
+      "scene": "l1i01",
+      "shapes": 24,
+      "sha256": "2f4802db8750e5c1328584ae16dddf7a0ce39c4a18837230d4361e3efcc9281c"
+    },
+    {
+      "scene": "l1i02",
+      "shapes": 15,
+      "sha256": "7379d8e530b36c92f2b923c5d8c865db55d519d7bab7fe6a03e9ce87810aded5"
+    },
+    {
+      "scene": "l2i03",
+      "shapes": 47,
+      "sha256": "c0b722a598c33b56df5261757a69b50d63f672d6deda64a2a9f2ad85f92037e4"
+    },
+    {
+      "scene": "l2i04",
+      "shapes": 22,
+      "sha256": "2f8539b01f3caa98ded8cd2641751436560395d32721cdbbb6d0ba86a818c3b9"
+    },
+    {
+      "scene": "l3i05",
+      "shapes": 19,
+      "sha256": "728440285cc5a8de82e787b9785a01107dbc026c5fe8d31575891440cc45b95e"
+    },
+    {
+      "scene": "l3i06",
+      "shapes": 39,
+      "sha256": "7f51e8466751a6b01bc85c30382f256381071dfca930029e79614965fd1231e2"
+    },
+    {
+      "scene": "l4i00",
+      "shapes": 16,
+      "sha256": "ce2327f16a684b005291798c432ca7a11a545e4d9f1872a31ac7b073829956e5"
+    },
+    {
+      "scene": "l4i01",
+      "shapes": 24,
+      "sha256": "1a3836d803e9f7fc22cae2f495bdd0e66b4d56b172b914ecea76b104a48f04cd"
+    },
+    {
+      "scene": "l4i02",
+      "shapes": 15,
+      "sha256": "5e738c6ff56d441e6c1671e6892eaf71eb0249ac91033dcad5065a00ba7b97f7"
+    },
+    {
+      "scene": "l4i07",
+      "shapes": 14,
+      "sha256": "6364616fe3eb7b5a818c997bbefb698c65eb39158b55833a57fb32e4c93bbabb"
+    },
+    {
+      "scene": "l5i03",
+      "shapes": 47,
+      "sha256": "7378eea5fd208c76af04aa2c876fbc776015a5949caceec1b062a5b2ea07ac23"
+    },
+    {
+      "scene": "l5i04",
+      "shapes": 22,
+      "sha256": "6a2c6f56c63d34b85343a809bad61e195af6410598d75780205bae48dbfd0bb6"
+    },
+    {
+      "scene": "l6i05",
+      "shapes": 20,
+      "sha256": "0b3909fe0b1cdfc70d4d4c44686a3230bc6287aecd4aaae70bb568923e8b9223"
+    },
+    {
+      "scene": "l6i06",
+      "shapes": 39,
+      "sha256": "75de338087b4619a62c00d28e9ec1345170e2b6b37798d5814fe8a8478dcfe56"
+    },
+    {
+      "scene": "l7i00",
+      "shapes": 35,
+      "sha256": "0601a1185bdddf4546b4c0af6f9c8db7f328975f335885976e3241173d72bcba"
+    },
+    {
+      "scene": "l7i01",
+      "shapes": 27,
+      "sha256": "5c737c7a2802dd7a37d0901ca9a80ae4899991bacc216c41fe2c0be63de68a61"
+    },
+    {
+      "scene": "l7i02",
+      "shapes": 32,
+      "sha256": "a003aa3d71e6b88bff62e7878b39a706548ec7a4b6f3a8781bda3b37b9356f63"
+    },
+    {
+      "scene": "l7i07",
+      "shapes": 14,
+      "sha256": "7a89954107f9c722439de51c7d7c64dcbd23d08c0627743171f4b330926ad7ae"
+    }
+  ],
+  "counts": {
+    "box": 427,
+    "cylinder": 43,
+    "sphere": 17
+  },
+  "errors": []
+}

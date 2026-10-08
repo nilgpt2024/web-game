@@ -1,0 +1,20 @@
+{
+  "files": [
+    {
+      "source": "sound/soundfx/gameplay/coin_collect_01.rsd",
+      "sha256": "1fdbb665d496f62af9a6263dabf4743cb29b1568907c251a2ed7323ff7d10090",
+      "output": "audio/coin1.m4a"
+    },
+    {
+      "source": "sound/soundfx/gameplay/coin_collect_02.rsd",
+      "sha256": "f5c9c4e6c5c9137b014a67dcfc999fd040ed9c4c1dc891544292a03962123f01",
+      "output": "audio/coin2.m4a"
+    },
+    {
+      "source": "sound/soundfx/gameplay/coin_collect_03.rsd",
+      "sha256": "d5460a035ac6eeb7726ba77e0f9144e8a172592fc069a6922e0366e6606c136b",
+      "output": "audio/coin3.m4a"
+    }
+  ],
+  "errors": []
+}

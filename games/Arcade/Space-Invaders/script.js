@@ -556,7 +556,7 @@ function checkLevelComplete() {
         levelTransition = false;
       }
 
-// WebGameHub Project - https://github.com/nilgpt2024/web-game
+// AIGameHub Project - https://github.com/nilgpt2024/web-game
     }, 2000);
   }
 }

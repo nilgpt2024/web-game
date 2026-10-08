@@ -1,0 +1,2305 @@
+{
+  "card19.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card19.png"
+  },
+  "card22.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card22.png"
+  },
+  "card18.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card18.png"
+  },
+  "card23.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card23.png"
+  },
+  "card17.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card17.png"
+  },
+  "card24.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card24.png"
+  },
+  "card16.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card16.png"
+  },
+  "card25.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card25.png"
+  },
+  "card15.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card15.png"
+  },
+  "card26.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card26.png"
+  },
+  "card14.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card14.png"
+  },
+  "card27.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card27.png"
+  },
+  "card13.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card13.png"
+  },
+  "card28.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card28.png"
+  },
+  "card12.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card12.png"
+  },
+  "card29.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card29.png"
+  },
+  "card11.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card11.png"
+  },
+  "card30.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card30.png"
+  },
+  "card10.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card10.png"
+  },
+  "card31.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card31.png"
+  },
+  "card09.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card09.png"
+  },
+  "card32.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card32.png"
+  },
+  "card08.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card08.png"
+  },
+  "card33.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card33.png"
+  },
+  "card07.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card07.png"
+  },
+  "card34.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card34.png"
+  },
+  "card06.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card06.png"
+  },
+  "card35.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card35.png"
+  },
+  "card05.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card05.png"
+  },
+  "card36.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card36.png"
+  },
+  "card04.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card04.png"
+  },
+  "card37.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card37.png"
+  },
+  "card03.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card03.png"
+  },
+  "card38.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card38.png"
+  },
+  "card02.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card02.png"
+  },
+  "card39.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card39.png"
+  },
+  "card01.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card01.png"
+  },
+  "card40.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card40.png"
+  },
+  "card00.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card00.png"
+  },
+  "card41.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card41.png"
+  },
+  "frame.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame.png"
+  },
+  "card42.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card42.png"
+  },
+  "cardyell.png": {
+    "width": 41,
+    "height": 51,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "cardyell.png"
+  },
+  "card43.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card43.png"
+  },
+  "si_car.png": {
+    "width": 179,
+    "height": 132,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "si_car.png"
+  },
+  "card44.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card44.png"
+  },
+  "sbcursor.png": {
+    "width": 160,
+    "height": 100,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "sbcursor.png"
+  },
+  "card45.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card45.png"
+  },
+  "si_apu.png": {
+    "width": 119,
+    "height": 230,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "si_apu.png"
+  },
+  "card46.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card46.png"
+  },
+  "si_lisa.png": {
+    "width": 119,
+    "height": 230,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "si_lisa.png"
+  },
+  "card47.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card47.png"
+  },
+  "si_homer.png": {
+    "width": 119,
+    "height": 230,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "si_homer.png"
+  },
+  "card48.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card48.png"
+  },
+  "si_bart.png": {
+    "width": 119,
+    "height": 230,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "si_bart.png"
+  },
+  "card49.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card49.png"
+  },
+  "si_marge.png": {
+    "width": 119,
+    "height": 230,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "si_marge.png"
+  },
+  "card50.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card50.png"
+  },
+  "msnlockd.png": {
+    "width": 105,
+    "height": 83,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msnlockd.png"
+  },
+  "card51.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card51.png"
+  },
+  "msnframe.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msnframe.png"
+  },
+  "card52.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card52.png"
+  },
+  "msn-l4.png": {
+    "width": 177,
+    "height": 142,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msn-l4.png"
+  },
+  "card53.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card53.png"
+  },
+  "msn-l5.png": {
+    "width": 177,
+    "height": 142,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msn-l5.png"
+  },
+  "card54.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card54.png"
+  },
+  "msn-l6.png": {
+    "width": 177,
+    "height": 142,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msn-l6.png"
+  },
+  "card55.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card55.png"
+  },
+  "movie-l3.png": {
+    "width": 136,
+    "height": 96,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "movie-l3.png"
+  },
+  "cardgrey.png": {
+    "width": 41,
+    "height": 51,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "cardgrey.png"
+  },
+  "car-l2.png": {
+    "width": 193,
+    "height": 146,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "car-l2.png"
+  },
+  "qmarge.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qmarge.png"
+  },
+  "car-l4.png": {
+    "width": 193,
+    "height": 146,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "car-l4.png"
+  },
+  "gamelogo.png": {
+    "width": 640,
+    "height": 480,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "gamelogo.png"
+  },
+  "car-l3.png": {
+    "width": 193,
+    "height": 146,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "car-l3.png"
+  },
+  "qcarl.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qcarl.png"
+  },
+  "car-l5.png": {
+    "width": 193,
+    "height": 146,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "car-l5.png"
+  },
+  "qapu.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qapu.png"
+  },
+  "skin-l2.png": {
+    "width": 121,
+    "height": 140,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "skin-l2.png"
+  },
+  "qbart.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qbart.png"
+  },
+  "skin-l4.png": {
+    "width": 121,
+    "height": 140,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "skin-l4.png"
+  },
+  "qbrockmn.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qbrockmn.png"
+  },
+  "skin-l3.png": {
+    "width": 121,
+    "height": 140,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "skin-l3.png"
+  },
+  "qburns.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qburns.png"
+  },
+  "skin-l5.png": {
+    "width": 121,
+    "height": 140,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "skin-l5.png"
+  },
+  "qannounc.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qannounc.png"
+  },
+  "msn-l2.png": {
+    "width": 177,
+    "height": 142,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msn-l2.png"
+  },
+  "qchild.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qchild.png"
+  },
+  "msn-l3.png": {
+    "width": 177,
+    "height": 142,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msn-l3.png"
+  },
+  "qdrwolff.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qdrwolff.png"
+  },
+  "msn-l7.png": {
+    "width": 177,
+    "height": 142,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msn-l7.png"
+  },
+  "qgil.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qgil.png"
+  },
+  "cards.png": {
+    "width": 115,
+    "height": 103,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "cards.png"
+  },
+  "qjasper.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qjasper.png"
+  },
+  "msn-l1.png": {
+    "width": 177,
+    "height": 137,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "msn-l1.png"
+  },
+  "qjimbo.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qjimbo.png"
+  },
+  "movie-l1.png": {
+    "width": 150,
+    "height": 102,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "movie-l1.png"
+  },
+  "qmanjula.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qmanjula.png"
+  },
+  "car-l1.png": {
+    "width": 193,
+    "height": 146,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "car-l1.png"
+  },
+  "qkrusty.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qkrusty.png"
+  },
+  "skin-l1.png": {
+    "width": 121,
+    "height": 140,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "skin-l1.png"
+  },
+  "qlenny.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qlenny.png"
+  },
+  "triggeri.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "triggeri.png"
+  },
+  "qlisa.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qlisa.png"
+  },
+  "triggerg.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "triggerg.png"
+  },
+  "qmaggie.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qmaggie.png"
+  },
+  "triggerd.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "triggerd.png"
+  },
+  "qkang.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qkang.png"
+  },
+  "triggerr.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "triggerr.png"
+  },
+  "qphoto.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qphoto.png"
+  },
+  "triggerl.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "triggerl.png"
+  },
+  "qmilhous.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qmilhous.png"
+  },
+  "levelbar.png": {
+    "width": 131,
+    "height": 20,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "levelbar.png"
+  },
+  "qmother.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qmother.png"
+  },
+  "ksticker.png": {
+    "width": 134,
+    "height": 132,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "ksticker.png"
+  },
+  "qotto.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qotto.png"
+  },
+  "back.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "back.png"
+  },
+  "qmeyerjr.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qmeyerjr.png"
+  },
+  "auxx.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "auxx.png"
+  },
+  "qwillie.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qwillie.png"
+  },
+  "frame_tr.png": {
+    "width": 38,
+    "height": 40,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_tr.png"
+  },
+  "qskinner.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qskinner.png"
+  },
+  "frame_tl.png": {
+    "width": 39,
+    "height": 40,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_tl.png"
+  },
+  "qsmither.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qsmither.png"
+  },
+  "frame_t.png": {
+    "width": 41,
+    "height": 12,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_t.png"
+  },
+  "qsparlke.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qsparlke.png"
+  },
+  "frame_r.png": {
+    "width": 13,
+    "height": 40,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_r.png"
+  },
+  "qstacy.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qstacy.png"
+  },
+  "frame_l.png": {
+    "width": 13,
+    "height": 40,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_l.png"
+  },
+  "qwiggum.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qwiggum.png"
+  },
+  "frame_br.png": {
+    "width": 38,
+    "height": 39,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_br.png"
+  },
+  "qralph.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qralph.png"
+  },
+  "frame_bl.png": {
+    "width": 39,
+    "height": 39,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_bl.png"
+  },
+  "controller.png": {
+    "width": 330,
+    "height": 240,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "controller.png"
+  },
+  "frame_b.png": {
+    "width": 41,
+    "height": 12,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "frame_b.png"
+  },
+  "voice.png": {
+    "width": 24,
+    "height": 24,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "voice.png"
+  },
+  "accept.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "accept.png"
+  },
+  "effects.png": {
+    "width": 24,
+    "height": 24,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "effects.png"
+  },
+  "rarrowg.png": {
+    "width": 30,
+    "height": 31,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "rarrowg.png"
+  },
+  "music.png": {
+    "width": 24,
+    "height": 24,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "music.png"
+  },
+  "rarrow.png": {
+    "width": 30,
+    "height": 31,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "rarrow.png"
+  },
+  "slider_g.png": {
+    "width": 53,
+    "height": 6,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "slider_g.png"
+  },
+  "larrow.png": {
+    "width": 30,
+    "height": 31,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "larrow.png"
+  },
+  "slider_p.png": {
+    "width": 53,
+    "height": 6,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "slider_p.png"
+  },
+  "larrowg.png": {
+    "width": 30,
+    "height": 31,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "larrowg.png"
+  },
+  "nosound.png": {
+    "width": 31,
+    "height": 31,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "nosound.png"
+  },
+  "tvglass1.png": {
+    "width": 120,
+    "height": 106,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "tvglass1.png"
+  },
+  "error.png": {
+    "width": 47,
+    "height": 47,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "error.png"
+  },
+  "qhomer.png": {
+    "width": 60,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "qhomer.png"
+  },
+  "tvframe.png": {
+    "width": 640,
+    "height": 480,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "tvframe.png"
+  },
+  "tvglass2.png": {
+    "width": 77,
+    "height": 138,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "tvglass2.png"
+  },
+  "card21.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card21.png"
+  },
+  "card20.png": {
+    "width": 191,
+    "height": 245,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card20.png"
+  },
+  "letterq.png": {
+    "width": 31,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterq.png"
+  },
+  "letterw.png": {
+    "width": 37,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterw.png"
+  },
+  "a_diaeresis.png": {
+    "width": 33,
+    "height": 42,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "a_diaeresis.png"
+  },
+  "letterv.png": {
+    "width": 32,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterv.png"
+  },
+  "a_grave.png": {
+    "width": 33,
+    "height": 42,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "a_grave.png"
+  },
+  "letteru.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letteru.png"
+  },
+  "e_acute.png": {
+    "width": 27,
+    "height": 41,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "e_acute.png"
+  },
+  "lettert.png": {
+    "width": 26,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "lettert.png"
+  },
+  "e_circumflex.png": {
+    "width": 26,
+    "height": 41,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "e_circumflex.png"
+  },
+  "letters.png": {
+    "width": 26,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letters.png"
+  },
+  "i_acute.png": {
+    "width": 26,
+    "height": 41,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "i_acute.png"
+  },
+  "letterr.png": {
+    "width": 31,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterr.png"
+  },
+  "letterx.png": {
+    "width": 35,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterx.png"
+  },
+  "letterz.png": {
+    "width": 35,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterz.png"
+  },
+  "o_acute.png": {
+    "width": 31,
+    "height": 41,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "o_acute.png"
+  },
+  "letterp.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterp.png"
+  },
+  "o_diaereris.png": {
+    "width": 31,
+    "height": 41,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "o_diaereris.png"
+  },
+  "lettero.png": {
+    "width": 33,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "lettero.png"
+  },
+  "s_sharp.png": {
+    "width": 31,
+    "height": 35,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "s_sharp.png"
+  },
+  "lettern.png": {
+    "width": 32,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "lettern.png"
+  },
+  "u_acute.png": {
+    "width": 31,
+    "height": 42,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "u_acute.png"
+  },
+  "letterm.png": {
+    "width": 38,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterm.png"
+  },
+  "u_diaeresis.png": {
+    "width": 31,
+    "height": 41,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "u_diaeresis.png"
+  },
+  "letterl.png": {
+    "width": 24,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterl.png"
+  },
+  "but_dpad.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_dpad.png"
+  },
+  "letterk.png": {
+    "width": 37,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterk.png"
+  },
+  "n_tilde.png": {
+    "width": 33,
+    "height": 42,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "n_tilde.png"
+  },
+  "but_lths.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_lths.png"
+  },
+  "but_rths.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_rths.png"
+  },
+  "letteri.png": {
+    "width": 19,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letteri.png"
+  },
+  "but_actn.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_actn.png"
+  },
+  "letterh.png": {
+    "width": 35,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterh.png"
+  },
+  "but_jump.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_jump.png"
+  },
+  "letterg.png": {
+    "width": 28,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterg.png"
+  },
+  "but_kick.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_kick.png"
+  },
+  "letterf.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterf.png"
+  },
+  "but_run.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_run.png"
+  },
+  "lettere.png": {
+    "width": 26,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "lettere.png"
+  },
+  "but_gas.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_gas.png"
+  },
+  "letterd.png": {
+    "width": 34,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterd.png"
+  },
+  "but_brak.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_brak.png"
+  },
+  "letterc.png": {
+    "width": 28,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterc.png"
+  },
+  "but_hand.png": {
+    "width": 66,
+    "height": 60,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "but_hand.png"
+  },
+  "letterb.png": {
+    "width": 29,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterb.png"
+  },
+  "hrticket.png": {
+    "width": 74,
+    "height": 101,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "hrticket.png"
+  },
+  "lettera.png": {
+    "width": 33,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "lettera.png"
+  },
+  "hitnrun2.png": {
+    "width": 73,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "hitnrun2.png"
+  },
+  "9.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "9.png"
+  },
+  "hrmetter.png": {
+    "width": 150,
+    "height": 150,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "hrmetter.png"
+  },
+  "8.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "8.png"
+  },
+  "greybar.png": {
+    "width": 117,
+    "height": 23,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "greybar.png"
+  },
+  "7.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "7.png"
+  },
+  "dice.png": {
+    "width": 21,
+    "height": 21,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "dice.png"
+  },
+  "6.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "6.png"
+  },
+  "bonus.png": {
+    "width": 19,
+    "height": 19,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "bonus.png"
+  },
+  "letterj.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "letterj.png"
+  },
+  "5.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "5.png"
+  },
+  "4.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "4.png"
+  },
+  "phone.png": {
+    "width": 12,
+    "height": 24,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "phone.png"
+  },
+  "3.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "3.png"
+  },
+  "2.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "2.png"
+  },
+  "1.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "1.png"
+  },
+  "clip.png": {
+    "width": 74,
+    "height": 141,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "clip.png"
+  },
+  "0.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "0.png"
+  },
+  "clipright.png": {
+    "width": 74,
+    "height": 141,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "clipright.png"
+  },
+  "slash.png": {
+    "width": 35,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "slash.png"
+  },
+  "f_uppiece.png": {
+    "width": 56,
+    "height": 18,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "f_uppiece.png"
+  },
+  "yquestion.png": {
+    "width": 45,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "yquestion.png"
+  },
+  "f_downpiece.png": {
+    "width": 56,
+    "height": 15,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "f_downpiece.png"
+  },
+  "question.png": {
+    "width": 19,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "question.png"
+  },
+  "f_leftpiece.png": {
+    "width": 14,
+    "height": 82,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "f_leftpiece.png"
+  },
+  "exclamation-inverted.png": {
+    "width": 13,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "exclamation-inverted.png"
+  },
+  "f_rightpiece.png": {
+    "width": 16,
+    "height": 82,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "f_rightpiece.png"
+  },
+  "period.png": {
+    "width": 11,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "period.png"
+  },
+  "corner1.png": {
+    "width": 35,
+    "height": 78,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "corner1.png"
+  },
+  "money.png": {
+    "width": 19,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "money.png"
+  },
+  "corner2.png": {
+    "width": 35,
+    "height": 70,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "corner2.png"
+  },
+  "exclamation.png": {
+    "width": 13,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "exclamation.png"
+  },
+  "corner3.png": {
+    "width": 35,
+    "height": 78,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "corner3.png"
+  },
+  "hyphen.png": {
+    "width": 12,
+    "height": 32,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "hyphen.png"
+  },
+  "corner4.png": {
+    "width": 35,
+    "height": 68,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "corner4.png"
+  },
+  "comma.png": {
+    "width": 14,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "comma.png"
+  },
+  "checkflag.png": {
+    "width": 141,
+    "height": 141,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "checkflag.png"
+  },
+  "colon.png": {
+    "width": 35,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "colon.png"
+  },
+  "cliparm.png": {
+    "width": 33,
+    "height": 66,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "cliparm.png"
+  },
+  "space.png": {
+    "width": 20,
+    "height": 20,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "space.png"
+  },
+  "coins.png": {
+    "width": 22,
+    "height": 19,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "coins.png"
+  },
+  "dot.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "dot.png"
+  },
+  "carstar.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "carstar.png"
+  },
+  "hitnrun0.png": {
+    "width": 73,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "hitnrun0.png"
+  },
+  "larrow1.png": {
+    "width": 38,
+    "height": 38,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "larrow1.png"
+  },
+  "hitnrun1.png": {
+    "width": 73,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "hitnrun1.png"
+  },
+  "rarrow0.png": {
+    "width": 38,
+    "height": 38,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "rarrow0.png"
+  },
+  "hrsector.png": {
+    "width": 49,
+    "height": 16,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "hrsector.png"
+  },
+  "rarrow1.png": {
+    "width": 38,
+    "height": 38,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "rarrow1.png"
+  },
+  "radartop.png": {
+    "width": 150,
+    "height": 150,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "radartop.png"
+  },
+  "larrow0.png": {
+    "width": 38,
+    "height": 38,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "larrow0.png"
+  },
+  "radar.png": {
+    "width": 150,
+    "height": 150,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "radar.png"
+  },
+  "blueflag.png": {
+    "width": 15,
+    "height": 27,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "blueflag.png"
+  },
+  "lock.png": {
+    "width": 63,
+    "height": 77,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "lock.png"
+  },
+  "checker.png": {
+    "width": 30,
+    "height": 26,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "checker.png"
+  },
+  "collect.png": {
+    "width": 21,
+    "height": 21,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "collect.png"
+  },
+  "aicar.png": {
+    "width": 19,
+    "height": 22,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "aicar.png"
+  },
+  "mission.png": {
+    "width": 19,
+    "height": 19,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "mission.png"
+  },
+  "user.png": {
+    "width": 19,
+    "height": 22,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "user.png"
+  },
+  "dollar.png": {
+    "width": 14,
+    "height": 24,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "dollar.png"
+  },
+  "helptext.png": {
+    "width": 165,
+    "height": 44,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "helptext.png"
+  },
+  "card55_t.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card55_t.png"
+  },
+  "card54_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card54_t.png"
+  },
+  "card53_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card53_t.png"
+  },
+  "husk.png": {
+    "width": 119,
+    "height": 88,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "husk.png"
+  },
+  "card52_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card52_t.png"
+  },
+  "greystar.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "greystar.png"
+  },
+  "card51_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card51_t.png"
+  },
+  "pbglow.png": {
+    "width": 100,
+    "height": 100,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "pbglow.png"
+  },
+  "card50_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card50_t.png"
+  },
+  "halfstar.png": {
+    "width": 30,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "halfstar.png"
+  },
+  "card49_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card49_t.png"
+  },
+  "card48_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card48_t.png"
+  },
+  "card47_t.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card47_t.png"
+  },
+  "card46_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card46_t.png"
+  },
+  "card45_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card45_t.png"
+  },
+  "card44_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card44_t.png"
+  },
+  "card43_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card43_t.png"
+  },
+  "card42_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card42_t.png"
+  },
+  "card41_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card41_t.png"
+  },
+  "card40_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card40_t.png"
+  },
+  "card39_t.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card39_t.png"
+  },
+  "card38_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card38_t.png"
+  },
+  "card37_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card37_t.png"
+  },
+  "card36_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card36_t.png"
+  },
+  "card35_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card35_t.png"
+  },
+  "card34_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card34_t.png"
+  },
+  "card33_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card33_t.png"
+  },
+  "card32_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card32_t.png"
+  },
+  "card31_t.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card31_t.png"
+  },
+  "card30_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card30_t.png"
+  },
+  "card29_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card29_t.png"
+  },
+  "card28_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card28_t.png"
+  },
+  "card27_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card27_t.png"
+  },
+  "card26_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card26_t.png"
+  },
+  "card25_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card25_t.png"
+  },
+  "card24_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card24_t.png"
+  },
+  "card23_t.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card23_t.png"
+  },
+  "card22_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card22_t.png"
+  },
+  "card21_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card21_t.png"
+  },
+  "card20_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card20_t.png"
+  },
+  "card19_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card19_t.png"
+  },
+  "card18_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card18_t.png"
+  },
+  "card17_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card17_t.png"
+  },
+  "card16_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card16_t.png"
+  },
+  "card15_t.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card15_t.png"
+  },
+  "card14_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card14_t.png"
+  },
+  "card13_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card13_t.png"
+  },
+  "card12_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card12_t.png"
+  },
+  "card11_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card11_t.png"
+  },
+  "card10_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card10_t.png"
+  },
+  "card09_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card09_t.png"
+  },
+  "card08_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card08_t.png"
+  },
+  "card07_t.png": {
+    "width": 8,
+    "height": 8,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card07_t.png"
+  },
+  "card06_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card06_t.png"
+  },
+  "card05_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card05_t.png"
+  },
+  "check.png": {
+    "width": 25,
+    "height": 25,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "check.png"
+  },
+  "card04_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card04_t.png"
+  },
+  "cross.png": {
+    "width": 25,
+    "height": 25,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "cross.png"
+  },
+  "card03_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card03_t.png"
+  },
+  "dash.png": {
+    "width": 25,
+    "height": 25,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "dash.png"
+  },
+  "card02_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card02_t.png"
+  },
+  "card01_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card01_t.png"
+  },
+  "redbgd.png": {
+    "width": 31,
+    "height": 31,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "redbgd.png"
+  },
+  "card00_t.png": {
+    "width": 84,
+    "height": 108,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "card00_t.png"
+  },
+  "greybgd.png": {
+    "width": 31,
+    "height": 31,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "greybgd.png"
+  },
+  "walkie.png": {
+    "width": 93,
+    "height": 100,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "walkie.png"
+  },
+  "damage.png": {
+    "width": 129,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "damage.png"
+  },
+  "action.png": {
+    "width": 50,
+    "height": 50,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "action.png"
+  },
+  "lettery.png": {
+    "width": 34,
+    "height": 30,
+    "nativeWidth": 640,
+    "nativeHeight": 480,
+    "file": "lettery.png"
+  }
+}

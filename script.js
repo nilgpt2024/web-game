@@ -538,7 +538,7 @@ function initializeApp() {
     setupInteractions();
     initHeroCanvas();
     
-    console.log('%c🎮 WebGameHub v2.1', 'font-size: 20px; font-weight: bold; color: #7C6CFF;');
+    console.log('%c🎮 AIGameHub v2.1', 'font-size: 20px; font-weight: bold; color: #7C6CFF;');
     console.log(`%c${window.i18n?.t('hero.stat_games') || 'Total games'}: ${allGames.length}`, 'color: #ea580c;');
 }
 

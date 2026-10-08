@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <link rel="canonical" href="https://jelly.scottsun.io" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#e8d9c3" />
+    <script>
+      document.documentElement.dataset.jellyPlatform=matchMedia('(pointer: coarse)').matches?'mobile':'desktop'
+    </script>
+    <!-- Every item below is mandatory for the first playable frame. Discover
+         them before the module graph/WebGPU initialization so transfer/decode
+         overlaps boot instead of starting only after renderer creation. -->
+    <link rel="preload" href="./assets/bg_room_studio-BGTPeHHM.rgba16f" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/night-C30BymGu.rgba16f" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/jelly-baby-D3aoVKxe.bin" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="data:application/json;base64,ew0KICAic291cmNlSGFzaCI6ICJjMzQ4MzZmMDM4MzVjNTc4ZmY1Njg2ZmI0NTExYWQ5NzFjNWMyNjlkYWQwNDlhYjAzZDA3NTE1NWIwODFkYWQzIiwNCiAgInNjYWxlIjogMC4wMzEwNTE1MTY1MjU3NjUwMzMsDQogICJib3R0b20iOiAtMS4wMzk5OTk5NjE4NTMwMjczLA0KICAidm9sdW1lIjogMC4wMDAxODEwMDIyMjA5NzI5MTIzNCwNCiAgImxheW91dCI6IHsNCiAgICAicG9zaXRpb25zIjogew0KICAgICAgIm9mZnNldCI6IDAsDQogICAgICAibGVuZ3RoIjogMjE2NzAyLA0KICAgICAgInR5cGUiOiAiRmxvYXQzMkFycmF5Ig0KICAgIH0sDQogICAgIm5vcm1hbHMiOiB7DQogICAgICAib2Zmc2V0IjogODY2ODA4LA0KICAgICAgImxlbmd0aCI6IDIxNjcwMiwNCiAgICAgICJ0eXBlIjogIkZsb2F0MzJBcnJheSINCiAgICB9LA0KICAgICJpbmRpY2VzIjogew0KICAgICAgIm9mZnNldCI6IDE3MzM2MTYsDQogICAgICAibGVuZ3RoIjogNDMzMzkyLA0KICAgICAgInR5cGUiOiAiVWludDMyQXJyYXkiDQogICAgfSwNCiAgICAicGFydGljbGVzIjogew0KICAgICAgIm9mZnNldCI6IDM0NjcxODQsDQogICAgICAibGVuZ3RoIjogMjk0MCwNCiAgICAgICJ0eXBlIjogIkZsb2F0NjRBcnJheSINCiAgICB9LA0KICAgICJ0ZXRzIjogew0KICAgICAgIm9mZnNldCI6IDM0OTA3MDQsDQogICAgICAibGVuZ3RoIjogMTYxMDQsDQogICAgICAidHlwZSI6ICJVaW50MzJBcnJheSINCiAgICB9LA0KICAgICJ2b2x1bWVzIjogew0KICAgICAgIm9mZnNldCI6IDM1NTUxMjAsDQogICAgICAibGVuZ3RoIjogNDAyNiwNCiAgICAgICJ0eXBlIjogIkZsb2F0NjRBcnJheSINCiAgICB9LA0KICAgICJiaW5kaW5nSWRzIjogew0KICAgICAgIm9mZnNldCI6IDM1ODczMjgsDQogICAgICAibGVuZ3RoIjogMjg4OTM2LA0KICAgICAgInR5cGUiOiAiVWludDMyQXJyYXkiDQogICAgfSwNCiAgICAiYmluZGluZ1dlaWdodHMiOiB7DQogICAgICAib2Zmc2V0IjogNDc0MzA3MiwNCiAgICAgICJsZW5ndGgiOiAyODg5MzYsDQogICAgICAidHlwZSI6ICJGbG9hdDY0QXJyYXkiDQogICAgfSwNCiAgICAidGV0SWRzIjogew0KICAgICAgIm9mZnNldCI6IDcwNTQ1NjAsDQogICAgICAibGVuZ3RoIjogNzIyMzQsDQogICAgICAidHlwZSI6ICJVaW50MzJBcnJheSINCiAgICB9LA0KICAgICJjb250YWN0cyI6IHsNCiAgICAgICJvZmZzZXQiOiA3MzQzNDk2LA0KICAgICAgImxlbmd0aCI6IDIxMzgsDQogICAgICAidHlwZSI6ICJVaW50MzJBcnJheSINCiAgICB9LA0KICAgICJvcHRpY2FsUG9zaXRpb25zIjogew0KICAgICAgIm9mZnNldCI6IDczNTIwNDgsDQogICAgICAibGVuZ3RoIjogMzAyNzAsDQogICAgICAidHlwZSI6ICJGbG9hdDMyQXJyYXkiDQogICAgfSwNCiAgICAib3B0aWNhbE5vcm1hbHMiOiB7DQogICAgICAib2Zmc2V0IjogNzQ3MzEyOCwNCiAgICAgICJsZW5ndGgiOiAzMDI3MCwNCiAgICAgICJ0eXBlIjogIkZsb2F0MzJBcnJheSINCiAgICB9LA0KICAgICJvcHRpY2FsSW5kaWNlcyI6IHsNCiAgICAgICJvZmZzZXQiOiA3NTk0MjA4LA0KICAgICAgImxlbmd0aCI6IDYwNTI4LA0KICAgICAgInR5cGUiOiAiVWludDMyQXJyYXkiDQogICAgfSwNCiAgICAib3B0aWNhbEJpbmRpbmdJZHMiOiB7DQogICAgICAib2Zmc2V0IjogNzgzNjMyMCwNCiAgICAgICJsZW5ndGgiOiA0MDM2MCwNCiAgICAgICJ0eXBlIjogIlVpbnQzMkFycmF5Ig0KICAgIH0sDQogICAgIm9wdGljYWxCaW5kaW5nV2VpZ2h0cyI6IHsNCiAgICAgICJvZmZzZXQiOiA3OTk3NzYwLA0KICAgICAgImxlbmd0aCI6IDQwMzYwLA0KICAgICAgInR5cGUiOiAiRmxvYXQ2NEFycmF5Ig0KICAgIH0sDQogICAgInRoaWNrbmVzc0lkcyI6IHsNCiAgICAgICJvZmZzZXQiOiA4MzIwNjQwLA0KICAgICAgImxlbmd0aCI6IDIxNjcwMiwNCiAgICAgICJ0eXBlIjogIlVpbnQzMkFycmF5Ig0KICAgIH0sDQogICAgInRoaWNrbmVzc1dlaWdodHMiOiB7DQogICAgICAib2Zmc2V0IjogOTE4NzQ0OCwNCiAgICAgICJsZW5ndGgiOiAyMTY3MDIsDQogICAgICAidHlwZSI6ICJGbG9hdDMyQXJyYXkiDQogICAgfQ0KICB9DQp9" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/wood_base-BnLq3mVl.jpg" as="image" crossorigin="anonymous" media="(pointer: fine), (pointer: none)" data-jelly-platform="desktop" />
+    <link rel="preload" href="./assets/wood_base_4k-C53w4BG0.jpg" as="image" crossorigin="anonymous" media="(pointer: coarse)" data-jelly-platform="mobile" />
+    <link rel="preload" href="./assets/wood_normal-pCUsk1GY.png" as="image" crossorigin="anonymous" />
+    <link rel="preload" href="./assets/wood_roughness-a0mBSnc7.jpg" as="image" crossorigin="anonymous" />
+    <script>
+      for(const link of document.querySelectorAll('[data-jelly-platform]'))if(link.dataset.jellyPlatform!==document.documentElement.dataset.jellyPlatform)link.remove()
+    </script>
+    <meta name="description" content="A small, soft world. Wander, hop, stretch, and let go." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://jelly.scottsun.io" />
+    <meta property="og:title" content="Jelly Baby" />
+    <meta property="og:description" content="A small, soft world. Wander, hop, stretch, and let go." />
+    <meta property="og:image" content="https://jelly.scottsun.io/og_image.png" />
+    <meta property="og:image:alt" content="Jelly Baby" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Jelly Baby" />
+    <meta name="twitter:description" content="A small, soft world. Wander, hop, stretch, and let go." />
+    <meta name="twitter:image" content="https://jelly.scottsun.io/og_image.png" />
+    <title>Jelly Baby</title>
+    <script type="module" crossorigin src="./assets/index-BtBlvCK3.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BC0faHX1.css">
+    <link rel="modulepreload" href="./assets/runtime-CgcpkxWX.js">
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>Jelly Baby needs JavaScript and a WebGPU-capable browser.</noscript>
+  </body>
+</html>

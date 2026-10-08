@@ -7,7 +7,7 @@ var Stage = /** @class */ (function () {
       this.renderer.render(this.scene, this.camera);
     };
 
-// WebGameHub Project - https://github.com/nilgpt2024/web-game
+// AIGameHub Project - https://github.com/nilgpt2024/web-game
     this.add = function (elem) {
       this.scene.add(elem);
     };

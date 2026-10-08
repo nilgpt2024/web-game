@@ -817,7 +817,7 @@ const GAME_TRANSLATIONS = {
 class GameI18n {
     constructor(options = {}) {
         const urlLang = new URLSearchParams(window.location.search).get('lang');
-        this.currentLang = urlLang || localStorage.getItem('WebGameHub-lang') || this.detectLanguage();
+        this.currentLang = urlLang || localStorage.getItem('AIGameHub-lang') || this.detectLanguage();
         this.translations = GAME_TRANSLATIONS;
         this.availableLangs = ['zh-CN', 'en'];
         this.gameName = options.gameName || '';
@@ -850,7 +850,7 @@ class GameI18n {
         }
         
         this.currentLang = lang;
-        localStorage.setItem('WebGameHub-lang', lang);
+        localStorage.setItem('AIGameHub-lang', lang);
         this.render();
     }
 

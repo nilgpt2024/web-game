@@ -289,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 向左
-/* Project: WebGameHub */
+/* Project: AIGameHub */
   function keyLeft() {
     moveLeft();
     combineRow();

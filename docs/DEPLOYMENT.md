@@ -1,8 +1,8 @@
 # 🚀 部署指南 | Deployment Guide
 
-本文档提供了多种部署WebGameHub的方法。
+本文档提供了多种部署AIGameHub的方法。
 
-This document provides multiple ways to deploy WebGameHub.
+This document provides multiple ways to deploy AIGameHub.
 
 **[中文](#中文) | [English](#english)**
 
@@ -12,7 +12,7 @@ This document provides multiple ways to deploy WebGameHub.
 
 ### 📋 前置要求
 
-WebGameHub是一个纯静态网站，不需要后端服务器。你只需要：
+AIGameHub是一个纯静态网站，不需要后端服务器。你只需要：
 - 一个能托管静态文件的服务
 - （可选）一个自定义域名
 
@@ -44,7 +44,7 @@ WebGameHub是一个纯静态网站，不需要后端服务器。你只需要：
 
 5. 访问你的网站
    ```
-   https://YOUR_USERNAME.github.io/WebGameHub/
+   https://YOUR_USERNAME.github.io/AIGameHub/
    ```
 
 **自定义域名：**
@@ -144,7 +144,7 @@ WebGameHub是一个纯静态网站，不需要后端服务器。你只需要：
 server {
     listen 80;
     server_name yourdomain.com;
-    root /var/www/WebGameHub;
+    root /var/www/AIGameHub;
     index index.html;
 
     location / {
@@ -318,7 +318,7 @@ uglifyjs script.js -o script.min.js -c -m
 **A:** 检查CSS文件路径，确保使用相对路径。
 
 #### Q: 在子目录部署
-**A:** 如果部署在子目录（如 `/WebGameHub/`），需要更新所有资源路径。
+**A:** 如果部署在子目录（如 `/AIGameHub/`），需要更新所有资源路径。
 
 ---
 
@@ -335,7 +335,7 @@ uglifyjs script.js -o script.min.js -c -m
 
 ### 📋 Prerequisites
 
-WebGameHub is a pure static website that doesn't require a backend server. You only need:
+AIGameHub is a pure static website that doesn't require a backend server. You only need:
 - A service that can host static files
 - (Optional) A custom domain
 
@@ -367,7 +367,7 @@ WebGameHub is a pure static website that doesn't require a backend server. You o
 
 5. Visit your website
    ```
-   https://YOUR_USERNAME.github.io/WebGameHub/
+   https://YOUR_USERNAME.github.io/AIGameHub/
    ```
 
 **Custom Domain:**

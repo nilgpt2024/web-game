@@ -407,7 +407,7 @@ function update() {
     nextLevel();
   }
 
-// WebGameHub Project - https://github.com/nilgpt2024/web-game
+// AIGameHub Project - https://github.com/nilgpt2024/web-game
 }
 
 function updatePacman() {

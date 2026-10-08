@@ -1,12 +1,12 @@
 /**
  * Cookie Consent Manager - GDPR/CCPA Compliant
- * WebGameHub Project - Google AdSense Ready
+ * AIGameHub Project - Google AdSense Ready
  */
 
 class CookieConsent {
     constructor(options = {}) {
         this.options = {
-            consentKey: 'WebGameHub-cookie-consent',
+            consentKey: 'AIGameHub-cookie-consent',
             consentVersion: '1.0',
             expiryDays: 365,
             ...options

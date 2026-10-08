@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "generated": "2026-09-17T14:22:58.067Z",
+  "assets": [
+    {
+      "id": "old-harbor",
+      "file": "assets/environment/old-harbor.glb",
+      "format": "glTF 2.0",
+      "bytes": 6738332,
+      "sha256": "65c001a252baebd5cf5311c168de9b7ba675316b1d3e69060964bbe0d81d288b",
+      "triangles": 100700,
+      "vertices": 302100,
+      "meshes": 135,
+      "materials": 21,
+      "colliders": 197,
+      "navigationNodes": 1282,
+      "navigationEdges": 4081,
+      "zones": [
+        {
+          "id": "A",
+          "name": "旧轨堆场",
+          "walkable": true,
+          "pathNodes": 21
+        },
+        {
+          "id": "B",
+          "name": "红砖货仓",
+          "walkable": true,
+          "pathNodes": 21
+        },
+        {
+          "id": "C",
+          "name": "临时配电场",
+          "walkable": true,
+          "pathNodes": 19
+        },
+        {
+          "id": "D",
+          "name": "干船坞",
+          "walkable": true,
+          "pathNodes": 19
+        },
+        {
+          "id": "E",
+          "name": "铆接检修桥",
+          "walkable": true,
+          "pathNodes": 41
+        },
+        {
+          "id": "F",
+          "name": "临海装卸广场",
+          "walkable": true,
+          "pathNodes": 4
+        }
+      ],
+      "rampPaths": [
+        25,
+        29,
+        42
+      ],
+      "bounds": {
+        "minX": -240,
+        "maxX": 240,
+        "minZ": -200,
+        "maxZ": 200
+      },
+      "generationMilliseconds": 738,
+      "status": "generated; navigation graph verified; browser visual verification pending",
+      "source": "src/world/modeling.ts + src/world/maps.ts",
+      "license": "Original project-authored asset",
+      "coordinateSystem": "metres; Y up"
+    },
+    {
+      "id": "new-harbor",
+      "file": "assets/environment/new-harbor.glb",
+      "format": "glTF 2.0",
+      "bytes": 6202340,
+      "sha256": "2e0d3695887af0081e530ebbd669d3c6a79db5a8d0a5bfe7188f5ef0f4514ba8",
+      "triangles": 93760,
+      "vertices": 281280,
+      "meshes": 119,
+      "materials": 17,
+      "colliders": 241,
+      "navigationNodes": 1408,
+      "navigationEdges": 4556,
+      "zones": [
+        {
+          "id": "A",
+          "name": "自动货柜区",
+          "walkable": true,
+          "pathNodes": 21
+        },
+        {
+          "id": "B",
+          "name": "转运大厅",
+          "walkable": true,
+          "pathNodes": 22
+        },
+        {
+          "id": "C",
+          "name": "模块储能站",
+          "walkable": true,
+          "pathNodes": 20
+        },
+        {
+          "id": "D",
+          "name": "冷却检修庭",
+          "walkable": true,
+          "pathNodes": 19
+        },
+        {
+          "id": "E",
+          "name": "管廊与高架",
+          "walkable": true,
+          "pathNodes": 41
+        },
+        {
+          "id": "F",
+          "name": "工业中庭",
+          "walkable": true,
+          "pathNodes": 4
+        }
+      ],
+      "rampPaths": [
+        25,
+        29,
+        41
+      ],
+      "bounds": {
+        "minX": -250,
+        "maxX": 250,
+        "minZ": -210,
+        "maxZ": 210
+      },
+      "generationMilliseconds": 586,
+      "status": "generated; navigation graph verified; browser visual verification pending",
+      "source": "src/world/modeling.ts + src/world/maps.ts",
+      "license": "Original project-authored asset",
+      "coordinateSystem": "metres; Y up"
+    }
+  ],
+  "textures": [
+    {
+      "id": "brick",
+      "file": "assets/environment/brick.png",
+      "bytes": 220674,
+      "sha256": "988991e1de85b49b7eca5800c5adcb0803c48ccf4e7b1ee6c6dd228ecaed9a1b",
+      "source": "tools/maps/generate-textures.py",
+      "license": "Original project-authored seamless texture",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "id": "concrete",
+      "file": "assets/environment/concrete.png",
+      "bytes": 99946,
+      "sha256": "d97f2a464825271a89e24f6956addca22f3c0cb54d26cba98b50b1be18aa6391",
+      "source": "tools/maps/generate-textures.py",
+      "license": "Original project-authored seamless texture",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "id": "asphalt",
+      "file": "assets/environment/asphalt.png",
+      "bytes": 101765,
+      "sha256": "a17fc917d42c557a7c527778cbd507fe990de73bb121d43098e7b2143b93a42c",
+      "source": "tools/maps/generate-textures.py",
+      "license": "Original project-authored seamless texture",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "id": "rust",
+      "file": "assets/environment/rust.png",
+      "bytes": 101804,
+      "sha256": "63e1fad4fe6450cddedb63dfec6d98784feb0f6f0f2544473fb7d97a828e3064",
+      "source": "tools/maps/generate-textures.py",
+      "license": "Original project-authored seamless texture",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "id": "wood",
+      "file": "assets/environment/wood.png",
+      "bytes": 177881,
+      "sha256": "9debc3fbbad4913ca080b5e56fccd7fc6ba039ad27e9f6ebfa921f9c99fb0dcf",
+      "source": "tools/maps/generate-textures.py",
+      "license": "Original project-authored seamless texture",
+      "dimensions": [
+        512,
+        512
+      ]
+    }
+  ]
+}

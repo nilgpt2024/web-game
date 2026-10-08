@@ -334,7 +334,7 @@ function launchBall() {
         ball.dy = -Math.cos(angle) * ball.speed;
     }
 
-// Project: WebGameHub
+// Project: AIGameHub
 // Email: 2952671670@qq.com | QQ: 2952671670
 }
 

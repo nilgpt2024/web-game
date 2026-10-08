@@ -1,5 +1,5 @@
 /* ============================================================
-   WebGameHub — 首页深色主题 (style-home.css)
+   AIGameHub — 首页深色主题 (style-home.css)
    视觉规格：参考 astragames 结构+视觉（深色信息密集），品牌自持
    强调色：#7C6CFF（#6C63FF 家族在深底上的明亮变体，霓虹紫）
    ============================================================ */
@@ -15,7 +15,7 @@
   --palette-text-secondary:#a9a2b4;
   --palette-text-tertiary:#6f687c;
   --palette-text-disabled:#ffffff3d;
-  /* 品牌强调色（WebGameHub 自持，不照搬参考站 #ff385c） */
+  /* 品牌强调色（AIGameHub 自持，不照搬参考站 #ff385c） */
   --palette-brand:#7C6CFF;
   --palette-brand-deep:#5B3EE0;
   --palette-brand-grad-1:#4C1D95;

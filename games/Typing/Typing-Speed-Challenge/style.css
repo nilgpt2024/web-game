@@ -127,7 +127,7 @@ body {
   transition: var(--transition);
   border: 2px solid transparent;
 }
-/* Project: WebGameHub */
+/* Project: AIGameHub */
 
 .stat-card:hover {
   transform: translateY(-5px);

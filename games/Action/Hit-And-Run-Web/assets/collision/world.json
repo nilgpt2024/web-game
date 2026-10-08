@@ -1,0 +1,80 @@
+{
+  "levels": [
+    {
+      "level": 1,
+      "shapes": 1664,
+      "counts": {
+        "box": 1468,
+        "cylinder": 179,
+        "sphere": 17
+      },
+      "sha256": "79e3220cd63ba0fb0ca223f0b7b2d75e19dd1ecd06a99db4073a050f20501f9a"
+    },
+    {
+      "level": 2,
+      "shapes": 921,
+      "counts": {
+        "cylinder": 129,
+        "box": 782,
+        "sphere": 10
+      },
+      "sha256": "228674871fe456166e8c2d0ab8e3a6611005c0779aa3e6d4e98044b5d25d6a0f"
+    },
+    {
+      "level": 3,
+      "shapes": 1576,
+      "counts": {
+        "box": 1378,
+        "cylinder": 167,
+        "sphere": 31
+      },
+      "sha256": "975a0cb27ada412aedfb1952f74f5f5888edfdbe969fe298b61b1dd25fec4f41"
+    },
+    {
+      "level": 4,
+      "shapes": 1654,
+      "counts": {
+        "cylinder": 175,
+        "box": 1462,
+        "sphere": 17
+      },
+      "sha256": "f1200587f51bf826b17090de9031d90086d9a7a6f0cd911c19b54d4ae902e02a"
+    },
+    {
+      "level": 5,
+      "shapes": 932,
+      "counts": {
+        "box": 784,
+        "cylinder": 137,
+        "sphere": 11
+      },
+      "sha256": "4f04879ae37c66c7f2455bd8aff970e1a83b96fa32ffca1409b7975d2b97047e"
+    },
+    {
+      "level": 6,
+      "shapes": 1576,
+      "counts": {
+        "box": 1375,
+        "cylinder": 170,
+        "sphere": 31
+      },
+      "sha256": "f7d9ad1d5e1e67d77b58ef00b100ce79c3ddf50a573f6d7fbdd456431232e515"
+    },
+    {
+      "level": 7,
+      "shapes": 1226,
+      "counts": {
+        "box": 1096,
+        "cylinder": 116,
+        "sphere": 14
+      },
+      "sha256": "6463b3fad7d8d8699f7b4891cbcf7301d8a68be6259ea532d23a5d54f16593a5"
+    }
+  ],
+  "counts": {
+    "box": 8345,
+    "cylinder": 1073,
+    "sphere": 131
+  },
+  "errors": []
+}

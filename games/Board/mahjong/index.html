@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0c1016">
+<title>Mahjong Solitaire — Free Online Tile Match Game | Board Gaming Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Play Mahjong Solitaire free online: classic Chinese tile-matching game. Match free pairs to clear the layout. Single-page browser game, no signup, no downloads.">
+<meta name="keywords" content="mahjong, mahjong solitaire, free mahjong online, tile matching game, classic mahjong">
+<link rel="canonical" href="https://boardgaminghub.com/mahjong">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/mahjong">
+<meta property="og:title" content="Mahjong Solitaire — Free Online">
+<meta property="og:description" content="Match identical free tiles to clear the layout. Free, in-browser, single-file HTML.">
+<meta property="og:image" content="https://boardgaminghub.com/og/mahjong.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/mahjong.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Mahjong Solitaire",
+  "description": "Match identical pairs of free tiles to clear a stacked layout.",
+  "url": "https://boardgaminghub.com/mahjong", "genre": "Tile Matching",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Puzzles & Classics","item":"https://boardgaminghub.com/#puzzles"},{"@type":"ListItem","position":3,"name":"Mahjong Solitaire","item":"https://boardgaminghub.com/mahjong"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do you play Mahjong Solitaire?","acceptedAnswer":{"@type":"Answer","text":"Tap two matching free tiles to remove them as a pair. A tile is free if no tile sits on top of it AND its left or right side is unblocked. Win by removing every tile from the layout. Mahjong Solitaire is a single-player matching puzzle, not the four-player betting/scoring game — it just borrows mahjong tiles."}},{"@type":"Question","name":"What does it mean for a tile to be free?","acceptedAnswer":{"@type":"Answer","text":"A tile is free (selectable) when (1) no tile sits on top of it AND (2) at least one of its left or right edges is open (no tile directly beside it on that side). A tile blocked by neighbors on both sides cannot be matched until one of those neighbors is removed."}},{"@type":"Question","name":"What tiles does this game use?","acceptedAnswer":{"@type":"Answer","text":"This build uses a streamlined 72-tile set: two suits — Bamboo (1–9) and Characters (1–9) — with 4 copies of each of the 18 designs. Tiles match only by exact design (identical glyph). There are no Winds, Dragons, Dots, Flowers, or Seasons in this version, and there is no any-flower-matches-any-flower rule; every removal is a pair of two identical tiles."}},{"@type":"Question","name":"Are all Mahjong Solitaire layouts solvable?","acceptedAnswer":{"@type":"Answer","text":"Each new board is reshuffled until at least one opening match exists, so you always have a legal first move — but full solvability is not guaranteed, and removing pairs in the wrong order can still lock you out. Use Shuffle to re-randomize the remaining tiles or Undo to step back when you hit a dead end."}},{"@type":"Question","name":"How is Mahjong Solitaire different from Mahjong (the four-player game)?","acceptedAnswer":{"@type":"Answer","text":"Different games sharing mahjong tiles. Four-player Mahjong is a turn-based draw-and-discard betting game similar to Rummy, scored by hand value. Mahjong Solitaire is a single-player tile-matching puzzle, invented in the early 1980s for personal computers. They share tiles but no rules."}}]}</script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0;
+    background:
+      radial-gradient(ellipse at top, #1a1208 0%, #0a0604 70%) fixed,
+      #0a0604;
+    color: #e8d8b8; font-family: Georgia, "Times New Roman", serif; }
+  #wrap { max-width: 900px; margin: 0 auto; padding: 28px 12px 60px; text-align: center; }
+  h1 { font-size: 2.2em; letter-spacing: 10px; margin: 0 0 6px;
+    background: linear-gradient(180deg, #ffe8a8 0%, #d4a050 50%, #905028 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.6); }
+  .tag { color: #a09078; letter-spacing: 4px; font-size: 0.82em; margin-bottom: 16px; font-style: italic; }
+  .controls { margin: 12px 0; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  button { background: linear-gradient(180deg, #3a2818, #1f1408); color: #f0d89c; border: 1px solid #5a4028; border-radius: 4px; padding: 8px 14px; font-family: inherit; letter-spacing: 2px; font-size: 0.82em; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,220,150,0.2), 0 2px 4px rgba(0,0,0,0.4); }
+  button:hover { background: linear-gradient(180deg, #4a3624, #2a1c10); border-color: #7a5838; }
+  .stats { color: #a09078; font-size: 0.85em; letter-spacing: 3px; margin: 8px 0 16px; }
+  .stats span { color: #ffd896; text-shadow: 0 1px 0 #000; }
+  #boardWrap { overflow: auto; padding: 16px 0;
+    background:
+      radial-gradient(ellipse at center, rgba(80,40,20,0.3) 0%, transparent 70%);
+    border-radius: 8px; }
+  #board { position: relative; margin: 0 auto; }
+  /* Tile body: aged ivory with mother-of-pearl iridescent shimmer */
+  .tile { position: absolute; width: 50px; height: 64px;
+    background:
+      radial-gradient(ellipse at 25% 20%, rgba(255,220,255,0.35), transparent 55%),
+      radial-gradient(ellipse at 75% 70%, rgba(180,255,235,0.28), transparent 55%),
+      radial-gradient(ellipse at 80% 25%, rgba(255,240,200,0.25), transparent 60%),
+      radial-gradient(ellipse at 20% 80%, rgba(255,200,220,0.2), transparent 55%),
+      linear-gradient(160deg, #fdf6e8 0%, #f4e8d4 30%, #fcefe2 55%, #f0e4d0 80%, #e8d8c0 100%);
+    border: 1px solid #b8a078; border-radius: 6px;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.6),
+      inset 0 -1px 0 rgba(140,100,60,0.2),
+      2px 2px 0 #2a1810, 3px 3px 0 #5a3a20,
+      4px 6px 12px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; cursor: pointer; user-select: none;
+    transition: transform 0.12s, box-shadow 0.12s; line-height: 1; }
+  /* Bamboo: jade inlay */
+  .tile.bam {
+    color: transparent;
+    background:
+      radial-gradient(ellipse at 25% 20%, rgba(255,220,255,0.3), transparent 55%),
+      radial-gradient(ellipse at 75% 70%, rgba(180,255,235,0.25), transparent 55%),
+      linear-gradient(160deg, #fdf6e8 0%, #f4e8d4 30%, #fcefe2 60%, #e8d8c0 100%);
+    text-shadow: none;
+  }
+  .tile.bam::after { content: ''; }
+  .tile.bam { background-clip: padding-box; }
+  /* Use a wrapping technique via child not possible; instead apply gradient text-fill */
+  .tile.bam { color: #1a6048;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.6), 0 0 6px rgba(60,180,120,0.3); }
+  /* Characters: ruby/cinnabar inlay */
+  .tile.chr { color: #9a1820;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5), 0 0 5px rgba(200,40,40,0.3); }
+  /* Locked tiles dim */
+  .tile.locked { filter: brightness(0.6) saturate(0.7); cursor: default; }
+  /* Selected: gilded glow */
+  .tile.sel {
+    background:
+      radial-gradient(ellipse at 25% 20%, rgba(255,255,200,0.55), transparent 55%),
+      radial-gradient(ellipse at 75% 70%, rgba(255,220,140,0.4), transparent 55%),
+      linear-gradient(160deg, #fff8d0 0%, #f8e088 40%, #d4a040 100%);
+    border-color: #b07810;
+    transform: translate(-2px, -2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,200,0.8),
+      0 0 0 2px rgba(255,200,80,0.5),
+      4px 4px 0 #2a1810, 5px 5px 0 #5a3a20,
+      6px 8px 16px rgba(255,180,40,0.4); }
+  .tile.hint { animation: pulse 0.8s ease-in-out 2; }
+  @keyframes pulse { 0%,100%{transform:translate(0,0);} 50%{transform:translate(-3px,-3px); filter: brightness(1.2);} }
+  #msg { margin-top: 14px; min-height: 1.4em; color: #f0d89c; letter-spacing: 3px; font-size: 0.95em; }
+  nav { margin-top: 22px; font-size: 0.82em; letter-spacing: 2px; }
+  nav a { color: #a09078; text-decoration: none; margin: 0 10px; }
+  nav a:hover { color: #f0d89c; }
+  .info { color: #8a7858; font-size: 0.82em; line-height: 1.6; margin-top: 30px; text-align: left; padding: 0 6px; }
+  .info h2 { color: #d4a050; font-size: 0.95em; letter-spacing: 4px; text-transform: uppercase; margin: 18px 0 8px; }
+  .info strong { color: #f0d89c; }
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div id="wrap">
+  <h1>MAHJONG</h1>
+  <div class="tag">SOLITAIRE TILE MATCHING</div>
+  <div class="controls">
+    <button id="newgame">NEW</button>
+    <button id="hint">HINT</button>
+    <button id="undo">UNDO</button>
+    <button id="shuffle">SHUFFLE</button>
+  </div>
+  <div class="stats">PAIRS LEFT <span id="left">0</span> · TIME <span id="time">0:00</span></div>
+  <div id="boardWrap"><div id="board"></div></div>
+  <div id="msg"></div>
+  <nav><a href="/">All games</a> · <a href="/2048">2048</a> · <a href="/wordform">Wordform</a></nav>
+
+  <div class="info">
+    <h2>How to play Mahjong Solitaire</h2>
+    <p>Match pairs of identical <strong>free</strong> tiles to remove them. A tile is free when nothing rests on top of it and either its left or right side is unblocked. Clear all 72 tiles to win.</p>
+    <h2>Strategy</h2>
+    <p>Plan ahead — bad early matches can lock the board. When you see four of a kind exposed, match all four; otherwise, match pairs that unblock the most tiles. Use <strong>HINT</strong> when stuck, or <strong>SHUFFLE</strong> if no moves remain.</p>
+  </div>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const TILE_W = 50, TILE_H = 64, OFF_X = 6, OFF_Y = 8;
+  // Faces: 9 bamboo + 9 characters = 18, ×4 = 72 tiles
+  const FACES = [
+    {ch:'🀐',cls:'bam'},{ch:'🀑',cls:'bam'},{ch:'🀒',cls:'bam'},{ch:'🀓',cls:'bam'},{ch:'🀔',cls:'bam'},{ch:'🀕',cls:'bam'},{ch:'🀖',cls:'bam'},{ch:'🀗',cls:'bam'},{ch:'🀘',cls:'bam'},
+    {ch:'🀇',cls:'chr'},{ch:'🀈',cls:'chr'},{ch:'🀉',cls:'chr'},{ch:'🀊',cls:'chr'},{ch:'🀋',cls:'chr'},{ch:'🀌',cls:'chr'},{ch:'🀍',cls:'chr'},{ch:'🀎',cls:'chr'},{ch:'🀏',cls:'chr'}
+  ];
+  // Layout: nested layers
+  function buildLayout() {
+    const tiles = [];
+    const rects = [
+      {z:0, c0:0, c1:8, r0:0, r1:4},   // 32
+      {z:1, c0:1, c1:7, r0:0, r1:4},   // 24
+      {z:2, c0:2, c1:6, r0:0, r1:3},   // 12
+      {z:3, c0:3, c1:5, r0:0, r1:2}    // 4 — total 72
+    ];
+    for (const r of rects) for (let row=r.r0; row<r.r1; row++) for (let col=r.c0; col<r.c1; col++)
+      tiles.push({z:r.z, row, col, alive:true, face:null, id: tiles.length});
+    return tiles;
+  }
+  let tiles, sel, history, t0, timer;
+  function shuffleFaces(tiles) {
+    const deck = [];
+    for (const f of FACES) for (let i=0;i<4;i++) deck.push(f);
+    for (let i=deck.length-1;i>0;i--) { const j = Math.floor(Math.random()*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
+    tiles.forEach((t,i) => t.face = deck[i]);
+  }
+  function isCovered(t) {
+    return tiles.some(x => x.alive && x.z === t.z + 1 && x.row === t.row && x.col === t.col);
+  }
+  function isSideBlocked(t) {
+    const left = tiles.some(x => x.alive && x.z === t.z && x.row === t.row && x.col === t.col - 1);
+    const right = tiles.some(x => x.alive && x.z === t.z && x.row === t.row && x.col === t.col + 1);
+    return left && right;
+  }
+  function isFree(t) { return t.alive && !isCovered(t) && !isSideBlocked(t); }
+  function findMove() {
+    const free = tiles.filter(isFree);
+    for (let i=0;i<free.length;i++) for (let j=i+1;j<free.length;j++)
+      if (free[i].face.ch === free[j].face.ch) return [free[i].id, free[j].id];
+    return null;
+  }
+  function newGame() {
+    tiles = buildLayout(); sel = null; history = [];
+    do { shuffleFaces(tiles); } while (!findMove());
+    if (timer) clearInterval(timer); t0 = Date.now();
+    timer = setInterval(() => {
+      const s = Math.floor((Date.now()-t0)/1000);
+      $('time').textContent = Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+    }, 250);
+    $('msg').textContent = ''; render();
+  }
+  function render() {
+    const b = $('board');
+    let maxC = 0, maxR = 0, maxZ = 0;
+    tiles.forEach(t => { if (t.col>maxC) maxC=t.col; if (t.row>maxR) maxR=t.row; if (t.z>maxZ) maxZ=t.z; });
+    b.style.width = ((maxC+1)*TILE_W + maxZ*OFF_X + 20) + 'px';
+    b.style.height = ((maxR+1)*TILE_H + maxZ*OFF_Y + 20) + 'px';
+    b.innerHTML = '';
+    const sorted = tiles.slice().sort((a,b) => a.z - b.z || a.row - b.row || a.col - b.col);
+    for (const t of sorted) {
+      if (!t.alive) continue;
+      const d = document.createElement('div');
+      d.className = 'tile ' + t.face.cls;
+      if (!isFree(t)) d.classList.add('locked');
+      if (sel === t.id) d.classList.add('sel');
+      d.style.left = (t.col*TILE_W - t.z*OFF_X) + 'px';
+      d.style.top = (t.row*TILE_H - t.z*OFF_Y) + 'px';
+      d.style.zIndex = t.z*100 + t.row*10 + t.col;
+      d.textContent = t.face.ch;
+      d.onclick = () => click(t.id);
+      b.appendChild(d);
+    }
+    const live = tiles.filter(x => x.alive).length;
+    $('left').textContent = Math.floor(live/2);
+    if (live === 0) { clearInterval(timer); $('msg').textContent = 'CLEARED IN ' + $('time').textContent; }
+    else if (!findMove()) $('msg').textContent = 'NO MOVES — SHUFFLE OR UNDO';
+  }
+  function click(id) {
+    const t = tiles.find(x => x.id === id);
+    if (!t || !t.alive || !isFree(t)) return;
+    if (sel === id) { sel = null; render(); return; }
+    if (sel === null) { sel = id; render(); return; }
+    const s = tiles.find(x => x.id === sel);
+    if (s.face.ch === t.face.ch) {
+      history.push([sel, id]);
+      s.alive = false; t.alive = false; sel = null;
+    } else {
+      sel = id;
+    }
+    render();
+  }
+  function undo() {
+    if (!history.length) return;
+    const [a,b] = history.pop();
+    tiles.find(x=>x.id===a).alive = true;
+    tiles.find(x=>x.id===b).alive = true;
+    sel = null; $('msg').textContent = ''; render();
+  }
+  function hint() {
+    const m = findMove(); if (!m) { $('msg').textContent = 'NO MATCHES'; return; }
+    render();
+    const live = tiles.filter(x=>x.alive).sort((a,b) => a.z - b.z || a.row - b.row || a.col - b.col);
+    document.querySelectorAll('.tile').forEach((el, i) => {
+      const t = live[i]; if (!t) return;
+      if (m.includes(t.id)) el.classList.add('hint');
+    });
+  }
+  function shuffleAlive() {
+    const alive = tiles.filter(x => x.alive);
+    const faces = alive.map(t => t.face);
+    for (let attempt = 0; attempt < 50; attempt++) {
+      for (let i=faces.length-1;i>0;i--) { const j = Math.floor(Math.random()*(i+1)); [faces[i],faces[j]]=[faces[j],faces[i]]; }
+      alive.forEach((t,i) => t.face = faces[i]);
+      if (findMove()) break;
+    }
+    sel = null; $('msg').textContent = findMove() ? '' : 'NO MOVES POSSIBLE — UNDO'; render();
+  }
+  $('newgame').onclick = newGame;
+  $('undo').onclick = undo;
+  $('hint').onclick = hint;
+  $('shuffle').onclick = shuffleAlive;
+  newGame();
+})();
+</script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Mahjong Solitaire</h2>
+  <p>Mahjong Solitaire is a single-player tile-matching puzzle played with mahjong tiles. Match pairs of identical free tiles to remove them from a stacked layout. Despite the shared name and tiles, this is a different game from <em>full</em> Mahjong (the four-player draw-and-discard game). Mahjong Solitaire was popularized on early personal computers in the 1980s, notably as <em>Shanghai</em> in 1986.</p>
+
+  <h3>How to play</h3>
+  <p>Tap two matching free tiles to remove them as a pair. A tile is <strong>free</strong> when (1) no tile sits on top of it AND (2) at least one of its left or right edges has no tile directly beside it. Win by clearing all 72 tiles from the layout. You can lock yourself out by removing tiles in the wrong order, so plan ahead — tiles buried deeper require their cover removed first.</p>
+
+  <h3>Tile set: 72 tiles</h3>
+  <p>This build uses a streamlined two-suit set. Tiles match only when their design is <strong>exactly identical</strong> — there are no Winds, Dragons, Dots, Flowers, or Seasons, and no any-flower-matches-any-flower shortcut.</p>
+  <table>
+    <thead><tr><th>Category</th><th>Tiles</th><th class="num">Count</th><th>Match rule</th></tr></thead>
+    <tbody>
+      <tr><td>Bamboo (1–9)</td><td>One suit, 4 of each</td><td class="num">36</td><td>Exact tile</td></tr>
+      <tr><td>Characters (1–9)</td><td>One suit, 4 of each</td><td class="num">36</td><td>Exact tile</td></tr>
+      <tr><td><strong>Total</strong></td><td>18 designs × 4 copies</td><td class="num"><strong>72</strong></td><td>Identical glyph</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How do you play?</summary><p>Tap two matching free tiles to remove the pair. Repeat until the board is empty. A tile is free when nothing is on top of it AND its left or right side is open.</p></details>
+  <details><summary>What does "free" mean?</summary><p>(1) No tile sits on top of it. (2) At least one of its left or right edges has no neighbor. A tile blocked on both sides is not selectable until a neighbor is removed.</p></details>
+  <details><summary>What tile types are there?</summary><p>Two suits only: Bamboo (1–9) and Characters (1–9), 4 copies of each of the 18 designs, for 72 tiles total. Tiles pair only with an exactly identical tile — there are no Winds, Dragons, Dots, Flowers, or Seasons in this version.</p></details>
+  <details><summary>Are all layouts solvable?</summary><p>Each new board is reshuffled until at least one opening match exists, so there is always a legal first move — but full solvability is not guaranteed, and a wrong-order removal can still strand tiles. Use Shuffle to re-randomize the remaining tiles or Undo to back out of a dead end.</p></details>
+  <details><summary>How is this different from full Mahjong?</summary><p>Full Mahjong is a four-player turn-based draw-and-discard game similar to Rummy, scored by hand value. Mahjong Solitaire is a single-player tile-matching puzzle. They share the tile set; nothing else.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/solitaire">Solitaire</a> — solo card game, similar pace.</li>
+    <li><a href="/sudoku">Sudoku</a> — pure-logic puzzle.</li>
+    <li><a href="/minesweeper">Minesweeper</a> — deduction puzzle.</li>
+    <li><a href="/2048">2048</a> — solo number puzzle.</li>
+  </ul>
+</section>
+
+<!-- draft: review --><section class="seo-content how-it-works">
+  <h2>How this version works</h2>
+  <h3>The layout</h3>
+  <p>All 72 tiles sit in a four-layer stepped pyramid. The bottom layer is 8 tiles wide and 4 rows deep (32 tiles). The next layer is 6 by 4 (24 tiles), then 4 by 3 (12 tiles), and the top is a 2 by 2 block of 4 tiles. Every layer sits on the same grid as the one below, so a tile counts as covered only when another tile sits exactly on top of it. Upper layers are drawn shifted slightly up and to the left so you can see the depth. Tiles that are not currently free are dimmed.</p>
+  <h3>How boards are dealt</h3>
+  <p>The 18 designs go into a deck of four copies each, which is shuffled with a Fisher-Yates shuffle using your browser's random number generator and laid onto the pyramid in order, bottom layer first. There is no seed and no daily board; every New press deals a fresh random layout.</p>
+  <h3>Selecting and matching</h3>
+  <p>Click a free tile to select it, click it again to deselect it. If the second tile you click does not match, it simply becomes the new selection. Matching two identical tiles removes both.</p>
+  <h3>Hint, Undo and Shuffle</h3>
+  <ul>
+    <li>Hint highlights one free matching pair. It scans tiles from the bottom layer up, row by row, so it always points to the first pair it finds rather than the best one. Hints are unlimited and do not affect anything.</li>
+    <li>Undo puts back the last removed pair. You can undo all the way to the start of the board.</li>
+    <li>Shuffle mixes the designs of all remaining tiles without moving their positions. It tries up to 50 times to produce at least one free pair. If none of those attempts works, it tells you no moves are possible and suggests Undo.</li>
+  </ul>
+  <p>When no free pair is left on the board, a message appears suggesting Shuffle or Undo.</p>
+  <h3>What is tracked</h3>
+  <p>There is no score. The counter shows how many pairs are left, and a timer runs until the board is cleared. Nothing is stored in your browser, so reloading the page deals a new board.</p>
+  <h3>Recent changes</h3>
+  <ul>
+    <li>2026-07-07 — The tile-set description on this page was corrected to match the real 72-tile, two-suit set, and the claim that every board is solvable was removed.</li>
+    <li>2026-05-11 — Shuffle no longer freezes the page when the remaining tiles cannot form any free pair; it now stops after 50 attempts and suggests Undo.</li>
+    <li>2026-04-27 — Mahjong Solitaire added to the site with a 72-tile pyramid, hint, undo and shuffle.</li>
+  </ul>
+</section><!-- /draft -->
+
+<!-- merged from /guides/mahjong-solitaire -->
+<section class="seo-content guide-merged" id="guide">
+  <h2>How to Play Mahjong Solitaire</h2>
+<p><a href="/mahjong">Mahjong Solitaire</a> is a single-player tile-matching game — not the four-player gambling game of the same name. You clear a layered layout of tiles by matching identical pairs until the board is empty. The Board Gaming Hub build uses a compact <b>72-tile set</b> drawn from two mahjong suits: <b>Bamboo</b> and <b>Characters</b>, nine faces each, four copies of every face. It runs in one HTML page with hint, undo, and shuffle.</p>
+
+    <h3>Free vs blocked tiles</h3>
+    <p>You can only remove a tile that is <b>free</b>. A tile is free when two conditions are both true:</p>
+    <ul>
+      <li><b>Uncovered</b> — nothing rests on top of it in a higher layer.</li>
+      <li><b>Open edge</b> — its left OR its right side is unblocked. A tile with a neighbor on both its left and right is locked, even if nothing sits on top.</li>
+    </ul>
+    <p>Blocked tiles are dimmed. Freeing them is the whole puzzle: every pair you remove may open the tiles that were leaning on it.</p>
+
+    <h3>Exact-glyph matching</h3>
+    <p>Two free tiles match only if they show the <b>exact same glyph</b>. In this build there are no flower or season groups — a 3-Bamboo pairs only with another 3-Bamboo, never with a Character tile that merely looks similar. Because every face has four copies, each glyph forms two possible pairs on a full board.</p>
+
+    <div class="callout">
+      <b>The four-of-a-kind rule:</b> when all four copies of a face are free at once, clear all four immediately. Leaving two behind risks stranding them under later tiles with no partner reachable.
+    </div>
+
+    <h3>Plan from the top down</h3>
+    <p>The fastest way to lose is matching the first pair you see. A greedy match can bury a tile whose only partner is now locked. Instead:</p>
+    <ol>
+      <li><b>Clear the top layers first.</b> Upper tiles cover the most cells below them, so removing them opens the widest set of future moves.</li>
+      <li><b>Look before you match.</b> If a glyph has all four copies visible but you only need to open one specific tile, match the pair that frees the most blocked tiles.</li>
+      <li><b>Keep a spare pair.</b> Avoid clearing both pairs of a face early if one of those tiles is the only thing you will be able to match later.</li>
+    </ol>
+
+    <h3>Hint, undo, and shuffle</h3>
+    <p>Use <b>HINT</b> to highlight a legal pair when you are stuck, and <b>UNDO</b> to step back after a match that locked the board. If no legal moves remain among the free tiles, <b>SHUFFLE</b> reassigns the faces on the remaining tiles so the game can continue. A clean solve uses shuffle sparingly — treat it as a rescue, not a strategy.</p>
+
+    <p>For another relaxed solo game with a similar pace, try <a href="/solitaire">Klondike Solitaire</a> — the <a href="/solitaire#guide">Klondike guide</a> covers its strategy. Prefer numbers? <a href="/2048">2048</a> is a quick palate cleanser.</p>
+</section>
+<style>.guide-merged .callout{background:#141c28;border:1px solid #3a5060;border-radius:4px;padding:14px 18px;margin:20px 0}.guide-merged .scenario-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.92em}.guide-merged .scenario-table th,.guide-merged .scenario-table td{border:1px solid #2a3540;padding:8px 10px;text-align:left;vertical-align:top}</style>
+
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

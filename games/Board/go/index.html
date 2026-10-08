@@ -1,0 +1,1502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+  (function() {
+    var ua = navigator.userAgent;
+    var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+    if (isPhone) {
+      var meta = document.querySelector('meta[name="viewport"]');
+      if (meta) {
+        var targetWidth = 780;
+        var scale = window.innerWidth / targetWidth;
+        meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+      }
+    }
+  })();
+  </script>
+  <meta name="theme-color" content="#0c1016">
+  <title>Go (Baduk / Weiqi) — Free Online Game, 19×19 | Board Gaming Hub</title>
+<!-- Phase 2: Lead magnet / audience flywheel (STRATEGY.md). These strategy sims build SEO authority and teach structured decision-making that parallels engineering analysis. Open engine (stormsewer WASM + hydro-tools + hc calc) + pro tools (FieldHydro dam-safety AR, HydroComplete) are the production versions for real hydrology work. Feedback on the verifiable methods welcome via STRATEGY.md or engine template. -->
+  <meta name="description" content="Play Go — also known as Baduk (Korean) or Weiqi (Chinese) — online for free. 19×19 board, territory scoring, single-player vs AI. The ancient game of strategy and influence. No signup.">
+  <link rel="canonical" href="https://boardgaminghub.com/go">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://boardgaminghub.com/go">
+  <meta property="og:title" content="Go — Free Online 19×19">
+  <meta property="og:description" content="Free in-browser Go on a 19×19 board. Single-player vs AI.">
+<meta property="og:image" content="https://boardgaminghub.com/og/go.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/go.png">
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "VideoGame", "name": "Go (Baduk)",
+    "description": "The ancient game of territory and influence on a 19×19 grid.",
+    "url": "https://boardgaminghub.com/go", "genre": "Board Game",
+    "applicationCategory": "Game", "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚫</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #1A1810;
+      color: #C8D0B8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 1.7em;
+      color: #DEB070;
+      margin-bottom: 2px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+      letter-spacing: 0.2em;
+    }
+
+    .subtitle {
+      font-size: 0.8em;
+      color: #8B7040;
+      margin-bottom: 2px;
+      font-style: italic;
+    }
+
+    .subtitle-cn {
+      font-size: 0.7em;
+      color: #6A5A38;
+      margin-bottom: 12px;
+    }
+
+    /* Mode selector */
+    .mode-selector {
+      display: flex;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid #8B7040;
+    }
+
+    .mode-btn {
+      padding: 6px 18px;
+      font-size: 0.95em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: none;
+      background: #2A2418;
+      color: #6A5A38;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .mode-btn:not(:last-child) { border-right: 1px solid #8B7040; }
+    .mode-btn.active { background: #8B7040; color: #1A1810; cursor: default; }
+    .mode-btn:hover:not(.active) { background: #3A3020; color: #DEB070; }
+
+    /* Size selector */
+    .size-selector {
+      display: flex;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid #5A4A30;
+    }
+
+    .size-btn {
+      padding: 5px 14px;
+      font-size: 0.85em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: none;
+      background: #2A2418;
+      color: #6A5A38;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .size-btn:not(:last-child) { border-right: 1px solid #5A4A30; }
+    .size-btn.active { background: #5A4A30; color: #DEB070; cursor: default; }
+    .size-btn:hover:not(.active) { background: #3A3020; color: #DEB070; }
+
+    /* Game info */
+    .game-info { text-align: center; margin-bottom: 8px; }
+    #turn-indicator { font-size: 1.15em; font-weight: bold; margin-bottom: 4px; }
+
+    #message {
+      font-size: 0.95em;
+      color: #90B868;
+      min-height: 1.4em;
+      margin-bottom: 6px;
+    }
+
+    .buttons { margin-bottom: 12px; }
+
+    button {
+      padding: 8px 22px;
+      font-size: 1em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      margin: 0 5px;
+      border: 2px solid #8B7040;
+      border-radius: 6px;
+      background: #2A2418;
+      color: #C8D0B8;
+      transition: background 0.2s;
+    }
+
+    button:hover:not(:disabled) { background: #3A3020; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Main layout */
+    .container { display: flex; align-items: flex-start; gap: 18px; }
+
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+      padding-top: 10px;
+    }
+
+    .side-panel h3 {
+      font-size: 0.85em;
+      margin-bottom: 6px;
+      color: #8B7040;
+    }
+
+    .prisoner-count {
+      font-size: 1.6em;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .prisoner-label {
+      font-size: 0.7em;
+      color: #6A5A38;
+      margin-bottom: 10px;
+    }
+
+    .pass-indicator {
+      font-size: 0.75em;
+      color: #90B868;
+      margin-top: 6px;
+      min-height: 1.2em;
+    }
+
+    .stone-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      margin-bottom: 6px;
+    }
+
+    .stone-icon.black {
+      background: radial-gradient(circle at 35% 30%, #555, #111);
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    }
+
+    .stone-icon.white {
+      background: radial-gradient(circle at 35% 30%, #fff, #d0d0d0);
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Board */
+    .board-frame {
+      border: 4px solid #8B7040;
+      border-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.3);
+      padding: 0;
+      display: inline-block;
+    }
+
+    .board-wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .board-surface {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #DEB070;
+      /* Subtle wood grain */
+      background-image:
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 8px,
+          rgba(180,140,70,0.15) 8px,
+          rgba(180,140,70,0.15) 9px
+        ),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 40px,
+          rgba(160,120,50,0.08) 40px,
+          rgba(160,120,50,0.08) 42px
+        );
+      z-index: 0;
+    }
+
+    .board-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+    }
+
+    .cell {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .cell:hover .hover-stone {
+      opacity: 0.3;
+    }
+
+    /* Grid lines via pseudo-elements on cells */
+    .cell::before {
+      content: '';
+      position: absolute;
+      background: #5A4020;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Horizontal line */
+    .cell::after {
+      content: '';
+      position: absolute;
+      background: #5A4020;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Horizontal line through center */
+    .cell::before {
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      transform: translateY(-0.5px);
+    }
+
+    /* Vertical line through center */
+    .cell::after {
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      transform: translateX(-0.5px);
+    }
+
+    /* Edge cells: clip lines */
+    .cell.edge-top::after { top: 50%; }
+    .cell.edge-bottom::after { bottom: 50%; }
+    .cell.edge-left::before { left: 50%; }
+    .cell.edge-right::before { right: 50%; }
+
+    /* Star point (hoshi) */
+    .hoshi {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #5A4020;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Stones */
+    .stone {
+      position: absolute;
+      border-radius: 50%;
+      z-index: 5;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .stone.black {
+      background: radial-gradient(circle at 35% 30%, #555, #222 40%, #111 100%);
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.6), inset -1px -1px 2px rgba(0,0,0,0.3);
+    }
+
+    .stone.white {
+      background: radial-gradient(circle at 35% 30%, #fff, #e8e8e8 40%, #d0d0d0 100%);
+      box-shadow: 2px 2px 4px rgba(0,0,0,0.3), inset -1px -1px 2px rgba(0,0,0,0.05);
+    }
+
+    .stone.last-move {
+      box-shadow: 0 0 0 2px #90B868, 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Dead stone marking (scoring mode) */
+    .stone.dead { opacity: 0.35; }
+
+    .stone.dead::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 42%;
+      height: 42%;
+      transform: translate(-50%, -50%);
+      background: #C0392B;
+      border-radius: 50%;
+      box-shadow: 0 0 2px rgba(0,0,0,0.5);
+    }
+
+    .hover-stone {
+      position: absolute;
+      border-radius: 50%;
+      z-index: 4;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+
+    .hover-stone.black {
+      background: radial-gradient(circle at 35% 30%, #555, #111);
+    }
+
+    .hover-stone.white {
+      background: radial-gradient(circle at 35% 30%, #fff, #d0d0d0);
+    }
+
+    /* Score display */
+    .score-display {
+      margin-top: 15px;
+      padding: 12px 20px;
+      background: #2A2418;
+      border: 2px solid #8B7040;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
+    }
+
+    .score-display h3 {
+      color: #DEB070;
+      margin-bottom: 8px;
+    }
+
+    .score-line {
+      font-size: 0.95em;
+      margin: 4px 0;
+    }
+
+    .score-winner {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #90B868;
+      margin-top: 8px;
+    }
+
+    /* Rules */
+    .rules {
+      margin-top: 18px;
+      max-width: 540px;
+      font-size: 0.78em;
+      color: #6A5A38;
+      line-height: 1.5;
+    }
+
+    .rules h3 { color: #8B7040; margin-bottom: 6px; }
+    .rules ul { padding-left: 18px; }
+    .rules li { margin-bottom: 3px; }
+    /* Mobile game nav */
+  </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Board Games","item":"https://boardgaminghub.com/#board"},{"@type":"ListItem","position":3,"name":"Go","item":"https://boardgaminghub.com/go"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How is Go different from chess?","acceptedAnswer":{"@type":"Answer","text":"Both are abstract strategy with perfect information, but Go favors positional accumulation over tactical exchange. The game tree is far larger; computer mastery only arrived in 2016 with AlphaGo."}},{"@type":"Question","name":"What is the ko rule?","acceptedAnswer":{"@type":"Answer","text":"You may not immediately recapture a single stone in a way that recreates the previous board position. Prevents infinite capture loops. Larger ko fights are central to high-level strategy."}},{"@type":"Question","name":"What's a good board size for beginners?","acceptedAnswer":{"@type":"Answer","text":"9×9 — completes in 10–15 minutes and reveals territory and capture concepts cleanly. Move to 13×13 once captures feel natural, 19×19 for full-board strategy."}},{"@type":"Question","name":"What is komi?","acceptedAnswer":{"@type":"Answer","text":"A points compensation given to White (the second player) at the end. Modern komi is 6.5 or 7.5, fractional to prevent draws."}}]}</script>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<h1>GO</h1>
+  <div class="subtitle">The Surrounding Game</div>
+  <div class="subtitle-cn">&mdash; &#22285;&#26827; &mdash;</div>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" id="mode-1p" onclick="setMode(true)">1 Player</button>
+    <button class="mode-btn" id="mode-2p" onclick="setMode(false)">2 Players</button>
+  </div>
+
+  <div class="size-selector">
+    <button class="size-btn active" id="size-9" onclick="setBoardSize(9)">9&times;9</button>
+    <button class="size-btn" id="size-13" onclick="setBoardSize(13)">13&times;13</button>
+    <button class="size-btn" id="size-19" onclick="setBoardSize(19)">19&times;19</button>
+  </div>
+
+  <div class="game-info">
+    <div id="turn-indicator"></div>
+    <div id="message"></div>
+  </div>
+
+  <div class="buttons">
+    <button id="pass-btn" onclick="passMove()">Pass</button>
+    <button onclick="resetGame()">Reset Game</button>
+  </div>
+
+  <div class="buttons" id="scoring-buttons" style="display: none;">
+    <button onclick="confirmScore()">Confirm / Final Score</button>
+    <button onclick="resumePlay()">Resume Play</button>
+  </div>
+
+  <div class="container">
+    <div class="side-panel" id="panel-black">
+      <h3>Black (P1)</h3>
+      <div class="stone-icon black"></div>
+      <div class="prisoner-count" id="prisoners-black">0</div>
+      <div class="prisoner-label">captured</div>
+      <div class="pass-indicator" id="pass-black"></div>
+    </div>
+    <div class="board-frame">
+      <div class="board-wrapper" id="board-wrapper">
+        <div class="board-surface"></div>
+        <div class="board-grid" id="board"></div>
+      </div>
+    </div>
+    <div class="side-panel" id="panel-white">
+      <h3 id="white-label">White (AI)</h3>
+      <div class="stone-icon white"></div>
+      <div class="prisoner-count" id="prisoners-white">0</div>
+      <div class="prisoner-label">captured</div>
+      <div class="pass-indicator" id="pass-white"></div>
+    </div>
+  </div>
+
+  <div class="score-display" id="score-display">
+    <h3 id="score-heading">Game Over &mdash; Final Score</h3>
+    <div class="score-line" id="score-black"></div>
+    <div class="score-line" id="score-white"></div>
+    <div class="score-winner" id="score-winner"></div>
+  </div>
+
+  <div class="rules">
+    <h3>Rules</h3>
+    <ul>
+      <li>Black plays first. Place stones on <b>intersections</b> of the grid lines.</li>
+      <li>Stones of the same color connected horizontally/vertically form a <b>group</b>.</li>
+      <li>A group's <b>liberties</b> are the number of empty adjacent intersections.</li>
+      <li>When a group has zero liberties, it is <b>captured</b> and removed from the board.</li>
+      <li>You may not play a stone that would have no liberties (suicide), unless it captures opponent stones.</li>
+      <li><b>Ko rule</b>: you may not recreate the immediately previous board position.</li>
+      <li>Either player may <b>pass</b>. Two consecutive passes end the game.</li>
+      <li><b>Scoring</b> (Chinese/area rules): stones on the board + surrounded empty territory.</li>
+    </ul>
+  </div>
+
+<script>
+  // =============================================
+  //  Constants & Config
+  // =============================================
+  var BLACK = 1;
+  var WHITE = 2;
+  var EMPTY = 0;
+
+  var CELL_SIZES = { 9: 44, 13: 32, 19: 24 };
+  var STONE_SCALE = 0.85; // stone diameter relative to cell size
+
+  var HOSHI_POINTS = {
+    9:  [[2,2],[2,6],[6,2],[6,6],[4,4]],
+    13: [[3,3],[3,9],[9,3],[9,9],[6,6],[3,6],[9,6],[6,3],[6,9]],
+    19: [[3,3],[3,9],[3,15],[9,3],[9,9],[9,15],[15,3],[15,9],[15,15]]
+  };
+
+  var KOMI = 6.5; // compensation for white
+
+  // =============================================
+  //  Game State
+  // =============================================
+  var boardSize = 9;
+  var cellSize = 44;
+  var board = [];           // 2D array [row][col] = EMPTY/BLACK/WHITE
+  var currentPlayer = BLACK;
+  var prisoners = { 1: 0, 2: 0 }; // stones captured BY each player
+  var prevBoardState = null; // for ko detection
+  var consecutivePasses = 0;
+  var gameOver = false;
+  var lastMove = null;      // {r, c} or null
+  var aiMode = true;
+  var aiTimeout = null;
+  var moveHistory = [];
+  var scoringMode = false;   // true during the mark-dead phase after two passes
+  var deadStones = {};       // keyed 'r,c' -> true for stones marked dead
+  var preScoreState = null;  // snapshot for "Resume Play"
+
+  var boardEl = document.getElementById('board');
+  var boardWrapper = document.getElementById('board-wrapper');
+
+  // =============================================
+  //  Mode & Size
+  // =============================================
+  function setMode(isAi) {
+    if (aiMode === isAi) return;
+    aiMode = isAi;
+    document.getElementById('mode-1p').classList.toggle('active', isAi);
+    document.getElementById('mode-2p').classList.toggle('active', !isAi);
+    document.getElementById('white-label').textContent = isAi ? 'White (AI)' : 'White (P2)';
+    resetGame();
+  }
+
+  function setBoardSize(size) {
+    if (boardSize === size) return;
+    boardSize = size;
+    cellSize = CELL_SIZES[size];
+    document.getElementById('size-9').classList.toggle('active', size === 9);
+    document.getElementById('size-13').classList.toggle('active', size === 13);
+    document.getElementById('size-19').classList.toggle('active', size === 19);
+    resetGame();
+  }
+
+  // =============================================
+  //  Board State Helpers
+  // =============================================
+  function createEmptyBoard() {
+    var b = [];
+    for (var r = 0; r < boardSize; r++) {
+      b[r] = [];
+      for (var c = 0; c < boardSize; c++) {
+        b[r][c] = EMPTY;
+      }
+    }
+    return b;
+  }
+
+  function cloneBoard(b) {
+    var nb = [];
+    for (var r = 0; r < boardSize; r++) {
+      nb[r] = b[r].slice();
+    }
+    return nb;
+  }
+
+  function boardsEqual(a, b) {
+    if (!a || !b) return false;
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        if (a[r][c] !== b[r][c]) return false;
+      }
+    }
+    return true;
+  }
+
+  function boardToString(b) {
+    var s = '';
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        s += b[r][c];
+      }
+    }
+    return s;
+  }
+
+  function neighbors(r, c) {
+    var adj = [];
+    if (r > 0) adj.push([r - 1, c]);
+    if (r < boardSize - 1) adj.push([r + 1, c]);
+    if (c > 0) adj.push([r, c - 1]);
+    if (c < boardSize - 1) adj.push([r, c + 1]);
+    return adj;
+  }
+
+  // =============================================
+  //  Group & Liberty Logic
+  // =============================================
+  function getGroup(b, r, c) {
+    var color = b[r][c];
+    if (color === EMPTY) return { stones: [], liberties: 0 };
+    var visited = {};
+    var stones = [];
+    var liberties = 0;
+    var libertySet = {};
+    var stack = [[r, c]];
+    visited[r + ',' + c] = true;
+
+    while (stack.length > 0) {
+      var pos = stack.pop();
+      var pr = pos[0], pc = pos[1];
+      stones.push([pr, pc]);
+      var adj = neighbors(pr, pc);
+      for (var i = 0; i < adj.length; i++) {
+        var nr = adj[i][0], nc = adj[i][1];
+        var key = nr + ',' + nc;
+        if (visited[key]) continue;
+        if (b[nr][nc] === color) {
+          visited[key] = true;
+          stack.push([nr, nc]);
+        } else if (b[nr][nc] === EMPTY) {
+          if (!libertySet[key]) {
+            libertySet[key] = true;
+            liberties++;
+          }
+        }
+      }
+    }
+
+    return { stones: stones, liberties: liberties };
+  }
+
+  function removeGroup(b, stones) {
+    for (var i = 0; i < stones.length; i++) {
+      b[stones[i][0]][stones[i][1]] = EMPTY;
+    }
+    return stones.length;
+  }
+
+  // =============================================
+  //  Move Validation & Execution
+  // =============================================
+  function tryMove(r, c, player) {
+    // Must be on board and empty
+    if (r < 0 || r >= boardSize || c < 0 || c >= boardSize) return null;
+    if (board[r][c] !== EMPTY) return null;
+
+    var opponent = player === BLACK ? WHITE : BLACK;
+    var testBoard = cloneBoard(board);
+    testBoard[r][c] = player;
+
+    // Check for captures of opponent groups
+    var captured = 0;
+    var adj = neighbors(r, c);
+    for (var i = 0; i < adj.length; i++) {
+      var nr = adj[i][0], nc = adj[i][1];
+      if (testBoard[nr][nc] === opponent) {
+        var group = getGroup(testBoard, nr, nc);
+        if (group.liberties === 0) {
+          captured += removeGroup(testBoard, group.stones);
+        }
+      }
+    }
+
+    // Check if placing stone results in self-capture (suicide)
+    var selfGroup = getGroup(testBoard, r, c);
+    if (selfGroup.liberties === 0) {
+      return null; // Suicide - illegal
+    }
+
+    // Ko check: can't recreate the previous board state
+    if (prevBoardState && boardsEqual(testBoard, prevBoardState)) {
+      return null; // Ko violation
+    }
+
+    return { board: testBoard, captured: captured };
+  }
+
+  function isLegalMove(r, c, player) {
+    return tryMove(r, c, player) !== null;
+  }
+
+  function playMove(r, c, player) {
+    var result = tryMove(r, c, player);
+    if (!result) return false;
+
+    prevBoardState = cloneBoard(board);
+    board = result.board;
+    prisoners[player] += result.captured;
+    lastMove = { r: r, c: c };
+    consecutivePasses = 0;
+    moveHistory.push({ r: r, c: c, player: player });
+
+    currentPlayer = player === BLACK ? WHITE : BLACK;
+    return true;
+  }
+
+  // =============================================
+  //  Pass & Game End
+  // =============================================
+  function passMove() {
+    if (gameOver) return;
+    if (aiMode && currentPlayer === WHITE) return;
+
+    doPass(currentPlayer);
+    render();
+  }
+
+  function doPass(player) {
+    consecutivePasses++;
+    var name = player === BLACK ? 'Black' : 'White';
+    setMessage(name + ' passes.');
+
+    if (player === BLACK) {
+      document.getElementById('pass-black').textContent = 'Passed';
+    } else {
+      document.getElementById('pass-white').textContent = 'Passed';
+    }
+
+    if (consecutivePasses >= 2) {
+      // After two passes, the turn would pass to the opponent; keep that so
+      // "Resume Play" hands the move to the correct player.
+      currentPlayer = player === BLACK ? WHITE : BLACK;
+      enterScoringMode();
+      return;
+    }
+
+    prevBoardState = null; // ko is reset after a pass
+    lastMove = null;
+    currentPlayer = player === BLACK ? WHITE : BLACK;
+  }
+
+  // =============================================
+  //  Scoring (Chinese / Area Scoring)
+  // =============================================
+  function calculateScore(b) {
+    b = b || board;
+    var visited = {};
+
+    // Count stones on board
+    var blackStones = 0;
+    var whiteStones = 0;
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        if (b[r][c] === BLACK) blackStones++;
+        else if (b[r][c] === WHITE) whiteStones++;
+      }
+    }
+
+    // Flood-fill empty regions to determine territory
+    var blackTerritory = 0;
+    var whiteTerritory = 0;
+
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        var key = r + ',' + c;
+        if (b[r][c] !== EMPTY || visited[key]) continue;
+
+        // BFS to find connected empty region
+        var region = [];
+        var touchesBlack = false;
+        var touchesWhite = false;
+        var stack = [[r, c]];
+        visited[key] = true;
+
+        while (stack.length > 0) {
+          var pos = stack.pop();
+          var pr = pos[0], pc = pos[1];
+          region.push([pr, pc]);
+          var adj = neighbors(pr, pc);
+          for (var i = 0; i < adj.length; i++) {
+            var nr = adj[i][0], nc = adj[i][1];
+            var nkey = nr + ',' + nc;
+            if (b[nr][nc] === BLACK) { touchesBlack = true; continue; }
+            if (b[nr][nc] === WHITE) { touchesWhite = true; continue; }
+            if (visited[nkey]) continue;
+            visited[nkey] = true;
+            stack.push([nr, nc]);
+          }
+        }
+
+        // If region only touches one color, it's that color's territory
+        if (touchesBlack && !touchesWhite) {
+          blackTerritory += region.length;
+        } else if (touchesWhite && !touchesBlack) {
+          whiteTerritory += region.length;
+        }
+      }
+    }
+
+    return {
+      blackStones: blackStones,
+      whiteStones: whiteStones,
+      blackTerritory: blackTerritory,
+      whiteTerritory: whiteTerritory,
+      blackTotal: blackStones + blackTerritory,
+      whiteTotal: whiteStones + whiteTerritory + KOMI
+    };
+  }
+
+  // Returns a board copy with all dead-marked stones removed, so that under
+  // Chinese area scoring they become empty points surrounded by the opponent.
+  function scoringBoard() {
+    var b = cloneBoard(board);
+    for (var key in deadStones) {
+      if (deadStones[key]) {
+        var parts = key.split(',');
+        b[parseInt(parts[0], 10)][parseInt(parts[1], 10)] = EMPTY;
+      }
+    }
+    return b;
+  }
+
+  function fillScoreLines(score) {
+    document.getElementById('score-black').textContent =
+      'Black: ' + score.blackStones + ' stones + ' + score.blackTerritory + ' territory = ' + score.blackTotal;
+    document.getElementById('score-white').textContent =
+      'White: ' + score.whiteStones + ' stones + ' + score.whiteTerritory + ' territory + ' + KOMI + ' komi = ' + score.whiteTotal;
+  }
+
+  function winnerText(score, isFinal) {
+    var verb = isFinal ? 'wins' : 'leads';
+    var bang = isFinal ? '!' : '';
+    if (score.blackTotal > score.whiteTotal) {
+      return 'Black ' + verb + ' by ' + (score.blackTotal - score.whiteTotal) + ' points' + bang;
+    } else if (score.whiteTotal > score.blackTotal) {
+      return 'White ' + verb + ' by ' + (score.whiteTotal - score.blackTotal) + ' points' + bang;
+    }
+    return isFinal ? 'The game is a tie!' : 'Even game';
+  }
+
+  // =============================================
+  //  Dead-Stone Marking (Scoring Mode)
+  // =============================================
+  function enterScoringMode() {
+    if (aiTimeout) { clearTimeout(aiTimeout); aiTimeout = null; }
+    scoringMode = true;
+    deadStones = {};
+    // Snapshot the position so "Resume Play" can restore it exactly.
+    preScoreState = {
+      board: cloneBoard(board),
+      currentPlayer: currentPlayer,
+      lastMove: lastMove ? { r: lastMove.r, c: lastMove.c } : null,
+      prisonersBlack: prisoners[BLACK],
+      prisonersWhite: prisoners[WHITE]
+    };
+
+    document.getElementById('scoring-buttons').style.display = '';
+    document.getElementById('score-heading').innerHTML = 'Scoring &mdash; Mark Dead Stones';
+    document.getElementById('score-display').style.display = 'block';
+    document.getElementById('pass-btn').disabled = true;
+
+    setMessage('Both players passed. Click groups to mark them dead, then confirm.');
+    updateScoreDisplay();
+    render();
+  }
+
+  function toggleDeadGroup(r, c) {
+    if (board[r][c] === EMPTY) return;
+    var group = getGroup(board, r, c);
+    var makeDead = !deadStones[r + ',' + c];
+    for (var i = 0; i < group.stones.length; i++) {
+      var key = group.stones[i][0] + ',' + group.stones[i][1];
+      if (makeDead) deadStones[key] = true;
+      else delete deadStones[key];
+    }
+    updateScoreDisplay();
+    render();
+  }
+
+  function updateScoreDisplay() {
+    var score = calculateScore(scoringBoard());
+    fillScoreLines(score);
+    document.getElementById('score-winner').textContent = winnerText(score, false);
+  }
+
+  function confirmScore() {
+    if (!scoringMode) return;
+    // Permanently remove dead stones and credit them as prisoners (cosmetic;
+    // area scoring already reflects them via scoringBoard()).
+    for (var key in deadStones) {
+      if (!deadStones[key]) continue;
+      var parts = key.split(',');
+      var dr = parseInt(parts[0], 10), dc = parseInt(parts[1], 10);
+      var color = board[dr][dc];
+      if (color === BLACK) prisoners[WHITE]++;
+      else if (color === WHITE) prisoners[BLACK]++;
+      board[dr][dc] = EMPTY;
+    }
+    deadStones = {};
+
+    scoringMode = false;
+    gameOver = true;
+    preScoreState = null;
+
+    var score = calculateScore(board);
+    fillScoreLines(score);
+    var winner = winnerText(score, true);
+    document.getElementById('score-winner').textContent = winner;
+    document.getElementById('score-heading').innerHTML = 'Game Over &mdash; Final Score';
+    document.getElementById('score-display').style.display = 'block';
+    document.getElementById('scoring-buttons').style.display = 'none';
+    document.getElementById('pass-btn').disabled = true;
+
+    setMessage('Game over. ' + winner);
+    render();
+  }
+
+  function resumePlay() {
+    if (!scoringMode || !preScoreState) return;
+    board = cloneBoard(preScoreState.board);
+    currentPlayer = preScoreState.currentPlayer;
+    lastMove = null;
+    prisoners[BLACK] = preScoreState.prisonersBlack;
+    prisoners[WHITE] = preScoreState.prisonersWhite;
+
+    scoringMode = false;
+    gameOver = false;
+    deadStones = {};
+    preScoreState = null;
+    prevBoardState = null;   // ko is reset after passes
+    consecutivePasses = 0;   // require two fresh passes to end again
+
+    document.getElementById('pass-black').textContent = '';
+    document.getElementById('pass-white').textContent = '';
+    document.getElementById('score-display').style.display = 'none';
+    document.getElementById('scoring-buttons').style.display = 'none';
+    document.getElementById('pass-btn').disabled = false;
+    document.getElementById('score-heading').innerHTML = 'Game Over &mdash; Final Score';
+
+    setMessage('Play resumed. Settle life & death disputes on the board.');
+    render();
+  }
+
+  // =============================================
+  //  Board Creation & Rendering
+  // =============================================
+  function createBoard() {
+    boardEl.innerHTML = '';
+    var totalSize = cellSize * boardSize;
+    var padding = Math.floor(cellSize / 2);
+    var wrapperSize = totalSize;
+
+    boardWrapper.style.width = wrapperSize + 'px';
+    boardWrapper.style.height = wrapperSize + 'px';
+
+    boardEl.style.gridTemplateColumns = 'repeat(' + boardSize + ', ' + cellSize + 'px)';
+    boardEl.style.gridTemplateRows = 'repeat(' + boardSize + ', ' + cellSize + 'px)';
+
+    var stoneSize = Math.floor(cellSize * STONE_SCALE);
+    var hoshiSet = {};
+    var hoshiList = HOSHI_POINTS[boardSize] || [];
+    for (var h = 0; h < hoshiList.length; h++) {
+      hoshiSet[hoshiList[h][0] + ',' + hoshiList[h][1]] = true;
+    }
+
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        var cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.style.width = cellSize + 'px';
+        cell.style.height = cellSize + 'px';
+
+        // Edge classes to clip grid lines
+        if (r === 0) cell.classList.add('edge-top');
+        if (r === boardSize - 1) cell.classList.add('edge-bottom');
+        if (c === 0) cell.classList.add('edge-left');
+        if (c === boardSize - 1) cell.classList.add('edge-right');
+
+        // Hoshi point
+        if (hoshiSet[r + ',' + c]) {
+          var dot = document.createElement('div');
+          dot.classList.add('hoshi');
+          cell.appendChild(dot);
+        }
+
+        // Hover stone indicator
+        var hover = document.createElement('div');
+        hover.classList.add('hover-stone');
+        hover.style.width = stoneSize + 'px';
+        hover.style.height = stoneSize + 'px';
+        cell.appendChild(hover);
+
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+
+        (function(row, col) {
+          cell.addEventListener('click', function() { handleCellClick(row, col); });
+        })(r, c);
+
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function render() {
+    var stoneSize = Math.floor(cellSize * STONE_SCALE);
+    var cells = boardEl.querySelectorAll('.cell');
+
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      var r = parseInt(cell.dataset.row);
+      var c = parseInt(cell.dataset.col);
+
+      // Remove old stones
+      var oldStone = cell.querySelector('.stone');
+      if (oldStone) oldStone.remove();
+
+      // Update hover stone color
+      var hover = cell.querySelector('.hover-stone');
+      if (hover) {
+        hover.classList.remove('black', 'white');
+        if (board[r][c] === EMPTY && !gameOver && !scoringMode) {
+          hover.classList.add(currentPlayer === BLACK ? 'black' : 'white');
+        }
+      }
+
+      // Place stone if occupied
+      if (board[r][c] !== EMPTY) {
+        var stone = document.createElement('div');
+        stone.classList.add('stone');
+        stone.classList.add(board[r][c] === BLACK ? 'black' : 'white');
+        stone.style.width = stoneSize + 'px';
+        stone.style.height = stoneSize + 'px';
+
+        // Last move indicator
+        if (lastMove && lastMove.r === r && lastMove.c === c) {
+          stone.classList.add('last-move');
+        }
+
+        // Dead-stone marking (scoring mode)
+        if (scoringMode && deadStones[r + ',' + c]) {
+          stone.classList.add('dead');
+        }
+
+        cell.appendChild(stone);
+
+        // Hide hover on occupied cells
+        if (hover) hover.style.display = 'none';
+      } else {
+        if (hover) hover.style.display = '';
+      }
+    }
+
+    // Update UI
+    document.getElementById('prisoners-black').textContent = prisoners[BLACK];
+    document.getElementById('prisoners-white').textContent = prisoners[WHITE];
+
+    updateTurnIndicator();
+    scheduleAi();
+  }
+
+  function updateTurnIndicator() {
+    if (scoringMode) {
+      document.getElementById('turn-indicator').textContent = 'Scoring — Mark Dead Stones';
+      document.getElementById('pass-btn').disabled = true;
+      return;
+    }
+    if (gameOver) {
+      document.getElementById('turn-indicator').textContent = 'Game Over';
+      document.getElementById('pass-btn').disabled = true;
+      return;
+    }
+    var name = currentPlayer === BLACK ? 'Black' : 'White';
+    var suffix = isAiTurn() ? ' (AI thinking...)' : "'s Turn";
+    document.getElementById('turn-indicator').textContent = name + suffix;
+    document.getElementById('pass-btn').disabled = isAiTurn();
+  }
+
+  // =============================================
+  //  User Interaction
+  // =============================================
+  function handleCellClick(r, c) {
+    if (scoringMode) {
+      toggleDeadGroup(r, c);
+      return;
+    }
+    if (gameOver) return;
+    if (isAiTurn()) return;
+
+    if (board[r][c] !== EMPTY) {
+      setMessage('That intersection is occupied.');
+      return;
+    }
+
+    if (!isLegalMove(r, c, currentPlayer)) {
+      // Determine reason
+      var opponent = currentPlayer === BLACK ? WHITE : BLACK;
+      var testBoard = cloneBoard(board);
+      testBoard[r][c] = currentPlayer;
+
+      // Check captures first
+      var adj = neighbors(r, c);
+      for (var i = 0; i < adj.length; i++) {
+        var nr = adj[i][0], nc = adj[i][1];
+        if (testBoard[nr][nc] === opponent) {
+          var group = getGroup(testBoard, nr, nc);
+          if (group.liberties === 0) {
+            removeGroup(testBoard, group.stones);
+          }
+        }
+      }
+
+      var selfGroup = getGroup(testBoard, r, c);
+      if (selfGroup.liberties === 0) {
+        setMessage('Illegal: suicide move.');
+      } else {
+        setMessage('Illegal: ko violation.');
+      }
+      return;
+    }
+
+    // Clear pass indicators
+    document.getElementById('pass-black').textContent = '';
+    document.getElementById('pass-white').textContent = '';
+
+    playMove(r, c, currentPlayer);
+    setMessage('');
+    render();
+  }
+
+  // =============================================
+  //  AI (Heuristic)
+  // =============================================
+  function isAiTurn() {
+    return aiMode && currentPlayer === WHITE && !gameOver && !scoringMode;
+  }
+
+  function scheduleAi() {
+    if (aiTimeout) { clearTimeout(aiTimeout); aiTimeout = null; }
+    if (!isAiTurn()) return;
+    aiTimeout = setTimeout(function() { doAiMove(); }, 600);
+  }
+
+  function doAiMove() {
+    if (!isAiTurn()) return;
+
+    var move = findAiMove();
+    if (move === null) {
+      // Pass
+      doPass(WHITE);
+      render();
+      return;
+    }
+
+    // Clear pass indicators
+    document.getElementById('pass-black').textContent = '';
+    document.getElementById('pass-white').textContent = '';
+
+    playMove(move.r, move.c, WHITE);
+    setMessage('');
+    render();
+  }
+
+  function findAiMove() {
+    var legalMoves = [];
+    for (var r = 0; r < boardSize; r++) {
+      for (var c = 0; c < boardSize; c++) {
+        if (isLegalMove(r, c, WHITE)) {
+          legalMoves.push({ r: r, c: c });
+        }
+      }
+    }
+
+    if (legalMoves.length === 0) return null;
+
+    // Score each move
+    var scored = [];
+    for (var i = 0; i < legalMoves.length; i++) {
+      var m = legalMoves[i];
+      var score = evaluateMove(m.r, m.c, WHITE);
+      if (score !== -10000) { // -10000 means tryMove returned null (shouldn't happen for legal moves)
+        scored.push({ r: m.r, c: m.c, score: score });
+      }
+    }
+
+    /* If truly no legal moves exist (shouldn't happen after isLegalMove filter), pass */
+    if (scored.length === 0) return null; // pass
+
+    // Sort by score descending
+    scored.sort(function(a, b) { return b.score - a.score; });
+
+    // Pick from top moves with some randomness
+    var topScore = scored[0].score;
+    var candidates = [];
+    for (var i = 0; i < scored.length; i++) {
+      if (scored[i].score >= topScore - 2) {
+        candidates.push(scored[i]);
+      }
+    }
+
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  function evaluateMove(r, c, player) {
+    var opponent = player === BLACK ? WHITE : BLACK;
+    var score = 0;
+
+    // Simulate the move
+    var result = tryMove(r, c, player);
+    if (!result) return -10000;
+
+    var testBoard = result.board;
+
+    // 1. Capture opponent stones (highest priority)
+    if (result.captured > 0) {
+      score += result.captured * 20;
+    }
+
+    // 2. Check if this saves our own groups in atari
+    var adj = neighbors(r, c);
+    for (var i = 0; i < adj.length; i++) {
+      var nr = adj[i][0], nc = adj[i][1];
+      if (board[nr][nc] === player) {
+        var groupBefore = getGroup(board, nr, nc);
+        if (groupBefore.liberties === 1) {
+          // We were in atari, check if this fixes it
+          var groupAfter = getGroup(testBoard, r, c);
+          if (groupAfter.liberties > 1) {
+            score += 15;
+          }
+        }
+      }
+    }
+
+    // 3. Capture priority: attack opponent groups in atari
+    for (var i = 0; i < adj.length; i++) {
+      var nr = adj[i][0], nc = adj[i][1];
+      if (board[nr][nc] === opponent) {
+        var oppGroup = getGroup(board, nr, nc);
+        if (oppGroup.liberties === 1) {
+          score += oppGroup.stones.length * 20;
+        } else if (oppGroup.liberties === 2) {
+          score += 5; // putting opponent in atari
+        }
+      }
+    }
+
+    // 4. Avoid self-atari
+    var selfGroup = getGroup(testBoard, r, c);
+    if (selfGroup.liberties === 1) {
+      if (selfGroup.stones.length === 1) {
+        score -= 12; // bad: single stone in atari
+      } else {
+        score -= 8 * selfGroup.stones.length; // worse if bigger group
+      }
+    }
+
+    // 5. Avoid playing in own eyes
+    if (isEye(r, c, player)) {
+      score -= 100; // never fill your own eye
+    }
+
+    // 6. Prefer connecting to friendly stones
+    var friendlyNeighbors = 0;
+    var emptyNeighbors = 0;
+    for (var i = 0; i < adj.length; i++) {
+      var nr = adj[i][0], nc = adj[i][1];
+      if (board[nr][nc] === player) friendlyNeighbors++;
+      else if (board[nr][nc] === EMPTY) emptyNeighbors++;
+    }
+    if (friendlyNeighbors > 0) score += 3;
+
+    // 7. Prefer moves with more liberties for the resulting group
+    score += selfGroup.liberties * 1;
+
+    // 8. Prefer positions near center and on star points
+    var center = (boardSize - 1) / 2;
+    var distFromCenter = Math.abs(r - center) + Math.abs(c - center);
+    var maxDist = boardSize - 1;
+    score += (maxDist - distFromCenter) * 0.3;
+
+    // Star point bonus
+    var hoshiList = HOSHI_POINTS[boardSize] || [];
+    for (var h = 0; h < hoshiList.length; h++) {
+      if (hoshiList[h][0] === r && hoshiList[h][1] === c) {
+        score += 2;
+        break;
+      }
+    }
+
+    // 9. Prefer third and fourth line (edge distance)
+    var edgeDist = Math.min(r, c, boardSize - 1 - r, boardSize - 1 - c);
+    if (edgeDist === 2 || edgeDist === 3) score += 2;
+    if (edgeDist === 0) score -= 2;
+    if (edgeDist === 1) score -= 1;
+
+    // 10. Avoid moves too far from any stone in the opening
+    if (moveHistory.length < boardSize) {
+      var nearStone = false;
+      for (var dr = -3; dr <= 3; dr++) {
+        for (var dc = -3; dc <= 3; dc++) {
+          var tr = r + dr, tc = c + dc;
+          if (tr >= 0 && tr < boardSize && tc >= 0 && tc < boardSize) {
+            if (board[tr][tc] !== EMPTY) { nearStone = true; break; }
+          }
+        }
+        if (nearStone) break;
+      }
+      if (moveHistory.length > 2 && !nearStone) score -= 5;
+    }
+
+    return score;
+  }
+
+  function isEye(r, c, player) {
+    // An eye is an empty point surrounded on all 4 sides by the same color
+    // (or board edge), and at least 3 of 4 diagonals are also that color
+    if (board[r][c] !== EMPTY) return false;
+
+    var adj = neighbors(r, c);
+    for (var i = 0; i < adj.length; i++) {
+      if (board[adj[i][0]][adj[i][1]] !== player) return false;
+    }
+
+    // Check diagonals for false eye detection
+    var diags = [];
+    if (r > 0 && c > 0) diags.push([r-1, c-1]);
+    if (r > 0 && c < boardSize - 1) diags.push([r-1, c+1]);
+    if (r < boardSize - 1 && c > 0) diags.push([r+1, c-1]);
+    if (r < boardSize - 1 && c < boardSize - 1) diags.push([r+1, c+1]);
+
+    var opponentDiags = 0;
+    for (var i = 0; i < diags.length; i++) {
+      if (board[diags[i][0]][diags[i][1]] !== player && board[diags[i][0]][diags[i][1]] !== EMPTY) {
+        opponentDiags++;
+      }
+    }
+
+    // For corner eye, 1 opponent diag makes it false; for edge, need 1; for center, need 2
+    var isCorner = (r === 0 || r === boardSize - 1) && (c === 0 || c === boardSize - 1);
+    var isEdge = (r === 0 || r === boardSize - 1 || c === 0 || c === boardSize - 1);
+
+    if (isCorner) return opponentDiags === 0;
+    if (isEdge) return opponentDiags === 0;
+    return opponentDiags <= 1;
+  }
+
+  // =============================================
+  //  Utility
+  // =============================================
+  function setMessage(msg) {
+    document.getElementById('message').textContent = msg;
+  }
+
+  function resetGame() {
+    if (aiTimeout) { clearTimeout(aiTimeout); aiTimeout = null; }
+
+    board = createEmptyBoard();
+    currentPlayer = BLACK;
+    prisoners = { 1: 0, 2: 0 };
+    prevBoardState = null;
+    consecutivePasses = 0;
+    gameOver = false;
+    lastMove = null;
+    moveHistory = [];
+    scoringMode = false;
+    deadStones = {};
+    preScoreState = null;
+
+    document.getElementById('pass-black').textContent = '';
+    document.getElementById('pass-white').textContent = '';
+    document.getElementById('score-display').style.display = 'none';
+    document.getElementById('score-heading').innerHTML = 'Game Over &mdash; Final Score';
+    document.getElementById('scoring-buttons').style.display = 'none';
+    document.getElementById('pass-btn').disabled = false;
+
+    setMessage('');
+    createBoard();
+    render();
+  }
+
+  // =============================================
+  //  Init
+  // =============================================
+  resetGame();
+</script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Go</h2>
+  <p>Go is a two-player abstract strategy game played on a 19×19 grid (with smaller 9×9 and 13×13 variants for shorter games). Each player places stones to surround territory and capture enemy groups. Despite simple rules, Go has more legal positions than atoms in the observable universe — it's widely considered the deepest abstract strategy game ever invented.</p>
+
+  <h3>How to play</h3>
+  <p>Black plays first, then players alternate placing one stone of their color on any empty intersection. A stone or group with no adjacent empty points (no liberties) is captured. This version uses area scoring: your stones on the board plus the empty points they surround. Captured stones are not added separately. Komi (a points adjustment) compensates White for going second.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How is Go different from chess?</summary><p>Both are abstract strategy with perfect information, but Go favors positional accumulation over tactical exchange. The game tree is far larger; computer mastery only arrived in 2016 with AlphaGo.</p></details>
+  <details><summary>What is the ko rule?</summary><p>You may not immediately recapture a single stone in a way that recreates the previous board position. Prevents infinite capture loops. Larger ko fights are central to high-level strategy.</p></details>
+  <details><summary>What's a good board size for beginners?</summary><p>9×9 — completes in 10–15 minutes and reveals territory and capture concepts cleanly. Move to 13×13 once captures feel natural, 19×19 for full-board strategy.</p></details>
+  <details><summary>What is komi?</summary><p>A points compensation given to White (the second player) at the end. Modern komi is 6.5 or 7.5, fractional to prevent draws.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/chess">Chess</a> — two-player perfect-information strategy.</li>
+    <li><a href="/othello">Othello</a> — flip-to-claim board.</li>
+    <li><a href="/pentegrammai">Pente Grammai</a> — ancient five-lines.</li>
+    <li><a href="/mancala">Mancala</a> — ancient count-and-capture.</li>
+  </ul>
+</section>
+
+<!-- draft: review --><section class="seo-content how-it-works">
+  <h2>How this version works</h2>
+
+  <h3>Rules as implemented</h3>
+  <ul>
+    <li>Board sizes are 9×9, 13×13 and 19×19.</li>
+    <li>You play Black and move first. There are no handicap stones.</li>
+    <li>Scoring is Chinese-style area scoring: each side's stones on the board plus the empty points that touch only that side's stones. Empty areas that touch both colours count for nobody. Captured stones are shown but do not add to the score.</li>
+    <li>Komi is 6.5 points for White on every board size.</li>
+    <li>Suicide is illegal. A move that captures first is checked after the captured stones are removed, so a capturing move that would otherwise have no liberties is allowed.</li>
+    <li>Ko is the simple rule: you cannot play a move that recreates the board exactly as it was one move ago. A pass clears this restriction.</li>
+  </ul>
+
+  <h3>Ending the game and marking dead stones</h3>
+  <p>Two passes in a row open a marking step. Click any group to mark it dead; the whole group toggles together and the score updates straight away, with dead stones treated as empty points for the side that surrounds them. Confirm locks in the final score. Resume Play restores the position exactly as it was before the passes, gives the move to the correct player and needs two new passes before scoring again.</p>
+
+  <h3>How the computer plays White</h3>
+  <p>The computer looks one move ahead. It tries every legal point, gives each a score and then picks at random among the moves within 2 points of the best, so it does not repeat the same game. The score rewards capturing (20 per stone), rescuing its own group from atari, and putting your groups in atari. It penalises moves that leave its own group in atari, and strongly penalises filling one of its own eyes. Smaller bonuses go to touching its own stones, having more liberties, playing nearer the centre, star points and the third and fourth lines, with a penalty for the first and second lines. Early in the game it also avoids playing far away from every existing stone.</p>
+  <p>It waits about 0.6 seconds before each move. It passes only when it has no legal move left.</p>
+
+  <h3>What this version does not have</h3>
+  <p>There is no undo, no saved games and no difficulty setting; reloading the page starts a new game.</p>
+
+  <h3>Recent changes</h3>
+  <ul>
+    <li>2026-07-07 — Added the dead-stone marking step with live score, Confirm and Resume Play. Before this, a dead stone left on the board stopped the territory around it from counting for either side.</li>
+    <li>2026-06-23 — Fixed the computer throwing away legal moves that carried a heavy self-atari penalty on large boards.</li>
+    <li>2026-04-09 — Go added to the site with 9×9, 13×13 and 19×19 boards and a computer opponent.</li>
+  </ul>
+</section><!-- /draft -->
+
+<!-- merged from /guides/go-rules-beginners -->
+<section class="seo-content guide-merged" id="guide">
+  <h2>Go Rules for Beginners (Baduk / Weiqi)</h2>
+<p><a href="/go">Go</a> — known as Baduk in Korea and Weiqi in China — is the ancient game of territory and influence. Two players place black and white stones on the intersections of a grid, competing to surround more of the board. The Board Gaming Hub build is single-player versus an AI and offers three board sizes: <b>9×9</b> for a quick game, <b>13×13</b> for a middle ground, and the full <b>19×19</b>. The rules are short; the depth is famous.</p>
+
+    <h3>Placing stones</h3>
+    <p>Black plays first. Stones go on the <b>intersections</b> of the grid lines, not the squares, and once placed a stone never moves — it can only be captured. Same-color stones connected horizontally or vertically (never diagonally) form a single <b>group</b> that lives or dies together.</p>
+
+    <h3>Liberties and capture</h3>
+    <p>A group's <b>liberties</b> are the empty intersections directly adjacent to it. As long as a group has at least one liberty it stays on the board. Fill its last liberty and the whole group is <b>captured</b> and removed. You may not play a stone that would leave your own group with zero liberties (a <b>suicide</b>) — unless that same move captures an enemy group and thereby gains a liberty.</p>
+
+    <div class="callout">
+      <b>The ko rule:</b> you may not play a move that recreates the exact board position of the previous turn. This stops endless back-and-forth recapture of a single stone; you must play elsewhere first, then you can return.
+    </div>
+
+    <h3>Ending the game: pass, pass, then mark the dead</h3>
+    <p>When neither player wants to add stones, they pass. <b>Two consecutive passes end the game.</b> The board then enters a scoring step: click any group of stones that cannot avoid capture to mark it as <b>dead</b> — those stones are removed and count for the surrounding player. Press <b>Confirm / Final Score</b> when both sides agree, or <b>Resume Play</b> if there is a disagreement to settle on the board.</p>
+
+    <h3>Territory vs area scoring</h3>
+    <p>There are two scoring traditions, and it helps to know both:</p>
+    <ul>
+      <li><b>Territory scoring</b> (Japanese) — count empty intersections you surround, plus prisoners you captured.</li>
+      <li><b>Area scoring</b> (Chinese) — count empty intersections you surround <em>plus your own live stones on the board</em>.</li>
+    </ul>
+    <p>They usually give the same winner, differing by at most a point or two. This build uses <b>area (Chinese) scoring</b>: your score is your stones on the board plus the empty territory you enclose.</p>
+
+    <h3>Beginner strategy</h3>
+    <ol>
+      <li><b>Start in the corners</b>, then the sides — corners are easiest to enclose because the board edges do part of the surrounding for you.</li>
+      <li><b>Keep your groups connected</b> and give them room to make two separate eyes (enclosed empty points), which makes them uncapturable.</li>
+      <li><b>Do not chase every stone.</b> Trading a small capture for a large framework of influence is usually the winning choice.</li>
+      <li><b>Learn on 9×9.</b> A small board teaches life, death, and capture in minutes before you scale up to 19×19.</li>
+    </ol>
+
+    <p>Want another two-player abstract? <a href="/chess">Chess</a> and <a href="/othello">Othello</a> are close cousins in the strategy shelf.</p>
+</section>
+<style>.guide-merged .callout{background:#141c28;border:1px solid #3a5060;border-radius:4px;padding:14px 18px;margin:20px 0}.guide-merged .scenario-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.92em}.guide-merged .scenario-table th,.guide-merged .scenario-table td{border:1px solid #2a3540;padding:8px 10px;text-align:left;vertical-align:top}</style>
+
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+  (function() {
+    var ua = navigator.userAgent;
+    var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+    if (isPhone) {
+      var meta = document.querySelector('meta[name="viewport"]');
+      if (meta) {
+        var targetWidth = 780;
+        var scale = window.innerWidth / targetWidth;
+        meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+      }
+    }
+  })();
+  </script>
+  <meta name="theme-color" content="#0c1016">
+  <title>Convergence — Civilization Strategy Game | Board Gaming Hub</title>
+  <meta name="description" content="Rival civilizations share one economy. Free turn-based strategy of competing development paths and converging futures. Single HTML file, no signup.">
+  <link rel="canonical" href="https://boardgaminghub.com/convergence">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://boardgaminghub.com/convergence">
+  <meta property="og:title" content="Convergence — Civilization Strategy">
+  <meta property="og:description" content="Free strategy game where rival civilizations share one economy.">
+<meta property="og:image" content="https://boardgaminghub.com/og/convergence.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/convergence.png">
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "VideoGame", "name": "Convergence",
+    "description": "Catan-style economic strategy game: roll for resources, trade a swinging market, build settlements and cities, and race to 12 victory points.",
+    "url": "https://boardgaminghub.com/convergence", "genre": "Strategy",
+    "applicationCategory": "Game", "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔷</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #12141A;
+      color: #C0C8D8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 1.7em;
+      color: #50A8E8;
+      margin-bottom: 4px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+      letter-spacing: 0.15em;
+    }
+
+    .subtitle {
+      font-size: 0.8em;
+      color: #3A6090;
+      margin-bottom: 14px;
+      font-style: italic;
+    }
+
+    .mode-selector {
+      display: flex;
+      margin-bottom: 14px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid #3A6090;
+    }
+
+    .mode-btn {
+      padding: 6px 18px;
+      font-size: 0.95em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: none;
+      background: #1A2030;
+      color: #3A6090;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .mode-btn:not(:last-child) { border-right: 1px solid #3A6090; }
+    .mode-btn.active { background: #3A6090; color: #C0C8D8; cursor: default; }
+    .mode-btn:hover:not(.active) { background: #253050; color: #50A8E8; }
+
+    .game-info { text-align: center; margin-bottom: 10px; }
+    #turn-indicator { font-size: 1.15em; font-weight: bold; margin-bottom: 6px; }
+    #message { font-size: 0.95em; color: #50A8E8; min-height: 1.4em; margin-bottom: 8px; }
+
+    .buttons { margin-bottom: 12px; }
+
+    button {
+      padding: 8px 22px;
+      font-size: 1em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      margin: 0 5px;
+      border: 2px solid #3A6090;
+      border-radius: 6px;
+      background: #1A2030;
+      color: #C0C8D8;
+      transition: background 0.2s;
+    }
+
+    button:hover:not(:disabled) { background: #253050; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .main-area {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .board-container {
+      position: relative;
+      width: 520px;
+      height: 480px;
+    }
+
+    .hex {
+      position: absolute;
+      width: 68px;
+      height: 60px;
+      clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7em;
+      font-weight: bold;
+      cursor: default;
+      border: none;
+      transition: filter 0.15s;
+    }
+
+    .hex .hex-number {
+      font-size: 1.3em;
+      color: #fff;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.45);
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1px;
+    }
+
+    .hex .hex-number.hot { color: #FF4444; }
+
+    .hex .hex-label {
+      font-size: 0.85em;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    }
+
+    .hex.highlight { filter: brightness(1.4); }
+
+    .vertex {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      z-index: 5;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(40,40,40,0.6);
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .vertex:hover { border-color: #fff; background: rgba(80,80,80,0.8); }
+    .vertex.p1-settlement { background: #50A8E8; border-color: #50A8E8; }
+    .vertex.p2-settlement { background: #E85050; border-color: #E85050; }
+    .vertex.p1-city { background: #50A8E8; border-color: #fff; width: 24px; height: 24px; border-width: 3px; }
+    .vertex.p2-city { background: #E85050; border-color: #fff; width: 24px; height: 24px; border-width: 3px; }
+    .vertex.p1-market { background: #50A8E8; border-color: #FFD700; border-width: 3px; }
+    .vertex.p2-market { background: #E85050; border-color: #FFD700; border-width: 3px; }
+    .vertex.valid-build { border-color: #4CFF4C; background: rgba(76,255,76,0.25); animation: pulse 1s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 4px rgba(76,255,76,0.4); }
+      50% { box-shadow: 0 0 10px rgba(76,255,76,0.8); }
+    }
+
+    .road {
+      position: absolute;
+      height: 4px;
+      transform-origin: left center;
+      z-index: 3;
+      border-radius: 2px;
+      background: rgba(60,60,60,0.4);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .road:hover { background: rgba(100,100,100,0.6); }
+    .road.p1-road { background: #50A8E8; box-shadow: 0 0 4px rgba(80,168,232,0.5); }
+    .road.p2-road { background: #E85050; box-shadow: 0 0 4px rgba(232,80,80,0.5); }
+    .road.valid-build { background: rgba(76,255,76,0.4); animation: pulse 1s infinite; }
+
+    .market-panel {
+      width: 300px;
+      background: #1A2030;
+      border: 2px solid #3A6090;
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.85em;
+    }
+
+    .market-panel h2 {
+      text-align: center;
+      font-size: 1.1em;
+      color: #50A8E8;
+      margin-bottom: 10px;
+      letter-spacing: 0.1em;
+    }
+
+    .player-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding: 8px;
+      background: #141820;
+      border-radius: 6px;
+      border: 1px solid #2A3A50;
+    }
+
+    .player-info .coins { color: #FFD700; font-weight: bold; }
+    .player-info .vp { color: #4CFF4C; font-weight: bold; }
+
+    .resource-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      background: #141820;
+      border-radius: 4px;
+      border: 1px solid #2A3A50;
+    }
+
+    .resource-name {
+      width: 50px;
+      font-weight: bold;
+    }
+
+    .resource-price {
+      width: 40px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .price-up { color: #4CFF4C; }
+    .price-down { color: #FF4444; }
+    .price-neutral { color: #C0C8D8; }
+
+    .resource-delta {
+      width: 24px;
+      font-size: 0.8em;
+      text-align: center;
+    }
+
+    .resource-inv {
+      width: 24px;
+      text-align: center;
+      color: #8090A8;
+    }
+
+    .market-btn {
+      padding: 3px 8px;
+      font-size: 0.8em;
+      margin: 0 2px;
+      border-width: 1px;
+    }
+
+    .buy-btn { border-color: #4CFF4C; color: #4CFF4C; }
+    .buy-btn:hover:not(:disabled) { background: rgba(76,255,76,0.15); }
+    .sell-btn { border-color: #FF4444; color: #FF4444; }
+    .sell-btn:hover:not(:disabled) { background: rgba(255,68,68,0.15); }
+
+    .build-panel {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #2A3A50;
+    }
+
+    .build-panel h3 {
+      font-size: 0.95em;
+      color: #3A6090;
+      margin-bottom: 8px;
+    }
+
+    .build-btn {
+      display: block;
+      width: 100%;
+      margin-bottom: 6px;
+      padding: 6px 10px;
+      font-size: 0.85em;
+      text-align: left;
+    }
+
+    .build-btn .cost {
+      float: right;
+      color: #8090A8;
+      font-size: 0.85em;
+    }
+
+    .longest-road-indicator {
+      margin-top: 8px;
+      padding: 6px 8px;
+      background: #141820;
+      border-radius: 4px;
+      border: 1px solid #2A3A50;
+      font-size: 0.85em;
+      text-align: center;
+    }
+
+    .portfolio-indicator {
+      margin-top: 6px;
+      padding: 6px 8px;
+      background: #141820;
+      border-radius: 4px;
+      border: 1px solid #2A3A50;
+      font-size: 0.85em;
+      text-align: center;
+    }
+
+    .market-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 8px;
+      margin-bottom: 6px;
+      font-size: 0.75em;
+      color: #607090;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .rules-summary {
+      max-width: 844px;
+      margin-top: 16px;
+      padding: 14px;
+      background: #1A2030;
+      border: 1px solid #2A3A50;
+      border-radius: 8px;
+      font-size: 0.78em;
+      line-height: 1.6;
+      color: #8090A8;
+    }
+
+    .rules-summary h3 {
+      color: #3A6090;
+      margin-bottom: 6px;
+      font-size: 1.05em;
+    }
+
+    .rules-summary strong { color: #C0C8D8; }
+
+    .dice-display {
+      display: inline-flex;
+      gap: 8px;
+      margin: 0 8px;
+      vertical-align: middle;
+    }
+
+    .die {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: #C0C8D8;
+      color: #12141A;
+      font-weight: bold;
+      font-size: 1.1em;
+      border-radius: 5px;
+      border: 2px solid #8090A8;
+    }
+
+    .event-flash {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 40px;
+      border-radius: 12px;
+      font-size: 1.5em;
+      font-weight: bold;
+      z-index: 100;
+      animation: flashIn 0.3s ease-out, flashOut 0.5s 1.5s ease-in forwards;
+      pointer-events: none;
+    }
+
+    .event-flash.boom { background: rgba(76,255,76,0.2); border: 2px solid #4CFF4C; color: #4CFF4C; }
+    .event-flash.bust { background: rgba(255,68,68,0.2); border: 2px solid #FF4444; color: #FF4444; }
+
+    @keyframes flashIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+    @keyframes flashOut { from { opacity: 1; } to { opacity: 0; } }
+
+    .vertex-label {
+      position: absolute;
+      font-size: 0.55em;
+      color: #fff;
+      text-shadow: 0 0 3px #000;
+      pointer-events: none;
+      z-index: 6;
+      transform: translate(-50%, -50%);
+    }
+    /* Mobile game nav */
+  </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Board Games","item":"https://boardgaminghub.com/#board"},{"@type":"ListItem","position":3,"name":"Convergence","item":"https://boardgaminghub.com/convergence"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I win Convergence?","acceptedAnswer":{"@type":"Answer","text":"Be the first to reach 12 victory points. Settlements are worth 1 VP, cities 2, and markets 1, plus 2 VP for the Longest Road (5+ segments) and 2 VP for a Portfolio of 20 or more coins."}},{"@type":"Question","name":"How does the market work?","acceptedAnswer":{"@type":"Answer","text":"You buy and sell resources at live market prices, and every trade nudges that price up or down. Building Market structures lowers your trading fees. A roll of 7 triggers a Market Event — a BOOM that spikes the priciest resource or a BUST that halves it."}},{"@type":"Question","name":"How do I collect resources?","acceptedAnswer":{"@type":"Answer","text":"Roll the dice each turn; every hex whose number matches produces its resource for adjacent settlements, and cities collect double. Spend those resources to build settlements, cities, roads, and markets."}},{"@type":"Question","name":"How long is a session?","acceptedAnswer":{"@type":"Answer","text":"A 2-player game runs roughly 30–60 minutes, whether against the built-in AI or a second human player."}}]}</script>
+<style>
+/* ===== MOBILE OVERFLOW FIX ===== */
+/* .main-area was a nowrap flex row: 520px board + 300px market = 844px. */
+@media (max-width: 820px) {
+  /* vertices are positioned by JS in the board's natural 520px coordinate space,
+     so the board cannot reflow — let it scroll inside the page instead. */
+  .main-area { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .main-area { flex-wrap: wrap; max-width: 100%; }
+  .main-area > * { min-width: 0; }
+  #board { max-width: 100%; }
+  #market-panel { width: 100%; }
+}
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<h1>CONVERGENCE</h1>
+  <div class="subtitle">Rival Civilizations, Shared Economy</div>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" onclick="setMode(1)">1 Player</button>
+    <button class="mode-btn" onclick="setMode(2)">2 Players</button>
+  </div>
+
+  <div class="game-info">
+    <div id="turn-indicator">Player 1's Turn</div>
+    <div id="message">Roll the dice to begin your turn.</div>
+  </div>
+
+  <div class="buttons">
+    <button id="btn-roll" onclick="rollDice()">Roll Dice</button>
+    <button id="btn-end" onclick="endTurn()" disabled>End Turn</button>
+    <button onclick="resetGame()">New Game</button>
+  </div>
+
+  <div class="main-area">
+    <div class="board-container" id="board"></div>
+    <div class="market-panel" id="market-panel"></div>
+  </div>
+
+  <div class="rules-summary">
+    <h3>How to Play</h3>
+    <strong>Roll dice</strong> each turn &mdash; hexes with matching numbers produce resources for adjacent settlements (double for cities).<br>
+    <strong>Rolling 7</strong> triggers a Market Event: BOOM (+2 to most expensive resource) or BUST (most expensive price halved).<br>
+    <strong>Market:</strong> Buy/sell resources at market prices. Each trade shifts the price. Build <strong>Market</strong> buildings to reduce fees.<br>
+    <strong>Build:</strong> Settlement (1W 1B 1Wh 1Wo, 1VP) &bull; City (2O 3Wh, 2VP) &bull; Road (1W 1B) &bull; Market (2O 1Wo, 1VP).<br>
+    <strong>Win:</strong> First to <strong>12 VP</strong>. Settlements=1, Cities=2, Markets=1, Longest Road(5+)=2, Portfolio(&ge;20 coins)=2.
+  </div>
+
+<script>
+/* ====== CONSTANTS ====== */
+var HEX_W = 68, HEX_H = 60;
+var RES_NAMES = ['Wood', 'Brick', 'Wheat', 'Ore', 'Wool'];
+var RES_SHORT = ['W', 'B', 'Wh', 'O', 'Wo'];
+var RES_COLORS = { Wood: '#2D5A1E', Brick: '#8B4513', Wheat: '#C8A82E', Ore: '#6B6B6B', Wool: '#5DAA5D' };
+var TERRAIN = ['Forest', 'Hills', 'Fields', 'Mountains', 'Meadows'];
+var TERRAIN_RES = { Forest: 'Wood', Hills: 'Brick', Fields: 'Wheat', Mountains: 'Ore', Meadows: 'Wool' };
+var TERRAIN_COLOR = { Forest: '#2D5A1E', Hills: '#8B5A2B', Fields: '#C8A82E', Mountains: '#7A7A7A', Meadows: '#5DAA5D' };
+var P1_COLOR = '#50A8E8';
+var P2_COLOR = '#E85050';
+var WIN_VP = 12;
+var AI_DELAY = 700;
+
+/* ====== GAME STATE ====== */
+var mode = 1; // 1 = vs AI, 2 = 2P
+var currentPlayer = 0; // 0 or 1
+var phase = 'roll'; // roll, market, build, gameover
+var players = [];
+var hexes = [];
+var vertices = [];
+var edges = [];
+var marketPrices = [];
+var priceDeltas = [];
+var lastDice = [0, 0];
+var longestRoadOwner = -1;
+var longestRoadLen = 0;
+var aiTimeout = null;
+
+/* ====== HEX GRID LAYOUT ====== */
+var HEX_ROWS = [3, 4, 5, 4, 3];
+var hexLayout = []; // {row, col, cx, cy}
+
+function buildHexLayout() {
+  hexLayout = [];
+  var boardW = 520, boardH = 480;
+  var rowSpacing = HEX_H * 0.75;
+  var totalH = (HEX_ROWS.length - 1) * rowSpacing + HEX_H;
+  var startY = (boardH - totalH) / 2 + HEX_H / 2;
+  for (var r = 0; r < HEX_ROWS.length; r++) {
+    var count = HEX_ROWS[r];
+    var rowW = count * HEX_W;
+    var startX = (boardW - rowW) / 2 + HEX_W / 2;
+    for (var c = 0; c < count; c++) {
+      hexLayout.push({
+        row: r,
+        col: c,
+        cx: startX + c * HEX_W,
+        cy: startY + r * rowSpacing
+      });
+    }
+  }
+}
+
+/* ====== VERTEX & EDGE COMPUTATION ====== */
+function hexCorners(cx, cy) {
+  // 6 corners of a flat-top hex (but we use pointy-top via clip-path, so adapt)
+  // Our hex is pointy-side-up with clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)
+  // corners (relative to center): top-left, top-right, right, bottom-right, bottom-left, left
+  var hw = HEX_W / 2, hh = HEX_H / 2;
+  return [
+    { x: cx - hw * 0.5, y: cy - hh },     // 0: top-left
+    { x: cx + hw * 0.5, y: cy - hh },     // 1: top-right
+    { x: cx + hw, y: cy },                 // 2: right
+    { x: cx + hw * 0.5, y: cy + hh },     // 3: bottom-right
+    { x: cx - hw * 0.5, y: cy + hh },     // 4: bottom-left
+    { x: cx - hw, y: cy }                  // 5: left
+  ];
+}
+
+function buildVerticesAndEdges() {
+  var vertMap = {}; // "x,y" -> index
+  vertices = [];
+  edges = [];
+
+  function addVertex(x, y) {
+    // round to avoid floating point duplicates
+    var key = Math.round(x) + ',' + Math.round(y);
+    if (vertMap[key] === undefined) {
+      vertMap[key] = vertices.length;
+      vertices.push({ x: x, y: y, adjacentHexes: [], owner: -1, type: 'empty', adjacentVertices: [], adjacentEdges: [] });
+    }
+    return vertMap[key];
+  }
+
+  function addEdge(vi1, vi2) {
+    // check if edge already exists
+    for (var i = 0; i < edges.length; i++) {
+      if ((edges[i].v1 === vi1 && edges[i].v2 === vi2) || (edges[i].v1 === vi2 && edges[i].v2 === vi1)) {
+        return i;
+      }
+    }
+    var ei = edges.length;
+    edges.push({ v1: vi1, v2: vi2, owner: -1 });
+    return ei;
+  }
+
+  for (var h = 0; h < hexLayout.length; h++) {
+    var corners = hexCorners(hexLayout[h].cx, hexLayout[h].cy);
+    var vis = [];
+    for (var c = 0; c < 6; c++) {
+      vis.push(addVertex(corners[c].x, corners[c].y));
+    }
+    // record adjacency
+    for (var c = 0; c < 6; c++) {
+      if (vertices[vis[c]].adjacentHexes.indexOf(h) === -1) {
+        vertices[vis[c]].adjacentHexes.push(h);
+      }
+    }
+    // edges between consecutive corners
+    for (var c = 0; c < 6; c++) {
+      var next = (c + 1) % 6;
+      addEdge(vis[c], vis[next]);
+    }
+  }
+
+  // build vertex adjacency from edges
+  for (var i = 0; i < edges.length; i++) {
+    var e = edges[i];
+    if (vertices[e.v1].adjacentVertices.indexOf(e.v2) === -1) {
+      vertices[e.v1].adjacentVertices.push(e.v2);
+      vertices[e.v1].adjacentEdges.push(i);
+    }
+    if (vertices[e.v2].adjacentVertices.indexOf(e.v1) === -1) {
+      vertices[e.v2].adjacentVertices.push(e.v1);
+      vertices[e.v2].adjacentEdges.push(i);
+    }
+  }
+}
+
+/* ====== HEX DATA GENERATION ====== */
+function generateHexes() {
+  var terrains = [
+    'Forest', 'Forest', 'Forest', 'Forest',
+    'Hills', 'Hills', 'Hills',
+    'Fields', 'Fields', 'Fields', 'Fields',
+    'Mountains', 'Mountains', 'Mountains',
+    'Meadows', 'Meadows', 'Meadows', 'Meadows'
+  ];
+  // Shuffle terrains
+  shuffle(terrains);
+  // Ensure we have exactly 19
+  while (terrains.length < 19) terrains.push('Fields');
+
+  var numbers = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
+  // We need 19 numbers but only have 18 (skipping 7). Add one more, THEN shuffle
+  // (shuffling before the push left the extra number always at the last hex).
+  numbers.push([2, 3, 4, 5, 6, 8, 9, 10, 11, 12][Math.floor(Math.random() * 10)]);
+  shuffle(numbers);
+
+  hexes = [];
+  for (var i = 0; i < 19; i++) {
+    hexes.push({
+      terrain: terrains[i],
+      resource: TERRAIN_RES[terrains[i]],
+      number: numbers[i]
+    });
+  }
+}
+
+function shuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+  }
+}
+
+/* ====== STARTING POSITIONS ====== */
+function placeStartingPositions() {
+  // Find good vertices for each player
+  // Player 1 gets vertices near top, player 2 near bottom
+  // We pick vertices that are on productive hexes and spaced apart
+
+  var scored = [];
+  for (var i = 0; i < vertices.length; i++) {
+    if (vertices[i].adjacentHexes.length === 0) continue;
+    var score = 0;
+    for (var j = 0; j < vertices[i].adjacentHexes.length; j++) {
+      var n = hexes[vertices[i].adjacentHexes[j]].number;
+      score += 6 - Math.abs(7 - n); // higher for 6,8 etc
+    }
+    scored.push({ vi: i, score: score, y: vertices[i].y });
+  }
+
+  // Sort by y position
+  scored.sort(function(a, b) { return a.y - b.y; });
+
+  // Top third for P1, bottom third for P2
+  var topThird = scored.slice(0, Math.floor(scored.length / 3));
+  var botThird = scored.slice(Math.floor(scored.length * 2 / 3));
+
+  topThird.sort(function(a, b) { return b.score - a.score; });
+  botThird.sort(function(a, b) { return b.score - a.score; });
+
+  // Pick 2 settlements for each player, ensuring distance rule
+  var p1Verts = pickTwoSettlements(topThird);
+  var p2Verts = pickTwoSettlements(botThird);
+
+  // Place settlements
+  for (var i = 0; i < 2; i++) {
+    vertices[p1Verts[i]].owner = 0;
+    vertices[p1Verts[i]].type = 'settlement';
+    vertices[p2Verts[i]].owner = 1;
+    vertices[p2Verts[i]].type = 'settlement';
+  }
+
+  // Place roads connecting each pair
+  placeStartingRoad(p1Verts[0], p1Verts[1], 0);
+  placeStartingRoad(p2Verts[0], p2Verts[1], 1);
+}
+
+function pickTwoSettlements(candidates) {
+  for (var i = 0; i < candidates.length; i++) {
+    for (var j = i + 1; j < candidates.length; j++) {
+      var vi1 = candidates[i].vi;
+      var vi2 = candidates[j].vi;
+      if (distanceBetweenVertices(vi1, vi2) >= 2) {
+        return [vi1, vi2];
+      }
+    }
+  }
+  // fallback
+  return [candidates[0].vi, candidates[Math.min(1, candidates.length - 1)].vi];
+}
+
+function distanceBetweenVertices(v1, v2) {
+  // BFS
+  var visited = {};
+  var queue = [[v1, 0]];
+  visited[v1] = true;
+  while (queue.length > 0) {
+    var curr = queue.shift();
+    if (curr[0] === v2) return curr[1];
+    if (curr[1] >= 4) continue;
+    var adj = vertices[curr[0]].adjacentVertices;
+    for (var i = 0; i < adj.length; i++) {
+      if (!visited[adj[i]]) {
+        visited[adj[i]] = true;
+        queue.push([adj[i], curr[1] + 1]);
+      }
+    }
+  }
+  return 99;
+}
+
+function placeStartingRoad(v1, v2, player) {
+  // Find path between v1 and v2 and place road on first edge from v1
+  // Just place one road adjacent to each settlement
+  var adj1 = vertices[v1].adjacentEdges;
+  for (var i = 0; i < adj1.length; i++) {
+    if (edges[adj1[i]].owner === -1) {
+      edges[adj1[i]].owner = player;
+      break;
+    }
+  }
+  var adj2 = vertices[v2].adjacentEdges;
+  for (var i = 0; i < adj2.length; i++) {
+    if (edges[adj2[i]].owner === -1) {
+      edges[adj2[i]].owner = player;
+      break;
+    }
+  }
+}
+
+/* ====== PLAYER INIT ====== */
+function initPlayers() {
+  players = [];
+  for (var i = 0; i < 2; i++) {
+    players.push({
+      resources: { Wood: 0, Brick: 0, Wheat: 0, Ore: 0, Wool: 0 },
+      coins: 5,
+      marketBuildings: 0
+    });
+  }
+}
+
+/* ====== MARKET ====== */
+function initMarket() {
+  marketPrices = [3, 3, 3, 3, 3]; // Wood, Brick, Wheat, Ore, Wool
+  priceDeltas = [0, 0, 0, 0, 0];
+}
+
+function getFee(player) {
+  return Math.max(0, 1 - players[player].marketBuildings);
+}
+
+function buyResource(resIdx) {
+  if (phase !== 'market') return;
+  var p = players[currentPlayer];
+  var cost = marketPrices[resIdx] + getFee(currentPlayer);
+  if (p.coins < cost) {
+    setMessage('Not enough coins! Need ' + cost + '.');
+    return;
+  }
+  p.coins -= cost;
+  p.resources[RES_NAMES[resIdx]]++;
+  priceDeltas[resIdx] = 1;
+  marketPrices[resIdx] = Math.min(10, marketPrices[resIdx] + 1);
+  setMessage('Bought 1 ' + RES_NAMES[resIdx] + ' for ' + cost + ' coins.');
+  if (checkWin()) return; // portfolio value change may reach the VP target
+  render();
+}
+
+function sellResource(resIdx) {
+  if (phase !== 'market') return;
+  var p = players[currentPlayer];
+  if (p.resources[RES_NAMES[resIdx]] <= 0) {
+    setMessage('No ' + RES_NAMES[resIdx] + ' to sell!');
+    return;
+  }
+  var revenue = Math.max(0, marketPrices[resIdx] - getFee(currentPlayer));
+  p.resources[RES_NAMES[resIdx]]--;
+  p.coins += revenue;
+  priceDeltas[resIdx] = -1;
+  marketPrices[resIdx] = Math.max(1, marketPrices[resIdx] - 1);
+  setMessage('Sold 1 ' + RES_NAMES[resIdx] + ' for ' + revenue + ' coins.');
+  if (checkWin()) return; // portfolio value change may reach the VP target
+  render();
+}
+
+/* ====== DICE & PRODUCTION ====== */
+function rollDice() {
+  if (phase !== 'roll') return;
+  var d1 = Math.floor(Math.random() * 6) + 1;
+  var d2 = Math.floor(Math.random() * 6) + 1;
+  lastDice = [d1, d2];
+  var total = d1 + d2;
+
+  if (total === 7) {
+    // Market event
+    handleMarketEvent();
+  } else {
+    // Production
+    produceResources(total);
+  }
+
+  phase = 'market';
+  setMessage('Rolled ' + d1 + '+' + d2 + '=' + total + '. Trade or build.');
+  if (checkWin()) return; // production / market-event price swings may reach the VP target
+  render();
+
+  if (mode === 1 && currentPlayer === 1) {
+    scheduleAi();
+  }
+}
+
+function produceResources(total) {
+  for (var h = 0; h < hexes.length; h++) {
+    if (hexes[h].number !== total) continue;
+    var res = hexes[h].resource;
+    // find vertices adjacent to this hex
+    for (var v = 0; v < vertices.length; v++) {
+      if (vertices[v].adjacentHexes.indexOf(h) === -1) continue;
+      if (vertices[v].owner === -1) continue;
+      var owner = vertices[v].owner;
+      var amount = (vertices[v].type === 'city') ? 2 : 1;
+      players[owner].resources[res] += amount;
+    }
+  }
+}
+
+function handleMarketEvent() {
+  // Find most expensive resource
+  var maxPrice = 0, maxIdx = 0;
+  for (var i = 0; i < 5; i++) {
+    if (marketPrices[i] > maxPrice) {
+      maxPrice = marketPrices[i];
+      maxIdx = i;
+    }
+  }
+
+  var isBoom = Math.random() < 0.5;
+  var flash = document.createElement('div');
+  flash.className = 'event-flash ' + (isBoom ? 'boom' : 'bust');
+
+  if (isBoom) {
+    marketPrices[maxIdx] = Math.min(10, marketPrices[maxIdx] + 2);
+    priceDeltas[maxIdx] = 2;
+    flash.textContent = 'BOOM! ' + RES_NAMES[maxIdx] + ' surges!';
+    setMessage('Market Event: BOOM! ' + RES_NAMES[maxIdx] + ' price surges to ' + marketPrices[maxIdx] + '!');
+  } else {
+    marketPrices[maxIdx] = Math.max(1, Math.floor(marketPrices[maxIdx] / 2));
+    priceDeltas[maxIdx] = -2;
+    flash.textContent = 'BUST! ' + RES_NAMES[maxIdx] + ' crashes!';
+    setMessage('Market Event: BUST! ' + RES_NAMES[maxIdx] + ' price crashes to ' + marketPrices[maxIdx] + '!');
+  }
+
+  document.body.appendChild(flash);
+  setTimeout(function() { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 2200);
+}
+
+/* ====== BUILDING ====== */
+var buildMode = ''; // '', 'settlement', 'city', 'road', 'market'
+
+function startBuild(type) {
+  if (phase !== 'market' && phase !== 'build') return;
+  phase = 'build';
+  buildMode = type;
+  setMessage('Click a location to build a ' + type + '.');
+  render();
+}
+
+function cancelBuild() {
+  buildMode = '';
+  phase = 'market';
+  setMessage('Build cancelled.');
+  render();
+}
+
+function canAfford(player, type) {
+  var p = players[player];
+  var r = p.resources;
+  if (type === 'settlement') return r.Wood >= 1 && r.Brick >= 1 && r.Wheat >= 1 && r.Wool >= 1;
+  if (type === 'city') return r.Ore >= 2 && r.Wheat >= 3;
+  if (type === 'road') return r.Wood >= 1 && r.Brick >= 1;
+  if (type === 'market') return r.Ore >= 2 && r.Wool >= 1;
+  return false;
+}
+
+function payForBuild(player, type) {
+  var r = players[player].resources;
+  if (type === 'settlement') { r.Wood--; r.Brick--; r.Wheat--; r.Wool--; }
+  if (type === 'city') { r.Ore -= 2; r.Wheat -= 3; }
+  if (type === 'road') { r.Wood--; r.Brick--; }
+  if (type === 'market') { r.Ore -= 2; r.Wool--; }
+}
+
+function getValidSettlementVertices(player) {
+  var valid = [];
+  for (var i = 0; i < vertices.length; i++) {
+    if (vertices[i].owner !== -1) continue;
+    if (vertices[i].adjacentHexes.length === 0) continue;
+    // Distance rule: no adjacent vertex has a building
+    var tooClose = false;
+    for (var j = 0; j < vertices[i].adjacentVertices.length; j++) {
+      if (vertices[vertices[i].adjacentVertices[j]].owner !== -1) {
+        tooClose = true;
+        break;
+      }
+    }
+    if (tooClose) continue;
+    // Must be connected to player's road network (except during setup)
+    var connected = false;
+    for (var j = 0; j < vertices[i].adjacentEdges.length; j++) {
+      if (edges[vertices[i].adjacentEdges[j]].owner === player) {
+        connected = true;
+        break;
+      }
+    }
+    if (connected) valid.push(i);
+  }
+  return valid;
+}
+
+function getValidCityVertices(player) {
+  var valid = [];
+  for (var i = 0; i < vertices.length; i++) {
+    if (vertices[i].owner === player && vertices[i].type === 'settlement') {
+      valid.push(i);
+    }
+  }
+  return valid;
+}
+
+function getValidMarketVertices(player) {
+  // A market is an add-on to one of your settlements/cities that does not
+  // already have one (it doesn't replace the building — see clickVertex).
+  var valid = [];
+  for (var i = 0; i < vertices.length; i++) {
+    if (vertices[i].owner === player &&
+        (vertices[i].type === 'settlement' || vertices[i].type === 'city') &&
+        !vertices[i].hasMarket) {
+      valid.push(i);
+    }
+  }
+  return valid;
+}
+
+function getValidRoadEdges(player) {
+  var valid = [];
+  for (var i = 0; i < edges.length; i++) {
+    if (edges[i].owner !== -1) continue;
+    // Must connect to player's network
+    var v1 = edges[i].v1, v2 = edges[i].v2;
+    var connected = false;
+    // Connected if either endpoint has player's building or player's road
+    if (vertices[v1].owner === player || vertices[v2].owner === player) connected = true;
+    if (!connected) {
+      for (var j = 0; j < vertices[v1].adjacentEdges.length; j++) {
+        if (edges[vertices[v1].adjacentEdges[j]].owner === player) { connected = true; break; }
+      }
+    }
+    if (!connected) {
+      for (var j = 0; j < vertices[v2].adjacentEdges.length; j++) {
+        if (edges[vertices[v2].adjacentEdges[j]].owner === player) { connected = true; break; }
+      }
+    }
+    // Must be along a hex edge (both endpoints must touch at least one hex)
+    if (connected && vertices[v1].adjacentHexes.length > 0 && vertices[v2].adjacentHexes.length > 0) {
+      valid.push(i);
+    }
+  }
+  return valid;
+}
+
+function clickVertex(vi) {
+  if (buildMode === 'settlement') {
+    var valid = getValidSettlementVertices(currentPlayer);
+    if (valid.indexOf(vi) === -1) { setMessage('Cannot build there.'); return; }
+    if (!canAfford(currentPlayer, 'settlement')) { setMessage('Cannot afford a settlement!'); return; }
+    payForBuild(currentPlayer, 'settlement');
+    vertices[vi].owner = currentPlayer;
+    vertices[vi].type = 'settlement';
+    buildMode = '';
+    phase = 'market';
+    setMessage('Settlement built!');
+    updateLongestRoad(); // a new settlement can split an opponent's road
+    checkWin();
+    render();
+  } else if (buildMode === 'city') {
+    var valid = getValidCityVertices(currentPlayer);
+    if (valid.indexOf(vi) === -1) { setMessage('Cannot upgrade there.'); return; }
+    if (!canAfford(currentPlayer, 'city')) { setMessage('Cannot afford a city!'); return; }
+    payForBuild(currentPlayer, 'city');
+    vertices[vi].type = 'city';
+    buildMode = '';
+    phase = 'market';
+    setMessage('City built!');
+    checkWin();
+    render();
+  } else if (buildMode === 'market') {
+    var valid = getValidMarketVertices(currentPlayer);
+    if (valid.indexOf(vi) === -1) { setMessage('Cannot build market there.'); return; }
+    if (!canAfford(currentPlayer, 'market')) { setMessage('Cannot afford a market!'); return; }
+    payForBuild(currentPlayer, 'market');
+    // Market is an add-on: keep the settlement/city (its VP + city-upgrade
+    // eligibility) and track the market as a separate flag.
+    vertices[vi].hasMarket = true;
+    players[currentPlayer].marketBuildings++;
+    buildMode = '';
+    phase = 'market';
+    setMessage('Market built! Trading fees reduced.');
+    checkWin();
+    render();
+  }
+}
+
+function clickEdge(ei) {
+  if (buildMode !== 'road') return;
+  var valid = getValidRoadEdges(currentPlayer);
+  if (valid.indexOf(ei) === -1) { setMessage('Cannot build road there.'); return; }
+  if (!canAfford(currentPlayer, 'road')) { setMessage('Cannot afford a road!'); return; }
+  payForBuild(currentPlayer, 'road');
+  edges[ei].owner = currentPlayer;
+  buildMode = '';
+  phase = 'market';
+  setMessage('Road built!');
+  updateLongestRoad();
+  checkWin();
+  render();
+}
+
+/* ====== LONGEST ROAD ====== */
+function updateLongestRoad() {
+  var lens = [calcLongestRoad(0), calcLongestRoad(1)];
+  var maxLen = Math.max(lens[0], lens[1]);
+  if (maxLen < 5) {
+    longestRoadOwner = -1;
+    longestRoadLen = 0;
+    return;
+  }
+  // On a tie, the current holder keeps the card (Catan rule).
+  // Only transfer if the other player strictly exceeds the holder's length.
+  if (longestRoadOwner >= 0 && lens[longestRoadOwner] === maxLen) {
+    longestRoadLen = maxLen; // holder's length may have grown
+    return;
+  }
+  // No current holder, or current holder no longer has the max — award to leader.
+  var leader = lens[0] >= lens[1] ? 0 : 1;
+  longestRoadOwner = leader;
+  longestRoadLen = lens[leader];
+}
+
+function calcLongestRoad(player) {
+  var playerEdges = [];
+  for (var i = 0; i < edges.length; i++) {
+    if (edges[i].owner === player) playerEdges.push(i);
+  }
+  if (playerEdges.length === 0) return 0;
+
+  var maxLen = 0;
+  for (var i = 0; i < playerEdges.length; i++) {
+    var visited = {};
+    visited[playerEdges[i]] = true;
+    var len1 = dfsRoad(player, edges[playerEdges[i]].v1, visited, playerEdges[i]);
+    var len2 = dfsRoad(player, edges[playerEdges[i]].v2, visited, playerEdges[i]);
+    maxLen = Math.max(maxLen, 1 + len1 + len2);
+  }
+  return maxLen;
+}
+
+function dfsRoad(player, fromVertex, visited, lastEdge) {
+  var best = 0;
+  // If vertex has opponent building, stop
+  if (vertices[fromVertex].owner !== -1 && vertices[fromVertex].owner !== player) return 0;
+  for (var i = 0; i < vertices[fromVertex].adjacentEdges.length; i++) {
+    var ei = vertices[fromVertex].adjacentEdges[i];
+    if (visited[ei]) continue;
+    if (edges[ei].owner !== player) continue;
+    visited[ei] = true;
+    var otherV = edges[ei].v1 === fromVertex ? edges[ei].v2 : edges[ei].v1;
+    var len = 1 + dfsRoad(player, otherV, visited, ei);
+    best = Math.max(best, len);
+    delete visited[ei];
+  }
+  return best;
+}
+
+/* ====== VICTORY POINTS ====== */
+function calcVP(player) {
+  var vp = 0;
+  for (var i = 0; i < vertices.length; i++) {
+    if (vertices[i].owner !== player) continue;
+    if (vertices[i].type === 'settlement') vp += 1;
+    if (vertices[i].type === 'city') vp += 2;
+    if (vertices[i].hasMarket) vp += 1;
+  }
+  if (longestRoadOwner === player) vp += 2;
+  if (calcPortfolioValue(player) >= 20) vp += 2;
+  return vp;
+}
+
+function calcPortfolioValue(player) {
+  var val = 0;
+  for (var i = 0; i < RES_NAMES.length; i++) {
+    val += players[player].resources[RES_NAMES[i]] * marketPrices[i];
+  }
+  return val;
+}
+
+function checkWin() {
+  for (var p = 0; p < 2; p++) {
+    if (calcVP(p) >= WIN_VP) {
+      phase = 'gameover';
+      setMessage('Player ' + (p + 1) + ' wins with ' + calcVP(p) + ' Victory Points!');
+      render();
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ====== TURN MANAGEMENT ====== */
+function endTurn() {
+  if (phase === 'roll' || phase === 'gameover') return;
+  buildMode = '';
+  priceDeltas = [0, 0, 0, 0, 0];
+  currentPlayer = 1 - currentPlayer;
+  phase = 'roll';
+  setMessage('Player ' + (currentPlayer + 1) + '\'s turn. Roll the dice.');
+  render();
+
+  if (mode === 1 && currentPlayer === 1) {
+    scheduleAi();
+  }
+}
+
+/* ====== AI ====== */
+function scheduleAi() {
+  if (aiTimeout) clearTimeout(aiTimeout);
+  aiTimeout = setTimeout(doAiTurn, AI_DELAY);
+}
+
+function doAiTurn() {
+  aiTimeout = null;
+  if (phase === 'gameover') return;
+  if (currentPlayer !== 1) return;
+
+  if (phase === 'roll') {
+    rollDice();
+    return;
+  }
+
+  // Market phase: buy/sell strategically
+  aiMarketPhase();
+
+  // Build phase — track nested timeouts on aiTimeout so resetGame can cancel them
+  aiTimeout = setTimeout(function() {
+    aiTimeout = null;
+    if (phase === 'gameover') return;
+    if (currentPlayer !== 1) return;   // user may have switched modes / reset
+    aiBuildPhase();
+    aiTimeout = setTimeout(function() {
+      aiTimeout = null;
+      if (phase === 'gameover') return;
+      if (currentPlayer !== 1) return;
+      endTurn();
+    }, AI_DELAY);
+  }, AI_DELAY);
+}
+
+function aiMarketPhase() {
+  var p = players[1];
+
+  // Sell resources when prices are high (7+)
+  for (var i = 0; i < 5; i++) {
+    if (marketPrices[i] >= 7 && p.resources[RES_NAMES[i]] > 0) {
+      // Keep at least 1 if we might need it
+      var canSell = p.resources[RES_NAMES[i]];
+      if (canSell > 1) canSell--;
+      for (var s = 0; s < canSell; s++) {
+        sellResource(i);
+      }
+    }
+  }
+
+  // Buy cheap resources we need for building
+  var needs = aiBuildNeeds();
+  for (var i = 0; i < needs.length; i++) {
+    var resIdx = RES_NAMES.indexOf(needs[i]);
+    if (resIdx === -1) continue;
+    if (marketPrices[resIdx] <= 3 && p.resources[needs[i]] === 0) {
+      var cost = marketPrices[resIdx] + getFee(1);
+      if (p.coins >= cost) {
+        buyResource(resIdx);
+      }
+    }
+  }
+}
+
+function aiBuildNeeds() {
+  var needs = [];
+  var p = players[1];
+  // Prioritize: market (if none), settlement, city, road
+  if (p.marketBuildings === 0) {
+    if (p.resources.Ore < 2) needs.push('Ore');
+    if (p.resources.Wool < 1) needs.push('Wool');
+  }
+  // Settlement needs
+  if (p.resources.Wood < 1) needs.push('Wood');
+  if (p.resources.Brick < 1) needs.push('Brick');
+  if (p.resources.Wheat < 1) needs.push('Wheat');
+  if (p.resources.Wool < 1) needs.push('Wool');
+  return needs;
+}
+
+function aiBuildPhase() {
+  phase = 'market'; // ensure we're in buildable phase
+
+  // Try to build market first (if no market buildings)
+  if (players[1].marketBuildings === 0 && canAfford(1, 'market')) {
+    var mverts = getValidMarketVertices(1);
+    if (mverts.length > 0) {
+      payForBuild(1, 'market');
+      vertices[mverts[0]].hasMarket = true;
+      players[1].marketBuildings++;
+      setMessage('AI built a Market!');
+      if (checkWin()) return;
+      render();
+    }
+  }
+
+  // Try to build settlement on best hex
+  if (canAfford(1, 'settlement')) {
+    var sverts = getValidSettlementVertices(1);
+    if (sverts.length > 0) {
+      // Score vertices
+      var best = -1, bestScore = -1;
+      for (var i = 0; i < sverts.length; i++) {
+        var score = 0;
+        for (var j = 0; j < vertices[sverts[i]].adjacentHexes.length; j++) {
+          var n = hexes[vertices[sverts[i]].adjacentHexes[j]].number;
+          score += 6 - Math.abs(7 - n);
+        }
+        if (score > bestScore) { bestScore = score; best = sverts[i]; }
+      }
+      if (best >= 0) {
+        payForBuild(1, 'settlement');
+        vertices[best].owner = 1;
+        vertices[best].type = 'settlement';
+        setMessage('AI built a Settlement!');
+        updateLongestRoad(); // a new settlement can split an opponent's road
+        if (checkWin()) return;
+        render();
+      }
+    }
+  }
+
+  // Try to upgrade to city
+  if (canAfford(1, 'city')) {
+    var cverts = getValidCityVertices(1);
+    if (cverts.length > 0) {
+      payForBuild(1, 'city');
+      vertices[cverts[0]].type = 'city';
+      setMessage('AI upgraded to a City!');
+      if (checkWin()) return;
+      render();
+    }
+  }
+
+  // Build roads toward good spots
+  if (canAfford(1, 'road')) {
+    var redges = getValidRoadEdges(1);
+    if (redges.length > 0) {
+      // Pick edge that extends toward high-value vertices
+      var bestEdge = redges[0];
+      var bestEScore = -1;
+      for (var i = 0; i < redges.length; i++) {
+        var e = edges[redges[i]];
+        var score = 0;
+        var endpoints = [e.v1, e.v2];
+        for (var ep = 0; ep < 2; ep++) {
+          for (var j = 0; j < vertices[endpoints[ep]].adjacentHexes.length; j++) {
+            var n = hexes[vertices[endpoints[ep]].adjacentHexes[j]].number;
+            score += 6 - Math.abs(7 - n);
+          }
+        }
+        if (score > bestEScore) { bestEScore = score; bestEdge = redges[i]; }
+      }
+
+      payForBuild(1, 'road');
+      edges[bestEdge].owner = 1;
+      updateLongestRoad();
+      if (checkWin()) return;
+      render();
+    }
+  }
+}
+
+/* ====== RENDERING ====== */
+function render() {
+  renderBoard();
+  renderMarketPanel();
+  renderTurnInfo();
+  renderButtons();
+}
+
+function renderBoard() {
+  var board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Draw hexes
+  for (var h = 0; h < hexLayout.length; h++) {
+    var hex = document.createElement('div');
+    hex.className = 'hex';
+    if (lastDice[0] + lastDice[1] === hexes[h].number && phase !== 'roll') {
+      hex.className += ' highlight';
+    }
+    hex.style.left = (hexLayout[h].cx - HEX_W / 2) + 'px';
+    hex.style.top = (hexLayout[h].cy - HEX_H / 2) + 'px';
+    hex.style.background = TERRAIN_COLOR[hexes[h].terrain];
+
+    var numDiv = document.createElement('div');
+    numDiv.className = 'hex-number';
+    if (hexes[h].number === 6 || hexes[h].number === 8) numDiv.className += ' hot';
+    numDiv.textContent = hexes[h].number;
+
+    var labelDiv = document.createElement('div');
+    labelDiv.className = 'hex-label';
+    labelDiv.textContent = hexes[h].resource;
+
+    hex.appendChild(numDiv);
+    hex.appendChild(labelDiv);
+    board.appendChild(hex);
+  }
+
+  // Draw edges (roads)
+  for (var i = 0; i < edges.length; i++) {
+    var e = edges[i];
+    var v1 = vertices[e.v1], v2 = vertices[e.v2];
+    // Only draw edges that touch hexes
+    if (v1.adjacentHexes.length === 0 || v2.adjacentHexes.length === 0) continue;
+
+    var dx = v2.x - v1.x, dy = v2.y - v1.y;
+    var len = Math.sqrt(dx * dx + dy * dy);
+    var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    var road = document.createElement('div');
+    road.className = 'road';
+    if (e.owner === 0) road.className += ' p1-road';
+    else if (e.owner === 1) road.className += ' p2-road';
+    else if (buildMode === 'road') {
+      var validRoads = getValidRoadEdges(currentPlayer);
+      if (validRoads.indexOf(i) !== -1) road.className += ' valid-build';
+    }
+
+    road.style.left = v1.x + 'px';
+    road.style.top = (v1.y - 2) + 'px';
+    road.style.width = len + 'px';
+    road.style.transform = 'rotate(' + angle + 'deg)';
+
+    (function(ei) {
+      road.onclick = function() { clickEdge(ei); };
+    })(i);
+
+    board.appendChild(road);
+  }
+
+  // Draw vertices
+  for (var i = 0; i < vertices.length; i++) {
+    var v = vertices[i];
+    if (v.adjacentHexes.length === 0) continue;
+
+    var vert = document.createElement('div');
+    vert.className = 'vertex';
+
+    if (v.owner === 0) {
+      if (v.type === 'city') vert.className += ' p1-city';
+      else if (v.hasMarket) vert.className += ' p1-market';
+      else vert.className += ' p1-settlement';
+    } else if (v.owner === 1) {
+      if (v.type === 'city') vert.className += ' p2-city';
+      else if (v.hasMarket) vert.className += ' p2-market';
+      else vert.className += ' p2-settlement';
+    } else if (buildMode === 'settlement') {
+      var validS = getValidSettlementVertices(currentPlayer);
+      if (validS.indexOf(i) !== -1) vert.className += ' valid-build';
+    } else if (buildMode === 'city') {
+      // valid-build only for own settlements (handled below)
+    } else if (buildMode === 'market') {
+      var validM = getValidMarketVertices(currentPlayer);
+      if (validM.indexOf(i) !== -1) vert.className += ' valid-build';
+    }
+
+    if (buildMode === 'city') {
+      var validC = getValidCityVertices(currentPlayer);
+      if (validC.indexOf(i) !== -1) vert.className += ' valid-build';
+    }
+
+    vert.style.left = v.x + 'px';
+    vert.style.top = v.y + 'px';
+
+    // Add label for cities and markets
+    if (v.owner !== -1 && v.type === 'city') {
+      var lbl = document.createElement('div');
+      lbl.className = 'vertex-label';
+      lbl.style.left = v.x + 'px';
+      lbl.style.top = (v.y - 14) + 'px';
+      lbl.textContent = 'C';
+      board.appendChild(lbl);
+    }
+    if (v.owner !== -1 && v.hasMarket && v.type !== 'city') {
+      var lbl = document.createElement('div');
+      lbl.className = 'vertex-label';
+      lbl.style.left = v.x + 'px';
+      lbl.style.top = (v.y - 14) + 'px';
+      lbl.textContent = 'M';
+      board.appendChild(lbl);
+    }
+
+    (function(vi) {
+      vert.onclick = function() { clickVertex(vi); };
+    })(i);
+
+    board.appendChild(vert);
+  }
+}
+
+function renderMarketPanel() {
+  var panel = document.getElementById('market-panel');
+  var p = players[currentPlayer];
+  var vp = calcVP(currentPlayer);
+  var portfolio = calcPortfolioValue(currentPlayer);
+  var fee = getFee(currentPlayer);
+
+  var html = '<h2>MARKET TERMINAL</h2>';
+
+  // Player info for both players
+  for (var pi = 0; pi < 2; pi++) {
+    var pName = (pi === 0) ? 'P1 (Blue)' : 'P2 (Red)';
+    var pColor = (pi === 0) ? P1_COLOR : P2_COLOR;
+    var pvp = calcVP(pi);
+    var ppv = calcPortfolioValue(pi);
+    html += '<div class="player-info" style="border-left: 3px solid ' + pColor + ';">';
+    html += '<span style="color:' + pColor + ';">' + pName + '</span>';
+    html += '<span class="coins">' + players[pi].coins + ' coins</span>';
+    html += '<span class="vp">' + pvp + ' VP</span>';
+    html += '</div>';
+  }
+
+  // Market header
+  html += '<div class="market-header">';
+  html += '<span style="width:50px;">Res</span>';
+  html += '<span style="width:40px;">Price</span>';
+  html += '<span style="width:24px;"></span>';
+  html += '<span style="width:24px;">Inv</span>';
+  html += '<span>Actions</span>';
+  html += '</div>';
+
+  // Resource rows
+  for (var i = 0; i < 5; i++) {
+    var price = marketPrices[i];
+    var delta = priceDeltas[i];
+    var inv = players[currentPlayer].resources[RES_NAMES[i]];
+    var priceClass = delta > 0 ? 'price-up' : (delta < 0 ? 'price-down' : 'price-neutral');
+    var deltaStr = delta > 0 ? '+' + delta : (delta < 0 ? '' + delta : '');
+    var deltaColor = delta > 0 ? '#4CFF4C' : (delta < 0 ? '#FF4444' : '#607090');
+
+    html += '<div class="resource-row">';
+    html += '<span class="resource-name" style="color:' + RES_COLORS[RES_NAMES[i]] + ';">' + RES_SHORT[i] + '</span>';
+    html += '<span class="resource-price ' + priceClass + '">' + price + '</span>';
+    html += '<span class="resource-delta" style="color:' + deltaColor + ';">' + deltaStr + '</span>';
+    html += '<span class="resource-inv">' + inv + '</span>';
+
+    if (phase === 'market' && !(mode === 1 && currentPlayer === 1)) {
+      var buyCost = price + fee;
+      html += '<button class="market-btn buy-btn" onclick="buyResource(' + i + ')"' +
+              (p.coins < buyCost ? ' disabled' : '') +
+              ' title="Buy for ' + buyCost + ' coins">Buy</button>';
+      html += '<button class="market-btn sell-btn" onclick="sellResource(' + i + ')"' +
+              (inv <= 0 ? ' disabled' : '') +
+              ' title="Sell for ' + Math.max(0, price - fee) + ' coins">Sell</button>';
+    }
+
+    html += '</div>';
+  }
+
+  // Fee indicator
+  html += '<div style="text-align:center; font-size:0.8em; color:#607090; margin-top:6px;">Trading fee: ' + fee + ' coin' + (fee !== 1 ? 's' : '') + '</div>';
+
+  // Build panel
+  if ((phase === 'market' || phase === 'build') && !(mode === 1 && currentPlayer === 1)) {
+    html += '<div class="build-panel">';
+    html += '<h3>Build</h3>';
+
+    var canS = canAfford(currentPlayer, 'settlement') && getValidSettlementVertices(currentPlayer).length > 0;
+    var canC = canAfford(currentPlayer, 'city') && getValidCityVertices(currentPlayer).length > 0;
+    var canR = canAfford(currentPlayer, 'road') && getValidRoadEdges(currentPlayer).length > 0;
+    var canM = canAfford(currentPlayer, 'market') && getValidMarketVertices(currentPlayer).length > 0;
+
+    html += '<button class="build-btn" onclick="startBuild(\'settlement\')"' + (canS ? '' : ' disabled') + '>';
+    html += 'Settlement <span class="cost">1W 1B 1Wh 1Wo</span></button>';
+
+    html += '<button class="build-btn" onclick="startBuild(\'city\')"' + (canC ? '' : ' disabled') + '>';
+    html += 'City (upgrade) <span class="cost">2O 3Wh</span></button>';
+
+    html += '<button class="build-btn" onclick="startBuild(\'road\')"' + (canR ? '' : ' disabled') + '>';
+    html += 'Road <span class="cost">1W 1B</span></button>';
+
+    html += '<button class="build-btn" onclick="startBuild(\'market\')"' + (canM ? '' : ' disabled') + '>';
+    html += 'Market <span class="cost">2O 1Wo</span></button>';
+
+    if (buildMode) {
+      html += '<button class="build-btn" onclick="cancelBuild()" style="border-color:#FF4444; color:#FF4444;">Cancel Build</button>';
+    }
+
+    html += '</div>';
+  }
+
+  // Longest road
+  html += '<div class="longest-road-indicator">';
+  if (longestRoadOwner >= 0) {
+    var lrColor = longestRoadOwner === 0 ? P1_COLOR : P2_COLOR;
+    html += 'Longest Road: <span style="color:' + lrColor + ';">Player ' + (longestRoadOwner + 1) + '</span> (' + longestRoadLen + ' roads) +2VP';
+  } else {
+    html += 'Longest Road: unclaimed (need 5+)';
+  }
+  html += '</div>';
+
+  // Portfolio
+  html += '<div class="portfolio-indicator">';
+  var pv = calcPortfolioValue(currentPlayer);
+  html += 'Portfolio Value: <span style="color:#FFD700;">' + pv + ' coins</span>';
+  if (pv >= 20) html += ' <span style="color:#4CFF4C;">+2VP</span>';
+  html += '</div>';
+
+  // Inventory detail
+  html += '<div style="margin-top:8px; padding:6px 8px; background:#141820; border-radius:4px; border:1px solid #2A3A50; font-size:0.85em;">';
+  html += '<div style="color:#607090; margin-bottom:4px;">Inventory (P' + (currentPlayer + 1) + '):</div>';
+  for (var i = 0; i < 5; i++) {
+    var inv = players[currentPlayer].resources[RES_NAMES[i]];
+    if (inv > 0) {
+      html += '<span style="color:' + RES_COLORS[RES_NAMES[i]] + '; margin-right:8px;">' + RES_NAMES[i] + ': ' + inv + '</span>';
+    }
+  }
+  html += '</div>';
+
+  panel.innerHTML = html;
+}
+
+function renderTurnInfo() {
+  var ti = document.getElementById('turn-indicator');
+  var pColor = currentPlayer === 0 ? P1_COLOR : P2_COLOR;
+  var pName = 'Player ' + (currentPlayer + 1);
+  if (mode === 1 && currentPlayer === 1) pName += ' (AI)';
+
+  var diceHtml = '';
+  if (lastDice[0] > 0) {
+    diceHtml = ' <span class="dice-display"><span class="die">' + lastDice[0] + '</span><span class="die">' + lastDice[1] + '</span></span>';
+  }
+
+  if (phase === 'gameover') {
+    ti.innerHTML = '<span style="color:#FFD700;">Game Over!</span>';
+  } else {
+    ti.innerHTML = '<span style="color:' + pColor + ';">' + pName + '\'s Turn</span>' + diceHtml;
+  }
+}
+
+function renderButtons() {
+  document.getElementById('btn-roll').disabled = phase !== 'roll' || (mode === 1 && currentPlayer === 1);
+  document.getElementById('btn-end').disabled = phase === 'roll' || phase === 'gameover' || (mode === 1 && currentPlayer === 1);
+}
+
+/* ====== UI HELPERS ====== */
+function setMessage(msg) {
+  document.getElementById('message').textContent = msg;
+}
+
+function setMode(m) {
+  mode = m;
+  var btns = document.querySelectorAll('.mode-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].className = 'mode-btn' + (i === m - 1 ? ' active' : '');
+  }
+  resetGame();
+}
+
+function resetGame() {
+  if (aiTimeout) clearTimeout(aiTimeout);
+  aiTimeout = null;
+  currentPlayer = 0;
+  phase = 'roll';
+  buildMode = '';
+  lastDice = [0, 0];
+  longestRoadOwner = -1;
+  longestRoadLen = 0;
+
+  buildHexLayout();
+  buildVerticesAndEdges();
+  generateHexes();
+  initPlayers();
+  initMarket();
+  placeStartingPositions();
+  updateLongestRoad();
+
+  setMessage('Roll the dice to begin your turn.');
+  render();
+}
+
+/* ====== INIT ====== */
+resetGame();
+</script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Convergence</h2>
+  <p>Convergence is an original Catan-style economic strategy game for two rival players. Roll for resources, ride a live market that swings with every trade, and build out a network of settlements, cities, roads, and markets as you race to 12 victory points. Designed for medium-length sessions against the built-in AI or a second human.</p>
+
+  <h3>How to play</h3>
+  <p>On your turn you roll the dice: hexes matching the roll produce their resource for adjacent settlements, and cities collect double. Then trade at the market, where each buy or sell shifts the price and Market buildings cut your fees — a roll of 7 fires a Market Event, either a BOOM that spikes the priciest resource or a BUST that halves it. Finally, spend resources to build settlements (1 VP), cities (2 VP), roads, and markets (1 VP). First to 12 victory points wins.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How do I win Convergence?</summary><p>Reach 12 victory points first. Settlements score 1, cities 2, and markets 1, plus 2 VP for the Longest Road (5+ segments) and 2 VP for a Portfolio of 20+ coins.</p></details>
+  <details><summary>How does the market work?</summary><p>Buy and sell resources at live prices; every trade nudges the price, and Market buildings reduce your fees. A 7 triggers a Market Event — BOOM (the most expensive resource jumps) or BUST (it's halved).</p></details>
+  <details><summary>How do I collect resources?</summary><p>Roll the dice each turn. Every hex whose number comes up produces its resource for adjacent settlements, with cities yielding double. Those resources fund your builds.</p></details>
+  <details><summary>How long is a session?</summary><p>A 2-player game runs roughly 30–60 minutes, against the built-in AI or a second human player.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/aresia">Aresia</a> — strategic colonization.</li>
+    <li><a href="/doctrine">Doctrine</a> — geopolitical sim.</li>
+    <li><a href="/bisque">Bisque</a> — battle for the bay.</li>
+    <li><a href="/tidelands">Tidelands</a> — maritime trade.</li>
+  </ul>
+</section>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

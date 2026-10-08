@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0c1016">
+<title>Doctrine — Geopolitical Strategy Sim 1990–2050 | Board Gaming Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Aerobiz-style geopolitical strategy across 1990–2050. Build alliances, project influence, watch the real world map evolve. Free in-browser, single HTML file.">
+<link rel="canonical" href="https://boardgaminghub.com/doctrine">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/doctrine">
+<meta property="og:title" content="Doctrine — Geopolitical Sim 1990-2050">
+<meta property="og:description" content="Aerobiz-style geopolitical strategy on a real world map, 1990–2050.">
+<meta property="og:image" content="https://boardgaminghub.com/og/doctrine.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/doctrine.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Doctrine",
+  "description": "Geopolitical strategy simulation spanning 1990 to 2050, with real-world map and alliance dynamics.",
+  "url": "https://boardgaminghub.com/doctrine", "genre": "Strategy",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<script src="/d3.v7.min.js"></script>
+<script src="/topojson-client.v3.min.js"></script>
+<style>
+  :root {
+    --bg: #07090d;
+    --panel: #0f141c;
+    --panel-2: #161d28;
+    --border: #2a3548;
+    --border-bright: #3d5070;
+    --text: #c8d4e0;
+    --dim: #7a8898;
+    --amber: #ffb000;
+    --green: #00ff88;
+    --red: #ff5050;
+    --us: #4a90ff;
+    --cn: #ffcc00;
+    --ru: #ff5050;
+    --eu: #b070ff;
+    --neutral: #4a5668;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Consolas', 'Menlo', 'Courier New', monospace;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1.4;
+    user-select: none;
+  }
+  .scanline { position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    background: repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 2px, transparent 2px 4px); }
+  .app { display: grid; grid-template-columns: 240px 1fr 280px; grid-template-rows: 36px 1fr 160px; height: 100vh; gap: 4px; padding: 4px; }
+  .topbar { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); display: flex; align-items: center; padding: 0 12px; gap: 16px; }
+  .brand { color: var(--amber); font-weight: bold; letter-spacing: 3px; }
+  .turn { color: var(--green); }
+  .topbar .stat { color: var(--dim); }
+  .topbar .stat b { color: var(--text); margin-left: 4px; }
+  .left { background: var(--panel); border: 1px solid var(--border); overflow-y: auto; padding: 8px; }
+  .map-wrap { background: var(--panel); border: 1px solid var(--border); overflow: hidden; position: relative; }
+  .right { background: var(--panel); border: 1px solid var(--border); overflow-y: auto; padding: 8px; }
+  .bottom { grid-column: 1 / -1; background: var(--panel); border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 220px; gap: 4px; padding: 4px; }
+  .log, .events, .controls { background: var(--panel-2); border: 1px solid var(--border); padding: 8px; overflow-y: auto; }
+  .section-title { color: var(--amber); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 6px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.03); }
+  .stat-row span:last-child { color: var(--text); font-weight: bold; }
+  .bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 1px; margin: 2px 0 6px; overflow: hidden; position: relative; }
+  .bar-fill { height: 100%; background: var(--amber); transition: width 0.3s; }
+  .good { color: var(--green); }
+  .bad { color: var(--red); }
+  .warn { color: var(--amber); }
+  button { background: var(--panel-2); color: var(--text); border: 1px solid var(--border-bright); padding: 6px 10px; cursor: pointer; font-family: inherit; font-size: 11px; letter-spacing: 1px; }
+  button:hover:not(:disabled) { background: var(--border); color: var(--amber); border-color: var(--amber); }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+  button.primary { background: var(--amber); color: #000; border-color: var(--amber); font-weight: bold; }
+  button.primary:hover { background: #ffd040; }
+  .pill { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 10px; letter-spacing: 1px; margin-right: 3px; }
+  .pill.us { background: rgba(74,144,255,0.2); color: var(--us); }
+  .pill.cn { background: rgba(255,204,0,0.2); color: var(--cn); }
+  .pill.ru { background: rgba(255,80,80,0.2); color: var(--ru); }
+  .pill.eu { background: rgba(176,112,255,0.2); color: var(--eu); }
+  svg { display: block; }
+  .country { cursor: pointer; transition: opacity 0.2s; }
+  .country:hover { opacity: 0.85; stroke: var(--amber) !important; stroke-width: 2 !important; }
+  .country.selected { stroke: var(--amber) !important; stroke-width: 2.5 !important; filter: drop-shadow(0 0 6px var(--amber)); }
+  .country-label { fill: rgba(255,255,255,0.55); font-size: 9px; pointer-events: none; text-anchor: middle; font-family: inherit; letter-spacing: 1px; }
+  .chokepoint { fill: var(--amber); fill-opacity: 0.4; stroke: var(--amber); stroke-dasharray: 2 2; }
+  .chokepoint.closed { fill: var(--red); stroke: var(--red); fill-opacity: 0.6; }
+  .log-entry { font-size: 11px; margin-bottom: 3px; padding-left: 8px; border-left: 2px solid var(--border); }
+  .log-entry.event { border-left-color: var(--amber); color: var(--amber); }
+  .log-entry.crisis { border-left-color: var(--red); color: var(--red); }
+  .log-entry.win { border-left-color: var(--green); color: var(--green); }
+  .event-card { background: rgba(255,176,0,0.06); border: 1px solid var(--amber); padding: 8px; margin-bottom: 6px; }
+  .event-card .title { color: var(--amber); font-weight: bold; margin-bottom: 4px; }
+  .event-card .desc { color: var(--text); margin-bottom: 6px; font-size: 11px; }
+  .event-card .choices button { display: block; width: 100%; text-align: left; margin-top: 3px; padding: 4px 6px; }
+  .country-detail { padding: 6px 0; }
+  .alignment-bars { margin-top: 6px; }
+  .ali-row { display: grid; grid-template-columns: 30px 1fr 30px; align-items: center; gap: 6px; margin-bottom: 2px; font-size: 10px; }
+  .ali-bar { height: 5px; background: rgba(255,255,255,0.05); }
+  .ali-bar > div { height: 100%; }
+  .actions { margin-top: 8px; display: grid; gap: 4px; }
+  .actions button { text-align: left; font-size: 11px; padding: 5px 8px; }
+  .actions button .cost { float: right; color: var(--dim); }
+  .slider-row { display: grid; grid-template-columns: 80px 1fr 50px; gap: 6px; align-items: center; margin: 4px 0; font-size: 11px; }
+  input[type=range] { -webkit-appearance: none; background: transparent; height: 16px; }
+  input[type=range]::-webkit-slider-runnable-track { height: 4px; background: var(--border); border-radius: 2px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: var(--amber); border-radius: 50%; margin-top: -4px; cursor: pointer; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal { background: var(--panel); border: 2px solid var(--amber); padding: 24px; max-width: 600px; width: 90%; }
+  .modal h2 { color: var(--amber); letter-spacing: 3px; margin-bottom: 12px; }
+  .modal h3 { color: var(--text); margin: 12px 0 6px; font-size: 13px; letter-spacing: 2px; }
+  .modal p { margin-bottom: 8px; font-size: 12px; }
+  .power-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .power-pick button { padding: 12px; text-align: left; }
+  .power-pick .nm { color: var(--amber); font-weight: bold; font-size: 14px; }
+  .power-pick .desc { color: var(--dim); font-size: 11px; margin-top: 4px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--panel); }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); }
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Simulations","item":"https://boardgaminghub.com/#sims"},{"@type":"ListItem","position":3,"name":"Doctrine","item":"https://boardgaminghub.com/doctrine"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How accurate is the geopolitics?","acceptedAnswer":{"@type":"Answer","text":"Doctrine's economic and military models are simplified but draw on real datasets (Maddison historical GDP, SIPRI military expenditure). Specific event probabilities are tuned for replayability over historical accuracy."}},{"@type":"Question","name":"Can I play as a minor power?","acceptedAnswer":{"@type":"Answer","text":"Yes. Smaller nations have less budget but more flexibility — alliance-shopping is a viable strategy. Some of the strongest scoring runs come from middle-power coalition-building."}},{"@type":"Question","name":"How long is a campaign?","acceptedAnswer":{"@type":"Answer","text":"61 annual turns spanning 1990–2050 ≈ 30–60 minutes of real time. Save and resume across sessions."}},{"@type":"Question","name":"Is multiplayer planned?","acceptedAnswer":{"@type":"Answer","text":"Asymmetric hot-seat (different powers per session) is in design. Real-time multiplayer is not on the near roadmap."}}]}</script>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div class="scanline"></div>
+
+<div class="app" id="app" style="display:none">
+  <div class="topbar">
+    <div class="brand">DOCTRINE</div>
+    <div class="turn">YEAR <b id="t-year">1990</b></div>
+    <div class="stat">PLAYING <b id="t-power">USA</b></div>
+    <div class="stat">GDP <b id="t-gdp">$5963B</b></div>
+    <div class="stat">DEBT/GDP <b id="t-debt">54%</b></div>
+    <div class="stat">RATE <b id="t-rate">8.0%</b></div>
+    <div class="stat">APPROVAL <b id="t-app">60%</b></div>
+    <div class="stat">TEMPO <b id="t-tempo">3 / 3</b></div>
+    <div class="stat">SCORE <b id="t-score">0</b></div>
+    <div style="flex:1"></div>
+    <button class="primary" id="end-turn">END YEAR ▸</button>
+  </div>
+
+  <div class="left">
+    <div class="section-title">Domestic — <span id="dom-power">USA</span></div>
+    <div id="domestic"></div>
+    <div class="section-title" style="margin-top:14px">Budget % GDP</div>
+    <div id="budget"></div>
+    <div class="section-title" style="margin-top:14px">Forces & Posture</div>
+    <div id="forces"></div>
+    <div class="section-title" style="margin-top:14px">Rival Powers</div>
+    <div id="rivals"></div>
+  </div>
+
+  <div class="map-wrap">
+    <svg id="map" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" width="100%" height="100%"></svg>
+  </div>
+
+  <div class="right">
+    <div class="section-title">Selected</div>
+    <div id="selected">Click a country on the map.</div>
+  </div>
+
+  <div class="bottom">
+    <div class="log">
+      <div class="section-title">Situation Log</div>
+      <div id="log"></div>
+    </div>
+    <div class="events">
+      <div class="section-title">Active Crises</div>
+      <div id="events">No active crises.</div>
+    </div>
+    <div class="controls">
+      <div class="section-title">Help</div>
+      <div style="font-size: 10px; color: var(--dim); line-height: 1.6">
+        Each year you have <b>3 Tempo</b>. Spend on actions toward countries (loans, deals, bases, pacts, intel). Adjust budget & rate any time.<br><br>
+        Win condition: highest <b>Influence Score</b> at end of 2050, or hold ≥80% weighted alignment for 5 straight years.<br><br>
+        Lose: debt/GDP &gt; 250% with rate &gt; 12%, or approval &lt; 20% for 3 years.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="start-modal">
+  <div class="modal">
+    <h2>DOCTRINE</h2>
+    <p style="color: var(--dim)">A geopolitical strategy sim. 1990 — 2050. Choose your power.</p>
+    <p style="color: var(--dim); font-size: 11px">Inspired by <i>Aerobiz Supersonic</i>. Annual turns. Asymmetric kits. AI rivals compete for the same finite alignment slots in 12 contested middle powers. Events shift the board every year.</p>
+    <div class="power-pick">
+      <button data-pick="USA"><div class="nm" style="color:var(--us)">UNITED STATES</div><div class="desc">Reserve currency, 11 carriers, NATO+JP+KR alliance web. Easy mode. Hold the unipolar moment.</div></button>
+      <button data-pick="CHN"><div class="nm" style="color:var(--cn)">CHINA</div><div class="desc">$360B GDP, no allies, manufacturing engine just spooling up. Long climb to peer power.</div></button>
+      <button data-pick="RUS"><div class="nm" style="color:var(--ru)">RUSSIA</div><div class="desc">Just collapsed, oil/gas leverage, nukes, weak economy. Rebuild the sphere.</div></button>
+      <button data-pick="EU"><div class="nm" style="color:var(--eu)">EUROPEAN UNION</div><div class="desc">Wealthy, slow, fragmented. Civilian power. Hard to project militarily, easy to write checks.</div></button>
+    </div>
+    <p style="margin-top: 16px; color: var(--dim); font-size: 10px; text-align: center">v0.1 — single-file prototype</p>
+  </div>
+</div>
+
+<div class="modal-bg" id="end-modal" style="display:none">
+  <div class="modal">
+    <h2 id="end-title">CAMPAIGN COMPLETE</h2>
+    <div id="end-body"></div>
+    <button style="margin-top: 16px;" onclick="location.reload()">PLAY AGAIN</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  DOCTRINE v0.1
+// ============================================================
+
+const POWERS = ['USA','CHN','RUS','EU'];
+const POWER_COLOR = { USA: '#4a90ff', CHN: '#ffcc00', RUS: '#ff5050', EU: '#b070ff' };
+const POWER_NAME  = { USA: 'United States', CHN: 'China', RUS: 'Russia', EU: 'European Union' };
+
+// ISO 3166-1 numeric code → my internal code. Used to color real country shapes from world-atlas.
+const ISO_TO_CODE = {
+  // Powers
+  840: 'USA', 156: 'CHN', 643: 'RUS',
+  // EU member states (EC-12 in 1990; later expansions colored too)
+  56: 'EU',  // Belgium
+  208: 'EU', // Denmark
+  250: 'EU', // France
+  276: 'EU', // Germany
+  300: 'EU', // Greece
+  372: 'EU', // Ireland
+  380: 'EU', // Italy
+  442: 'EU', // Luxembourg
+  528: 'EU', // Netherlands
+  620: 'EU', // Portugal
+  724: 'EU', // Spain
+  826: 'EU', // United Kingdom
+  40:  'EU', // Austria
+  246: 'EU', // Finland
+  752: 'EU', // Sweden
+  // Middle powers
+  682: 'SAU', 364: 'IRN', 792: 'TUR', 818: 'EGY',
+  356: 'IND', 586: 'PAK', 360: 'IDN', 704: 'VNM',
+  76:  'BRA', 484: 'MEX', 566: 'NGA', 710: 'ZAF',
+};
+
+// Real lon/lat for chokepoint markers
+const CHOKE_LATLON = {
+  hormuz:    { lonlat: [56.3, 26.6], label: 'HORMUZ' },
+  malacca:   { lonlat: [101.4, 2.5], label: 'MALACCA' },
+  suez:      { lonlat: [32.55, 30.0], label: 'SUEZ' },
+  bosphorus: { lonlat: [29.0, 41.1], label: 'BOSPHORUS' },
+  panama:    { lonlat: [-79.7, 9.1], label: 'PANAMA' },
+};
+
+// World map data (loaded async from CDN)
+let WORLD_DATA = null;
+let PROJECTION = null;
+let PATH_GEN = null;
+// Cached path strings and centroids — features are immutable, so this avoids
+// regenerating SVG path data + centroids on every render.
+let FEATURE_PATH_CACHE = null;     // Map: feature -> { d, centroid }
+let GRATICULE_PATH_CACHE = null;   // string
+let CODE_TO_FEATURE_CACHE = null;  // Map: internal code -> feature
+
+// 1990-ish nominal GDP ($B), debt/GDP, interest rate, approval, military strength index
+const POWER_INIT = {
+  USA: { gdp: 5963, debtGdp: 0.54, rate: 8.0, approval: 60, military: 100, growth: 2.5,
+         tempoMax: 3, reserveCurrency: true, carriers: 11, bases: 28, allies: ['NATO','JP','KR'],
+         doctrine: 'Liberal Hegemon' },
+  CHN: { gdp: 361, debtGdp: 0.16, rate: 9.0, approval: 70, military: 35, growth: 9.0,
+         tempoMax: 3, reserveCurrency: false, carriers: 0, bases: 2, allies: ['DPRK'],
+         doctrine: 'Reform & Opening' },
+  RUS: { gdp: 506, debtGdp: 0.45, rate: 14.0, approval: 35, military: 70, growth: -3.0,
+         tempoMax: 3, reserveCurrency: false, carriers: 1, bases: 12, allies: ['CSTO'],
+         doctrine: 'Recovery' },
+  EU:  { gdp: 6800, debtGdp: 0.55, rate: 7.5, approval: 55, military: 65, growth: 2.0,
+         tempoMax: 2, reserveCurrency: false, carriers: 2, bases: 8, allies: ['internal'],
+         doctrine: 'Civilian Power' },
+};
+
+// Contested middle powers. Initial alignment toward each bloc (0-100). Sum ≤ 100, rest = neutral.
+// Coords are on the 1000x500 SVG canvas (rough geographic layout).
+const COUNTRIES = {
+  // MENA
+  SAU: { name: 'Saudi Arabia', region: 'MENA', gdp: 117, growth: 4, x: 600, y: 280, w: 50, h: 40,
+         ali: { USA: 65, CHN: 5,  RUS: 5,  EU: 10 }, traits: ['oil','chokepoint:hormuz'] },
+  IRN: { name: 'Iran',         region: 'MENA', gdp: 120, growth: 2, x: 640, y: 230, w: 55, h: 35,
+         ali: { USA: 0,  CHN: 15, RUS: 30, EU: 5  }, traits: ['oil','chokepoint:hormuz','sanctioned'] },
+  TUR: { name: 'Turkey',       region: 'MENA', gdp: 207, growth: 5, x: 555, y: 220, w: 48, h: 28,
+         ali: { USA: 60, CHN: 5,  RUS: 5,  EU: 25 }, traits: ['nato','chokepoint:bosphorus'] },
+  EGY: { name: 'Egypt',        region: 'MENA', gdp:  43, growth: 4, x: 545, y: 270, w: 40, h: 30,
+         ali: { USA: 50, CHN: 5,  RUS: 10, EU: 15 }, traits: ['chokepoint:suez'] },
+  // Asia
+  IND: { name: 'India',        region: 'Asia', gdp: 326, growth: 6, x: 730, y: 280, w: 65, h: 45,
+         ali: { USA: 10, CHN: 0,  RUS: 30, EU: 10 }, traits: ['nuclear','rising'] },
+  PAK: { name: 'Pakistan',     region: 'Asia', gdp:  40, growth: 4, x: 695, y: 250, w: 35, h: 25,
+         ali: { USA: 50, CHN: 25, RUS: 0,  EU: 5  }, traits: ['nuclear'] },
+  IDN: { name: 'Indonesia',    region: 'Asia', gdp: 106, growth: 7, x: 830, y: 360, w: 70, h: 25,
+         ali: { USA: 25, CHN: 10, RUS: 5,  EU: 10 }, traits: ['chokepoint:malacca'] },
+  VNM: { name: 'Vietnam',      region: 'Asia', gdp:   6, growth: 8, x: 815, y: 305, w: 25, h: 30,
+         ali: { USA: 0,  CHN: 0,  RUS: 50, EU: 5  }, traits: ['post-war'] },
+  // Americas
+  BRA: { name: 'Brazil',       region: 'Americas', gdp: 461, growth: 3, x: 290, y: 360, w: 75, h: 60,
+         ali: { USA: 30, CHN: 5,  RUS: 5,  EU: 20 }, traits: ['rising'] },
+  MEX: { name: 'Mexico',       region: 'Americas', gdp: 263, growth: 4, x: 180, y: 270, w: 50, h: 35,
+         ali: { USA: 70, CHN: 5,  RUS: 0,  EU: 10 }, traits: [] },
+  // Africa
+  NGA: { name: 'Nigeria',      region: 'Africa', gdp:  28, growth: 6, x: 510, y: 320, w: 35, h: 35,
+         ali: { USA: 15, CHN: 5,  RUS: 10, EU: 25 }, traits: ['oil'] },
+  ZAF: { name: 'South Africa', region: 'Africa', gdp: 112, growth: 1, x: 560, y: 410, w: 48, h: 35,
+         ali: { USA: 25, CHN: 5,  RUS: 5,  EU: 30 }, traits: [] },
+};
+
+// Power "home" rectangles for the map (just for visual presence)
+const POWER_GEOM = {
+  USA: { x:  90, y: 200, w: 140, h: 70, label: 'USA' },
+  CHN: { x: 760, y: 230, w:  90, h: 60, label: 'CHN' },
+  RUS: { x: 600, y: 130, w: 280, h: 65, label: 'RUSSIA' },
+  EU:  { x: 470, y: 175, w:  90, h: 50, label: 'EU' },
+};
+
+const CHOKEPOINTS = {
+  hormuz:    { x: 645, y: 270, label: 'Hormuz',    affects: ['SAU','IRN'] },
+  malacca:   { x: 798, y: 340, label: 'Malacca',   affects: ['IDN','VNM','CHN'] },
+  suez:      { x: 555, y: 257, label: 'Suez',      affects: ['EGY','EU'] },
+  bosphorus: { x: 555, y: 213, label: 'Bosphorus', affects: ['TUR','RUS'] },
+  panama:    { x: 200, y: 318, label: 'Panama',    affects: ['MEX','USA'] },
+};
+
+// Action catalog. cost is { tempo, money } for one-shot; upkeep is per year.
+const ACTIONS = {
+  loan:    { name: 'Issue Loan / Aid',      tempo: 1, money: 5,  upkeep: 0,  swing: 18, desc: '$5B grant or concessional loan. Big short-term goodwill.' },
+  trade:   { name: 'Sign Trade Deal',        tempo: 1, money: 0,  upkeep: 0,  swing: 10, desc: 'Permanent +0.5/yr alignment drift while in force. Can be torn up by tariff war.' },
+  base:    { name: 'Build Forward Base',     tempo: 2, money: 8,  upkeep: 4,  swing: 14, desc: 'Permanent presence. +0.4/yr alignment drift. Hard target if war breaks out.' },
+  carrier: { name: 'Deploy Carrier Group',   tempo: 2, money: 0,  upkeep: 6,  swing: 12, desc: 'Coastal projection. Contests rival access. Requires available carrier.' },
+  intel:   { name: 'Intel Operation',        tempo: 1, money: 2,  upkeep: 0,  swing: 8,  desc: 'Covert. 60% chance of swing, 15% chance of blowback (-10).' },
+  pact:    { name: 'Defense Pact',           tempo: 2, money: 0,  upkeep: 2,  swing: 25, desc: 'Locks alignment ≥60. Target enters your security umbrella. Requires alignment ≥55.' },
+};
+
+// =============== STATE ===============
+let S = null;
+
+function newGame(playerPower) {
+  S = {
+    year: 1990,
+    player: playerPower,
+    powers: {},
+    countries: {},
+    log: [],
+    activeEvents: [],
+    chokepointsClosed: {}, // key: { closedUntil: year }
+    presence: {},          // power -> country -> { trade, base, carrier, pact, loans }
+    tempo: {},             // power -> remaining tempo this turn
+    selected: null,
+    budget: {},            // power -> {mil, soc, infra}  (% of GDP)
+    lowApprovalStreak: 0,  // reset each newGame — was leaking between games
+    holdStreak: 0,         // reset each newGame — was leaking between games
+    score: { USA: 0, CHN: 0, RUS: 0, EU: 0 },
+    over: false,
+    lastEventYear: 0,
+  };
+  for (const p of POWERS) {
+    S.powers[p] = JSON.parse(JSON.stringify(POWER_INIT[p]));
+    S.presence[p] = {};
+    S.tempo[p] = POWER_INIT[p].tempoMax;
+    // default budget: balanced
+    S.budget[p] = { mil: p === 'USA' ? 5 : (p === 'RUS' ? 7 : 3),
+                    soc: p === 'EU' ? 22 : 15,
+                    infra: 4 };
+  }
+  for (const c of Object.keys(COUNTRIES)) {
+    S.countries[c] = JSON.parse(JSON.stringify(COUNTRIES[c]));
+  }
+  log('event', `${S.year}: Cold War ends. United States enters unipolar moment. You take office as ${POWER_NAME[playerPower]}.`);
+  render();
+}
+
+// =============== UTIL ===============
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function fmt$(v) { return '$' + (v >= 1000 ? (v/1000).toFixed(1) + 'T' : v.toFixed(0) + 'B'); }
+function fmtPct(v, digits=0) { return (v*100).toFixed(digits) + '%'; }
+function rand(a, b) { return a + Math.random() * (b - a); }
+function pick(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+
+function log(kind, msg) {
+  S.log.unshift({ kind, msg, year: S.year });
+  if (S.log.length > 200) S.log.pop();
+}
+
+// alignment helper
+function aliSum(c) { return Object.values(c.ali).reduce((a,b)=>a+b,0); }
+function neutral(c) { return Math.max(0, 100 - aliSum(c)); }
+// Defense Pact locks the pacted power's alignment at a floor of 60 while active.
+function pactFloor(country, power) {
+  const pr = S.presence[power] && S.presence[power][country];
+  return (pr && pr.pact) ? 60 : 0;
+}
+
+function aliShift(country, power, delta) {
+  const c = S.countries[country];
+  c.ali[power] = clamp((c.ali[power]||0) + delta, pactFloor(country, power), 100);
+  // Drain neutral first; if no neutral, take from rivals proportionally —
+  // but never below a rival's own pact floor.
+  let total = aliSum(c);
+  if (total > 100) {
+    const excess = total - 100;
+    const others = POWERS.filter(p => p !== power);
+    const room = {};
+    let roomSum = 0;
+    for (const p of others) { room[p] = Math.max(0, (c.ali[p]||0) - pactFloor(country, p)); roomSum += room[p]; }
+    if (roomSum > 0) {
+      for (const p of others) {
+        const share = Math.min(room[p], excess * room[p] / roomSum);
+        c.ali[p] = Math.max(pactFloor(country, p), (c.ali[p]||0) - share);
+      }
+    }
+  }
+}
+
+// =============== INFLUENCE SCORE ===============
+function computeScore(power) {
+  // Influence = sum over countries of (alignment * country GDP) + own GDP * 2 + military
+  let s = 0;
+  for (const k of Object.keys(S.countries)) {
+    const c = S.countries[k];
+    s += (c.ali[power]||0) / 100 * c.gdp;
+  }
+  s += S.powers[power].gdp * 0.5;
+  s += S.powers[power].military * 5;
+  return Math.round(s);
+}
+
+function weightedAlignmentShare(power) {
+  // Share of (sum of country GDP) aligned to this power
+  let totalGdp = 0, mineGdp = 0;
+  for (const k of Object.keys(S.countries)) {
+    const c = S.countries[k];
+    totalGdp += c.gdp;
+    mineGdp += (c.ali[power]||0)/100 * c.gdp;
+  }
+  return totalGdp > 0 ? mineGdp / totalGdp : 0;
+}
+
+// =============== ACTIONS ===============
+function canAct(power, action, target) {
+  const A = ACTIONS[action];
+  const P = S.powers[power];
+  if (S.tempo[power] < A.tempo) return [false, 'No tempo left.'];
+  if (P.gdp * P.debtGdp > P.gdp * 3) return [false, 'Debt too high.'];
+  if (action === 'pact') {
+    if ((S.countries[target].ali[power]||0) < 55) return [false, 'Need alignment ≥55 first.'];
+    if (S.presence[power][target]?.pact) return [false, 'Already in pact.'];
+  }
+  if (action === 'carrier') {
+    const deployed = Object.values(S.presence[power]).filter(x => x.carrier).length;
+    if (deployed >= P.carriers) return [false, 'No carriers available.'];
+    if (!isCoastal(target)) return [false, 'Country not coastal.'];
+  }
+  if (action === 'base') {
+    if (S.presence[power][target]?.base) return [false, 'Already have a base there.'];
+  }
+  return [true, ''];
+}
+
+function isCoastal(country) {
+  // most are coastal in our set; landlocked exceptions: none in this list (all have coast)
+  return true;
+}
+
+function doAction(power, action, target) {
+  const [ok, why] = canAct(power, action, target);
+  if (!ok) { log('crisis', `Action blocked: ${why}`); return false; }
+  const A = ACTIONS[action];
+  const P = S.powers[power];
+  S.tempo[power] -= A.tempo;
+  // pay one-shot money via debt issue
+  if (A.money > 0) {
+    P.debtGdp += A.money / P.gdp;
+  }
+  // record presence
+  if (!S.presence[power][target]) S.presence[power][target] = { trade:false, base:false, carrier:false, pact:false, loans:0 };
+  const pres = S.presence[power][target];
+  if (action === 'trade')   pres.trade = true;
+  if (action === 'base')    pres.base = true;
+  if (action === 'carrier') pres.carrier = true;
+  if (action === 'pact')    pres.pact = true;
+  if (action === 'loan')    pres.loans += 1;
+
+  // alignment swing
+  let swing = A.swing;
+  if (action === 'intel') {
+    const r = Math.random();
+    if (r < 0.6) { aliShift(target, power, swing); log('event', `Intel op in ${S.countries[target].name} succeeds: +${swing} ${power}.`); }
+    else if (r < 0.75) { aliShift(target, power, -10); log('crisis', `Intel op in ${S.countries[target].name} blown — hostile reaction.`); }
+    else { log('event', `Intel op in ${S.countries[target].name}: inconclusive.`); }
+  } else {
+    aliShift(target, power, swing);
+    if (power === S.player) log('event', `${A.name} → ${S.countries[target].name}: +${swing} alignment.`);
+  }
+
+  return true;
+}
+
+// =============== ECONOMY TICK ===============
+function annualEconomy() {
+  for (const p of POWERS) {
+    const P = S.powers[p];
+    const B = S.budget[p];
+
+    // Base growth modified by infrastructure spend, social spend, military spend, rate, debt.
+    // Compute each year freshly from a persistent base so settings don't ratchet
+    // the growth rate cumulatively toward the clamp.
+    if (P.baseGrowth === undefined) P.baseGrowth = P.growth;
+    let growth = P.baseGrowth;
+    growth += (B.infra - 4) * 0.5;        // infra above 4% boosts growth
+    growth -= Math.max(0, B.mil - 6) * 0.3; // overspending on military hurts
+    growth -= Math.max(0, P.rate - 6) * 0.2; // high rates slow growth
+    growth -= Math.max(0, P.debtGdp - 1.0) * 1.5; // overhang
+    // big deficits stimulate short-run but not modeled deeply
+    growth = clamp(growth + rand(-1.0, 1.0), -8, 12);
+    P.growth = growth; // store effective growth for display only (not fed back as base)
+    P.gdp = P.gdp * (1 + growth/100);
+
+    // Tax revenue (simplified): 20% of GDP for OECD-ish, 15% for CHN/RUS
+    const taxRate = (p === 'CHN' || p === 'RUS') ? 0.15 : 0.20;
+    const revenue = P.gdp * taxRate;
+    const spend = P.gdp * (B.mil + B.soc + B.infra) / 100;
+    const interest = P.gdp * P.debtGdp * (P.rate/100);
+    // upkeep from forces
+    let upkeep = P.carriers * 0.5 + P.bases * 0.3;
+    for (const c of Object.keys(S.presence[p])) {
+      const pr = S.presence[p][c];
+      if (pr.base) upkeep += ACTIONS.base.upkeep;
+      if (pr.carrier) upkeep += ACTIONS.carrier.upkeep;
+      if (pr.pact) upkeep += ACTIONS.pact.upkeep;
+    }
+    const totalSpend = spend + interest + upkeep;
+    const deficit = totalSpend - revenue;
+    P.debtGdp = clamp(P.debtGdp + deficit / P.gdp, 0, 5);
+
+    // Rates: central bank target. Player chooses, but reality nudges toward fundamentals if extreme.
+    // (No autoshift — player keeps the dial they set.)
+
+    // Military: budget mil% drives military index
+    const milTarget = B.mil * (p === 'USA' ? 18 : p === 'RUS' ? 14 : p === 'CHN' ? 13 : 11);
+    P.military += (milTarget - P.military) * 0.15;
+    P.military = clamp(P.military, 5, 200);
+
+    // Approval: driven by growth, inflation proxy (rate-related), unemployment proxy (B.soc)
+    let appDelta = 0;
+    appDelta += (growth - 2) * 0.6;
+    appDelta += (B.soc - 15) * 0.3;
+    appDelta -= Math.max(0, P.rate - 8) * 0.4;
+    appDelta -= Math.max(0, P.debtGdp - 1.5) * 1.0;
+    P.approval = clamp(P.approval + appDelta + rand(-2, 2), 0, 100);
+  }
+
+  // Country GDPs grow too
+  for (const k of Object.keys(S.countries)) {
+    const c = S.countries[k];
+    c.gdp *= (1 + (c.growth + rand(-1.5, 1.5)) / 100);
+    // Trade deals slowly drift alignment
+    for (const p of POWERS) {
+      const pr = S.presence[p][k];
+      if (!pr) continue;
+      if (pr.trade) aliShift(k, p, 0.5);
+      if (pr.base)  aliShift(k, p, 0.4);
+      if (pr.carrier) aliShift(k, p, 0.3);
+      if (pr.pact)  aliShift(k, p, 0.6);
+    }
+    // Decay neutral countries' alignments slightly toward equilibrium
+  }
+}
+
+// =============== EVENTS ===============
+const SCRIPTED_EVENTS = [
+  { year: 1991, id: 'gulf_war', title: 'Gulf War', desc: 'Iraq invades Kuwait. Coalition forms. Saudi Arabia begs for protection.',
+    impact: () => {
+      aliShift('SAU', 'USA', 15);
+      S.powers.USA.military += 5;
+      S.powers.USA.debtGdp += 0.02;
+      log('event', '1991: Gulf War. Saudi alignment shifts toward US. US debt ticks up.');
+    } },
+  { year: 1992, id: 'ussr_dissolved', title: 'USSR Dissolution Aftermath', desc: 'Russian economy contracts 14%. Central Asian states open.',
+    impact: () => {
+      S.powers.RUS.gdp *= 0.86;
+      S.powers.RUS.military *= 0.85;
+      log('crisis', '1992: Russian economy contracts 14%, military hollows out.');
+    } },
+  { year: 1997, id: 'asian_crisis', title: 'Asian Financial Crisis', desc: 'Currency runs hit Thailand, Indonesia, Korea. IMF intervenes.',
+    impact: () => {
+      S.countries.IDN.gdp *= 0.85;
+      S.countries.VNM.gdp *= 0.92;
+      log('crisis', '1997: Asian Financial Crisis. Indonesia GDP -15%.');
+      // IMF bailout = US influence
+      aliShift('IDN', 'USA', 8);
+    } },
+  { year: 2001, id: 'terror', title: '9/11-style Attack', desc: 'Mass-casualty terror attack on US soil. War on Terror begins.',
+    impact: () => {
+      S.powers.USA.approval += 15;
+      S.powers.USA.debtGdp += 0.05;
+      S.powers.USA.military += 10;
+      log('crisis', '2001: Mass-casualty attack. US rallies, military spending spikes.');
+    } },
+  { year: 2008, id: 'gfc', title: 'Global Financial Crisis', desc: 'Subprime collapse. Global credit freezes.',
+    impact: () => {
+      S.powers.USA.gdp *= 0.96; S.powers.USA.debtGdp += 0.15; S.powers.USA.approval -= 12;
+      S.powers.EU.gdp  *= 0.96; S.powers.EU.debtGdp  += 0.18;
+      // China relatively cushioned via stimulus
+      S.powers.CHN.debtGdp += 0.08;
+      log('crisis', '2008: Global Financial Crisis. US/EU GDP -4%, debt explodes.');
+    } },
+  { year: 2011, id: 'arab_spring', title: 'Arab Spring', desc: 'Uprisings sweep Egypt, Libya, Syria. Regional alignments wobble.',
+    impact: () => {
+      aliShift('EGY', 'USA', -10);
+      // open neutrality window
+      log('event', '2011: Arab Spring destabilizes Egypt; alignments fluid.');
+    } },
+  { year: 2014, id: 'crimea', title: 'Crimea-style Annexation Window', desc: 'If Russia is strong enough, it may seize a contested region.',
+    impact: () => {
+      if (S.powers.RUS.military > 60) {
+        S.powers.RUS.military += 5;
+        S.powers.RUS.approval += 10;
+        // Sanctions
+        S.powers.RUS.gdp *= 0.94;
+        S.powers.RUS.debtGdp += 0.04;
+        aliShift('VNM', 'RUS', -5);
+        log('crisis', '2014: Russia annexes contested region. West imposes sanctions. RUS GDP -6%.');
+      } else {
+        log('event', '2014: Russia too weak to act on annexation opportunity.');
+      }
+    } },
+  { year: 2020, id: 'pandemic', title: 'Global Pandemic', desc: 'Respiratory virus emerges. Global GDP contracts.',
+    impact: () => {
+      for (const p of POWERS) { S.powers[p].gdp *= 0.95; S.powers[p].debtGdp += 0.10; S.powers[p].approval -= 8; }
+      for (const k of Object.keys(S.countries)) { S.countries[k].gdp *= 0.94; }
+      log('crisis', '2020: Pandemic. Global GDP -5%, public debt +10pp across powers.');
+    } },
+];
+
+// Random events
+const RANDOM_EVENTS = [
+  { id: 'hormuz', title: 'Strait of Hormuz Closure', minYear: 1992, weight: 5,
+    apply: () => {
+      S.chokepointsClosed['hormuz'] = { closedUntil: S.year + 1 };
+      // oil shock: hurts oil importers, helps exporters
+      for (const p of POWERS) {
+        S.powers[p].gdp *= 0.97;
+        S.powers[p].approval -= 5;
+      }
+      S.countries.SAU.gdp *= 1.10;
+      S.countries.IRN.gdp *= 1.10;
+      log('crisis', `${S.year}: Strait of Hormuz closure. Oil shock. Global GDP -3%.`);
+      return { offer: 'force_open_hormuz' };
+    } },
+  { id: 'taiwan_crisis', title: 'Taiwan Strait Crisis', minYear: 2020, weight: 4,
+    apply: () => {
+      // big alignment churn
+      const cnMil = S.powers.CHN.military;
+      const usMil = S.powers.USA.military;
+      log('crisis', `${S.year}: Taiwan Strait Crisis. CHN mil ${cnMil.toFixed(0)} vs USA mil ${usMil.toFixed(0)}.`);
+      if (cnMil > usMil * 0.85) {
+        log('crisis', `   China presses advantage: regional alignment shifts away from US.`);
+        aliShift('IDN','CHN', 10); aliShift('VNM','CHN', 8); aliShift('IDN','USA',-8);
+      } else {
+        log('event', `   US deters; allies rally.`);
+        aliShift('IDN','USA', 8); aliShift('VNM','USA', 5);
+      }
+      S.powers.CHN.gdp *= 0.97;
+      S.powers.USA.debtGdp += 0.02;
+      return null;
+    } },
+  { id: 'tech_breakthrough', title: 'Defense Tech Breakthrough', minYear: 2000, weight: 3,
+    apply: () => {
+      const winner = pick(POWERS);
+      S.powers[winner].military += 15;
+      log('event', `${S.year}: ${winner} achieves military tech breakthrough (stealth/drones/AI). Military +15.`);
+      return null;
+    } },
+  { id: 'climate_disaster', title: 'Climate Disaster', minYear: 2025, weight: 4,
+    apply: () => {
+      const target = pick(Object.keys(S.countries));
+      S.countries[target].gdp *= 0.92;
+      log('crisis', `${S.year}: Climate disaster strikes ${S.countries[target].name}. GDP -8%.`);
+      return null;
+    } },
+  { id: 'coup', title: 'Coup Attempt', minYear: 1992, weight: 3,
+    apply: () => {
+      // pick a country with no defense pact
+      const candidates = Object.keys(S.countries).filter(k => {
+        return !POWERS.some(p => S.presence[p][k]?.pact);
+      });
+      if (!candidates.length) return null;
+      const target = pick(candidates);
+      // alignment scrambles
+      const c = S.countries[target];
+      const oldTop = POWERS.reduce((a,b) => (c.ali[a]||0) > (c.ali[b]||0) ? a : b, 'USA');
+      aliShift(target, oldTop, -20);
+      const beneficiary = pick(POWERS.filter(p => p !== oldTop));
+      aliShift(target, beneficiary, 15);
+      log('crisis', `${S.year}: Coup in ${c.name}. Alignment shifts away from ${oldTop} toward ${beneficiary}.`);
+      return null;
+    } },
+  { id: 'oil_shock', title: 'Oil Price Spike', minYear: 1992, weight: 3,
+    apply: () => {
+      S.countries.SAU.gdp *= 1.06; S.countries.IRN.gdp *= 1.06; S.countries.NGA.gdp *= 1.06;
+      for (const p of POWERS) S.powers[p].gdp *= 0.99;
+      log('event', `${S.year}: Oil prices spike. Petrostates surge.`);
+      return null;
+    } },
+];
+
+function tickEvents() {
+  // Scripted
+  for (const e of SCRIPTED_EVENTS) {
+    if (e.year === S.year) e.impact();
+  }
+  // Random — at most one per year, with cooldown
+  if (S.year - S.lastEventYear >= 2 && Math.random() < 0.45) {
+    const eligible = RANDOM_EVENTS.filter(e => S.year >= e.minYear);
+    if (eligible.length) {
+      const total = eligible.reduce((a,e) => a + e.weight, 0);
+      let r = Math.random() * total;
+      for (const e of eligible) {
+        r -= e.weight;
+        if (r <= 0) { e.apply(); S.lastEventYear = S.year; break; }
+      }
+    }
+  }
+  // Reopen chokepoints whose timer expired
+  for (const k of Object.keys(S.chokepointsClosed)) {
+    if (S.chokepointsClosed[k].closedUntil <= S.year) {
+      delete S.chokepointsClosed[k];
+      log('event', `${S.year}: ${k.charAt(0).toUpperCase()+k.slice(1)} chokepoint reopened.`);
+    }
+  }
+}
+
+// =============== AI ===============
+function aiTurn(power) {
+  // Score countries by potential gain: low alignment + high GDP + region affinity
+  while (S.tempo[power] > 0) {
+    const candidates = [];
+    for (const k of Object.keys(S.countries)) {
+      const c = S.countries[k];
+      const myAli = c.ali[power] || 0;
+      // Look for opportunity: high GDP, room to grow, not already locked by rival pact
+      const lockedByRival = POWERS.some(p => p !== power && S.presence[p][k]?.pact);
+      if (lockedByRival) continue;
+      const score = c.gdp * (1 - myAli/100);
+      candidates.push({ k, score, myAli });
+    }
+    candidates.sort((a,b) => b.score - a.score);
+    if (!candidates.length) break;
+    const target = candidates[0].k;
+    const ali = candidates[0].myAli;
+    // pick action by alignment level
+    let action;
+    if (ali < 30) action = (Math.random() < 0.5 ? 'loan' : 'trade');
+    else if (ali < 55) action = pick(['trade', 'base', 'intel', 'loan']);
+    else if (ali < 80) action = (S.tempo[power] >= 2 ? 'pact' : 'trade');
+    else action = 'trade';
+    // tempo check
+    if (ACTIONS[action].tempo > S.tempo[power]) action = 'loan';
+    const before = S.tempo[power];
+    doAction(power, action, target);
+    if (S.tempo[power] === before) break; // couldn't act — bail
+  }
+}
+
+// =============== TURN LOOP ===============
+function endYear() {
+  if (S.over) return;
+  // AI rivals act
+  for (const p of POWERS) {
+    if (p !== S.player) aiTurn(p);
+  }
+  // Events
+  tickEvents();
+  // Economy
+  annualEconomy();
+  // Scoring
+  for (const p of POWERS) S.score[p] = computeScore(p);
+  // Advance year first so checkEnd sees the correct year
+  S.year += 1;
+  // Win/lose
+  checkEnd();
+  for (const p of POWERS) S.tempo[p] = S.powers[p].tempoMax;
+  render();
+}
+
+function checkEnd() {
+  const me = S.powers[S.player];
+  if (me.debtGdp > 2.5 && me.rate > 12) {
+    endGame(false, `Debt crisis: ${POWER_NAME[S.player]} debt-to-GDP exceeded 250% with rates above 12%. Bond market collapse. Game over.`);
+    return;
+  }
+  if (me.approval < 20) {
+    S.lowApprovalStreak += 1;
+    if (S.lowApprovalStreak >= 3) {
+      endGame(false, `You have lost power. Approval below 20% for 3 consecutive years. Successor takes over.`);
+      return;
+    }
+  } else {
+    S.lowApprovalStreak = 0;
+  }
+  // hegemony
+  const share = weightedAlignmentShare(S.player);
+  if (share >= 0.80) {
+    S.holdStreak += 1;
+    if (S.holdStreak >= 5) {
+      endGame(true, `HEGEMONY ACHIEVED. ${POWER_NAME[S.player]} commands ≥80% of weighted global alignment for 5 consecutive years.`);
+      return;
+    }
+  } else {
+    S.holdStreak = 0;
+  }
+  // end of campaign — 2050 is played, then S.year rolls to 2051 and ends
+  // (campaign runs 1990–2050 inclusive, 61 turns)
+  if (S.year > 2050) {
+    const ranking = POWERS.map(p => ({ p, s: S.score[p] })).sort((a,b) => b.s - a.s);
+    const winner = ranking[0].p;
+    const won = winner === S.player;
+    endGame(won, `Campaign complete (2050). Final standings:\n${ranking.map((r,i) => `${i+1}. ${POWER_NAME[r.p]}: ${r.s}`).join('\n')}`);
+  }
+}
+
+function endGame(won, msg) {
+  S.over = true;
+  document.getElementById('end-modal').style.display = 'flex';
+  document.getElementById('end-title').textContent = won ? 'VICTORY' : 'DEFEAT';
+  document.getElementById('end-title').style.color = won ? 'var(--green)' : 'var(--red)';
+  document.getElementById('end-body').innerHTML = `<pre style="white-space:pre-wrap;color:var(--text);font-family:inherit;font-size:12px;line-height:1.5">${msg}</pre>`;
+  log(won ? 'win' : 'crisis', msg.split('\n')[0]);
+}
+
+// =============== RENDERING ===============
+function dominantPower(c) {
+  let best = 'NEU', bv = neutral(c);
+  for (const p of POWERS) {
+    if ((c.ali[p]||0) > bv) { bv = c.ali[p]||0; best = p; }
+  }
+  return best;
+}
+
+function colorForCountry(c) {
+  const dom = dominantPower(c);
+  if (dom === 'NEU') return 'var(--neutral)';
+  return POWER_COLOR[dom];
+}
+
+function featureForCode(code) {
+  if (!WORLD_DATA) return null;
+  if (CODE_TO_FEATURE_CACHE) return CODE_TO_FEATURE_CACHE.get(code) || null;
+  // For powers/middle powers, find first matching feature (EU has many)
+  return WORLD_DATA.features.find(f => ISO_TO_CODE[+f.id] === code);
+}
+
+function buildMapCaches() {
+  if (!WORLD_DATA || !PATH_GEN) return;
+  FEATURE_PATH_CACHE = new Map();
+  CODE_TO_FEATURE_CACHE = new Map();
+  for (const f of WORLD_DATA.features) {
+    const d = PATH_GEN(f);
+    const c = PATH_GEN.centroid(f);
+    FEATURE_PATH_CACHE.set(f, { d, centroid: c });
+    const code = ISO_TO_CODE[+f.id];
+    // First match wins (EU has many; matches old find() behavior)
+    if (code && !CODE_TO_FEATURE_CACHE.has(code)) {
+      CODE_TO_FEATURE_CACHE.set(code, f);
+    }
+  }
+  const graticule = d3.geoGraticule().step([20, 20]);
+  GRATICULE_PATH_CACHE = PATH_GEN(graticule());
+}
+
+function renderMap() {
+  const svg = document.getElementById('map');
+  if (!WORLD_DATA) {
+    svg.innerHTML = '<rect width="1000" height="500" fill="#0a1420"/><text x="500" y="250" text-anchor="middle" fill="#7a8898" font-family="Consolas" font-size="12" letter-spacing="3">LOADING WORLD MAP…</text>';
+    return;
+  }
+  if (!FEATURE_PATH_CACHE) buildMapCaches();
+  let html = '';
+  // ocean
+  html += `<rect width="1000" height="500" fill="#0a1420"/>`;
+
+  // graticule (latitude/longitude grid) for that situation-room feel — cached
+  html += `<path d="${GRATICULE_PATH_CACHE}" fill="none" stroke="#1a2838" stroke-width="0.4" stroke-opacity="0.6"/>`;
+
+  // countries
+  for (const f of WORLD_DATA.features) {
+    const id = +f.id;
+    const code = ISO_TO_CODE[id];
+    const cached = FEATURE_PATH_CACHE.get(f);
+    const d = cached ? cached.d : null;
+    if (!d) continue;
+    let fill, stroke, opa, cls = '', interactive = false;
+    if (POWERS.includes(code)) {
+      fill = POWER_COLOR[code];
+      opa = S.player === code ? 0.55 : 0.32;
+      stroke = POWER_COLOR[code];
+      cls = `power power-${code}`;
+    } else if (S.countries[code]) {
+      const c = S.countries[code];
+      const dom = dominantPower(c);
+      fill = dom === 'NEU' ? '#243040' : POWER_COLOR[dom];
+      opa = dom === 'NEU' ? 0.7 : 0.30 + ((c.ali[dom]||0)/100) * 0.55;
+      stroke = dom === 'NEU' ? '#3d5070' : POWER_COLOR[dom];
+      cls = `country middle${S.selected === code ? ' selected' : ''}`;
+      interactive = true;
+    } else {
+      fill = '#11161e';
+      opa = 0.85;
+      stroke = '#2a3548';
+    }
+    const dataAttr = interactive ? `data-k="${code}"` : '';
+    html += `<path class="${cls}" ${dataAttr} d="${d}" fill="${fill}" fill-opacity="${opa}" stroke="${stroke}" stroke-opacity="0.7" stroke-width="0.6"/>`;
+  }
+
+  // power labels — hand-picked anchors so wrap-around features land correctly
+  const POWER_LABEL_LL = { USA: [-98, 39], CHN: [104, 36], RUS: [85, 62], EU: [10, 50] };
+  for (const p of POWERS) {
+    const pt = PROJECTION(POWER_LABEL_LL[p]);
+    if (pt && !isNaN(pt[0])) {
+      html += `<text x="${pt[0]}" y="${pt[1] + 4}" class="country-label" style="font-size:14px;font-weight:bold;letter-spacing:3px;fill:rgba(255,255,255,0.92)">${p}</text>`;
+    }
+  }
+
+  // middle-power labels (3-letter code at centroid)
+  for (const k of Object.keys(S.countries)) {
+    const f = featureForCode(k);
+    if (!f) continue;
+    const cached = FEATURE_PATH_CACHE.get(f);
+    const c = cached ? cached.centroid : PATH_GEN.centroid(f);
+    if (isNaN(c[0])) continue;
+    html += `<text x="${c[0]}" y="${c[1] + 3}" class="country-label" style="font-size:9px;letter-spacing:1.5px">${k}</text>`;
+  }
+
+  // chokepoints
+  for (const k of Object.keys(CHOKE_LATLON)) {
+    const cp = CHOKE_LATLON[k];
+    const pt = PROJECTION(cp.lonlat);
+    if (!pt) continue;
+    const closed = S.chokepointsClosed[k] ? ' closed' : '';
+    html += `<circle class="chokepoint${closed}" cx="${pt[0]}" cy="${pt[1]}" r="5"/>`;
+    html += `<text x="${pt[0]}" y="${pt[1] - 8}" class="country-label" style="fill:var(--amber);font-size:8px">${cp.label}</text>`;
+  }
+
+  // presence markers — at country centroid, jittered per power
+  for (const p of POWERS) {
+    for (const k of Object.keys(S.presence[p])) {
+      const pres = S.presence[p][k];
+      const f = featureForCode(k);
+      if (!f) continue;
+      const cached = FEATURE_PATH_CACHE.get(f);
+      const c = cached ? cached.centroid : PATH_GEN.centroid(f);
+      if (isNaN(c[0])) continue;
+      const offs = { USA: [-14, -8], CHN: [14, -8], RUS: [-14, 10], EU: [14, 10] }[p];
+      const cx = c[0] + offs[0];
+      const cy = c[1] + offs[1];
+      let icons = '';
+      if (pres.base)    icons += '▲';
+      if (pres.carrier) icons += '◆';
+      if (pres.pact)    icons += '★';
+      if (pres.trade)   icons += '·';
+      if (pres.loans)   icons += '$';
+      if (icons) {
+        html += `<text x="${cx}" y="${cy}" style="font-size:11px;fill:${POWER_COLOR[p]};text-anchor:middle;pointer-events:none;font-weight:bold;text-shadow:0 0 3px #000">${icons}</text>`;
+      }
+    }
+  }
+
+  svg.innerHTML = html;
+  svg.querySelectorAll('.country.middle').forEach(el => {
+    el.addEventListener('click', () => { S.selected = el.dataset.k; render(); });
+  });
+}
+
+async function loadWorld() {
+  try {
+    const topo = await fetch('/countries-110m.json').then(r => r.json());
+    WORLD_DATA = topojson.feature(topo, topo.objects.countries);
+    PROJECTION = d3.geoEqualEarth().fitSize([1000, 500], WORLD_DATA);
+    PATH_GEN = d3.geoPath(PROJECTION);
+    buildMapCaches();
+    if (S) render();
+  } catch (e) {
+    console.error('Map load failed', e);
+    const svg = document.getElementById('map');
+    if (svg) svg.innerHTML = '<rect width="1000" height="500" fill="#0a1420"/><text x="500" y="250" text-anchor="middle" fill="#ff5050" font-family="Consolas" font-size="11">MAP DATA FAILED TO LOAD — CHECK NETWORK</text>';
+  }
+}
+loadWorld();
+
+function renderTopbar() {
+  const me = S.powers[S.player];
+  document.getElementById('t-year').textContent = S.year;
+  document.getElementById('t-power').textContent = S.player;
+  document.getElementById('t-power').style.color = POWER_COLOR[S.player];
+  document.getElementById('t-gdp').textContent = fmt$(me.gdp);
+  document.getElementById('t-debt').textContent = (me.debtGdp*100).toFixed(0) + '%';
+  document.getElementById('t-debt').className = me.debtGdp > 1.5 ? 'bad' : (me.debtGdp > 1.0 ? 'warn' : '');
+  document.getElementById('t-rate').textContent = me.rate.toFixed(1) + '%';
+  const apEl = document.getElementById('t-app');
+  apEl.textContent = me.approval.toFixed(0) + '%';
+  apEl.style.color = me.approval < 30 ? 'var(--red)' : (me.approval < 45 ? 'var(--amber)' : 'var(--text)');
+  document.getElementById('t-tempo').textContent = `${S.tempo[S.player]} / ${me.tempoMax}`;
+  document.getElementById('t-score').textContent = computeScore(S.player);
+}
+
+function renderDomestic() {
+  const P = S.powers[S.player];
+  document.getElementById('dom-power').textContent = POWER_NAME[S.player];
+  document.getElementById('dom-power').style.color = POWER_COLOR[S.player];
+  let h = '';
+  h += `<div class="stat-row"><span>Doctrine</span><span>${P.doctrine}</span></div>`;
+  h += `<div class="stat-row"><span>GDP</span><span>${fmt$(P.gdp)}</span></div>`;
+  h += `<div class="stat-row"><span>Growth (last yr)</span><span class="${P.growth>=2?'good':(P.growth<0?'bad':'')}">${P.growth.toFixed(1)}%</span></div>`;
+  h += `<div class="stat-row"><span>Debt / GDP</span><span class="${P.debtGdp>1.5?'bad':P.debtGdp>1.0?'warn':''}">${(P.debtGdp*100).toFixed(0)}%</span></div>`;
+  h += `<div class="stat-row"><span>Approval</span><span class="${P.approval<30?'bad':P.approval>60?'good':''}">${P.approval.toFixed(0)}%</span></div>`;
+  h += `<div class="stat-row"><span>Military Index</span><span>${P.military.toFixed(0)}</span></div>`;
+  h += `<div style="margin-top:8px"><div style="font-size:10px;color:var(--dim);margin-bottom:2px">CENTRAL BANK RATE</div>`;
+  h += `<input type="range" min="0" max="20" step="0.25" value="${P.rate}" oninput="setRate(this.value)" style="width:100%"></div>`;
+  h += `<div style="text-align:right;font-size:11px"><span id="rate-val">${P.rate.toFixed(2)}%</span></div>`;
+  document.getElementById('domestic').innerHTML = h;
+}
+
+function setRate(v) {
+  S.powers[S.player].rate = parseFloat(v);
+  document.getElementById('rate-val').textContent = parseFloat(v).toFixed(2) + '%';
+  document.getElementById('t-rate').textContent = parseFloat(v).toFixed(1) + '%';
+}
+
+function renderBudget() {
+  const B = S.budget[S.player];
+  let h = '';
+  const sliders = [['mil','Military',0,15],['soc','Social',0,30],['infra','Infra',0,12]];
+  for (const [k,nm,lo,hi] of sliders) {
+    h += `<div class="slider-row"><span>${nm}</span><input type="range" min="${lo}" max="${hi}" step="0.5" value="${B[k]}" oninput="setBudget('${k}', this.value)"><span id="b-${k}">${B[k].toFixed(1)}%</span></div>`;
+  }
+  const total = B.mil + B.soc + B.infra;
+  h += `<div style="margin-top:6px;font-size:11px;color:var(--dim)">Total spend: <b style="color:var(--text)">${total.toFixed(1)}% GDP</b></div>`;
+  document.getElementById('budget').innerHTML = h;
+}
+
+function setBudget(k, v) {
+  S.budget[S.player][k] = parseFloat(v);
+  document.getElementById('b-'+k).textContent = parseFloat(v).toFixed(1) + '%';
+}
+
+function renderForces() {
+  const P = S.powers[S.player];
+  let h = '';
+  h += `<div class="stat-row"><span>Carrier groups</span><span>${P.carriers}</span></div>`;
+  h += `<div class="stat-row"><span>Forward bases (legacy)</span><span>${P.bases}</span></div>`;
+  // count active deployments
+  let bases=0, carriers=0, pacts=0, trades=0, loans=0;
+  for (const k of Object.keys(S.presence[S.player])) {
+    const pr = S.presence[S.player][k];
+    if (pr.base) bases++;
+    if (pr.carrier) carriers++;
+    if (pr.pact) pacts++;
+    if (pr.trade) trades++;
+    loans += pr.loans;
+  }
+  h += `<div class="stat-row"><span>New bases</span><span>${bases}</span></div>`;
+  h += `<div class="stat-row"><span>Deployed carriers</span><span>${carriers} / ${P.carriers}</span></div>`;
+  h += `<div class="stat-row"><span>Defense pacts</span><span>${pacts}</span></div>`;
+  h += `<div class="stat-row"><span>Trade deals</span><span>${trades}</span></div>`;
+  h += `<div class="stat-row"><span>Loans extended</span><span>${loans}</span></div>`;
+  document.getElementById('forces').innerHTML = h;
+}
+
+function renderRivals() {
+  let h = '';
+  for (const p of POWERS) {
+    if (p === S.player) continue;
+    const P = S.powers[p];
+    h += `<div style="border:1px solid var(--border);padding:5px;margin-bottom:4px">`;
+    h += `<div style="display:flex;justify-content:space-between"><b style="color:${POWER_COLOR[p]}">${p}</b><span>${computeScore(p)}</span></div>`;
+    h += `<div style="font-size:10px;color:var(--dim)">GDP ${fmt$(P.gdp)} · Mil ${P.military.toFixed(0)} · Debt ${(P.debtGdp*100).toFixed(0)}%</div>`;
+    h += `</div>`;
+  }
+  document.getElementById('rivals').innerHTML = h;
+}
+
+function renderSelected() {
+  const el = document.getElementById('selected');
+  if (!S.selected) { el.innerHTML = '<div style="color:var(--dim)">Click a country on the map.</div>'; return; }
+  const c = S.countries[S.selected];
+  let h = `<div style="font-size:14px;color:var(--amber);font-weight:bold;letter-spacing:2px">${c.name.toUpperCase()}</div>`;
+  h += `<div style="color:var(--dim);font-size:10px">${c.region} · GDP ${fmt$(c.gdp)} · Growth ${c.growth.toFixed(1)}%</div>`;
+  if (c.traits.length) h += `<div style="margin-top:4px">${c.traits.map(t=>`<span class="pill">${t}</span>`).join('')}</div>`;
+  // alignment bars
+  h += `<div class="alignment-bars" style="margin-top:8px">`;
+  for (const p of POWERS) {
+    const v = c.ali[p] || 0;
+    h += `<div class="ali-row"><span class="pill ${p.toLowerCase()}">${p}</span><div class="ali-bar"><div style="width:${v}%;background:${POWER_COLOR[p]}"></div></div><span>${v.toFixed(0)}</span></div>`;
+  }
+  const nv = neutral(c);
+  h += `<div class="ali-row"><span class="pill" style="background:rgba(96,112,128,0.3);color:var(--neutral)">NEU</span><div class="ali-bar"><div style="width:${nv}%;background:var(--neutral)"></div></div><span>${nv.toFixed(0)}</span></div>`;
+  h += `</div>`;
+
+  // your presence
+  const pres = S.presence[S.player][S.selected];
+  if (pres) {
+    const items = [];
+    if (pres.base) items.push('Base');
+    if (pres.carrier) items.push('Carrier');
+    if (pres.pact) items.push('Pact');
+    if (pres.trade) items.push('Trade Deal');
+    if (pres.loans) items.push(`Loans×${pres.loans}`);
+    if (items.length) h += `<div style="margin-top:6px;font-size:10px;color:var(--dim)">YOUR PRESENCE: <span style="color:${POWER_COLOR[S.player]}">${items.join(', ')}</span></div>`;
+  }
+
+  // actions
+  h += `<div class="actions"><div class="section-title" style="margin-top:10px">Actions</div>`;
+  for (const k of Object.keys(ACTIONS)) {
+    const A = ACTIONS[k];
+    const [ok, why] = canAct(S.player, k, S.selected);
+    const dis = ok ? '' : 'disabled';
+    const tip = ok ? A.desc : (A.desc + ' [' + why + ']');
+    h += `<button ${dis} title="${tip}" onclick="playerAction('${k}','${S.selected}')"><span>${A.name}</span><span class="cost">${A.tempo}T${A.money?` · $${A.money}B`:''}</span></button>`;
+  }
+  h += `</div>`;
+  el.innerHTML = h;
+}
+
+function playerAction(action, target) {
+  if (S.over) return;
+  doAction(S.player, action, target);
+  render();
+}
+
+function renderLog() {
+  const el = document.getElementById('log');
+  el.innerHTML = S.log.slice(0, 30).map(e => `<div class="log-entry ${e.kind}">[${e.year}] ${e.msg}</div>`).join('');
+}
+
+function renderEvents() {
+  const el = document.getElementById('events');
+  // Show chokepoint closures + scripted upcoming
+  let h = '';
+  for (const k of Object.keys(S.chokepointsClosed)) {
+    h += `<div class="event-card"><div class="title">${k.toUpperCase()} CLOSED</div><div class="desc">Chokepoint blocked. Trade and naval transit disrupted until ${S.chokepointsClosed[k].closedUntil}.</div></div>`;
+  }
+  // Show upcoming scripted in next 3 years
+  const upcoming = SCRIPTED_EVENTS.filter(e => e.year >= S.year && e.year <= S.year + 3);
+  if (upcoming.length) {
+    for (const e of upcoming) {
+      h += `<div style="font-size:10px;color:var(--dim);margin-top:4px">${e.year}: ${e.title}</div>`;
+    }
+  }
+  if (!h) h = '<div style="color:var(--dim);font-size:11px">Quiet on the diplomatic front.</div>';
+  el.innerHTML = h;
+}
+
+function render() {
+  renderTopbar();
+  renderDomestic();
+  renderBudget();
+  renderForces();
+  renderRivals();
+  renderMap();
+  renderSelected();
+  renderLog();
+  renderEvents();
+}
+
+// =============== INIT ===============
+document.querySelectorAll('[data-pick]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.getElementById('start-modal').style.display = 'none';
+    document.getElementById('app').style.display = 'grid';
+    newGame(b.dataset.pick);
+  });
+});
+document.getElementById('end-turn').addEventListener('click', endYear);
+window.setRate = setRate;
+window.setBudget = setBudget;
+window.playerAction = playerAction;
+</script>
+<section class="seo-content">
+  <h2>About Doctrine</h2>
+  <p>Doctrine is a geopolitical simulation spanning 1990 to 2050. Take charge of a major or minor power; navigate post-Cold-War alliances, manage economic and military doctrine, and respond to procedurally generated crises. Aerobiz-style decisions on a real d3-geo world map.</p>
+
+  <h3>How to play</h3>
+  <p>Annual turns from 1990 to 2050 (61 turns). Each year: review intelligence, set foreign-policy posture, allocate military and economic budgets, respond to crises. Non-deterministic events (recessions, civil wars, climate shocks) inject realism. Win condition is open — accumulate national capability score across the full campaign.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How accurate is the geopolitics?</summary><p>Doctrine's economic and military models are simplified but draw on real datasets (Maddison historical GDP, SIPRI military expenditure). Specific event probabilities are tuned for replayability over historical accuracy.</p></details>
+  <details><summary>Can I play as a minor power?</summary><p>Yes. Smaller nations have less budget but more flexibility — alliance-shopping is a viable strategy. Some of the strongest scoring runs come from middle-power coalition-building.</p></details>
+  <details><summary>How long is a campaign?</summary><p>61 annual turns spanning 1990–2050 ≈ 30–60 minutes of real time. Save and resume across sessions.</p></details>
+  <details><summary>Is multiplayer planned?</summary><p>Asymmetric hot-seat (different powers per session) is in design. Real-time multiplayer is not on the near roadmap.</p></details>
+
+  <h2>How the model works</h2>
+  <p>Doctrine is built by engineers, and the whole campaign is a deterministic turn loop wrapped around a handful of transparent equations. It runs <strong>annual turns from 1990 to 2050 inclusive</strong> — 61 turns. Each time you end a year the engine resolves rivals, events, and the economy in a fixed order, then advances the clock and checks win/lose conditions. Nothing is hidden dice-rolling behind the scenes; every number below comes straight from the simulation source.</p>
+
+  <h3>The annual turn cycle</h3>
+  <p>Ending a year runs six steps in sequence: (1) each AI rival spends its <em>tempo</em> on instruments, (2) scripted and random events fire, (3) the economy ticks for all four powers and all twelve middle powers, (4) influence scores are recomputed, (5) the year advances, and (6) win/lose conditions are tested. Tempo — action points per turn — then resets (USA/China/Russia get 3, the fragmented EU gets 2).</p>
+
+  <h3>The economy model</h3>
+  <p>Growth is recomputed fresh every year from a persistent base rate, so budget dials never ratchet the growth number cumulatively toward its clamp. For each power the effective growth is:</p>
+  <p><strong>growth = baseGrowth + (infra − 4)×0.5 − max(0, mil − 6)×0.3 − max(0, rate − 6)×0.2 − max(0, debt/GDP − 1.0)×1.5</strong>, plus ±1 of noise, clamped to the range −8% … +12%.</p>
+  <p>GDP then compounds by that growth. Infrastructure spending above 4% of GDP lifts growth; military spending above 6%, interest rates above 6%, and a debt overhang above 100% of GDP all drag it down. Each year the budget is then balanced against revenue:</p>
+  <table>
+    <thead><tr><th>Line</th><th>Formula</th></tr></thead>
+    <tbody>
+      <tr><td>Tax revenue</td><td>GDP × 20% (15% for China and Russia)</td></tr>
+      <tr><td>Program spend</td><td>GDP × (military% + social% + infra%)</td></tr>
+      <tr><td>Debt interest</td><td>GDP × debt/GDP × rate%</td></tr>
+      <tr><td>Force upkeep</td><td>per-carrier, per-base, plus overseas base/carrier/pact upkeep</td></tr>
+      <tr><td>Deficit</td><td>(spend + interest + upkeep) − revenue → added to debt/GDP</td></tr>
+    </tbody>
+  </table>
+  <p>Debt/GDP is clamped to 0–500%. Military capability eases 15% of the way toward a target set by your military budget each year (clamped 5–200). Approval drifts on growth, social spending, high rates, and debt overhang. Interest rates are a dial you set — there is no automatic central-bank feedback, an honest simplification the dev notes flag as under-tuned.</p>
+
+  <h3>Alignment and diplomacy</h3>
+  <p>Each middle power holds an alignment score (0–100) toward every bloc. Instruments push those scores with a fixed swing on use and a slow yearly drift while the presence remains:</p>
+  <table>
+    <thead><tr><th>Instrument</th><th>Tempo</th><th>Cost</th><th>Swing</th><th>Yearly drift</th></tr></thead>
+    <tbody>
+      <tr><td>Issue Loan / Aid</td><td class="num">1</td><td class="num">$5B</td><td class="num">+18</td><td>—</td></tr>
+      <tr><td>Trade Deal</td><td class="num">1</td><td class="num">0</td><td class="num">+10</td><td class="num">+0.5</td></tr>
+      <tr><td>Forward Base</td><td class="num">2</td><td class="num">$8B</td><td class="num">+14</td><td class="num">+0.4</td></tr>
+      <tr><td>Carrier Group</td><td class="num">2</td><td class="num">upkeep</td><td class="num">+12</td><td class="num">+0.3</td></tr>
+      <tr><td>Intel Op</td><td class="num">1</td><td class="num">$2B</td><td class="num">+8</td><td>probabilistic</td></tr>
+      <tr><td>Defense Pact</td><td class="num">2</td><td class="num">upkeep</td><td class="num">+25</td><td class="num">+0.6</td></tr>
+    </tbody>
+  </table>
+  <p>One-shot costs are financed by issuing debt. Intel operations resolve stochastically: a 60% success chance for the full swing, a 15% chance of blowback (−10), and a 25% chance of nothing. A Defense Pact requires alignment ≥55, then locks that country under a floor and pulls it into your security umbrella. Alignment is effectively zero-sum above saturation: when a country's total alignment across all four blocs would exceed 100, the excess is drained proportionally from rivals — but never below any rival's own pact floor.</p>
+
+  <h3>Scoring</h3>
+  <p>Influence for a power is computed as the GDP-weighted sum of everyone it has drawn toward it, plus a modest premium on its own hard power:</p>
+  <p><strong>score = Σ (alignment ÷ 100 × country GDP) + own GDP × 0.5 + own military × 5</strong></p>
+  <p>Because middle-power GDP dominates that sum, coalition-building among the twelve contested states outscores raw domestic size — the dev notes acknowledge own-military barely moves the needle here.</p>
+
+  <h3>Events and win/lose</h3>
+  <p>History is layered on in two ways. Eight <strong>scripted events</strong> fire on their real years — Gulf War (1991), USSR dissolution (1992), Asian financial crisis (1997), 9/11 (2001), the 2008 GFC, Arab Spring (2011), a Crimea-style annexation window (2014, gated on Russian military strength), and the 2020 pandemic. On top of that, <strong>random events</strong> (Hormuz closure, Taiwan crisis, tech breakthrough, climate disaster, coup, oil spike) draw from a weighted pool with a two-year cooldown and roughly a 45% chance each eligible year, each gated behind a minimum year. The campaign ends with a debt crisis (debt/GDP &gt; 250% and rates &gt; 12%), losing office (approval &lt; 20% for three straight years), hegemony (≥80% of weighted global alignment held for five straight years), or — reaching 2050 — the highest influence score.</p>
+
+  <h3>Where the model is stylized</h3>
+  <p>Doctrine is a playable model, not a forecasting tool. Tax is a flat share of GDP rather than a real fiscal code; interest rates have no inflation feedback; rival AI is a single greedy heuristic that chases the highest-GDP, lowest-alignment target it can afford; listed alliances (NATO, CSTO) are flavor that grants no mechanical bonus; and chokepoint closures apply GDP shocks without physically blocking deployments. Event probabilities are tuned for replayability over historical fidelity. The starting numbers, though, are grounded in real 1990 data (Maddison-style GDP, SIPRI-style military expenditure).</p>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/convergence">Convergence</a> — rival civilizations.</li>
+    <li><a href="/aresia">Aresia</a> — strategic colonization.</li>
+    <li><a href="/biosphereblue">BiosphereBlue</a> — planet-scale geosim.</li>
+    <li><a href="/apoapsis">Apoapsis</a> — 3D rocket flight.</li>
+  </ul>
+</section>
+
+<script src="/analytics.js"></script>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

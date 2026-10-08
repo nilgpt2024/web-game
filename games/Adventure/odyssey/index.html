@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+  (function() {
+    var ua = navigator.userAgent;
+    var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+    if (isPhone) {
+      var meta = document.querySelector('meta[name="viewport"]');
+      if (meta) {
+        var targetWidth = 780;
+        var scale = window.innerWidth / targetWidth;
+        meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+      }
+    }
+  })();
+  </script>
+  <meta name="theme-color" content="#0c1016">
+  <title>Odyssey — Bronze-Age Maritime Strategy | Board Gaming Hub</title>
+  <meta name="description" content="Sail the wine-dark sea. Hex-based bronze-age maritime trade and conquest. Free turn-based strategy, single HTML file, no signup.">
+  <link rel="canonical" href="https://boardgaminghub.com/odyssey">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://boardgaminghub.com/odyssey">
+  <meta property="og:title" content="Odyssey — Bronze-Age Maritime Strategy">
+  <meta property="og:description" content="Free hex-based bronze-age maritime trade and conquest strategy.">
+<meta property="og:image" content="https://boardgaminghub.com/og/odyssey.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/odyssey.png">
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "VideoGame", "name": "Odyssey",
+    "description": "Bronze-age hex-based maritime strategy game of trade, exploration, and rival temples.",
+    "url": "https://boardgaminghub.com/odyssey", "genre": "Strategy",
+    "applicationCategory": "Game", "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛵</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #0A1A1A;
+      color: #B8D0D0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      color: #60C0B0;
+      margin-bottom: 2px;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.6);
+      letter-spacing: 0.18em;
+    }
+
+    .subtitle {
+      font-size: 0.8em;
+      color: #4A8888;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .mode-selector {
+      display: flex;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid #2A6868;
+    }
+
+    .mode-btn {
+      padding: 5px 18px;
+      font-size: 0.9em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: none;
+      background: #0E2222;
+      color: #4A8888;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .mode-btn:not(:last-child) { border-right: 1px solid #2A6868; }
+    .mode-btn.active { background: #1A4848; color: #B8D0D0; cursor: default; }
+    .mode-btn:hover:not(.active) { background: #142E2E; color: #60C0B0; }
+
+    /* Wrath Bar */
+    .tide-bar-wrap {
+      width: 420px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .tide-label {
+      font-size: 0.85em;
+      margin-bottom: 4px;
+      color: #6AA8A0;
+    }
+
+    .tide-bar {
+      width: 100%;
+      height: 22px;
+      background: #0C2020;
+      border-radius: 11px;
+      border: 2px solid #2A6060;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tide-fill {
+      height: 100%;
+      border-radius: 9px;
+      transition: width 0.6s ease, background 0.6s ease;
+      background: linear-gradient(90deg, #1A4868, #2080A0, #30A0C0);
+    }
+
+    .tide-marker {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7em;
+      font-weight: bold;
+      color: #D0F0F0;
+      text-shadow: 0 0 3px #000;
+      pointer-events: none;
+      transition: left 0.6s ease;
+    }
+
+    .tide-direction {
+      font-size: 0.8em;
+      color: #5090A0;
+      margin-top: 2px;
+    }
+
+    /* Player panels */
+    .panels {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .panel {
+      background: #0E1E1E;
+      border: 2px solid #2A4A4A;
+      border-radius: 8px;
+      padding: 8px 12px;
+      min-width: 200px;
+      font-size: 0.78em;
+    }
+
+    .panel.active-panel { border-color: #40A090; }
+
+    .panel h3 {
+      font-size: 1em;
+      margin-bottom: 4px;
+    }
+
+    .p1-color { color: #E8C840; }
+    .p2-color { color: #60C0B0; }
+
+    .panel-row { margin: 2px 0; color: #8AB0B0; }
+    .panel-row span { color: #B8D0D0; }
+
+    /* Message area */
+    #message {
+      font-size: 0.9em;
+      min-height: 20px;
+      margin-bottom: 8px;
+      color: #A0C8C0;
+      text-align: center;
+      max-width: 500px;
+    }
+
+    /* Action buttons */
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .act-btn {
+      padding: 5px 14px;
+      font-size: 0.82em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: 1px solid #2A6060;
+      border-radius: 5px;
+      background: #122828;
+      color: #80B8B0;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    .act-btn:hover:not(:disabled) { background: #1A4040; color: #C0E8E0; border-color: #40A090; }
+    .act-btn:disabled { opacity: 0.4; cursor: default; }
+    .act-btn.selected { background: #1A5050; border-color: #50C0B0; color: #D0F0E8; }
+
+    /* Board */
+    .board-container {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .hex {
+      position: absolute;
+      width: 55px;
+      height: 63px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.5s ease, box-shadow 0.3s;
+      font-size: 0.6em;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .hex-inner {
+      position: absolute;
+      top: 2px; left: 2px; right: 2px; bottom: 2px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.5s ease;
+    }
+
+    /* Terrain colors */
+    .hex-shore .hex-inner { background: #C8A870; }
+    .hex-bog .hex-inner { background: #6B8848; }
+    .hex-cliff .hex-inner { background: #8B8080; }
+    .hex-grove .hex-inner { background: #4A7848; }
+    .hex-highland .hex-inner { background: #5A7050; }
+
+    /* Water */
+    .hex-water .hex-inner {
+      background: #1A3848;
+      animation: waterShimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes waterShimmer {
+      0%, 100% { background-color: #1A3848; }
+      33% { background-color: #1E3E50; }
+      66% { background-color: #183444; }
+    }
+
+    /* Hermes glow */
+    .hex-market {
+      z-index: 2;
+    }
+
+    .hex-market .hex-inner {
+      background: #D4A860 !important;
+      animation: marketPulse 2s ease-in-out infinite !important;
+    }
+
+    @keyframes marketPulse {
+      0%, 100% { background-color: #D4A860; }
+      50% { background-color: #E0C070; }
+    }
+
+    .hex-border { background: #2A4A4A; }
+    .hex-border.hex-water { background: #152E3E; }
+    .hex-border.hex-market { background: #B08840; }
+    .hex-border.hex-highlight { background: #60C0B0; }
+
+    .hex-elev {
+      font-size: 0.85em;
+      color: rgba(255,255,255,0.35);
+      position: absolute;
+      bottom: 10px;
+    }
+
+    .hex-water .hex-elev { color: rgba(150,200,220,0.4); }
+
+    .hex-resources {
+      font-size: 1.4em;
+      line-height: 1;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .hex-struct {
+      font-size: 1.1em;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .hex-terrain-label {
+      font-size: 0.75em;
+      color: rgba(0,0,0,0.4);
+      position: absolute;
+      top: 12px;
+    }
+
+    /* Resource fade in */
+    .res-new {
+      animation: resFadeIn 0.4s ease-out;
+    }
+
+    @keyframes resFadeIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Trireme rendering */
+    .trireme-line {
+      position: absolute;
+      height: 4px;
+      background: #A08030;
+      border: 1px solid #705820;
+      border-radius: 2px;
+      z-index: 5;
+      pointer-events: none;
+      transform-origin: 0 50%;
+    }
+
+    .trireme-line.p1-trireme { background: #C8A830; border-color: #A08020; }
+    .trireme-line.p2-trireme { background: #40A090; border-color: #308070; }
+
+    /* Temple marker */
+    .temple-icon {
+      font-size: 0.9em;
+    }
+
+    /* Hex hover */
+    .hex:hover .hex-inner {
+      filter: brightness(1.15);
+    }
+
+    /* Trade panel */
+    .trade-panel {
+      display: none;
+      background: #0E2222;
+      border: 2px solid #D4A860;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .trade-panel.visible { display: block; }
+
+    .trade-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 0;
+      font-size: 0.82em;
+    }
+
+    .trade-sell-btn {
+      padding: 2px 10px;
+      font-size: 0.8em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: 1px solid #D4A860;
+      border-radius: 4px;
+      background: #1A3030;
+      color: #D4A860;
+    }
+
+    .trade-sell-btn:hover:not(:disabled) { background: #2A4040; }
+    .trade-sell-btn:disabled { opacity: 0.3; cursor: default; }
+
+    /* Rules toggle */
+    .rules-toggle {
+      margin-top: 8px;
+      padding: 5px 16px;
+      font-size: 0.82em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: 1px solid #2A5050;
+      border-radius: 5px;
+      background: #0E1E1E;
+      color: #6AA8A0;
+    }
+
+    .rules-toggle:hover { background: #142828; }
+
+    .rules {
+      display: none;
+      max-width: 520px;
+      background: #0C1818;
+      border: 1px solid #2A4A4A;
+      border-radius: 8px;
+      padding: 14px;
+      margin-top: 8px;
+      font-size: 0.78em;
+      color: #8AB0B0;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .rules.show { display: block; }
+    .rules h4 { color: #60C0B0; margin: 8px 0 4px; }
+    .rules h4:first-child { margin-top: 0; }
+
+    /* End game overlay */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5,15,15,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .overlay.show { display: flex; }
+
+    .overlay-box {
+      background: #0E2222;
+      border: 2px solid #40A090;
+      border-radius: 12px;
+      padding: 24px 36px;
+      text-align: center;
+    }
+
+    .overlay-box h2 {
+      font-size: 1.5em;
+      color: #60C0B0;
+      margin-bottom: 8px;
+    }
+
+    .overlay-box p {
+      margin: 4px 0;
+      font-size: 0.95em;
+    }
+
+    .overlay-box button {
+      margin-top: 14px;
+      padding: 8px 28px;
+      font-size: 1em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: 2px solid #40A090;
+      border-radius: 6px;
+      background: #1A4040;
+      color: #C0E8E0;
+    }
+
+    .overlay-box button:hover { background: #2A5858; }
+
+    /* Poseidon's warning: hexes that drown on the next wrath step */
+    .hex-doomed .hex-inner {
+      animation: doomPulse 1.6s ease-in-out infinite;
+      box-shadow: inset 0 0 0 2px rgba(80, 160, 220, 0.0);
+    }
+    @keyframes doomPulse {
+      0%, 100% { box-shadow: inset 0 0 0 2px rgba(80, 160, 220, 0.15); }
+      50%      { box-shadow: inset 0 0 6px 3px rgba(80, 160, 220, 0.65); }
+    }
+    /* Mobile game nav */
+  </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Board Games","item":"https://boardgaminghub.com/#board"},{"@type":"ListItem","position":3,"name":"Odyssey","item":"https://boardgaminghub.com/odyssey"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I win Odyssey?","acceptedAnswer":{"@type":"Answer","text":"Be the first to 15 victory points to reach Ithaca. Camps and temples score 1 VP each, triremes 2 VP, every 5 trade coins 1 VP, and the largest connected network of your structures adds a 3 VP bonus."}},{"@type":"Question","name":"What is Poseidon's Wrath?","acceptedAnswer":{"@type":"Answer","text":"Each turn the sea level shifts one step along a 1-2-3-4-5-4-3-2-1 cycle. Islands are swallowed when the wrath reaches their elevation, submerging their resources and any camps until the waters fall again. Temples protect an island from the wrath."}},{"@type":"Question","name":"How do I gather resources and trade?","acceptedAnswer":{"@type":"Answer","text":"Camps harvest resources automatically from adjacent revealed hexes. To trade, your camps and triremes must form a connected chain to Hermes' drifting merchant ship — then you sell goods at set prices. You get 2 actions each turn to build, trade, or redirect Hermes' ship."}},{"@type":"Question","name":"How long is a typical game?","acceptedAnswer":{"@type":"Answer","text":"A voyage runs about 25–35 minutes solo against the AI, and roughly 45–60 minutes for a two-player game."}}]}</script>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<h1>ODYSSEY</h1>
+  <div class="subtitle">Upon the Wine-Dark Sea</div>
+
+  <div class="mode-selector">
+    <button class="mode-btn active" onclick="setMode(1)">1 Player</button>
+    <button class="mode-btn" onclick="setMode(2)">2 Players</button>
+  </div>
+
+  <div class="tide-bar-wrap">
+    <div class="tide-label" id="tide-label">Poseidon's Wrath: 1 / 5 &mdash; Gathering</div>
+    <div class="tide-bar">
+      <div class="tide-fill" id="tide-fill" style="width:20%"></div>
+      <div class="tide-marker" id="tide-marker" style="left:10%">1</div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel" id="panel-0">
+      <h3 class="p1-color">Odysseus</h3>
+      <div class="panel-row">VP: <span id="vp-0">0</span> &nbsp; Coins: <span id="coins-0">0</span></div>
+      <div class="panel-row" id="res-0"></div>
+      <div class="panel-row" id="struct-0"></div>
+    </div>
+    <div class="panel" id="panel-1">
+      <h3 class="p2-color">Circe</h3>
+      <div class="panel-row">VP: <span id="vp-1">0</span> &nbsp; Coins: <span id="coins-1">0</span></div>
+      <div class="panel-row" id="res-1"></div>
+      <div class="panel-row" id="struct-1"></div>
+    </div>
+  </div>
+
+  <div id="message">Set sail upon the wine-dark sea. Click "Next Turn" to begin!</div>
+
+  <div class="actions" id="actions">
+    <button class="act-btn" id="btn-next" onclick="advanceTurn()">Next Turn</button>
+    <button class="act-btn" id="btn-build-camp" onclick="selectAction('camp')" disabled>Build Camp</button>
+    <button class="act-btn" id="btn-build-temple" onclick="selectAction('temple')" disabled>Build Temple</button>
+    <button class="act-btn" id="btn-build-trireme" onclick="selectAction('trireme')" disabled>Build Trireme</button>
+    <button class="act-btn" id="btn-trade" onclick="selectAction('trade')" disabled>Trade</button>
+    <button class="act-btn" id="btn-move-market" onclick="selectAction('movemarket')" disabled>Move Hermes</button>
+    <button class="act-btn" id="btn-end" onclick="endActionPhase()" disabled>End Actions</button>
+  </div>
+
+  <div class="trade-panel" id="trade-panel">
+    <div style="font-weight:bold; color:#D4A860; margin-bottom:6px;">Hermes' Ship</div>
+    <div id="trade-rows"></div>
+    <button class="act-btn" style="margin-top:8px;" onclick="closeTrade()">Done Trading</button>
+  </div>
+
+  <div class="board-container" id="board-container"></div>
+
+  <button class="rules-toggle" onclick="toggleRules()">Rules</button>
+  <div class="rules" id="rules-panel">
+    <h4>Overview</h4>
+    Sail the wine-dark sea of Homer's epic. Poseidon's wrath causes the waters to rise and fall, drowning islands and revealing new ones bearing treasures from shipwrecks and gifts of the gods. Hermes' merchant ship drifts between the islands. Establish camps, raise temples, and launch triremes to harvest resources and trade your way to glory.
+
+    <h4>Poseidon's Wrath</h4>
+    Each turn Poseidon's fury shifts one step: 1-2-3-4-5-4-3-2-1-2... Islands are swallowed when the wrath reaches their elevation. Submerged hexes lose resources and camps are temporarily lost beneath the waves.
+
+    <h4>Resources</h4>
+    When islands emerge, treasures wash ashore: Timber (common), Shell, Kelp, Salt, Rock, Pearl (rare, gifts of the gods). Resources decay after 2 turns if not collected. Harvest automatically from hexes adjacent to your camps.
+
+    <h4>Structures</h4>
+    <b>Camp</b> (2 Timber + 1 Shell): Establish a beachhead to harvest from this island and its neighbors. 1 VP.<br>
+    <b>Temple</b> (1 Rock + 2 Kelp): Raise a temple to appease the gods &mdash; protects the island from Poseidon's wrath. 1 VP.<br>
+    <b>Trireme</b> (1 Timber + 1 Salt): Launch a warship connecting two islands even across open sea. 2 VP.
+
+    <h4>Hermes' Ship</h4>
+    The golden merchant vessel of Hermes drifts each turn. If your camps and triremes form a connected chain to Hermes' Ship &mdash; or any of your structures stands on or beside his hex &mdash; you may trade. Prices: Timber 1, Shell 2, Kelp 2, Salt 3, Rock 2, Pearl 6. Hexes shimmering blue will drown on the next wrath step. The lead player alternates each round.
+
+    <h4>Actions</h4>
+    Each turn you get 2 actions: Build a structure, Trade with Hermes, or Redirect Hermes' Ship (costs 1 Pearl).
+
+    <h4>Victory</h4>
+    First to 15 VP reaches Ithaca and wins. Camp/Temple=1 VP, Trireme=2 VP, every 5 coins=1 VP, largest connected network=3 VP bonus.
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-box">
+      <h2 id="overlay-title">Game Over</h2>
+      <p id="overlay-text"></p>
+      <button onclick="resetGame()">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    /* ===== CONSTANTS ===== */
+    var HEX_W = 55;
+    var HEX_H = 63;
+    var ROW_SIZES = [4, 5, 6, 7, 6, 5, 4];
+    var TOTAL_HEXES = 37;
+    var RESOURCE_ICONS = { Timber: '\u{1FAB5}', Shell: '\uD83D\uDC1A', Kelp: '\uD83C\uDF3F', Salt: '\uD83E\uDDC2', Pearl: '\u2728', Rock: '\uD83E\uDEA8' };
+    var TERRAIN_TYPES = ['Shore', 'Bog', 'Stone', 'Grove'];
+    var PRICES = { Timber: 1, Shell: 2, Kelp: 2, Salt: 3, Rock: 2, Pearl: 6 };
+    var PLAYER_COLORS = ['#E8C840', '#60C0B0'];
+    var WIN_VP = 15;
+
+    /* ===== STATE ===== */
+    var mode = 1;
+    var hexes = [];
+    var tideLevel = 1;
+    var tideDirection = 1; // 1 = rising, -1 = falling
+    var turnNumber = 0;
+    var currentPlayer = 0;
+    var phase = 'preturn'; // preturn, action, gameover
+    var actionsLeft = 0;
+    var selectedAction = null;
+    var triremeFirstHex = null;
+    var marketHex = -1;
+    var firstPlayer = 1;   // flipped before each round; round 1 -> Player 1 leads
+    var players = [];
+    var highlightedHexes = [];
+    var gameOver = false;
+    var aiTimer = null;
+
+    /* ===== HEX GEOMETRY ===== */
+    function buildHexPositions() {
+      var positions = [];
+      var idx = 0;
+      var totalRows = ROW_SIZES.length;
+      var maxCols = 7;
+      for (var r = 0; r < totalRows; r++) {
+        var cols = ROW_SIZES[r];
+        var offsetX = (maxCols - cols) * (HEX_W * 0.5);
+        for (var c = 0; c < cols; c++) {
+          var x = offsetX + c * HEX_W;
+          var y = r * (HEX_H * 0.75);
+          positions.push({ idx: idx, row: r, col: c, x: x, y: y });
+          idx++;
+        }
+      }
+      return positions;
+    }
+
+    var hexPositions = buildHexPositions();
+
+    function getHexNeighbors(idx) {
+      var h = hexPositions[idx];
+      var neighbors = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (i === idx) continue;
+        var o = hexPositions[i];
+        var dx = Math.abs(h.x + HEX_W / 2 - o.x - HEX_W / 2);
+        var dy = Math.abs(h.y + HEX_H / 2 - o.y - HEX_H / 2);
+        if (dx < HEX_W * 1.1 && dy < HEX_H * 0.85 && (dx + dy) < HEX_W * 1.5) {
+          neighbors.push(i);
+        }
+      }
+      return neighbors;
+    }
+
+    var hexNeighbors = [];
+    function precomputeNeighbors() {
+      hexNeighbors = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        hexNeighbors.push(getHexNeighbors(i));
+      }
+    }
+
+    /* ===== ELEVATION MAP ===== */
+    function generateElevations() {
+      // Create a realistic island-like elevation map
+      // Center hexes = high elevation, edges = low
+      var elevs = [];
+      // True centroid of the layout. The old center (3.0W, 2.25H) sat half a
+      // hex NW of it, tilting the whole landmass toward Player 1's western
+      // start -- playtesting (400-game batches) measured an 85/15 win split
+      // with identical strategies. Centering alone recovered ~10 points.
+      var cx = 3.5 * HEX_W;
+      var cy = 2.75 * HEX_H;
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        var p = hexPositions[i];
+        var px = p.x + HEX_W / 2;
+        var py = p.y + HEX_H / 2;
+        var dist = Math.sqrt((px - cx) * (px - cx) + (py - cy) * (py - cy));
+        var maxDist = 3.5 * HEX_W;
+        var normalized = dist / maxDist;
+        var base = 5 - Math.floor(normalized * 4.5);
+        base = Math.max(1, Math.min(5, base));
+        // Add some randomness
+        var rnd = Math.floor(Math.random() * 3) - 1;
+        base = Math.max(1, Math.min(5, base + rnd));
+        elevs.push(base);
+      }
+      // Ensure at least 4 hexes at elevation 5 (highlands)
+      var fiveCount = 0;
+      for (var i = 0; i < elevs.length; i++) {
+        if (elevs[i] === 5) fiveCount++;
+      }
+      while (fiveCount < 4) {
+        var ci = Math.floor(TOTAL_HEXES / 2) + Math.floor(Math.random() * 7) - 3;
+        ci = Math.max(0, Math.min(TOTAL_HEXES - 1, ci));
+        if (elevs[ci] < 5) {
+          elevs[ci] = 5;
+          fiveCount++;
+        }
+      }
+      // Ensure edges tend lower
+      var edgeIndices = [0, 1, 2, 3, 33, 34, 35, 36];
+      for (var i = 0; i < edgeIndices.length; i++) {
+        if (elevs[edgeIndices[i]] > 3) elevs[edgeIndices[i]] = Math.floor(Math.random() * 2) + 1;
+      }
+      return elevs;
+    }
+
+    /* ===== INIT ===== */
+    function createBoard() {
+      precomputeNeighbors();
+      var elevs = generateElevations();
+      hexes = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        hexes.push({
+          idx: i,
+          elevation: elevs[i],
+          terrain: TERRAIN_TYPES[Math.floor(Math.random() * TERRAIN_TYPES.length)],
+          flooded: false,
+          resources: [], // { type, turnsLeft }
+          structure: null, // { type, owner }
+          temple: false,
+          triremes: [] // indices of connected hexes
+        });
+      }
+      // Place market on a mid-elevation hex
+      var candidates = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (hexes[i].elevation >= 3 && hexes[i].elevation <= 4) candidates.push(i);
+      }
+      if (candidates.length === 0) {
+        for (var i = 0; i < TOTAL_HEXES; i++) {
+          if (hexes[i].elevation >= 2) candidates.push(i);
+        }
+      }
+      marketHex = candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    function initPlayers() {
+      players = [
+        { resources: { Timber: 3, Shell: 1, Kelp: 1, Salt: 0, Pearl: 0, Rock: 0 }, coins: 0, structures: [] },
+        { resources: { Timber: 3, Shell: 1, Kelp: 1, Salt: 0, Pearl: 0, Rock: 0 }, coins: 0, structures: [] }
+      ];
+    }
+
+    function placeStartingCamps() {
+      // Find highland (elev 5) hexes on opposite sides
+      var highlands = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (hexes[i].elevation === 5) highlands.push(i);
+      }
+      // Sort by position (x) to get opposite sides
+      highlands.sort(function(a, b) {
+        return hexPositions[a].x - hexPositions[b].x;
+      });
+
+      var p1hex = highlands[0];
+      var p2hex = highlands[highlands.length - 1];
+      // If same hex (unlikely), pick different ones
+      if (p1hex === p2hex && highlands.length > 1) {
+        p2hex = highlands[1];
+      }
+
+      hexes[p1hex].structure = { type: 'camp', owner: 0 };
+      players[0].structures.push({ type: 'camp', hex: p1hex });
+
+      hexes[p2hex].structure = { type: 'camp', owner: 1 };
+      players[1].structures.push({ type: 'camp', hex: p2hex });
+    }
+
+    function updateFloodState() {
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        var h = hexes[i];
+        if (h.temple) {
+          h.flooded = false;
+        } else if (h.elevation === 5) {
+          h.flooded = false;
+        } else {
+          // Rule: an island is swallowed when the wrath reaches its elevation.
+          h.flooded = tideLevel >= h.elevation;
+        }
+      }
+    }
+
+    /* ===== TIDE ===== */
+    function advanceWrath() {
+      tideLevel += tideDirection;
+      if (tideLevel >= 5) {
+        tideLevel = 5;
+        tideDirection = -1;
+      } else if (tideLevel <= 1) {
+        tideLevel = 1;
+        tideDirection = 1;
+      }
+    }
+
+    function getNewlyRevealed(oldFlooded) {
+      var revealed = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (oldFlooded[i] && !hexes[i].flooded) {
+          revealed.push(i);
+        }
+      }
+      return revealed;
+    }
+
+    function getNewlyFlooded(oldFlooded) {
+      var flooded = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (!oldFlooded[i] && hexes[i].flooded) {
+          flooded.push(i);
+        }
+      }
+      return flooded;
+    }
+
+    /* ===== RESOURCES ===== */
+    function spawnResources(revealedHexes) {
+      for (var i = 0; i < revealedHexes.length; i++) {
+        var hi = revealedHexes[i];
+        var h = hexes[hi];
+        if (h.resources.length >= 2) continue;
+        // Random chance for each resource
+        var roll = Math.random();
+        var res;
+        if (roll < 0.30) res = 'Timber';
+        else if (roll < 0.50) res = 'Shell';
+        else if (roll < 0.68) res = 'Kelp';
+        else if (roll < 0.80) res = 'Salt';
+        else if (roll < 0.85) res = 'Pearl';
+        else if (roll < 0.92) res = 'Rock';
+        else res = null;
+
+        if (res) {
+          h.resources.push({ type: res, turnsLeft: 2 });
+        }
+      }
+    }
+
+    function decayResources() {
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        var h = hexes[i];
+        for (var j = h.resources.length - 1; j >= 0; j--) {
+          h.resources[j].turnsLeft--;
+          if (h.resources[j].turnsLeft <= 0) {
+            h.resources.splice(j, 1);
+          }
+        }
+      }
+    }
+
+    function removeFloodedResources(floodedHexes) {
+      for (var i = 0; i < floodedHexes.length; i++) {
+        hexes[floodedHexes[i]].resources = [];
+      }
+    }
+
+    /* ===== MARKET DRIFT ===== */
+    function driftHermes() {
+      var neighbors = hexNeighbors[marketHex];
+      var candidates = [];
+      for (var i = 0; i < neighbors.length; i++) {
+        if (!hexes[neighbors[i]].flooded) {
+          candidates.push(neighbors[i]);
+        }
+      }
+      if (candidates.length > 0) {
+        marketHex = candidates[Math.floor(Math.random() * candidates.length)];
+      }
+      // If all neighbors flooded, market stays
+    }
+
+    /* ===== HARVEST ===== */
+    function harvestForPlayer(p) {
+      var harvested = {};
+      var camps = [];
+      for (var i = 0; i < players[p].structures.length; i++) {
+        if (players[p].structures[i].type === 'camp') {
+          camps.push(players[p].structures[i].hex);
+        }
+      }
+      for (var i = 0; i < camps.length; i++) {
+        var oHex = camps[i];
+        if (hexes[oHex].flooded) continue; // submerged camp can't harvest
+        // Harvest from this hex and neighbors
+        var targets = [oHex].concat(hexNeighbors[oHex]);
+        for (var j = 0; j < targets.length; j++) {
+          var ti = targets[j];
+          if (hexes[ti].flooded) continue;
+          var res = hexes[ti].resources;
+          for (var k = res.length - 1; k >= 0; k--) {
+            var rtype = res[k].type;
+            players[p].resources[rtype] = (players[p].resources[rtype] || 0) + 1;
+            if (!harvested[rtype]) harvested[rtype] = 0;
+            harvested[rtype]++;
+            res.splice(k, 1);
+          }
+        }
+      }
+      return harvested;
+    }
+
+    /* ===== CONNECTIVITY ===== */
+    function isConnectedToHermes(playerIdx) {
+      // BFS from player's structures to market hex
+      // Can traverse through hexes with player's structures (not flooded) or via triremes
+      var visited = {};
+      var queue = [];
+
+      // Start from all player structure hexes that aren't flooded
+      for (var i = 0; i < players[playerIdx].structures.length; i++) {
+        var s = players[playerIdx].structures[i];
+        var sh = s.hex;
+        if (s.type === 'trireme') continue; // triremes stored differently
+        if (!hexes[sh].flooded || hexes[sh].temple) {
+          queue.push(sh);
+          visited[sh] = true;
+        }
+      }
+
+      while (queue.length > 0) {
+        var cur = queue.shift();
+        // Standing on Hermes' hex or on any shore beside it counts as reaching
+        // the ship. (Previously only a trireme INTO his hex connected, which
+        // starved the trade economy -- connected-turn rate measured 39%; with
+        // adjacency it is ~69%, with no effect on win balance.)
+        if (cur === marketHex || hexNeighbors[cur].indexOf(marketHex) >= 0) return true;
+
+        // Check neighboring hexes that have this player's structures
+        var neighbors = hexNeighbors[cur];
+        for (var n = 0; n < neighbors.length; n++) {
+          var ni = neighbors[n];
+          if (visited[ni]) continue;
+
+          // Can traverse if: neighbor has player's structure AND is not flooded
+          // OR there's a trireme between cur and ni
+          var hasTrireme = false;
+          for (var b = 0; b < hexes[cur].triremes.length; b++) {
+            if (hexes[cur].triremes[b].to === ni && hexes[cur].triremes[b].owner === playerIdx) {
+              hasTrireme = true;
+              break;
+            }
+          }
+          if (!hasTrireme) {
+            for (var b = 0; b < hexes[ni].triremes.length; b++) {
+              if (hexes[ni].triremes[b].to === cur && hexes[ni].triremes[b].owner === playerIdx) {
+                hasTrireme = true;
+                break;
+              }
+            }
+          }
+
+          var hasStruct = false;
+          if (hexes[ni].structure && hexes[ni].structure.owner === playerIdx) {
+            hasStruct = true;
+          }
+
+          if (hasTrireme || (hasStruct && (!hexes[ni].flooded || hexes[ni].temple))) {
+            visited[ni] = true;
+            queue.push(ni);
+          }
+        }
+      }
+      return false;
+    }
+
+    function largestNetwork(playerIdx) {
+      // Find largest connected component of player's structures
+      // Structures connect if adjacent hexes or triremed
+      var structHexes = [];
+      for (var i = 0; i < players[playerIdx].structures.length; i++) {
+        var s = players[playerIdx].structures[i];
+        if (s.type === 'trireme') continue;
+        // Submerged camps are temporarily lost beneath the waves — they don't
+        // count toward the network (temples are protected and never flood).
+        if (hexes[s.hex].flooded) continue;
+        structHexes.push(s.hex);
+      }
+
+      var visited = {};
+      var maxSize = 0;
+
+      for (var i = 0; i < structHexes.length; i++) {
+        var sh = structHexes[i];
+        if (visited[sh]) continue;
+        // BFS
+        var queue = [sh];
+        visited[sh] = true;
+        var size = 0;
+        while (queue.length > 0) {
+          var cur = queue.shift();
+          size++;
+          var neighbors = hexNeighbors[cur];
+          for (var n = 0; n < neighbors.length; n++) {
+            var ni = neighbors[n];
+            if (visited[ni]) continue;
+            // Connected if neighbor has player's structure and (adjacent or triremed)
+            var hasStruct = hexes[ni].structure && hexes[ni].structure.owner === playerIdx;
+            var hasTrireme = false;
+            for (var b = 0; b < hexes[cur].triremes.length; b++) {
+              if (hexes[cur].triremes[b].to === ni && hexes[cur].triremes[b].owner === playerIdx) { hasTrireme = true; break; }
+            }
+            if (!hasTrireme) {
+              for (var b = 0; b < hexes[ni].triremes.length; b++) {
+                if (hexes[ni].triremes[b].to === cur && hexes[ni].triremes[b].owner === playerIdx) { hasTrireme = true; break; }
+              }
+            }
+            if (hasStruct || hasTrireme) {
+              // If it's a structure hex, count it. If triremed, also count if has struct.
+              var targetHasStruct = false;
+              for (var s = 0; s < structHexes.length; s++) {
+                if (structHexes[s] === ni) { targetHasStruct = true; break; }
+              }
+              if (targetHasStruct) {
+                visited[ni] = true;
+                queue.push(ni);
+              }
+            }
+          }
+        }
+        if (size > maxSize) maxSize = size;
+      }
+      return maxSize;
+    }
+
+    /* ===== VP CALCULATION ===== */
+    function calcVP(playerIdx) {
+      var vp = 0;
+      for (var i = 0; i < players[playerIdx].structures.length; i++) {
+        var s = players[playerIdx].structures[i];
+        // A submerged camp is temporarily lost beneath the waves — no VP while flooded.
+        if (s.type === 'camp') { if (!hexes[s.hex].flooded) vp += 1; }
+        else if (s.type === 'temple') vp += 1;
+        else if (s.type === 'trireme') vp += 2;
+      }
+      vp += Math.floor(players[playerIdx].coins / 5);
+      return vp;
+    }
+
+    function calcNetworkBonus(playerIdx) {
+      // Largest connected network among all players
+      // Only award the bonus if this player is strictly ahead of the other
+      var nets = [largestNetwork(0), largestNetwork(1)];
+      if (nets[0] === nets[1]) return 0; // tie — nobody gets the bonus
+      var bestPlayer = nets[0] > nets[1] ? 0 : 1;
+      if (bestPlayer === playerIdx && nets[playerIdx] >= 2) return 3;
+      return 0;
+    }
+
+    function totalVP(playerIdx) {
+      return calcVP(playerIdx) + calcNetworkBonus(playerIdx);
+    }
+
+    /* ===== BUILDING ===== */
+    function canBuild(playerIdx, type) {
+      var r = players[playerIdx].resources;
+      if (type === 'camp') return r.Timber >= 2 && r.Shell >= 1;
+      if (type === 'temple') return r.Rock >= 1 && r.Kelp >= 2;
+      if (type === 'trireme') return r.Timber >= 1 && r.Salt >= 1;
+      return false;
+    }
+
+    function payBuildCost(playerIdx, type) {
+      var r = players[playerIdx].resources;
+      if (type === 'camp') { r.Timber -= 2; r.Shell -= 1; }
+      if (type === 'temple') { r.Rock -= 1; r.Kelp -= 2; }
+      if (type === 'trireme') { r.Timber -= 1; r.Salt -= 1; }
+    }
+
+    function validCampHexes(playerIdx) {
+      var valid = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (hexes[i].flooded) continue;
+        if (hexes[i].structure) continue;
+        // Must be adjacent to an existing structure or trireme of this player
+        var adjacent = false;
+        var neighbors = hexNeighbors[i];
+        for (var n = 0; n < neighbors.length; n++) {
+          if (hexes[neighbors[n]].structure && hexes[neighbors[n]].structure.owner === playerIdx) {
+            adjacent = true;
+            break;
+          }
+          // Check triremes
+          for (var b = 0; b < hexes[i].triremes.length; b++) {
+            if (hexes[i].triremes[b].owner === playerIdx) { adjacent = true; break; }
+          }
+          if (adjacent) break;
+          for (var b = 0; b < hexes[neighbors[n]].triremes.length; b++) {
+            if (hexes[neighbors[n]].triremes[b].to === i && hexes[neighbors[n]].triremes[b].owner === playerIdx) { adjacent = true; break; }
+          }
+          if (adjacent) break;
+        }
+        if (adjacent) valid.push(i);
+      }
+      return valid;
+    }
+
+    function validTempleHexes(playerIdx) {
+      var valid = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (hexes[i].temple) continue;
+        if (hexes[i].elevation === 5) continue; // doesn't need temple
+        if (hexes[i].flooded) continue; // can't build temple on submerged hex
+        // A temple takes the whole hex: building on your own camp silently
+        // overwrote it while the camp kept scoring and harvesting as a ghost
+        // entry in the structures list. Occupied hexes are out entirely.
+        if (hexes[i].structure) continue;
+        var adjacent = false;
+        if (!adjacent) {
+          var neighbors = hexNeighbors[i];
+          for (var n = 0; n < neighbors.length; n++) {
+            if (hexes[neighbors[n]].structure && hexes[neighbors[n]].structure.owner === playerIdx) {
+              adjacent = true;
+              break;
+            }
+          }
+        }
+        if (adjacent) valid.push(i);
+      }
+      return valid;
+    }
+
+    function validTriremeStartHexes(playerIdx) {
+      var valid = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        if (hexes[i].structure && hexes[i].structure.owner === playerIdx && !hexes[i].flooded) {
+          valid.push(i);
+        }
+      }
+      return valid;
+    }
+
+    function validTriremeEndHexes(playerIdx, fromHex) {
+      var neighbors = hexNeighbors[fromHex];
+      var valid = [];
+      for (var i = 0; i < neighbors.length; i++) {
+        var ni = neighbors[i];
+        // Check no existing trireme between these two
+        var exists = false;
+        for (var b = 0; b < hexes[fromHex].triremes.length; b++) {
+          if (hexes[fromHex].triremes[b].to === ni) { exists = true; break; }
+        }
+        if (!exists) {
+          for (var b = 0; b < hexes[ni].triremes.length; b++) {
+            if (hexes[ni].triremes[b].to === fromHex) { exists = true; break; }
+          }
+        }
+        if (!exists) valid.push(ni);
+      }
+      return valid;
+    }
+
+    /* ===== RENDER ===== */
+    function render() {
+      var container = document.getElementById('board-container');
+      container.innerHTML = '';
+
+      // Compute board dimensions
+      var maxX = 0, maxY = 0;
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        var p = hexPositions[i];
+        if (p.x + HEX_W > maxX) maxX = p.x + HEX_W;
+        if (p.y + HEX_H > maxY) maxY = p.y + HEX_H;
+      }
+      container.style.width = maxX + 'px';
+      container.style.height = maxY + 'px';
+
+      // Draw triremes first (under hexes)
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        for (var b = 0; b < hexes[i].triremes.length; b++) {
+          var br = hexes[i].triremes[b];
+          var p1 = hexPositions[i];
+          var p2 = hexPositions[br.to];
+          var x1 = p1.x + HEX_W / 2;
+          var y1 = p1.y + HEX_H / 2;
+          var x2 = p2.x + HEX_W / 2;
+          var y2 = p2.y + HEX_H / 2;
+          var dx = x2 - x1;
+          var dy = y2 - y1;
+          var len = Math.sqrt(dx * dx + dy * dy);
+          var angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+          var line = document.createElement('div');
+          line.className = 'trireme-line ' + (br.owner === 0 ? 'p1-trireme' : 'p2-trireme');
+          line.style.left = x1 + 'px';
+          line.style.top = (y1 - 2) + 'px';
+          line.style.width = len + 'px';
+          line.style.transform = 'rotate(' + angle + 'deg)';
+          container.appendChild(line);
+        }
+      }
+
+      // Draw hexes
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        var h = hexes[i];
+        var p = hexPositions[i];
+
+        var hexEl = document.createElement('div');
+        hexEl.className = 'hex hex-border';
+
+        var isHermes = (i === marketHex && !h.flooded);
+        var isHighlighted = highlightedHexes.indexOf(i) >= 0;
+
+        if (isHermes) {
+          hexEl.classList.add('hex-market');
+        } else if (h.flooded) {
+          hexEl.classList.add('hex-water');
+        } else {
+          var tc = h.elevation === 5 ? 'highland' : h.terrain.toLowerCase();
+          hexEl.classList.add('hex-' + tc);
+          // Poseidon's warning: this hex drowns on the NEXT wrath step
+          var nextTide = tideLevel + tideDirection;
+          if (nextTide > 5) nextTide = 4; if (nextTide < 1) nextTide = 2;
+          if (!h.temple && h.elevation < 5 && nextTide >= h.elevation) {
+            hexEl.classList.add('hex-doomed');
+          }
+        }
+
+        if (isHighlighted) {
+          hexEl.classList.add('hex-highlight');
+        }
+
+        hexEl.style.left = p.x + 'px';
+        hexEl.style.top = p.y + 'px';
+        hexEl.setAttribute('data-idx', i);
+        hexEl.onclick = function() { onHexClick(parseInt(this.getAttribute('data-idx'))); };
+
+        var inner = document.createElement('div');
+        inner.className = 'hex-inner';
+
+        // Elevation number
+        var elevSpan = document.createElement('div');
+        elevSpan.className = 'hex-elev';
+        elevSpan.textContent = h.elevation;
+        inner.appendChild(elevSpan);
+
+        // Terrain label (only when not flooded and not market)
+        if (!h.flooded && !isHermes && h.elevation < 5) {
+          var tLabel = document.createElement('div');
+          tLabel.className = 'hex-terrain-label';
+          tLabel.textContent = h.terrain[0];
+          inner.appendChild(tLabel);
+        }
+
+        // Highland label
+        if (h.elevation === 5 && !isHermes) {
+          var hLabel = document.createElement('div');
+          hLabel.className = 'hex-terrain-label';
+          hLabel.textContent = 'H';
+          hLabel.style.color = 'rgba(200,255,200,0.4)';
+          inner.appendChild(hLabel);
+        }
+
+        // Hermes icon
+        if (isHermes) {
+          var mIcon = document.createElement('div');
+          mIcon.style.fontSize = '1.4em';
+          mIcon.style.lineHeight = '1';
+          mIcon.textContent = '\u2624';
+          inner.appendChild(mIcon);
+        }
+
+        // Resources
+        if (h.resources.length > 0 && !h.flooded) {
+          var resDiv = document.createElement('div');
+          resDiv.className = 'hex-resources res-new';
+          var resText = '';
+          for (var r = 0; r < h.resources.length; r++) {
+            resText += RESOURCE_ICONS[h.resources[r].type] || '?';
+          }
+          resDiv.textContent = resText;
+          inner.appendChild(resDiv);
+        }
+
+        // Structure (temples are drawn by the temple indicator below)
+        if (h.structure && h.structure.type === 'camp') {
+          var sDiv = document.createElement('div');
+          sDiv.className = 'hex-struct';
+          var sColor = PLAYER_COLORS[h.structure.owner];
+          sDiv.style.color = sColor;
+          sDiv.textContent = h.flooded ? '\u25CB' : '\u25C6'; // hollow when submerged
+          inner.appendChild(sDiv);
+        }
+
+        // Temple indicator
+        if (h.temple) {
+          var swDiv = document.createElement('div');
+          swDiv.className = 'temple-icon';
+          var swOwner = -1;
+          for (var pi = 0; pi < 2; pi++) {
+            for (var si = 0; si < players[pi].structures.length; si++) {
+              if (players[pi].structures[si].type === 'temple' && players[pi].structures[si].hex === i) {
+                swOwner = pi;
+                break;
+              }
+            }
+            if (swOwner >= 0) break;
+          }
+          swDiv.style.color = swOwner >= 0 ? PLAYER_COLORS[swOwner] : '#888';
+          swDiv.textContent = '\uD83E\uDDF1';
+          swDiv.style.fontSize = '0.8em';
+          swDiv.style.position = 'absolute';
+          swDiv.style.top = '8px';
+          swDiv.style.right = '6px';
+          inner.appendChild(swDiv);
+        }
+
+        hexEl.appendChild(inner);
+        container.appendChild(hexEl);
+      }
+
+      // Update panels
+      for (var p = 0; p < 2; p++) {
+        var vp = totalVP(p);
+        document.getElementById('vp-' + p).textContent = vp;
+        document.getElementById('coins-' + p).textContent = players[p].coins;
+
+        var resStr = '';
+        var rkeys = ['Timber', 'Shell', 'Kelp', 'Salt', 'Pearl', 'Rock'];
+        for (var r = 0; r < rkeys.length; r++) {
+          var amt = players[p].resources[rkeys[r]] || 0;
+          if (amt > 0) {
+            resStr += (RESOURCE_ICONS[rkeys[r]] || '') + rkeys[r] + ':' + amt + '  ';
+          }
+        }
+        document.getElementById('res-' + p).textContent = resStr || 'No resources';
+
+        var structStr = '';
+        var counts = { camp: 0, temple: 0, trireme: 0 };
+        for (var s = 0; s < players[p].structures.length; s++) {
+          counts[players[p].structures[s].type]++;
+        }
+        structStr = 'Camps:' + counts.camp + ' Temples:' + counts.temple + ' Triremes:' + counts.trireme;
+        var netSize = largestNetwork(p);
+        structStr += ' Net:' + netSize;
+        if (calcNetworkBonus(p) > 0) structStr += '(+3VP)';
+        document.getElementById('struct-' + p).textContent = structStr;
+
+        var panel = document.getElementById('panel-' + p);
+        if (p === currentPlayer && phase === 'action') {
+          panel.classList.add('active-panel');
+        } else {
+          panel.classList.remove('active-panel');
+        }
+      }
+
+      // Update tide bar
+      var pct = (tideLevel / 5) * 100;
+      document.getElementById('tide-fill').style.width = pct + '%';
+      var marker = document.getElementById('tide-marker');
+      marker.style.left = (pct - 5) + '%';
+      marker.textContent = tideLevel;
+      var dirText = tideDirection > 0 ? 'Gathering \u2191' : 'Subsiding \u2193';
+      document.getElementById('tide-label').innerHTML = "Poseidon's Wrath: " + tideLevel + ' / 5 &mdash; ' + dirText + ' &mdash; Turn ' + turnNumber;
+
+      // Update buttons
+      updateButtons();
+    }
+
+    function updateButtons() {
+      var isAction = phase === 'action' && !gameOver;
+      var isHuman = mode === 2 || currentPlayer === 0;
+      var canAct = isAction && isHuman && actionsLeft > 0;
+
+      document.getElementById('btn-next').disabled = (phase !== 'preturn' || gameOver);
+      document.getElementById('btn-build-camp').disabled = !(canAct && canBuild(currentPlayer, 'camp') && validCampHexes(currentPlayer).length > 0);
+      document.getElementById('btn-build-temple').disabled = !(canAct && canBuild(currentPlayer, 'temple') && validTempleHexes(currentPlayer).length > 0);
+      document.getElementById('btn-build-trireme').disabled = !(canAct && canBuild(currentPlayer, 'trireme') && validTriremeStartHexes(currentPlayer).length > 0);
+      document.getElementById('btn-trade').disabled = !(canAct && isConnectedToHermes(currentPlayer));
+      document.getElementById('btn-move-market').disabled = !(canAct && (players[currentPlayer].resources.Pearl || 0) >= 1);
+      document.getElementById('btn-end').disabled = !isAction || !isHuman;
+
+      // Highlight selected action button
+      var btns = ['btn-build-camp', 'btn-build-temple', 'btn-build-trireme', 'btn-trade', 'btn-move-market'];
+      var actionNames = ['camp', 'temple', 'trireme', 'trade', 'movemarket'];
+      for (var i = 0; i < btns.length; i++) {
+        var el = document.getElementById(btns[i]);
+        if (selectedAction === actionNames[i]) {
+          el.classList.add('selected');
+        } else {
+          el.classList.remove('selected');
+        }
+      }
+    }
+
+    function setMessage(msg) {
+      document.getElementById('message').textContent = msg;
+    }
+
+    /* ===== TURN FLOW ===== */
+    function advanceTurn() {
+      if (phase !== 'preturn' || gameOver) return;
+
+      turnNumber++;
+
+      // Save old flood state
+      var oldFlooded = [];
+      for (var i = 0; i < TOTAL_HEXES; i++) {
+        oldFlooded.push(hexes[i].flooded);
+      }
+
+      // Advance tide
+      advanceWrath();
+      updateFloodState();
+
+      var revealed = getNewlyRevealed(oldFlooded);
+      var flooded = getNewlyFlooded(oldFlooded);
+
+      // Decay old resources
+      decayResources();
+
+      // Remove resources from flooded hexes
+      removeFloodedResources(flooded);
+
+      // Spawn resources on revealed hexes
+      spawnResources(revealed);
+
+      // Drift market
+      driftHermes();
+
+      // Alternate who goes first each round -- harvest AND actions. With a
+      // fixed order, every resource in a zone both players' camps could reach
+      // went to Player 1, every turn: playtesting measured this as the largest
+      // single imbalance in the game (~30 win-rate points).
+      firstPlayer = 1 - firstPlayer;
+      var hA = harvestForPlayer(firstPlayer);
+      var hB = harvestForPlayer(1 - firstPlayer);
+      var h0 = firstPlayer === 0 ? hA : hB;
+      var h1 = firstPlayer === 0 ? hB : hA;
+
+      // Flooding/revealing hexes can swing the largest-network bonus (and a
+      // submerged camp drops VP), while harvest can push coins over a VP
+      // threshold — any of these can end the game.
+      checkWin();
+      if (gameOver) { render(); return; }
+
+      var msg = 'Turn ' + turnNumber + ': Wrath ' + tideLevel + (tideDirection > 0 ? ' (rising)' : ' (falling)') + '. ';
+      if (revealed.length > 0) msg += revealed.length + ' tiles revealed. ';
+      if (flooded.length > 0) msg += flooded.length + ' tiles flooded. ';
+
+      var harvestMsg = formatHarvest(h0, 0);
+      if (harvestMsg) msg += harvestMsg + ' ';
+      harvestMsg = formatHarvest(h1, 1);
+      if (harvestMsg) msg += harvestMsg + ' ';
+
+      // Start action phase with this round's first player
+      currentPlayer = firstPlayer;
+      actionsLeft = 2;
+      phase = 'action';
+      selectedAction = null;
+      triremeFirstHex = null;
+      highlightedHexes = [];
+
+      msg += 'Player ' + (currentPlayer + 1) + ' leads this round: 2 actions.';
+      if (mode === 1 && currentPlayer === 1) scheduleAi();
+      setMessage(msg);
+      render();
+    }
+
+    function formatHarvest(harvested, player) {
+      var parts = [];
+      for (var key in harvested) {
+        if (harvested[key] > 0) {
+          parts.push(harvested[key] + ' ' + key);
+        }
+      }
+      if (parts.length === 0) return '';
+      return 'P' + (player + 1) + ' harvested ' + parts.join(', ') + '.';
+    }
+
+    function selectAction(action) {
+      if (phase !== 'action' || actionsLeft <= 0 || gameOver) return;
+      var isHuman = mode === 2 || currentPlayer === 0;
+      if (!isHuman) return;
+
+      selectedAction = action;
+      triremeFirstHex = null;
+      highlightedHexes = [];
+
+      if (action === 'camp') {
+        highlightedHexes = validCampHexes(currentPlayer);
+        setMessage('Click a highlighted hex to build a Camp. (2 Timber + 1 Shell)');
+      } else if (action === 'temple') {
+        highlightedHexes = validTempleHexes(currentPlayer);
+        setMessage('Click a highlighted hex to build a Temple. (1 Rock + 2 Kelp)');
+      } else if (action === 'trireme') {
+        highlightedHexes = validTriremeStartHexes(currentPlayer);
+        setMessage('Click your structure to start a trireme from. (1 Timber + 1 Salt)');
+      } else if (action === 'trade') {
+        hermesTradeCharged = false;
+        openTrade();
+        return;
+      } else if (action === 'movemarket') {
+        var adj = hexNeighbors[marketHex];
+        highlightedHexes = [];
+        for (var i = 0; i < adj.length; i++) {
+          if (!hexes[adj[i]].flooded) highlightedHexes.push(adj[i]);
+        }
+        setMessage("Click an adjacent hex to move Hermes' Ship. (Costs 1 Pearl)");
+      }
+
+      render();
+    }
+
+    function onHexClick(idx) {
+      if (phase !== 'action' || actionsLeft <= 0 || gameOver) return;
+      var isHuman = mode === 2 || currentPlayer === 0;
+      if (!isHuman) return;
+
+      if (!selectedAction) return;
+
+      if (selectedAction === 'camp') {
+        if (highlightedHexes.indexOf(idx) < 0) return;
+        payBuildCost(currentPlayer, 'camp');
+        hexes[idx].structure = { type: 'camp', owner: currentPlayer };
+        players[currentPlayer].structures.push({ type: 'camp', hex: idx });
+        actionsLeft--;
+        setMessage('Player ' + (currentPlayer + 1) + ' built a Camp! ' + actionsLeft + ' actions left.');
+        selectedAction = null;
+        highlightedHexes = [];
+        checkWin();
+        render();
+        if (actionsLeft <= 0 && !gameOver) finishPlayerTurn();
+      } else if (selectedAction === 'temple') {
+        if (highlightedHexes.indexOf(idx) < 0) return;
+        payBuildCost(currentPlayer, 'temple');
+        hexes[idx].temple = true;
+        hexes[idx].flooded = false;
+        hexes[idx].structure = { type: 'temple', owner: currentPlayer };
+        players[currentPlayer].structures.push({ type: 'temple', hex: idx });
+        actionsLeft--;
+        setMessage('Player ' + (currentPlayer + 1) + ' built a Temple! ' + actionsLeft + ' actions left.');
+        selectedAction = null;
+        highlightedHexes = [];
+        checkWin();
+        render();
+        if (actionsLeft <= 0 && !gameOver) finishPlayerTurn();
+      } else if (selectedAction === 'trireme') {
+        if (triremeFirstHex === null) {
+          if (highlightedHexes.indexOf(idx) < 0) return;
+          triremeFirstHex = idx;
+          highlightedHexes = validTriremeEndHexes(currentPlayer, idx);
+          setMessage('Now click an adjacent hex to trireme to.');
+          render();
+        } else {
+          if (highlightedHexes.indexOf(idx) < 0) return;
+          payBuildCost(currentPlayer, 'trireme');
+          hexes[triremeFirstHex].triremes.push({ to: idx, owner: currentPlayer });
+          players[currentPlayer].structures.push({ type: 'trireme', hex: triremeFirstHex, to: idx });
+          actionsLeft--;
+          setMessage('Player ' + (currentPlayer + 1) + ' built a Trireme! ' + actionsLeft + ' actions left.');
+          selectedAction = null;
+          triremeFirstHex = null;
+          highlightedHexes = [];
+          checkWin();
+          render();
+          if (actionsLeft <= 0 && !gameOver) finishPlayerTurn();
+        }
+      } else if (selectedAction === 'movemarket') {
+        if (highlightedHexes.indexOf(idx) < 0) return;
+        players[currentPlayer].resources.Pearl--;
+        marketHex = idx;
+        actionsLeft--;
+        setMessage('Player ' + (currentPlayer + 1) + " moved Hermes' Ship! " + actionsLeft + ' actions left.');
+        selectedAction = null;
+        highlightedHexes = [];
+        render();
+        if (actionsLeft <= 0 && !gameOver) finishPlayerTurn();
+      }
+    }
+
+    // True once the current trade session has committed a sell (and therefore
+    // consumed its one action). Prevents free coins when a player sells but
+    // never clicks Done.
+    var hermesTradeCharged = false;
+    function chargeHermesTrade() {
+      if (!hermesTradeCharged) { hermesTradeCharged = true; actionsLeft--; }
+    }
+
+    function openTrade() {
+      if (!isConnectedToHermes(currentPlayer)) {
+        setMessage("Not connected to Hermes' Ship!");
+        selectedAction = null;
+        render();
+        return;
+      }
+      var panel = document.getElementById('trade-panel');
+      var rows = document.getElementById('trade-rows');
+      rows.innerHTML = '';
+
+      var rkeys = ['Timber', 'Shell', 'Kelp', 'Salt', 'Rock', 'Pearl'];
+      for (var i = 0; i < rkeys.length; i++) {
+        var rk = rkeys[i];
+        var amt = players[currentPlayer].resources[rk] || 0;
+        var row = document.createElement('div');
+        row.className = 'trade-row';
+        row.innerHTML = '<span>' + (RESOURCE_ICONS[rk] || '') + ' ' + rk + ' (' + amt + ') &mdash; ' + PRICES[rk] + ' coins</span>';
+        var btn = document.createElement('button');
+        btn.className = 'trade-sell-btn';
+        btn.textContent = 'Sell 1';
+        btn.disabled = amt <= 0;
+        btn.setAttribute('data-res', rk);
+        btn.onclick = function() {
+          var res = this.getAttribute('data-res');
+          if (players[currentPlayer].resources[res] > 0) {
+            chargeHermesTrade();
+            players[currentPlayer].resources[res]--;
+            players[currentPlayer].coins += PRICES[res];
+            openTrade(); // refresh
+            render();
+          }
+        };
+        row.appendChild(btn);
+        rows.appendChild(row);
+      }
+
+      panel.classList.add('visible');
+      setMessage("Trading at Hermes' Ship. Sell resources for coins.");
+      highlightedHexes = [];
+      render();
+    }
+
+    function closeTrade() {
+      document.getElementById('trade-panel').classList.remove('visible');
+      selectedAction = null;
+      // The action was already consumed on the first committed sell
+      // (chargeHermesTrade). Opening the panel and backing out costs nothing.
+      if (hermesTradeCharged) {
+        setMessage('Trade complete. ' + actionsLeft + ' actions left.');
+      } else {
+        setMessage('Trade cancelled. ' + actionsLeft + ' actions left.');
+      }
+      checkWin();
+      render();
+      if (hermesTradeCharged && actionsLeft <= 0 && !gameOver) finishPlayerTurn();
+    }
+
+    function endActionPhase() {
+      if (phase !== 'action' || gameOver) return;
+      actionsLeft = 0;
+      selectedAction = null;
+      highlightedHexes = [];
+      document.getElementById('trade-panel').classList.remove('visible');
+      finishPlayerTurn();
+    }
+
+    function finishPlayerTurn() {
+      selectedAction = null;
+      highlightedHexes = [];
+      triremeFirstHex = null;
+
+      if (currentPlayer === firstPlayer) {
+        // Switch to the second player of this round
+        currentPlayer = 1 - firstPlayer;
+        actionsLeft = 2;
+        setMessage('Player ' + (currentPlayer + 1) + ': 2 actions.');
+        render();
+        if (mode === 1 && currentPlayer === 1) {
+          scheduleAi();
+        }
+      } else {
+        // Both players done, go to preturn
+        phase = 'preturn';
+        currentPlayer = 0;
+        setMessage('Turn ' + turnNumber + " complete. Click 'Next Turn' to advance Poseidon's wrath.");
+        render();
+      }
+    }
+
+    function checkWin() {
+      for (var p = 0; p < 2; p++) {
+        if (totalVP(p) >= WIN_VP) {
+          gameOver = true;
+          phase = 'gameover';
+          var title = 'Player ' + (p + 1) + ' Wins!';
+          var text = 'Final score: P1 ' + totalVP(0) + ' VP, P2 ' + totalVP(1) + ' VP after ' + turnNumber + ' turns.';
+          document.getElementById('overlay-title').textContent = title;
+          document.getElementById('overlay-text').textContent = text;
+          document.getElementById('overlay').classList.add('show');
+          return;
+        }
+      }
+    }
+
+    /* ===== AI ===== */
+    function scheduleAi() {
+      if (aiTimer) clearTimeout(aiTimer);
+      aiTimer = setTimeout(function() {
+        aiTurn();
+      }, 700);
+    }
+
+    function aiTurn() {
+      if (phase !== 'action' || currentPlayer !== 1 || gameOver) return;
+      if (actionsLeft <= 0) {
+        finishPlayerTurn();
+        return;
+      }
+
+      var didAction = false;
+
+      // Priority 1: Trade if connected to market and have valuable resources
+      if (!didAction && isConnectedToHermes(1)) {
+        var valuableRes = ['Pearl', 'Salt', 'Kelp', 'Shell', 'Timber', 'Rock'];
+        var traded = false;
+        for (var v = 0; v < valuableRes.length; v++) {
+          var rk = valuableRes[v];
+          if ((players[1].resources[rk] || 0) > 0) {
+            // Keep building reserves: timber for camp/trireme, shell for camp, kelp for temple
+            var keep = rk === 'Timber' ? 2 : (rk === 'Shell' ? 1 : (rk === 'Kelp' ? 2 : (rk === 'Rock' ? 1 : 0)));
+            if (players[1].resources[rk] > keep) {
+              players[1].resources[rk]--;
+              players[1].coins += PRICES[rk];
+              traded = true;
+            }
+          }
+        }
+        if (traded) {
+          actionsLeft--;
+          didAction = true;
+          setMessage("Player 2 traded at Hermes' Ship.");
+          checkWin();
+        }
+      }
+
+      // Priority 2: Build camp on high elevation hex
+      if (!didAction && canBuild(1, 'camp')) {
+        var valid = validCampHexes(1);
+        if (valid.length > 0) {
+          // Prefer higher elevation, then closer to market
+          valid.sort(function(a, b) {
+            var elevDiff = hexes[b].elevation - hexes[a].elevation;
+            if (elevDiff !== 0) return elevDiff;
+            // Closer to market
+            var dA = hexDist(a, marketHex);
+            var dB = hexDist(b, marketHex);
+            return dA - dB;
+          });
+          var target = valid[0];
+          payBuildCost(1, 'camp');
+          hexes[target].structure = { type: 'camp', owner: 1 };
+          players[1].structures.push({ type: 'camp', hex: target });
+          actionsLeft--;
+          didAction = true;
+          setMessage('Player 2 built a Camp.');
+          checkWin();
+        }
+      }
+
+      // Priority 3: Build temple on productive low-elevation hex near camp
+      if (!didAction && canBuild(1, 'temple')) {
+        var valid = validTempleHexes(1);
+        if (valid.length > 0) {
+          // Prefer low elevation hexes (most benefit)
+          valid.sort(function(a, b) {
+            return hexes[a].elevation - hexes[b].elevation;
+          });
+          var target = valid[0];
+          payBuildCost(1, 'temple');
+          hexes[target].temple = true;
+          hexes[target].flooded = false;
+          hexes[target].structure = { type: 'temple', owner: 1 };
+          players[1].structures.push({ type: 'temple', hex: target });
+          actionsLeft--;
+          didAction = true;
+          setMessage('Player 2 built a Temple.');
+          checkWin();
+        }
+      }
+
+      // Priority 4: Build trireme toward market
+      if (!didAction && canBuild(1, 'trireme')) {
+        var starts = validTriremeStartHexes(1);
+        var bestStart = -1, bestEnd = -1, bestDist = 9999;
+        for (var s = 0; s < starts.length; s++) {
+          var ends = validTriremeEndHexes(1, starts[s]);
+          for (var e = 0; e < ends.length; e++) {
+            var d = hexDist(ends[e], marketHex);
+            if (d < bestDist) {
+              bestDist = d;
+              bestStart = starts[s];
+              bestEnd = ends[e];
+            }
+          }
+        }
+        if (bestStart >= 0) {
+          payBuildCost(1, 'trireme');
+          hexes[bestStart].triremes.push({ to: bestEnd, owner: 1 });
+          players[1].structures.push({ type: 'trireme', hex: bestStart, to: bestEnd });
+          actionsLeft--;
+          didAction = true;
+          setMessage('Player 2 built a Trireme.');
+          checkWin();
+        }
+      }
+
+      // Priority 5: Move market closer if have Pearl
+      if (!didAction && (players[1].resources.Pearl || 0) >= 1) {
+        // Move market adjacent to an camp if possible
+        var adj = hexNeighbors[marketHex];
+        var bestTarget = -1;
+        var bestScore = -1;
+        for (var i = 0; i < adj.length; i++) {
+          if (hexes[adj[i]].flooded) continue;
+          // Score: closer to our structures
+          var score = 0;
+          for (var s = 0; s < players[1].structures.length; s++) {
+            if (players[1].structures[s].type !== 'trireme') {
+              var d = hexDist(adj[i], players[1].structures[s].hex);
+              score += (10 - d);
+            }
+          }
+          if (score > bestScore) {
+            bestScore = score;
+            bestTarget = adj[i];
+          }
+        }
+        if (bestTarget >= 0) {
+          players[1].resources.Pearl--;
+          marketHex = bestTarget;
+          actionsLeft--;
+          didAction = true;
+          setMessage("Player 2 moved Hermes' Ship.");
+        }
+      }
+
+      if (!didAction) {
+        // Nothing useful to do, end turn
+        actionsLeft = 0;
+      }
+
+      render();
+
+      if (actionsLeft > 0 && !gameOver) {
+        scheduleAi();
+      } else if (!gameOver) {
+        finishPlayerTurn();
+      }
+    }
+
+    function hexDist(a, b) {
+      var pa = hexPositions[a];
+      var pb = hexPositions[b];
+      var dx = pa.x - pb.x;
+      var dy = pa.y - pb.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /* ===== MODE ===== */
+    function setMode(m) {
+      mode = m;
+      var btns = document.querySelectorAll('.mode-btn');
+      for (var i = 0; i < btns.length; i++) {
+        btns[i].classList.remove('active');
+      }
+      btns[m - 1].classList.add('active');
+      resetGame();
+    }
+
+    /* ===== RESET ===== */
+    function resetGame() {
+      if (aiTimer) clearTimeout(aiTimer);
+      gameOver = false;
+      phase = 'preturn';
+      tideLevel = 1;
+      tideDirection = 1;
+      turnNumber = 0;
+      currentPlayer = 0;
+      actionsLeft = 0;
+      selectedAction = null;
+      triremeFirstHex = null;
+      highlightedHexes = [];
+      marketHex = -1;
+      // Round leadership alternates every round (flipped at round start).
+      // 2P: random opening leader for a clean 50/50; solo: human leads round 1.
+      firstPlayer = mode === 2 ? (Math.random() < 0.5 ? 0 : 1) : 1;
+
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('trade-panel').classList.remove('visible');
+
+      createBoard();
+      initPlayers();
+      updateFloodState();
+      placeStartingCamps();
+
+      setMessage('Set sail upon the wine-dark sea! Click "Next Turn" to begin your odyssey.');
+      render();
+    }
+
+    function toggleRules() {
+      var el = document.getElementById('rules-panel');
+      el.classList.toggle('show');
+    }
+
+    /* ===== INIT ===== */
+    resetGame();
+  </script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Odyssey</h2>
+  <p>Odyssey is an original hex-based strategy game inspired by Homer's wine-dark sea. Poseidon's wrath raises and lowers the waters, drowning islands and revealing new treasures. Establish camps, raise temples, and launch triremes to harvest resources, trade with Hermes, and race to glory at Ithaca. Solo and two-player modes.</p>
+
+  <h3>How to play</h3>
+  <p>Each turn the sea level shifts one step along a 1-2-3-4-5-4-3-2-1 cycle, swallowing any island whose elevation the wrath reaches. You then take 2 actions: build a structure, trade with Hermes, or redirect his ship. Camps (1 VP) harvest resources from adjacent revealed hexes; temples (1 VP) shield an island from the flood; triremes (2 VP) connect islands across open sea. Trade requires a connected chain from your network to Hermes' drifting merchant vessel. First to 15 victory points reaches Ithaca and wins.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How do I win Odyssey?</summary><p>Be first to 15 VP. Camps and temples score 1 each, triremes 2, every 5 trade coins 1, and the largest connected network of your structures adds a 3 VP bonus.</p></details>
+  <details><summary>What is Poseidon's Wrath?</summary><p>Each turn the tide moves one step along a 1-2-3-4-5-4-3-2-1 cycle. Islands are swallowed when the wrath reaches their elevation, hiding their resources and camps until the waters recede. A temple protects its island from the flood.</p></details>
+  <details><summary>How do I gather resources and trade?</summary><p>Camps harvest automatically from adjacent revealed hexes. To trade, your camps and triremes must form a connected chain to Hermes' drifting ship, then you sell goods at set prices.</p></details>
+  <details><summary>How long is a typical game?</summary><p>About 25–35 minutes solo against the AI, and roughly 45–60 minutes for two players.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/tidelands">Tidelands</a> — maritime trade.</li>
+    <li><a href="/agora">Agora</a> — Mediterranean trade.</li>
+    <li><a href="/senet">Senet</a> — ancient Egyptian race.</li>
+    <li><a href="/pentegrammai">Pente Grammai</a> — ancient Greek game.</li>
+  </ul>
+</section>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

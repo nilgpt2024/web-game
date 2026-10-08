@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#0c1016">
+<title>Abacus — Board Gaming Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="description" content="A playable digital soroban abacus with live conversion to Arabic and Roman numerals. Tap beads or use the calculator pad. Free, browser-based, single HTML file.">
+<link rel="canonical" href="https://boardgaminghub.com/abacus">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Abacus — a calculator for the calculator">
+<meta property="og:description" content="A playable digital soroban abacus with Arabic + Roman numeral conversion.">
+<meta property="og:image" content="https://boardgaminghub.com/og/abacus.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/abacus.png">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { margin: 0; padding: 0; background: #1a0f08; color: #f0d89c; font-family: Georgia, "Times New Roman", serif; min-height: 100vh; }
+  #app { max-width: 760px; margin: 0 auto; padding: 16px 14px 80px; }
+  header { text-align: center; margin-bottom: 14px; }
+  header h1 { font-size: 1.5em; letter-spacing: 10px; margin: 4px 0 2px; color: #f0d89c; }
+  header .tag { font-size: 0.72em; letter-spacing: 3px; color: #a89070; font-style: italic; }
+
+  .display {
+    background: #0c0905;
+    border: 1px solid #3a2818;
+    border-radius: 6px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .drow { display: grid; grid-template-columns: 70px 1fr; align-items: baseline; gap: 10px; }
+  .dlabel { font-size: 0.62em; letter-spacing: 2px; color: #806040; text-transform: uppercase; }
+  .dnum { font-family: "Courier New", monospace; font-size: 1.4em; color: #f0d89c; min-height: 1.3em; word-break: break-all; line-height: 1.25; }
+  .dnum.roman { font-family: "Times New Roman", serif; letter-spacing: 1px; font-size: 1.3em; }
+  .dnum.bead { font-size: 0.85em; color: #a89070; letter-spacing: 1.5px; }
+  .m1 { border-top: 1.5px solid currentColor; padding: 0 1.5px; display: inline-block; line-height: 1; }
+  .m2 { border-top: 4px double currentColor; padding-top: 1px; padding-left: 1.5px; padding-right: 1.5px; display: inline-block; line-height: 1; }
+  .m3 { border-top: 1.5px solid currentColor; box-shadow: inset 0 4px 0 -2.5px currentColor, inset 0 7px 0 -5.5px currentColor; padding: 5px 1.5px 0; display: inline-block; line-height: 1; }
+
+  .frame {
+    background: linear-gradient(180deg, #6b3f1f 0%, #4d2d15 50%, #6b3f1f 100%);
+    border: 3px solid #2a1808;
+    border-radius: 8px;
+    padding: 6px;
+    box-shadow: inset 0 0 22px rgba(0,0,0,.55), 0 4px 8px rgba(0,0,0,.35);
+  }
+  .frame svg { display: block; width: 100%; height: auto; }
+
+  .expr {
+    background: #0c0905; border: 1px solid #3a2818; border-radius: 4px;
+    padding: 8px 12px; margin-top: 12px; min-height: 28px;
+    font-family: "Courier New", monospace; font-size: 1.0em; color: #d4a060;
+    letter-spacing: 2px; text-align: right;
+  }
+  .expr:empty::before { content: "·"; color: #604030; }
+
+  .pad {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+    margin-top: 10px;
+  }
+  .pad button {
+    background: #2a1808; color: #f0d89c; border: 1px solid #4d2d15;
+    font-family: Georgia, serif; font-size: 1.3em; padding: 14px 0;
+    border-radius: 5px; cursor: pointer; letter-spacing: 1px;
+    transition: background .08s, transform .05s;
+  }
+  .pad button:active { background: #4d2d15; transform: scale(0.97); }
+  .pad button.op { color: #d4a060; }
+  .pad button.eq { background: #704020; color: #fce8b8; }
+  .pad button.eq:active { background: #855030; }
+  .pad button.span2 { grid-column: span 2; }
+  .pad button.danger { color: #c08060; font-size: 0.85em; letter-spacing: 2px; }
+
+  .modes { margin-top: 14px; display: flex; gap: 6px; justify-content: center; font-size: 0.78em; letter-spacing: 2px; }
+  .modes button {
+    background: transparent; border: 1px solid #4d2d15; color: #a89070;
+    padding: 8px 18px; cursor: pointer; font-family: Georgia, serif;
+    text-transform: uppercase; border-radius: 3px;
+  }
+  .modes button.active { background: #4d2d15; color: #f0d89c; }
+
+  .help { margin-top: 18px; color: #a89070; font-size: 0.82em; line-height: 1.55; }
+  .help b { color: #f0d89c; }
+  .help details { margin-top: 8px; }
+  .help summary { cursor: pointer; color: #d4a060; letter-spacing: 1.5px; font-size: 0.78em; text-transform: uppercase; }
+  .help p { margin: 8px 0; }
+
+  footer { text-align: center; padding: 18px 0 0; color: #604030; font-size: 0.72em; letter-spacing: 2px; }
+  footer a { color: #a89070; text-decoration: none; }
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>ABACUS</h1>
+    <div class="tag">a calculator for the calculator</div>
+  </header>
+
+  <div class="display">
+    <div class="drow"><span class="dlabel">Arabic</span><div class="dnum arabic" id="d-arabic">0</div></div>
+    <div class="drow"><span class="dlabel">Roman</span><div class="dnum roman" id="d-roman">nulla</div></div>
+    <div class="drow"><span class="dlabel">Per rod</span><div class="dnum bead" id="d-bead">·</div></div>
+  </div>
+
+  <div class="frame">
+    <svg id="abacus" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+
+  <div class="expr" id="expr"></div>
+
+  <div class="pad" id="pad">
+    <button data-k="7">7</button>
+    <button data-k="8">8</button>
+    <button data-k="9">9</button>
+    <button data-k="/" class="op">÷</button>
+    <button data-k="4">4</button>
+    <button data-k="5">5</button>
+    <button data-k="6">6</button>
+    <button data-k="*" class="op">×</button>
+    <button data-k="1">1</button>
+    <button data-k="2">2</button>
+    <button data-k="3">3</button>
+    <button data-k="-" class="op">−</button>
+    <button data-k="0">0</button>
+    <button data-k="bksp" class="op">←</button>
+    <button data-k="C" class="op danger">C</button>
+    <button data-k="+" class="op">+</button>
+    <button data-k="=" class="span2 eq">=</button>
+    <button data-k="reset" class="span2 danger">reset abacus</button>
+  </div>
+
+  <div class="modes">
+    <button id="m-practice" class="active">Practice</button>
+    <button id="m-calc">Calculator</button>
+  </div>
+
+  <div class="help">
+    <details>
+      <summary>How to use</summary>
+      <p><b>Practice mode</b> — tap any bead to slide it. Heaven beads (above the bar) are worth 5; earth beads (below the bar) are worth 1. A bead "counts" only when pushed against the bar. Each rod is a decimal place — leftmost is trillions, rightmost is ones. The dot under a rod marks the unit rod. Tap a digit on the pad to push it in from the right; tap ← to shift back; tap C to clear the abacus.</p>
+      <p><b>Calculator mode</b> — type an expression (e.g. <code>137 × 89</code>) using the pad, then tap =. The beads animate to the result. Integer arithmetic; division truncates. Switch back to practice anytime to manipulate the result by hand.</p>
+      <p><b>Roman numerals</b> use the standard subtractive notation (IV, IX, XL, etc.) up to 3,999. Above that, single-overlined groups represent thousands (V̄ = 5,000), double-overlined represent millions, triple-overlined represent billions — the same vinculum convention Romans actually used.</p>
+    </details>
+    <details>
+      <summary>About</summary>
+      <p>The soroban (Japanese 4+1 abacus, refined from the Chinese suanpan) is a 2,000-year-old mechanical computer. A trained operator can add long columns of numbers faster than someone with a calculator, because the answer is already half-formed by the bead positions during entry. This is a faithful digital rendering — the mechanics are exactly what a physical soroban does.</p>
+      <p>The irony: this calculator app contains an abacus simulating a calculator running on a calculator (your phone) that contains roughly a billion abacuses' worth of computational power. Use it to add 2 + 2.</p>
+    </details>
+  </div>
+
+  <footer>
+    <a href="/">← Board Gaming Hub</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const NUM_RODS = 13;
+  const MAX = Math.pow(10, NUM_RODS) - 1;
+  let rods = new Array(NUM_RODS).fill(0);
+  let mode = "practice";
+  let expr = "";
+
+  // SVG layout constants (viewBox 600x260)
+  const PAD_X = 22;
+  const ROD_W = 44;
+  const TOP_Y = 8;
+  const BAR_Y = 80;
+  const BAR_H = 6;
+  const BOT_Y = 252;
+  const HEAVEN_TOP_Y = 28;       // heaven bead inactive (resting against top rail)
+  const HEAVEN_BAR_Y = BAR_Y - 12; // heaven bead active (just above bar)
+  const EARTH_BAR_Y = BAR_Y + BAR_H + 12; // first earth bead active y
+  const EARTH_BOT_Y = BOT_Y - 12;         // last earth bead inactive y
+  const EARTH_GAP = 18;
+  const BEAD_RX = 17;
+  const BEAD_RY = 8;
+  const UNIT_ROD = NUM_RODS - 1;
+
+  const padEl = document.getElementById("pad");
+  const svg = document.getElementById("abacus");
+  const exprEl = document.getElementById("expr");
+
+  function rodCx(i) { return PAD_X + i * ROD_W + ROD_W / 2; }
+
+  function heavenY(active) {
+    return active ? HEAVEN_BAR_Y : HEAVEN_TOP_Y;
+  }
+  function earthY(slot, count) {
+    // slot 0 = closest to bar, slot 3 = furthest
+    if (slot < count) {
+      return EARTH_BAR_Y + slot * EARTH_GAP;
+    }
+    // inactive: stack against bottom rail
+    // slot 3 sits at EARTH_BOT_Y; slot 0 (if inactive) sits 3 gaps above
+    return EARTH_BOT_Y - (3 - slot) * EARTH_GAP;
+  }
+
+  function svgEsc(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+  function render() {
+    const W = PAD_X * 2 + NUM_RODS * ROD_W;
+    const parts = [];
+    // Outer wood
+    parts.push(`<rect x="0" y="0" width="${W}" height="260" fill="none"/>`);
+    // Top rail
+    parts.push(`<rect x="6" y="${TOP_Y}" width="${W - 12}" height="6" fill="#2a1808" rx="2"/>`);
+    // Reckoning bar
+    parts.push(`<rect x="6" y="${BAR_Y}" width="${W - 12}" height="${BAR_H}" fill="#2a1808" rx="2"/>`);
+    // Bottom rail
+    parts.push(`<rect x="6" y="${BOT_Y - 4}" width="${W - 12}" height="6" fill="#2a1808" rx="2"/>`);
+    // Side rails
+    parts.push(`<rect x="0" y="0" width="6" height="260" fill="#2a1808"/>`);
+    parts.push(`<rect x="${W - 6}" y="0" width="6" height="260" fill="#2a1808"/>`);
+
+    for (let i = 0; i < NUM_RODS; i++) {
+      const cx = rodCx(i);
+      // Rod (vertical line behind beads)
+      parts.push(`<line x1="${cx}" y1="14" x2="${cx}" y2="${BOT_Y - 8}" stroke="#3a1f0a" stroke-width="2"/>`);
+      // Unit-rod marker
+      if (i === UNIT_ROD) {
+        parts.push(`<circle cx="${cx}" cy="${BOT_Y + 5}" r="2.5" fill="#fce8b8"/>`);
+      }
+      // Decimal marker every 3 rods leftward from unit rod
+      if (i !== UNIT_ROD && (UNIT_ROD - i) % 3 === 0) {
+        parts.push(`<circle cx="${cx}" cy="${BOT_Y + 5}" r="1.5" fill="#a89070"/>`);
+      }
+
+      const rod = rods[i];
+      const heavenAct = rod >= 5;
+      const earthCount = rod % 5;
+
+      // Heaven bead
+      const hy = heavenY(heavenAct);
+      const hFill = heavenAct ? "url(#beadOn)" : "url(#beadOff)";
+      parts.push(beadSvg(cx, hy, hFill, i, "h", -1));
+
+      // Earth beads
+      for (let s = 0; s < 4; s++) {
+        const ey = earthY(s, earthCount);
+        const act = s < earthCount;
+        const fill = act ? "url(#beadOn)" : "url(#beadOff)";
+        parts.push(beadSvg(cx, ey, fill, i, "e", s));
+      }
+    }
+
+    // Bead gradients
+    const defs = `
+      <defs>
+        <radialGradient id="beadOn" cx="0.35" cy="0.35" r="0.7">
+          <stop offset="0%" stop-color="#ffe8b8"/>
+          <stop offset="55%" stop-color="#d4a060"/>
+          <stop offset="100%" stop-color="#704020"/>
+        </radialGradient>
+        <radialGradient id="beadOff" cx="0.35" cy="0.35" r="0.7">
+          <stop offset="0%" stop-color="#c89868"/>
+          <stop offset="55%" stop-color="#9c6c3c"/>
+          <stop offset="100%" stop-color="#502810"/>
+        </radialGradient>
+      </defs>`;
+    svg.innerHTML = defs + parts.join("");
+    svg.setAttribute("viewBox", `0 0 ${W} 260`);
+    updateDisplays();
+  }
+
+  function beadSvg(cx, cy, fill, rodIdx, beadKind, slot) {
+    return `<ellipse class="bead" data-rod="${rodIdx}" data-b="${beadKind}" data-slot="${slot}" cx="${cx}" cy="${cy}" rx="${BEAD_RX}" ry="${BEAD_RY}" fill="${fill}" stroke="#1a0a02" stroke-width="1"/>`;
+  }
+
+  function getValue() {
+    let v = 0;
+    for (let i = 0; i < NUM_RODS; i++) v = v * 10 + rods[i];
+    return v;
+  }
+
+  function setValue(n) {
+    if (n < 0) n = 0;
+    if (n > MAX) n = MAX;
+    n = Math.floor(n);
+    const out = new Array(NUM_RODS).fill(0);
+    for (let i = NUM_RODS - 1; i >= 0; i--) {
+      out[i] = n % 10;
+      n = Math.floor(n / 10);
+    }
+    rods = out;
+    render();
+  }
+
+  function formatArabic(n) { return n.toLocaleString("en-US"); }
+
+  function toRomanGroup(n) {
+    if (n === 0) return "";
+    const parts = [
+      [1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],
+      [100,"C"],[90,"XC"],[50,"L"],[40,"XL"],
+      [10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]
+    ];
+    let out = "";
+    for (const [v,s] of parts) {
+      while (n >= v) { out += s; n -= v; }
+    }
+    return out;
+  }
+
+  function toRoman(n) {
+    if (n === 0) return "nulla";
+    // Standard subtractive notation (with M/MM/MMM) for 1–3999, as the help text
+    // promises. Above 3999, fall back to vinculum grouping (a bar = ×1000), the
+    // classical way to write larger values that M-notation can't express cleanly.
+    if (n < 4000) return toRomanGroup(n);
+    const groups = [];
+    while (n > 0) { groups.unshift(n % 1000); n = Math.floor(n / 1000); }
+    return groups.map((g, i) => {
+      const level = groups.length - 1 - i;
+      const r = toRomanGroup(g);
+      if (!r) return "";
+      if (level === 0) return r;
+      const cls = level === 1 ? "m1" : level === 2 ? "m2" : "m3";
+      return `<span class="${cls}">${r}</span>`;
+    }).filter(Boolean).join("");
+  }
+
+  function formatBead() {
+    let out = [];
+    let started = false;
+    for (let i = 0; i < NUM_RODS; i++) {
+      const d = rods[i];
+      if (d > 0) started = true;
+      if (!started && i < UNIT_ROD) continue;
+      if (d === 0) { out.push("·"); continue; }
+      const h = d >= 5 ? "5" : "0";
+      const e = d % 5;
+      out.push(h + "+" + e);
+    }
+    return out.join(" ");
+  }
+
+  function updateDisplays() {
+    const v = getValue();
+    document.getElementById("d-arabic").textContent = formatArabic(v);
+    document.getElementById("d-roman").innerHTML = toRoman(v);
+    document.getElementById("d-bead").textContent = formatBead();
+    exprEl.textContent = expr;
+  }
+
+  function toggleBead(t) {
+    if (!t || !t.classList || !t.classList.contains("bead")) return false;
+    const i = +t.getAttribute("data-rod");
+    const b = t.getAttribute("data-b");
+    const heaven = rods[i] >= 5 ? 5 : 0;
+    let earth = rods[i] % 5;
+    let next;
+    if (b === "h") {
+      next = (heaven ? 0 : 5) + earth;
+    } else {
+      const slot = +t.getAttribute("data-slot");
+      // If clicked bead was active, push it (and any below) away from bar.
+      // If inactive, push it (and any between it and bar) toward bar.
+      const wasActive = slot < earth;
+      const newCount = wasActive ? slot : slot + 1;
+      next = heaven + newCount;
+    }
+    if (next === rods[i]) return false;
+    rods[i] = next;
+    if (mode === "calc") {
+      // Manual bead manipulation in calc mode acts as user override
+      // — sync expression to current value.
+      expr = String(getValue());
+    }
+    render();
+    return true;
+  }
+
+  function beadAtPoint(x, y) {
+    const el = document.elementFromPoint(x, y);
+    if (el && el.classList && el.classList.contains("bead")) return el;
+    return null;
+  }
+
+  // Bead taps (mouse / non-touch)
+  svg.addEventListener("click", function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains("bead")) {
+      toggleBead(e.target);
+    }
+  });
+
+  // Touch: tap-to-toggle plus drag along a rod toggles each new bead crossed.
+  let touchActive = false;
+  let touchSeen = null; // last bead element toggled during this touch
+  svg.addEventListener("touchstart", function (e) {
+    const t = e.touches[0];
+    if (!t) return;
+    const bead = beadAtPoint(t.clientX, t.clientY);
+    if (!bead) return;
+    e.preventDefault();
+    touchActive = true;
+    touchSeen = bead;
+    toggleBead(bead);
+  }, { passive: false });
+  svg.addEventListener("touchmove", function (e) {
+    if (!touchActive) return;
+    const t = e.touches[0];
+    if (!t) return;
+    const bead = beadAtPoint(t.clientX, t.clientY);
+    if (!bead || bead === touchSeen) return;
+    // Only toggle if same rod as the start (drag along rod, not across rods)
+    if (touchSeen && bead.getAttribute("data-rod") !== touchSeen.getAttribute("data-rod")) return;
+    e.preventDefault();
+    touchSeen = bead;
+    toggleBead(bead);
+  }, { passive: false });
+  function endTouch() { touchActive = false; touchSeen = null; }
+  svg.addEventListener("touchend", endTouch);
+  svg.addEventListener("touchcancel", endTouch);
+
+  // Pad
+  function setMode(m) {
+    mode = m;
+    document.getElementById("m-practice").classList.toggle("active", m === "practice");
+    document.getElementById("m-calc").classList.toggle("active", m === "calc");
+    if (m === "calc" && !expr) expr = String(getValue());
+    if (m === "practice") expr = "";
+    updateDisplays();
+  }
+
+  function evalExpr(s) {
+    // Allow only digits and + - * / and whitespace
+    if (!/^[\d+\-*/\s]+$/.test(s)) return null;
+    try {
+      const r = Function('"use strict"; return (' + s + ');')();
+      if (!Number.isFinite(r)) return null;
+      return Math.trunc(r);
+    } catch (e) { return null; }
+  }
+
+  function handleKey(k) {
+    if (k === "reset") {
+      rods.fill(0); expr = ""; render(); return;
+    }
+    if (mode === "practice") {
+      if (/^\d$/.test(k)) {
+        // Shift-in digit from the right
+        for (let i = 0; i < NUM_RODS - 1; i++) rods[i] = rods[i + 1];
+        rods[NUM_RODS - 1] = +k;
+        render();
+        return;
+      }
+      if (k === "C") { rods.fill(0); render(); return; }
+      if (k === "bksp") {
+        for (let i = NUM_RODS - 1; i > 0; i--) rods[i] = rods[i - 1];
+        rods[0] = 0;
+        render();
+        return;
+      }
+      if (k === "+" || k === "-" || k === "*" || k === "/" || k === "=") {
+        // Auto-switch to calculator mode and start expression
+        setMode("calc");
+        if (k === "=") return;
+        expr = String(getValue()) + k;
+        updateDisplays();
+        return;
+      }
+    } else {
+      if (/^\d$/.test(k)) { expr += k; }
+      else if (k === "+" || k === "-" || k === "*" || k === "/") {
+        if (!expr) expr = String(getValue());
+        if (/[+\-*/]$/.test(expr)) expr = expr.slice(0, -1) + k;
+        else expr += k;
+      } else if (k === "bksp") {
+        expr = expr.slice(0, -1);
+      } else if (k === "C") {
+        expr = ""; rods.fill(0);
+      } else if (k === "=") {
+        const r = evalExpr(expr);
+        if (r !== null) {
+          setValue(r);
+          expr = String(r);
+        }
+        updateDisplays();
+        return;
+      }
+      // Live-update beads to current trailing operand
+      const m = expr.match(/(-?\d+)\s*$/);
+      if (m) setValue(parseInt(m[1], 10));
+      else { rods.fill(0); render(); }
+    }
+  }
+
+  padEl.addEventListener("click", function (e) {
+    const k = e.target && e.target.getAttribute && e.target.getAttribute("data-k");
+    if (k) handleKey(k);
+  });
+
+  document.getElementById("m-practice").addEventListener("click", () => setMode("practice"));
+  document.getElementById("m-calc").addEventListener("click", () => setMode("calc"));
+
+  // Keyboard support
+  window.addEventListener("keydown", function (e) {
+    const k = e.key;
+    if (/^[0-9]$/.test(k)) handleKey(k);
+    else if (k === "+" || k === "-" || k === "*" || k === "/" || k === "=") handleKey(k);
+    else if (k === "Enter") handleKey("=");
+    else if (k === "Backspace") handleKey("bksp");
+    else if (k === "Escape" || k === "c" || k === "C") handleKey("C");
+    else return;
+    e.preventDefault();
+  });
+
+  render();
+})();
+</script>
+
+<section class="seo-content">
+  <h2>About Abacus</h2>
+  <p>A playable Japanese soroban (1:4 bead layout) with a calculator pad, practice mode, and live conversion to Arabic and Roman numerals. Tap beads or type digits — the abacus and displays stay in sync.</p>
+  <h3>How to read the soroban</h3>
+  <p>Each column is a decimal place. The upper bead counts 5 when pushed down; each lower bead counts 1 when pushed up. Addition and subtraction follow standard soroban carries.</p>
+  <p><b>Learning the technique?</b> The <a href="#guide">soroban technique guide</a> covers what the bead values alone don't: the five- and ten-complements, how carrying actually works, and worked addition and subtraction step by step.</p>
+  <h3>Frequently asked questions</h3>
+  <details><summary>What is a soroban?</summary><p>The Japanese abacus — one heaven bead (5) and four earth beads (1) per rod, decimal from right to left.</p></details>
+  <details><summary>Can I use the keyboard?</summary><p>Yes — digits, operators, Enter, Backspace, and C/Escape map to the calculator pad.</p></details>
+  <h3>Related</h3>
+  <ul>
+    <li><a href="/sudoku">Sudoku</a> — number logic puzzle.</li>
+    <li><a href="/2048">2048</a> — merge tiles by doubling.</li>
+  </ul>
+</section>
+<!-- merged from /guides/abacus-soroban -->
+<section class="seo-content guide-merged" id="guide">
+  <h2>How to Use a Soroban — Japanese Abacus Technique</h2>
+<p>The <a href="/abacus">soroban</a> is the Japanese abacus: one <b>heaven bead</b> worth 5 above the bar, four <b>earth beads</b> worth 1 below it, on each rod. A bead counts only when pushed against the bar. That much you can read off the device in a minute. What takes practice &mdash; and what almost no page actually explains &mdash; is the technique that makes it fast: you never &ldquo;think&rdquo; an addition, you execute a fixed rule about which beads to move.</p>
+
+    <h3>Setting a number</h3>
+    <p>Each rod is one decimal place, ones on the right. To set 7, push the heaven bead down (5) and two earth beads up (2). To set 3, push three earth beads up. There is no ambiguity: every digit 0&ndash;9 has exactly one bead configuration.</p>
+
+    <div class="callout">
+      <b>The unit rod.</b> Pick a rod and call it the ones column &mdash; on most sorobans it is marked with a dot. Everything else follows from it. Beginners who do not fix a unit rod lose their place the first time they carry.</div>
+
+    <h3>The whole skill: complements</h3>
+    <p>You add by moving beads. The problem is that sometimes the beads you need are not free &mdash; you want to add 4 but only two earth beads remain. Rather than pause and think, the soroban operator applies a <b>complement</b>: add the larger unit, take back the difference. There are only two families to learn.</p>
+
+    <h4>Five-complements (within one rod)</h4>
+    <p>When you need to add 1&ndash;4 but lack the earth beads, add the heaven bead (5) and remove the complement to 5:</p>
+    <table class="scenario-table">
+      <tr><th>To add</th><th>Do this</th><th>Because</th></tr>
+      <tr><td>1</td><td>+5, then &minus;4</td><td>1 = 5 &minus; 4</td></tr>
+      <tr><td>2</td><td>+5, then &minus;3</td><td>2 = 5 &minus; 3</td></tr>
+      <tr><td>3</td><td>+5, then &minus;2</td><td>3 = 5 &minus; 2</td></tr>
+      <tr><td>4</td><td>+5, then &minus;1</td><td>4 = 5 &minus; 1</td></tr>
+    </table>
+    <p>The pairs are simply 1&ndash;4, 2&ndash;3 and their reverses. Subtraction runs the same table backwards: to subtract 4 when you cannot, remove the heaven bead and add 1.</p>
+
+    <h4>Ten-complements (carrying to the next rod)</h4>
+    <p>When a whole rod cannot absorb the digit, carry: add 1 to the rod on the left and remove the complement to 10 from the current rod.</p>
+    <table class="scenario-table">
+      <tr><th>To add</th><th>Do this</th><th>To add</th><th>Do this</th></tr>
+      <tr><td>1</td><td>carry 1, &minus;9</td><td>6</td><td>carry 1, &minus;4</td></tr>
+      <tr><td>2</td><td>carry 1, &minus;8</td><td>7</td><td>carry 1, &minus;3</td></tr>
+      <tr><td>3</td><td>carry 1, &minus;7</td><td>8</td><td>carry 1, &minus;2</td></tr>
+      <tr><td>4</td><td>carry 1, &minus;6</td><td>9</td><td>carry 1, &minus;1</td></tr>
+      <tr><td>5</td><td>carry 1, &minus;5</td><td></td><td></td></tr>
+    </table>
+
+    <h3>Worked example: 8 + 7</h3>
+    <ol>
+      <li>Set <b>8</b> on the unit rod &mdash; heaven bead down (5) plus three earth beads up (3).</li>
+      <li>You want to add 7. There is no room: only one earth bead is free.</li>
+      <li>Apply the ten-complement for 7 &mdash; <b>carry 1</b> to the tens rod, then <b>subtract 3</b> from the unit rod.</li>
+      <li>Subtracting 3 from 8 within the rod needs its own five-complement: remove the heaven bead (&minus;5) and add two earth beads (+2), leaving 5.</li>
+      <li>Read the board: 1 on the tens rod, 5 on the units. <b>15.</b></li>
+    </ol>
+    <p>Notice you never computed 8 + 7. You applied two lookup rules. That is the entire trick, and it is why a trained operator keeps pace with someone typing.</p>
+
+    <h3>Worked example: 23 &minus; 8</h3>
+    <ol>
+      <li>Set <b>23</b> &mdash; two earth beads on the tens rod, three on the units.</li>
+      <li>Subtract 8 from the unit rod: 3 is not enough, so borrow. Take <b>1 from the tens rod</b> and <b>add the complement, 2</b>, to the units.</li>
+      <li>Units: 3 + 2 = 5 &mdash; clear the three earth beads and push the heaven bead down.</li>
+      <li>Tens now reads 1, units reads 5. <b>15.</b></li>
+    </ol>
+
+    <h3>Why it stays faster than it should be</h3>
+    <p>The answer is half-formed while you enter the numbers. There is no separate &ldquo;compute&rdquo; step &mdash; by the time the last digit is set, the board already holds the total. Japanese schools still teach it, and advanced students graduate to <i>anzan</i>: visualising the board and moving imaginary beads, with no device at all. Competitive anzan practitioners add ten three-digit numbers in a couple of seconds.</p>
+
+    <div class="callout">
+      <b>Practice order that works:</b> set random digits until the bead patterns are automatic, then drill the four five-complements, then the ten-complements, and only then attempt multi-rod sums. Skipping straight to arithmetic is the usual reason people bounce off the soroban.</div>
+
+    <p>The <a href="/abacus">Board Gaming Hub soroban</a> has a practice mode where you slide the beads yourself, plus live conversion to Arabic and Roman numerals so you can check yourself as you go.</p>
+</section>
+<style>.guide-merged .callout{background:#141c28;border:1px solid #3a5060;border-radius:4px;padding:14px 18px;margin:20px 0}.guide-merged .scenario-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.92em}.guide-merged .scenario-table th,.guide-merged .scenario-table td{border:1px solid #2a3540;padding:8px 10px;text-align:left;vertical-align:top}</style>
+
+
+<script src="/nav.js" defer></script>
+<script src="/analytics.js"></script>
+</body>
+</html>

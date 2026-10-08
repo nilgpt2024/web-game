@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a1018">
+<title>Hellcat — WWII Carrier Flight Simulator | Board Gaming Hub</title>
+<meta name="description" content="Fly an F6F Hellcat in your browser. Real lift, drag and thrust equations, ISA atmosphere, stall behaviour, and carrier takeoffs and arrested landings. Free, no signup.">
+<link rel="canonical" href="https://boardgaminghub.com/hellcat">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/hellcat">
+<meta property="og:title" content="Hellcat — WWII Carrier Flight Simulator">
+<meta property="og:description" content="An F6F Hellcat with real aerodynamics, in a browser. Carrier takeoffs, arrested landings, honest stalls.">
+<meta property="og:image" content="https://boardgaminghub.com/og/hellcat.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/hellcat.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Hellcat Flight Simulator",
+  "description": "Browser flight simulator flying a Grumman F6F Hellcat, with lift and drag from real aerodynamic equations and carrier operations.",
+  "url": "https://boardgaminghub.com/hellcat", "genre": "Simulation",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  { "@type": "ListItem", "position": 1, "name": "Board Gaming Hub", "item": "https://boardgaminghub.com/" },
+  { "@type": "ListItem", "position": 2, "name": "Simulations", "item": "https://boardgaminghub.com/" },
+  { "@type": "ListItem", "position": 3, "name": "Hellcat", "item": "https://boardgaminghub.com/hellcat" } ] }
+</script>
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+  { "@type": "Question", "name": "How do you land on an aircraft carrier?",
+    "acceptedAnswer": { "@type": "Answer", "text": "Fly a stable approach at about 75 knots with gear, flaps and tailhook down, holding a constant descent of roughly 500 feet per minute. Do not flare — carrier landings are controlled crashes onto the deck, because flaring floats you over the arresting wires. Aim for the third wire." } },
+  { "@type": "Question", "name": "What is an accelerated stall?",
+    "acceptedAnswer": { "@type": "Answer", "text": "A stall that happens above the published stall speed because you pulled hard enough to raise the load factor. Stall depends on angle of attack, not airspeed: in a 60-degree bank pulling 2 g, the stall speed rises by the square root of 2, about 41 percent." } },
+  { "@type": "Question", "name": "Why does the aircraft climb worse at altitude?",
+    "acceptedAnswer": { "@type": "Answer", "text": "Air density falls with height, so a normally aspirated engine makes less power and the wing makes less lift at the same speed. This simulator models both with the standard atmosphere density lapse, which is why the Hellcat feels sluggish above about 6,000 metres." } },
+  { "@type": "Question", "name": "What were the real F6F Hellcat's specifications?",
+    "acceptedAnswer": { "@type": "Answer", "text": "The Grumman F6F-5 had a 334 square foot wing, a loaded weight near 12,600 pounds, and a Pratt & Whitney R-2800 Double Wasp making about 2,000 horsepower. Top speed was roughly 330 knots and the stall speed with flaps down was around 70 knots. Those numbers drive the flight model here." } } ] }
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✈️</text></svg>">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background: #0a1018;
+  color: #cfe0ea;
+}
+
+/* The game gets an explicitly sized host rather than a 100vh flex body.
+   A full-viewport flex body makes the injected site header, footer and the
+   SEO section below into flex siblings of the game, which collapses the
+   canvas to zero height. --chrome is measured at runtime. */
+#gameHost {
+  position: relative;
+  width: 100%;
+  height: calc(100dvh - var(--chrome, 0px));
+  min-height: 420px;
+  overflow: hidden;
+  background: #0a1018;
+}
+#scene { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+#hud { position: absolute; inset: 0; pointer-events: none; }
+
+/* ---- readouts ---- */
+.gauge-col {
+  position: absolute; top: 14px;
+  font-family: 'Courier New', ui-monospace, monospace;
+  font-size: 13px; line-height: 1.55; color: #8fe6b0;
+  text-shadow: 0 0 8px rgba(60,220,130,.35);
+  background: rgba(6,14,20,.42);
+  border: 1px solid rgba(120,200,160,.22);
+  border-radius: 6px; padding: 8px 12px;
+  min-width: 132px;
+}
+#gaugeLeft { left: 14px; }
+#gaugeRight { right: 14px; text-align: right; }
+.gauge-col .k { color: #5e8f77; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; display: block; }
+.gauge-col .v { font-size: 19px; color: #b8ffd4; }
+.gauge-col .row + .row { margin-top: 6px; }
+
+/* Fresnel-lens stand-in. Centre the dot on the datum and you are on a
+   3.5-degree glidepath, lined up with the centreline. */
+#ball {
+  position: absolute; left: 50%; bottom: 21%; transform: translateX(-50%);
+  width: 118px; height: 118px; display: none;
+  border: 1px solid rgba(140,230,180,.3); border-radius: 8px;
+  background: rgba(6,14,20,.4);
+}
+#ball.on { display: block; }
+.ball-datum { position: absolute; left: 8px; right: 8px; top: 50%; height: 1px; background: rgba(140,230,180,.55); }
+.ball-datum-v { left: 50%; top: 8px; bottom: 8px; right: auto; width: 1px; height: auto; }
+.ball-dot {
+  position: absolute; width: 13px; height: 13px; border-radius: 50%;
+  background: #ffd35a; box-shadow: 0 0 12px rgba(255,211,90,.75);
+  margin: -6.5px 0 0 -6.5px; left: 50%; top: 50%;
+  transition: left .08s linear, top .08s linear;
+}
+.ball-dot.good { background: #7fe6a0; box-shadow: 0 0 12px rgba(127,230,160,.8); }
+.ball-dot.bad { background: #ff6b5a; box-shadow: 0 0 12px rgba(255,107,90,.8); }
+.ball-cap {
+  position: absolute; left: 0; right: 0; bottom: -16px; text-align: center;
+  font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px; color: #5e8f77;
+}
+
+#warn {
+  position: absolute; left: 50%; top: 16%; transform: translateX(-50%);
+  font-family: 'Courier New', monospace; font-size: 20px; letter-spacing: 3px;
+  color: #ff6b5a; text-shadow: 0 0 16px rgba(255,90,70,.7);
+  opacity: 0; transition: opacity .12s;
+}
+#warn.on { opacity: 1; }
+
+#msg {
+  position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%);
+  font-size: 15px; color: #f0d89c; background: rgba(6,14,20,.72);
+  border: 1px solid rgba(240,216,156,.3); border-radius: 6px;
+  padding: 8px 18px; text-align: center; max-width: 82%;
+  opacity: 0; transition: opacity .25s;
+}
+#msg.on { opacity: 1; }
+
+/* ---- overlay screens ---- */
+.screen {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px;
+  background: rgba(6,12,18,.9); padding: 24px 18px; text-align: center;
+  pointer-events: auto; overflow-y: auto;
+}
+.screen.hidden { display: none; }
+.screen h2 { color: #f0d89c; font-size: 1.5em; letter-spacing: 5px; font-weight: normal; }
+.screen p { max-width: 560px; font-size: .92em; line-height: 1.6; color: #a8c0cf; }
+.screen .keys {
+  font-family: 'Courier New', monospace; font-size: .82em; color: #8fb8cf;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(140,190,220,.18);
+  border-radius: 6px; padding: 10px 14px; text-align: left; max-width: 560px;
+  column-count: 2; column-gap: 26px;
+}
+@media (max-width: 620px) { .screen .keys { column-count: 1; } }
+.screen .keys b { color: #f0d89c; font-weight: normal; }
+
+.mission-grid { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.mcard {
+  width: 172px; padding: 12px; cursor: pointer;
+  background: #12202c; border: 1px solid #2c4356; border-radius: 8px;
+  transition: border-color .2s, background .2s;
+}
+.mcard:hover { border-color: #d4a860; background: #17293a; }
+.mcard .t { color: #f0d89c; font-size: .98em; margin-bottom: 5px; }
+.mcard .d { color: #8fb0c4; font-size: .76em; line-height: 1.45; }
+
+button.action {
+  padding: 9px 26px; font-size: .95em; font-family: Georgia, serif; cursor: pointer;
+  background: #33566b; color: #eaf2f7; border: 1px solid #4a6172; border-radius: 6px;
+}
+button.action:hover { background: #3f6a84; }
+
+/* ---- touch controls: hidden on pointer devices with a real keyboard ---- */
+#touch { position: absolute; inset: 0; display: none; pointer-events: none; }
+@media (pointer: coarse) { #touch { display: block; } }
+#touch.force { display: block; }
+.tpad {
+  position: absolute; pointer-events: auto;
+  background: rgba(20,40,55,.5); border: 1px solid rgba(140,190,220,.3);
+  border-radius: 10px; color: #cfe0ea;
+  font-family: 'Courier New', monospace; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none; -webkit-user-select: none; touch-action: none;
+}
+.tpad:active, .tpad.held { background: rgba(60,120,160,.62); border-color: #d4a860; }
+.tstick { position: absolute; bottom: 14px; width: 168px; height: 168px; }
+#tsLeft { left: 14px; }
+#tsRight { right: 14px; }
+.tstick .tpad { width: 52px; height: 52px; }
+.tp-up { left: 58px; top: 0; }
+.tp-down { left: 58px; top: 116px; }
+.tp-left { left: 0; top: 58px; }
+.tp-right { left: 116px; top: 58px; }
+.tp-mid { left: 58px; top: 58px; font-size: 11px; }
+.tbar { position: absolute; right: 14px; top: 108px; display: flex; flex-direction: column; gap: 7px; pointer-events: auto; }
+.tbar .tpad { width: 54px; height: 34px; font-size: 12px; }
+
+.mini-note { font-size: .78em; color: #6f8496; }
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+
+<div id="gameHost">
+  <canvas id="scene"></canvas>
+
+  <div id="hud">
+    <div class="gauge-col" id="gaugeLeft">
+      <div class="row"><span class="k">Airspeed kt</span><span class="v" id="gSpeed">0</span></div>
+      <div class="row"><span class="k">Altitude ft</span><span class="v" id="gAlt">0</span></div>
+      <div class="row"><span class="k">Vert fpm</span><span class="v" id="gVs">0</span></div>
+      <div class="row"><span class="k">Heading</span><span class="v" id="gHdg">000</span></div>
+    </div>
+    <div class="gauge-col" id="gaugeRight">
+      <div class="row"><span class="k">Throttle</span><span class="v" id="gThr">0%</span></div>
+      <div class="row"><span class="k">AoA deg</span><span class="v" id="gAoa">0</span></div>
+      <div class="row"><span class="k">Load g</span><span class="v" id="gG">1.0</span></div>
+      <div class="row"><span class="k">Config</span><span class="v" id="gCfg" style="font-size:13px">- - -</span></div>
+    </div>
+    <div id="ball">
+      <div class="ball-datum"></div>
+      <div class="ball-datum ball-datum-v"></div>
+      <div class="ball-dot" id="ballDot"></div>
+      <div class="ball-cap">GLIDESLOPE</div>
+    </div>
+    <div id="warn"></div>
+    <div id="msg"></div>
+  </div>
+
+  <div id="touch">
+    <div class="tstick" id="tsLeft">
+      <div class="tpad tp-up" data-k="throttleUp">THR+</div>
+      <div class="tpad tp-down" data-k="throttleDown">THR&minus;</div>
+      <div class="tpad tp-left" data-k="yawLeft">&#8630;</div>
+      <div class="tpad tp-right" data-k="yawRight">&#8631;</div>
+    </div>
+    <div class="tstick" id="tsRight">
+      <div class="tpad tp-up" data-k="pitchDown">&#9650;</div>
+      <div class="tpad tp-down" data-k="pitchUp">&#9660;</div>
+      <div class="tpad tp-left" data-k="rollLeft">&#9664;</div>
+      <div class="tpad tp-right" data-k="rollRight">&#9654;</div>
+    </div>
+    <div class="tbar">
+      <div class="tpad" data-tap="gear">GEAR</div>
+      <div class="tpad" data-tap="flaps">FLAP</div>
+      <div class="tpad" data-tap="hook">HOOK</div>
+      <div class="tpad" data-tap="view">VIEW</div>
+    </div>
+  </div>
+
+  <div class="screen" id="menu">
+    <h2>HELLCAT</h2>
+    <p>A Grumman F6F-5 with an honest flight model: lift and drag from the real
+       equations, standard-atmosphere density lapse, and a wing that stalls on
+       angle of attack rather than on airspeed. Pick a start.</p>
+    <div class="mission-grid">
+      <div class="mcard" data-mission="free">
+        <div class="t">Free Flight</div>
+        <div class="d">Airborne at 5,000 ft over the task force. Nothing to do but fly.</div>
+      </div>
+      <div class="mcard" data-mission="landing">
+        <div class="t">Carrier Landing</div>
+        <div class="d">Two miles astern at 500 ft. Fly the ball, catch a wire.</div>
+      </div>
+      <div class="mcard" data-mission="takeoff">
+        <div class="t">Deck Launch</div>
+        <div class="d">Spotted aft on the deck. Full power, hold it straight, rotate at the bow.</div>
+      </div>
+    </div>
+    <div class="keys" id="keysList"></div>
+    <div class="mini-note">Touch controls appear automatically on phones and tablets.</div>
+  </div>
+
+  <div class="screen hidden" id="result">
+    <h2 id="resTitle">—</h2>
+    <p id="resText"></p>
+    <button class="action" id="resAgain">Fly Again</button>
+    <button class="action" id="resMenu" style="background:#26404f">Change Mission</button>
+  </div>
+</div>
+
+<script src="/three.r128.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  if (typeof THREE === 'undefined') {
+    document.getElementById('menu').innerHTML =
+      '<h2>HELLCAT</h2><p>The 3D library did not load. Reload the page, or open ' +
+      'this game from boardgaminghub.com rather than a local file.</p>';
+    return;
+  }
+
+  /* ==================================================================
+     Aircraft: Grumman F6F-5 Hellcat, real numbers in SI.
+     ================================================================== */
+  var AC = {
+    mass: 5714,          /* kg   — 12,600 lb loaded                        */
+    wingArea: 31.0,      /* m^2  — 334 ft^2                                */
+    span: 13.06,         /* m    — 42 ft 10 in                             */
+    power: 1491000,      /* W    — 2,000 hp R-2800 Double Wasp             */
+    propEff: 0.80,       /* propeller efficiency at cruise                 */
+    staticThrust: 26000, /* N    — caps T = P/V as V approaches zero       */
+    CL0: 0.18,           /* lift coefficient at zero angle of attack       */
+    CLalpha: 5.0,        /* per radian (finite-wing lift-curve slope)      */
+    CLmax: 1.42,         /* clean                                          */
+    alphaStall: 0.279,   /* rad  — 16 deg                                  */
+    CD0: 0.0250,         /* parasite drag, gear and flaps up               */
+    oswald: 0.78,
+    flapCL: 0.55,        /* added CL with flaps down                       */
+    flapCD: 0.030,
+    gearCD: 0.020,
+    hookCD: 0.002,
+    maxPitchRate: 1.15,  /* rad/s at reference dynamic pressure            */
+    maxRollRate: 2.60,
+    maxYawRate: 0.55,
+    qRef: 4000           /* Pa — control authority reference               */
+  };
+  AC.AR = (AC.span * AC.span) / AC.wingArea;          /* aspect ratio 5.5 */
+  AC.k = 1 / (Math.PI * AC.AR * AC.oswald);           /* induced-drag factor */
+
+  var G = 9.80665;
+  var RHO0 = 1.225;
+  var KT = 1.943844;     /* m/s -> knots  */
+  var FT = 3.280840;     /* m   -> feet   */
+
+  /* Carrier: Essex-class, deck 262 m x 45 m, steaming into wind at 15 kt */
+  var SHIP = {
+    x: 0, z: 0, heading: 0,
+    speed: 7.7,                /* m/s = 15 kt */
+    deckY: 20,                 /* flight deck height above the sea */
+    len: 262, wid: 45,
+    wires: [-70, -58, -46, -34] /* metres from deck centre, aft half */
+  };
+
+  /* ==================================================================
+     Scene
+     ================================================================== */
+  var host = document.getElementById('gameHost');
+  var canvas = document.getElementById('scene');
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x8fb6d4);
+  scene.fog = new THREE.Fog(0x9dc0d8, 2000, 16000);
+
+  var camera = new THREE.PerspectiveCamera(62, 1, 0.5, 30000);
+
+  scene.add(new THREE.HemisphereLight(0xbfd8ee, 0x2a4a5a, 0.85));
+  var sun = new THREE.DirectionalLight(0xfff2dc, 0.95);
+  sun.position.set(-800, 900, 600);
+  scene.add(sun);
+
+  /* --- sea. A big plane that follows the aircraft, with a repeating texture
+         anchored to world coordinates so it still reads as motion. --- */
+  function seaTexture() {
+    var c = document.createElement('canvas');
+    c.width = c.height = 256;
+    var g = c.getContext('2d');
+    g.fillStyle = '#1d4a63';
+    g.fillRect(0, 0, 256, 256);
+    for (var i = 0; i < 900; i++) {
+      var x = Math.random() * 256, y = Math.random() * 256;
+      var w = 3 + Math.random() * 12;
+      g.strokeStyle = 'rgba(150,205,225,' + (0.05 + Math.random() * 0.16).toFixed(3) + ')';
+      g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + w, y); g.stroke();
+    }
+    var t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(240, 240);
+    return t;
+  }
+  var seaTex = seaTexture();
+  var sea = new THREE.Mesh(
+    new THREE.PlaneGeometry(60000, 60000),
+    new THREE.MeshLambertMaterial({ color: 0xffffff, map: seaTex })
+  );
+  sea.rotation.x = -Math.PI / 2;
+  scene.add(sea);
+
+  /* --- carrier --- */
+  var carrier = new THREE.Group();
+  var deck = new THREE.Mesh(
+    new THREE.BoxGeometry(SHIP.wid, 4, SHIP.len),
+    new THREE.MeshLambertMaterial({ color: 0x4a4f52 })
+  );
+  deck.position.y = SHIP.deckY - 2;
+  carrier.add(deck);
+
+  var hull = new THREE.Mesh(
+    new THREE.BoxGeometry(SHIP.wid * 0.72, SHIP.deckY - 2, SHIP.len * 0.92),
+    new THREE.MeshLambertMaterial({ color: 0x2b3238 })
+  );
+  hull.position.y = (SHIP.deckY - 2) / 2 - 2;
+  carrier.add(hull);
+
+  var island = new THREE.Mesh(
+    new THREE.BoxGeometry(8, 16, 34),
+    new THREE.MeshLambertMaterial({ color: 0x3c4348 })
+  );
+  /* starboard side: facing the bow (+Z) with Y up, the right hand is -X */
+  island.position.set(-(SHIP.wid / 2 - 5), SHIP.deckY + 8, 10);
+  carrier.add(island);
+
+  /* deck markings: centreline plus the arresting wires */
+  var line = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.85, SHIP.len * 0.9),
+    new THREE.MeshBasicMaterial({ color: 0xcfc8b4 })
+  );
+  line.rotation.x = -Math.PI / 2;
+  line.position.set(0, SHIP.deckY + 0.06, 0);
+  carrier.add(line);
+
+  for (var wi = 0; wi < SHIP.wires.length; wi++) {
+    var w = new THREE.Mesh(
+      new THREE.PlaneGeometry(SHIP.wid * 0.8, 0.9),
+      new THREE.MeshBasicMaterial({ color: 0xe8d8a0 })
+    );
+    w.rotation.x = -Math.PI / 2;
+    w.position.set(0, SHIP.deckY + 0.07, SHIP.wires[wi]);
+    carrier.add(w);
+  }
+  /* round-down stripe at the ramp */
+  var ramp = new THREE.Mesh(
+    new THREE.PlaneGeometry(SHIP.wid * 0.9, 3),
+    new THREE.MeshBasicMaterial({ color: 0xd05a4a })
+  );
+  ramp.rotation.x = -Math.PI / 2;
+  ramp.position.set(0, SHIP.deckY + 0.07, -SHIP.len / 2 + 4);
+  carrier.add(ramp);
+  scene.add(carrier);
+
+  /* --- a few islands so the horizon is not empty --- */
+  var islandSeed = [[5200, -3800, 420, 180], [-6400, 2600, 300, 120], [1800, 7400, 520, 240]];
+  for (var ii = 0; ii < islandSeed.length; ii++) {
+    var s = islandSeed[ii];
+    var m = new THREE.Mesh(
+      new THREE.ConeGeometry(s[2], s[3], 7),
+      new THREE.MeshLambertMaterial({ color: 0x3f5240, flatShading: true })
+    );
+    m.position.set(s[0], s[3] / 2 - 8, s[1]);
+    scene.add(m);
+  }
+
+  /* --- the aircraft (visible in chase view) --- */
+  var plane = new THREE.Group();
+  var fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.5, 10.2, 10),
+    new THREE.MeshLambertMaterial({ color: 0x2d4a63 }));
+  fuse.rotation.x = Math.PI / 2;
+  plane.add(fuse);
+  /* two panels with dihedral rather than one plank */
+  var wingMat = new THREE.MeshLambertMaterial({ color: 0x33556f });
+  for (var wsi = -1; wsi <= 1; wsi += 2) {
+    var panel = new THREE.Mesh(new THREE.BoxGeometry(AC.span / 2, 0.3, 2.5), wingMat);
+    panel.position.set(wsi * AC.span / 4, 0.16, 0.4);
+    panel.rotation.z = -wsi * 0.10;                /* 6 degrees of dihedral */
+    plane.add(panel);
+  }
+  var cowl = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 0.95, 1.4, 14),
+    new THREE.MeshLambertMaterial({ color: 0x24384a }));
+  cowl.rotation.x = Math.PI / 2;
+  cowl.position.z = -4.6;
+  plane.add(cowl);
+  var tail = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.3, 1.5),
+    new THREE.MeshLambertMaterial({ color: 0x33556f }));
+  tail.position.z = 4.6;
+  plane.add(tail);
+  var fin = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.2, 1.7),
+    new THREE.MeshLambertMaterial({ color: 0x33556f }));
+  fin.position.set(0, 1.0, 4.7);
+  plane.add(fin);
+  var propDisc = new THREE.Mesh(new THREE.CircleGeometry(1.75, 20),
+    new THREE.MeshBasicMaterial({ color: 0x0d1116, transparent: true, opacity: 0.16, side: THREE.DoubleSide }));
+  propDisc.position.z = -5.45;
+  plane.add(propDisc);
+  scene.add(plane);
+
+  /* ==================================================================
+     Flight state
+     ================================================================== */
+  var S = {
+    pos: new THREE.Vector3(),
+    vel: new THREE.Vector3(),
+    quat: new THREE.Quaternion(),
+    throttle: 0,
+    gear: false, flaps: false, hook: false,
+    onDeck: false, trapped: false,
+    crashed: false, done: false,
+    gLoad: 1, alpha: 0, ias: 0,
+    trim: 0.05,            /* commanded angle of attack, in radians */
+    view: 0,               /* 0 chase, 1 cockpit */
+    mission: 'free',
+    prevVy: 0
+  };
+
+  var input = {
+    pitchUp: 0, pitchDown: 0, rollLeft: 0, rollRight: 0,
+    yawLeft: 0, yawRight: 0, throttleUp: 0, throttleDown: 0
+  };
+
+  var KEYMAP = {
+    KeyW: 'pitchDown', ArrowUp: 'pitchDown',
+    KeyS: 'pitchUp',   ArrowDown: 'pitchUp',
+    KeyA: 'rollLeft',  ArrowLeft: 'rollLeft',
+    KeyD: 'rollRight', ArrowRight: 'rollRight',
+    KeyQ: 'yawLeft', KeyE: 'yawRight',
+    ShiftLeft: 'throttleUp', ShiftRight: 'throttleUp',
+    ControlLeft: 'throttleDown', ControlRight: 'throttleDown',
+    Equal: 'throttleUp', Minus: 'throttleDown'
+  };
+
+  document.getElementById('keysList').innerHTML =
+    '<b>W / S</b> or <b>&uarr; &darr;</b> — pitch<br>' +
+    '<b>A / D</b> or <b>&larr; &rarr;</b> — roll<br>' +
+    '<b>Q / E</b> — rudder<br>' +
+    '<b>Shift / Ctrl</b> — throttle<br>' +
+    '<b>G</b> — landing gear<br>' +
+    '<b>F</b> — flaps<br>' +
+    '<b>H</b> — tailhook<br>' +
+    '<b>C</b> — chase / cockpit<br>' +
+    '<b>R</b> — restart mission<br>' +
+    '<b>Esc</b> — mission menu';
+
+  /* ISA density to 11 km */
+  function density(h) {
+    if (h < 0) h = 0;
+    if (h > 11000) h = 11000;
+    return RHO0 * Math.pow(1 - 2.25577e-5 * h, 4.25588);
+  }
+
+  /* Angle of attack that makes lift equal weight at the current speed and
+     height. Used to start each mission trimmed, so the aeroplane is not
+     already diverging the moment you get it. */
+  function trimForLevel() {
+    var V = S.vel.length();
+    var q = 0.5 * density(S.pos.y) * V * V;
+    if (q < 50) return 0.08;
+    var need = (AC.mass * G) / (q * AC.wingArea);
+    var a = (need - AC.CL0 - (S.flaps ? AC.flapCL : 0)) / AC.CLalpha;
+    return Math.max(-0.05, Math.min(AC.alphaStall * 0.8, a));
+  }
+
+  function setMission(kind) {
+    S.mission = kind;
+    S.crashed = S.done = S.trapped = S.onDeck = false;
+    S.quat.identity();
+    S.gLoad = 1; S.prevVy = 0;
+
+    /* The ship steams toward +Z: bow at +Z, arresting wires aft at -Z. So
+       every mission flies toward +Z, and heading pi is what points the nose
+       (body -Z) that way. Get this backwards and the aircraft spawns flying
+       tail-first with the angle of attack pegged at 90 degrees. */
+    SHIP.x = 0; SHIP.z = 0;
+    var hdg = Math.PI;
+
+    if (kind === 'free') {
+      S.pos.set(0, 1524, -2600);          /* 5,000 ft, astern of the ship */
+      S.vel.set(0, 0, 95);
+      S.throttle = 0.72;
+      S.gear = S.flaps = S.hook = false;
+      flash('Free flight. The task force is ahead of you.');
+    } else if (kind === 'landing') {
+      S.pos.set(0, 152, -3700);           /* 500 ft, two miles astern     */
+      S.vel.set(0, -2.5, 39);             /* ~76 kt, 500 fpm down         */
+      S.throttle = 0.44;
+      S.gear = S.flaps = S.hook = true;
+      flash('On the groove. Hold 75 knots and 500 fpm down. Do not flare.');
+    } else {
+      S.pos.set(0, SHIP.deckY + 1.6, -SHIP.len / 2 + 18);
+      /* you start with the ship speed under you -- which is the whole
+         reason a carrier turns into the wind before launching */
+      S.vel.set(0, 0, SHIP.speed);
+      S.throttle = 1.0;
+      S.gear = true; S.flaps = true; S.hook = false;
+      S.onDeck = true;
+      flash('Full power. Keep it straight — she flies off around 70 knots.');
+    }
+    S.quat.setFromEuler(new THREE.Euler(0, hdg, 0, 'YXZ'));
+    S.trim = trimForLevel();
+    carrier.position.set(SHIP.x, 0, SHIP.z);
+    show('menu', false);
+    show('result', false);
+  }
+
+  /* ==================================================================
+     Physics step
+     ================================================================== */
+  var FWD = new THREE.Vector3(0, 0, -1);
+  var UP = new THREE.Vector3(0, 1, 0);
+  var RIGHT = new THREE.Vector3(1, 0, 0);
+
+  var _f = new THREE.Vector3(), _u = new THREE.Vector3(), _r = new THREE.Vector3();
+  var _vb = new THREE.Vector3(), _tmp = new THREE.Vector3(), _q = new THREE.Quaternion();
+
+  function step(dt) {
+    if (S.done) return;
+
+    _f.copy(FWD).applyQuaternion(S.quat);
+    _u.copy(UP).applyQuaternion(S.quat);
+    _r.copy(RIGHT).applyQuaternion(S.quat);
+
+    var V = S.vel.length();
+    var rho = density(S.pos.y);
+    var q = 0.5 * rho * V * V;                       /* dynamic pressure */
+    S.ias = V * Math.sqrt(rho / RHO0);               /* indicated airspeed */
+
+    /* ---- control authority scales with dynamic pressure: at low speed the
+            controls go soft, which is the whole feel of a carrier approach ---- */
+    var auth = Math.min(1.25, q / AC.qRef);
+    var pitchIn = (input.pitchUp - input.pitchDown);
+    var rollIn = (input.rollRight - input.rollLeft);
+    var yawIn = (input.yawRight - input.yawLeft);
+
+    /* angle of attack and sideslip, from the velocity vector in body axes.
+       atan2 is left to return angles past 90 degrees rather than being
+       clamped -- flying backwards IS a 180-degree angle of attack, and the
+       stall model should see it. */
+    _vb.copy(S.vel);
+    var fComp = _vb.dot(_f);
+    var uComp = _vb.dot(_u);
+    var rComp = _vb.dot(_r);
+    S.alpha = (V > 1) ? Math.atan2(-uComp, fComp) : 0;
+    var beta = (V > 1) ? Math.asin(Math.max(-1, Math.min(1, rComp / V))) : 0;
+
+    /* ---- the stick commands an angle of attack, the airframe weathervanes
+            toward it. This is what makes the aeroplane statically stable:
+            let go and it holds the attitude you set instead of diverging.
+            Pull past the critical angle anyway and it still stalls. ---- */
+    S.trim += pitchIn * 0.55 * dt;
+    S.trim = Math.max(-0.16, Math.min(0.42, S.trim));
+
+    var stab = Math.min(1.4, q / AC.qRef) * AC.maxPitchRate;
+    _q.setFromAxisAngle(_r, -(S.alpha - S.trim) * stab * dt * 2.2);
+    S.quat.premultiply(_q);
+    /* directional stability: the fin pulls the nose back into the wind */
+    _q.setFromAxisAngle(_u, beta * Math.min(1.2, q / AC.qRef) * 1.6 * dt);
+    S.quat.premultiply(_q);
+
+    _q.setFromAxisAngle(_f, -rollIn * AC.maxRollRate * auth * dt);
+    S.quat.premultiply(_q);
+    _q.setFromAxisAngle(_u, -yawIn * AC.maxYawRate * auth * dt);
+    S.quat.premultiply(_q);
+    S.quat.normalize();
+
+    /* recompute the body axes after rotating */
+    _f.copy(FWD).applyQuaternion(S.quat);
+    _u.copy(UP).applyQuaternion(S.quat);
+    _r.copy(RIGHT).applyQuaternion(S.quat);
+
+    if (S.onDeck) {
+      /* on the deck the tailwheel keeps her straight; nosewheel steering only */
+      _q.setFromAxisAngle(UP, -yawIn * 0.45 * dt);
+      S.quat.premultiply(_q);
+      S.quat.normalize();
+      _f.copy(FWD).applyQuaternion(S.quat);
+      _u.copy(UP).applyQuaternion(S.quat);
+      _r.copy(RIGHT).applyQuaternion(S.quat);
+    }
+
+    /* ---- throttle ---- */
+    S.throttle += (input.throttleUp - input.throttleDown) * 0.55 * dt;
+    S.throttle = Math.max(0, Math.min(1, S.throttle));
+
+    /* recompute the airflow components against the new attitude */
+    _vb.copy(S.vel);
+    fComp = _vb.dot(_f);
+    uComp = _vb.dot(_u);
+    rComp = _vb.dot(_r);
+    S.alpha = (V > 1) ? Math.atan2(-uComp, fComp) : 0;
+
+    /* ---- lift coefficient, capped past the stall ---- */
+    var CL = AC.CL0 + AC.CLalpha * S.alpha + (S.flaps ? AC.flapCL : 0);
+    var CLmax = AC.CLmax + (S.flaps ? AC.flapCL : 0);
+    var stalled = false;
+    if (S.alpha > AC.alphaStall) {
+      /* past the critical angle lift falls away instead of clipping flat */
+      var over = S.alpha - AC.alphaStall;
+      CL = Math.max(0.35, CLmax * (1 - 2.4 * over));
+      stalled = true;
+    } else if (CL > CLmax) {
+      CL = CLmax;
+    }
+
+    var CD = AC.CD0 + AC.k * CL * CL
+           + (S.gear ? AC.gearCD : 0) + (S.flaps ? AC.flapCD : 0) + (S.hook ? AC.hookCD : 0);
+    if (stalled) CD += 0.06;
+
+    var lift = q * AC.wingArea * CL;
+    var drag = q * AC.wingArea * CD;
+
+    /* thrust from shaft power, capped at static thrust as V goes to zero */
+    var thrust = Math.min(AC.staticThrust, AC.propEff * AC.power * S.throttle / Math.max(V, 12));
+    thrust *= (rho / RHO0);            /* normally aspirated: power falls with density */
+
+    var force = new THREE.Vector3(0, -AC.mass * G, 0);
+    force.addScaledVector(_f, thrust);
+
+    if (V > 1) {
+      var vhat = _tmp.copy(S.vel).normalize();
+      force.addScaledVector(vhat, -drag);
+      /* lift acts perpendicular to the relative wind, in the plane of body up */
+      var liftDir = new THREE.Vector3().copy(_u).addScaledVector(vhat, -_u.dot(vhat));
+      if (liftDir.lengthSq() > 1e-6) {
+        liftDir.normalize();
+        force.addScaledVector(liftDir, lift);
+      }
+      /* crude sideforce so a slip actually costs you something */
+      force.addScaledVector(_r, -rComp * 220);
+    }
+
+    /* ---- on the deck: normal force, rolling friction, no sinking ---- */
+    if (S.onDeck) {
+      force.y = Math.max(0, force.y);
+      force.addScaledVector(_f, -Math.abs(fComp) * 40);
+    }
+
+    var accel = force.multiplyScalar(1 / AC.mass);
+    S.vel.addScaledVector(accel, dt);
+    S.pos.addScaledVector(S.vel, dt);
+
+    /* load factor, from lift against weight */
+    S.gLoad = lift / (AC.mass * G);
+    if (!isFinite(S.gLoad)) S.gLoad = 1;
+
+    /* ---- the ship steams on ---- */
+    SHIP.z += SHIP.speed * dt * Math.cos(SHIP.heading);
+    SHIP.x += SHIP.speed * dt * Math.sin(SHIP.heading);
+    carrier.position.set(SHIP.x, 0, SHIP.z);
+
+    checkContact(dt);
+    updateHud(stalled, V);
+  }
+
+  function overDeck() {
+    var dx = S.pos.x - SHIP.x;
+    var dz = S.pos.z - SHIP.z;
+    return Math.abs(dx) < SHIP.wid / 2 && Math.abs(dz) < SHIP.len / 2;
+  }
+
+  function checkContact(dt) {
+    var sink = -S.vel.y;
+    var overD = overDeck();
+    var deckTop = SHIP.deckY + 1.6;
+
+    /* Rolling on the deck is a distinct state from flying, and the two must
+       not share a branch: once lift exceeds weight the aircraft is airborne
+       while still geometrically over the deck. */
+    if (S.onDeck) {
+      if (!overD) {
+        S.onDeck = false;                       /* off the side, or past the bow */
+        if (S.mission === 'takeoff' && S.ias * KT > 62) {
+          return win('Airborne', 'Off the bow at ' + Math.round(S.ias * KT) +
+            ' knots. Gear up with G, and the deck is behind you.');
+        }
+        if (S.mission === 'takeoff') {
+          return fail('Off the bow too slow', 'You left the deck at ' +
+            Math.round(S.ias * KT) + ' knots. She needs about 70 to fly.');
+        }
+      } else if (S.vel.y > 0.6 && S.pos.y > deckTop + 0.4) {
+        S.onDeck = false;                       /* she flew herself off */
+        if (S.mission === 'takeoff') {
+          return win('Airborne', 'Unstuck at ' + Math.round(S.ias * KT) +
+            ' knots. Gear up with G, and the deck is behind you.');
+        }
+      } else {
+        S.pos.y = deckTop;
+        if (S.vel.y < 0) S.vel.y = 0;
+        if (S.trapped) S.vel.multiplyScalar(Math.max(0, 1 - 3.4 * dt));
+      }
+      return;
+    }
+
+    /* --- touchdown --- */
+    if (overD && S.pos.y <= deckTop + 0.35 && S.vel.y <= 0.2) {
+      if (sink > 7.5) return fail('Ramp strike', 'Touchdown sink rate ' +
+        Math.round(sink * FT * 60) + ' fpm. A deck landing tolerates roughly 1,200 fpm; past that the gear folds.');
+      if (!S.gear) return fail('Gear-up landing', 'You hit the deck with the wheels retracted. G lowers the gear.');
+
+      var dz = S.pos.z - SHIP.z;
+      var caught = false;
+      if (S.hook) {
+        for (var i = 0; i < SHIP.wires.length; i++) {
+          if (Math.abs(dz - SHIP.wires[i]) < 7) { caught = true; S.wireNo = i + 1; break; }
+        }
+      }
+      S.onDeck = true;
+      S.pos.y = deckTop;
+      S.vel.y = 0;
+
+      if (caught) {
+        S.trapped = true;
+        if (S.mission === 'landing') {
+          return win('Trapped \u2014 ' + S.wireNo + ' wire',
+            'Touchdown at ' + Math.round(S.ias * KT) + ' knots, ' +
+            Math.round(sink * FT * 60) + ' fpm. ' +
+            (S.wireNo === 3 ? 'Third wire. That is the one you aim for.'
+                            : 'The three wire is the target \u2014 ' + (S.wireNo < 3 ? 'you were a little low.' : 'you floated a touch long.')));
+        }
+      } else if (S.mission === 'landing') {
+        flash(S.hook ? 'Bolter \u2014 no wire. Full power and go around.'
+                     : 'You landed with the hook up. Press H, then go around.', 7000);
+      }
+      return;
+    }
+
+    /* --- water --- */
+    if (S.pos.y <= 0.6) {
+      return fail('In the water',
+        'You hit the sea at ' + Math.round(S.ias * KT) + ' knots, ' +
+        Math.round(sink * FT * 60) + ' fpm down.');
+    }
+
+    /* --- structural --- */
+    if (S.ias * KT > 420) {
+      return fail('Overspeed break-up',
+        'Past 420 knots indicated the airframe came apart. Throttle back and pull out shallower.');
+    }
+    if (Math.abs(S.gLoad) > 9.5) {
+      return fail('Over-g', 'You pulled ' + S.gLoad.toFixed(1) + ' g. The wing spar let go around 9.');
+    }
+  }
+
+  /* ==================================================================
+     HUD
+     ================================================================== */
+  var elSpeed = document.getElementById('gSpeed'), elAlt = document.getElementById('gAlt'),
+      elVs = document.getElementById('gVs'), elHdg = document.getElementById('gHdg'),
+      elThr = document.getElementById('gThr'), elAoa = document.getElementById('gAoa'),
+      elG = document.getElementById('gG'), elCfg = document.getElementById('gCfg'),
+      elWarn = document.getElementById('warn'), elMsg = document.getElementById('msg');
+
+  var elBall = document.getElementById('ball'), elBallDot = document.getElementById('ballDot');
+
+  /* Deviation from a 3.5-degree glidepath aimed at the three wire, plus
+     lateral offset from the centreline. Only shown when you are dirty and
+     inside two miles, which is when it would actually be lit. */
+  function updateBall() {
+    var dz = SHIP.z + SHIP.wires[2] - S.pos.z;      /* distance to the 3 wire */
+    var lateral = S.pos.x - SHIP.x;
+    var showing = S.gear && S.hook && dz > 40 && dz < 3200 && S.pos.y < 600 && !S.onDeck;
+    if (!showing) { elBall.className = ''; return; }
+    elBall.className = 'on';
+
+    var idealY = SHIP.deckY + dz * Math.tan(3.5 * Math.PI / 180);
+    var errAngle = Math.atan2(S.pos.y - idealY, dz) * 180 / Math.PI;   /* +high */
+    var y = Math.max(-46, Math.min(46, -errAngle * 26));
+    var x = Math.max(-46, Math.min(46, -lateral * 1.5));
+    elBallDot.style.top = 'calc(50% + ' + y.toFixed(1) + 'px)';
+    elBallDot.style.left = 'calc(50% + ' + x.toFixed(1) + 'px)';
+    elBallDot.className = 'ball-dot ' +
+      (Math.abs(errAngle) < 0.6 && Math.abs(lateral) < 12 ? 'good'
+       : Math.abs(errAngle) > 2.2 || Math.abs(lateral) > 34 ? 'bad' : '');
+  }
+
+  var msgTimer = null;
+  function flash(text, ms) {
+    elMsg.textContent = text;
+    elMsg.className = 'on';
+    if (msgTimer) clearTimeout(msgTimer);
+    msgTimer = setTimeout(function () { elMsg.className = ''; }, ms || 5000);
+  }
+
+  function updateHud(stalled, V) {
+    elSpeed.textContent = Math.round(S.ias * KT);
+    elAlt.textContent = Math.round(S.pos.y * FT);
+    elVs.textContent = Math.round(S.vel.y * FT * 60);
+    var hdg = (Math.atan2(-_f.x, -_f.z) * 180 / Math.PI + 360) % 360;
+    elHdg.textContent = ('00' + Math.round(hdg)).slice(-3);
+    elThr.textContent = Math.round(S.throttle * 100) + '%';
+    elAoa.textContent = (S.alpha * 180 / Math.PI).toFixed(1);
+    elG.textContent = S.gLoad.toFixed(1);
+    elCfg.textContent = (S.gear ? 'GEAR ' : '') + (S.flaps ? 'FLAP ' : '') + (S.hook ? 'HOOK' : '') || 'CLEAN';
+
+    var w = '';
+    if (stalled) w = 'STALL';
+    else if (S.ias * KT > 380) w = 'OVERSPEED';
+    else if (S.pos.y < 60 && S.vel.y < -8 && !overDeck()) w = 'PULL UP';
+    elWarn.textContent = w;
+    elWarn.className = w ? 'on' : '';
+
+    updateBall();
+  }
+
+  /* ==================================================================
+     Camera
+     ================================================================== */
+  function updateCamera() {
+    plane.position.copy(S.pos);
+    plane.quaternion.copy(S.quat);
+    plane.visible = S.view === 0;
+
+    /* the sea plane follows, but its texture stays anchored to the world so
+       it still reads as motion rather than a static backdrop */
+    sea.position.x = S.pos.x;
+    sea.position.z = S.pos.z;
+    seaTex.offset.set(S.pos.x / 250, -S.pos.z / 250);
+
+    if (S.view === 0) {
+      /* 17 m was close enough that the aeroplane covered the deck on final */
+      var back = new THREE.Vector3(0, 7.0, 36).applyQuaternion(S.quat);
+      camera.position.copy(S.pos).add(back);
+      camera.quaternion.copy(S.quat);
+      camera.lookAt(S.pos.x + _f.x * 40, S.pos.y + _f.y * 40 + 1.5, S.pos.z + _f.z * 40);
+    } else {
+      var eye = new THREE.Vector3(0, 1.15, -0.6).applyQuaternion(S.quat);
+      camera.position.copy(S.pos).add(eye);
+      camera.quaternion.copy(S.quat);
+    }
+  }
+
+  /* ==================================================================
+     Screens
+     ================================================================== */
+  function show(id, on) {
+    document.getElementById(id).className = on ? 'screen' : 'screen hidden';
+  }
+
+  function fail(title, text) {
+    if (S.done) return;
+    S.done = S.crashed = true;
+    document.getElementById('resTitle').textContent = title;
+    document.getElementById('resText').textContent = text;
+    show('result', true);
+  }
+
+  function win(title, text) {
+    if (S.done) return;
+    S.done = true;
+    document.getElementById('resTitle').textContent = title;
+    document.getElementById('resText').textContent = text;
+    show('result', true);
+  }
+
+  var cards = document.querySelectorAll('.mcard');
+  for (var ci = 0; ci < cards.length; ci++) {
+    cards[ci].addEventListener('click', function () {
+      setMission(this.dataset.mission);
+    });
+  }
+  document.getElementById('resAgain').addEventListener('click', function () { setMission(S.mission); });
+  document.getElementById('resMenu').addEventListener('click', function () {
+    show('result', false); show('menu', true);
+  });
+
+  /* ==================================================================
+     Input
+     ================================================================== */
+  function toggle(what) {
+    if (what === 'gear') { S.gear = !S.gear; flash('Gear ' + (S.gear ? 'down' : 'up')); }
+    else if (what === 'flaps') { S.flaps = !S.flaps; flash('Flaps ' + (S.flaps ? 'down' : 'up')); }
+    else if (what === 'hook') { S.hook = !S.hook; flash('Tailhook ' + (S.hook ? 'down' : 'up')); }
+    else if (what === 'view') { S.view = S.view ? 0 : 1; }
+  }
+
+  window.addEventListener('keydown', function (e) {
+    if (KEYMAP[e.code]) { input[KEYMAP[e.code]] = 1; e.preventDefault(); return; }
+    if (e.code === 'KeyG') toggle('gear');
+    else if (e.code === 'KeyF') toggle('flaps');
+    else if (e.code === 'KeyH') toggle('hook');
+    else if (e.code === 'KeyC') toggle('view');
+    else if (e.code === 'KeyR') setMission(S.mission);
+    else if (e.code === 'Escape') { show('result', false); show('menu', true); }
+  });
+  window.addEventListener('keyup', function (e) {
+    if (KEYMAP[e.code]) { input[KEYMAP[e.code]] = 0; e.preventDefault(); }
+  });
+  window.addEventListener('blur', function () {
+    for (var k in input) if (input.hasOwnProperty(k)) input[k] = 0;
+  });
+
+  /* Touch: the pads write the same input map the keyboard writes, so there is
+     exactly one control path to keep working. */
+  var pads = document.querySelectorAll('#touch .tpad');
+  for (var pi = 0; pi < pads.length; pi++) {
+    (function (pad) {
+      var key = pad.dataset.k, tap = pad.dataset.tap;
+      function down(ev) {
+        ev.preventDefault();
+        pad.classList.add('held');
+        if (key) input[key] = 1;
+        if (tap) toggle(tap);
+      }
+      function up(ev) {
+        ev.preventDefault();
+        pad.classList.remove('held');
+        if (key) input[key] = 0;
+      }
+      pad.addEventListener('pointerdown', down);
+      pad.addEventListener('pointerup', up);
+      pad.addEventListener('pointercancel', up);
+      pad.addEventListener('pointerleave', up);
+    })(pads[pi]);
+  }
+
+  /* ==================================================================
+     Layout: measure the injected site chrome instead of assuming 100vh
+     ================================================================== */
+  function measureChrome() {
+    var head = document.querySelector('.bgh-head');
+    var h = head ? head.getBoundingClientRect().height : 0;
+    document.documentElement.style.setProperty('--chrome', h + 'px');
+  }
+
+  function resize() {
+    measureChrome();
+    var w = host.clientWidth, h = host.clientHeight;
+    if (w < 2 || h < 2) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', function () { setTimeout(resize, 200); });
+  /* nav.js injects the header after this script runs */
+  setTimeout(resize, 60);
+  setTimeout(resize, 400);
+  setTimeout(resize, 1200);
+
+  /* ==================================================================
+     Loop
+     ================================================================== */
+  var last = performance.now();
+  function frame(now) {
+    var dt = (now - last) / 1000;
+    last = now;
+    if (dt > 0.1) dt = 0.1;          /* a backgrounded tab must not teleport */
+
+    /* fixed sub-steps keep the integration stable at any frame rate */
+    var n = Math.max(1, Math.ceil(dt / 0.02));
+    for (var i = 0; i < n; i++) step(dt / n);
+
+    updateCamera();
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+
+  setMission('free');
+  show('menu', true);
+  resize();
+  requestAnimationFrame(frame);
+
+  /* exposed for the automated flight test */
+  window.__hellcat = {
+    state: S, input: input, setMission: setMission, toggle: toggle,
+    density: density, AC: AC, SHIP: SHIP
+  };
+})();
+</script>
+
+<section class="seo-content">
+  <h2>Hellcat — a browser flight simulator with real aerodynamics</h2>
+  <p>This is a Grumman F6F-5 Hellcat, the carrier fighter that flew from American decks from 1943 onward, in a flight model built from the actual equations rather than from arcade feel. Lift and drag come from the standard coefficients, air density falls off with altitude the way the standard atmosphere says it does, and the wing stalls when it exceeds its critical angle of attack — not when a speed number is crossed.</p>
+
+  <h3>Controls</h3>
+  <table class="ref-table">
+    <thead><tr><th>Key</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>W / S, or &uarr; &darr;</td><td>Pitch down / up</td></tr>
+      <tr><td>A / D, or &larr; &rarr;</td><td>Roll left / right</td></tr>
+      <tr><td>Q / E</td><td>Rudder</td></tr>
+      <tr><td>Shift / Ctrl</td><td>Throttle up / down</td></tr>
+      <tr><td>G</td><td>Landing gear</td></tr>
+      <tr><td>F</td><td>Flaps</td></tr>
+      <tr><td>H</td><td>Tailhook</td></tr>
+      <tr><td>C</td><td>Chase / cockpit view</td></tr>
+      <tr><td>R / Esc</td><td>Restart mission / mission menu</td></tr>
+    </tbody>
+  </table>
+  <p>On a phone or tablet the on-screen pads appear automatically: throttle and rudder on the left, pitch and roll on the right, and the configuration switches down the right-hand edge.</p>
+
+  <h3>The aeroplane</h3>
+  <table class="ref-table">
+    <thead><tr><th>Quantity</th><th>Value</th><th>In the model</th></tr></thead>
+    <tbody>
+      <tr><td>Wing area</td><td class="num">334 ft² (31.0 m²)</td><td>Sets lift and drag directly</td></tr>
+      <tr><td>Span / aspect ratio</td><td class="num">42 ft 10 in / 5.5</td><td>Drives induced drag</td></tr>
+      <tr><td>Loaded weight</td><td class="num">12,600 lb (5,714 kg)</td><td>Wing loading, and therefore turn radius</td></tr>
+      <tr><td>Engine</td><td class="num">R-2800, 2,000 hp</td><td>Thrust from shaft power, scaled by air density</td></tr>
+      <tr><td>Stall angle</td><td class="num">16°</td><td>Lift falls away past this, not at a fixed speed</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What the flight model actually computes</h3>
+  <p>Each physics step resolves the velocity vector into body axes to get the angle of attack, then builds the coefficients and the forces:</p>
+  <ul>
+    <li><strong>Dynamic pressure</strong> q = ½&rho;V², with &rho; from the standard-atmosphere lapse. This is also what scales your control authority — at 60 knots on final the controls are genuinely mushy, because q is small.</li>
+    <li><strong>Lift</strong> L = qSC<sub>L</sub>, with C<sub>L</sub> = C<sub>L0</sub> + C<sub>L&alpha;</sub>&alpha;. Past the critical angle C<sub>L</sub> <em>falls</em> rather than flattening, which is why a stall here breaks rather than mushes.</li>
+    <li><strong>Drag</strong> C<sub>D</sub> = C<sub>D0</sub> + kC<sub>L</sub>², the drag polar, with k = 1/(&pi;·AR·e). Gear, flaps and hook each add their own parasite penalty.</li>
+    <li><strong>Thrust</strong> T = &eta;P/V, capped at static thrust so it does not go to infinity at rest, and multiplied by the density ratio because the R-2800 is normally aspirated.</li>
+  </ul>
+  <p>Two consequences fall out of this rather than being scripted. Turning hard raises the load factor, which raises the required lift coefficient, which can stall you well above the published stall speed — a genuine accelerated stall. And the aircraft climbs noticeably worse above 6,000 metres, because both the wing and the engine are working in thinner air.</p>
+
+  <h3>Flying the carrier approach</h3>
+  <p>The landing mission puts you two miles astern at 500 feet, dirty and on speed. The technique that works is the real one:</p>
+  <ul>
+    <li>Hold about <strong>75 knots</strong> and a steady <strong>500 feet per minute</strong> down. Trade throttle for glidepath and attitude for speed, not the other way round.</li>
+    <li>Gear, flaps and hook all down. The tailhook is the one people forget; without it you touch down, roll, and go off the bow.</li>
+    <li><strong>Do not flare.</strong> A carrier landing is a controlled arrival. Flaring floats you long and you sail over all four wires — that is what a bolter is.</li>
+    <li>Aim for the <strong>third wire</strong>. The first is uncomfortably close to the ramp; the fourth means you were fast or high.</li>
+    <li>The deck tolerates about 1,200 feet per minute at touchdown. More than that and the gear folds.</li>
+  </ul>
+  <p>The ship is under way at 15 knots, so the deck is moving away from you the whole time — the aim point drifts, and that is part of the problem.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details>
+    <summary>How do you land on an aircraft carrier?</summary>
+    <p>A stable approach around 75 knots with gear, flaps and hook down, holding roughly 500 fpm of descent, and no flare. You fly the aircraft onto the deck and let the hook find a wire. Aim for the third of the four.</p>
+  </details>
+  <details>
+    <summary>What is an accelerated stall?</summary>
+    <p>A stall above the published stall speed, caused by pulling hard enough to raise the load factor. Because stall is a function of angle of attack, pulling 2 g raises the stall speed by √2 — about 41 percent. It is modelled here rather than scripted: pull hard enough at any speed and the angle of attack crosses 16 degrees.</p>
+  </details>
+  <details>
+    <summary>Why does it climb so badly high up?</summary>
+    <p>Density lapse. The standard atmosphere loses about half its density by 6,700 metres, so the wing makes less lift at the same speed and the normally aspirated R-2800 makes less power. Both are in the model, so the service ceiling emerges rather than being imposed.</p>
+  </details>
+  <details>
+    <summary>What were the real Hellcat's numbers?</summary>
+    <p>334 ft² of wing, about 12,600 lb loaded, a 2,000 hp Pratt &amp; Whitney R-2800 Double Wasp, roughly 330 knots flat out and a stall around 70 knots dirty. Those are the values driving this simulation.</p>
+  </details>
+  <details>
+    <summary>Why does the aircraft feel unresponsive on approach?</summary>
+    <p>Because it should. Control authority scales with dynamic pressure, which is proportional to the square of airspeed. At 75 knots you have roughly a quarter of the control power you have at 150, which is exactly why a slow approach is a demanding one.</p>
+  </details>
+
+  <h3>Related simulations</h3>
+  <ul>
+    <li><a href="/apoapsis">Apoapsis</a> — the same idea taken to orbit: real Tsiolkovsky, patched conics, and a moon to land on.</li>
+    <li><a href="/bonnevillespillwayoperator">Bonneville Spillway Operator</a> — run a real dam on the Columbia.</li>
+    <li><a href="/floodline">Floodline</a> — California flood defence under a rising hydrograph.</li>
+    <li><a href="/biosphereblue">Biosphere Blue</a> — planetary climate and ecology, coupled.</li>
+  </ul>
+</section>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#141a20">
+<title>Ultimate Tic-Tac-Toe — Free Online vs AI | Board Gaming Hub</title>
+<meta name="description" content="Play Ultimate Tic-Tac-Toe (nine nested boards) online free against three AI levels, or two-player local. Your move sends your opponent to a board. No signup.">
+<link rel="canonical" href="https://boardgaminghub.com/ultimatetictactoe">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/ultimatetictactoe">
+<meta property="og:title" content="Ultimate Tic-Tac-Toe — Free Online vs AI">
+<meta property="og:description" content="Nine tic-tac-toe boards inside a tenth. Your move dictates where your opponent must play.">
+<meta property="og:image" content="https://boardgaminghub.com/og/ultimatetictactoe.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/ultimatetictactoe.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Ultimate Tic-Tac-Toe",
+  "description": "Nine nested tic-tac-toe boards; each move sends the opponent to a specific board.",
+  "url": "https://boardgaminghub.com/ultimatetictactoe", "genre": "Strategy",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  { "@type": "ListItem", "position": 1, "name": "Board Gaming Hub", "item": "https://boardgaminghub.com/" },
+  { "@type": "ListItem", "position": 2, "name": "Board Games", "item": "https://boardgaminghub.com/" },
+  { "@type": "ListItem", "position": 3, "name": "Ultimate Tic-Tac-Toe", "item": "https://boardgaminghub.com/ultimatetictactoe" } ] }
+</script>
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [
+  { "@type": "Question", "name": "What are the rules of Ultimate Tic-Tac-Toe?",
+    "acceptedAnswer": { "@type": "Answer", "text": "Nine tic-tac-toe boards are arranged in a 3x3 grid. Winning a small board claims that cell of the big board, and three claimed cells in a row wins the game. The twist: the cell you play within a small board decides which small board your opponent must play in next. If that board is already finished, they may play anywhere." } },
+  { "@type": "Question", "name": "Is Ultimate Tic-Tac-Toe solved?",
+    "acceptedAnswer": { "@type": "Answer", "text": "No. Ordinary tic-tac-toe has about 26,830 reachable positions and is trivially solved; Ultimate Tic-Tac-Toe has a state space estimated around 10^38, far beyond exhaustive search. Engines rely on heuristic search or Monte Carlo methods, which is why it stays interesting." } },
+  { "@type": "Question", "name": "What is the best opening move in Ultimate Tic-Tac-Toe?",
+    "acceptedAnswer": { "@type": "Answer", "text": "The centre cell of the centre board is the usual first choice: it takes the most valuable square of the most valuable board, and it sends your opponent straight back into that same centre board where you already have a mark." } },
+  { "@type": "Question", "name": "What happens if I am sent to a board that is already won?",
+    "acceptedAnswer": { "@type": "Answer", "text": "You may play in any board that is still open. This free move is powerful, so a large part of the strategy is avoiding moves that hand one to your opponent." } } ] }
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<script>
+(function() {
+  var ua = navigator.userAgent;
+  var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+  if (isPhone) {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      var targetWidth = 560;
+      var scale = window.innerWidth / targetWidth;
+      meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+    }
+  }
+})();
+</script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  background: #141a20;
+  background-image:
+    radial-gradient(ellipse at 50% -10%, #22303c 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 110%, #1b242c 0%, transparent 55%);
+  color: #d8d0c0;
+  min-height: 100vh;
+  padding: 24px 16px 60px;
+  text-align: center;
+}
+
+h1 { font-size: 1.9em; letter-spacing: 7px; font-weight: normal; color: #f0d89c; margin-bottom: 2px; text-indent: 7px; }
+.subtitle { color: #7d93a3; font-style: italic; font-size: 0.95em; margin-bottom: 18px; }
+
+.mode-selector { display: inline-flex; border-radius: 6px; overflow: hidden; border: 2px solid #4a6172; }
+.mode-btn {
+  padding: 6px 15px; font-size: 0.9em; font-family: Georgia, serif;
+  cursor: pointer; border: none; background: #1b242c; color: #7d93a3;
+  transition: background .2s, color .2s;
+}
+.mode-btn:not(:last-child) { border-right: 1px solid #4a6172; }
+.mode-btn.active { background: #33566b; color: #eaf2f7; cursor: default; }
+.mode-btn:hover:not(.active) { background: #24313b; color: #d4a860; }
+
+.config-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.config-label { font-size: .7em; letter-spacing: 2px; text-transform: uppercase; color: #6f8496; }
+.hint { max-width: 500px; margin: 4px auto 14px; font-size: .83em; font-style: italic; color: #6f8496; min-height: 2.1em; line-height: 1.4; }
+
+.status { font-size: 1.1em; color: #eaf2f7; min-height: 1.5em; margin-bottom: 12px; letter-spacing: 1px; }
+.status.win { color: #7fd6a0; }
+.status.lose { color: #e08b8b; }
+.status.draw { color: #d4a860; }
+
+/* ---- the meta board: 3x3 of small boards ---- */
+.meta {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  width: max-content; margin: 0 auto 18px; padding: 12px;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #22303c, #18212a);
+  border: 1px solid #35485a;
+  box-shadow: 0 16px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.mini {
+  position: relative;
+  display: grid; grid-template-columns: repeat(3, 34px); grid-template-rows: repeat(3, 34px);
+  gap: 3px; padding: 5px; border-radius: 8px;
+  background: #16202a; border: 2px solid #26333f;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+/* A board you are allowed to play in right now */
+.mini.playable { border-color: #d4a860; background: #1d2833; box-shadow: 0 0 0 1px rgba(212,168,96,.25), 0 0 18px rgba(212,168,96,.15); }
+.mini.done { background: #131b23; }
+
+.cell {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.35em; line-height: 1; border-radius: 4px;
+  background: #1a242e; border: 1px solid #24303b;
+  cursor: default; user-select: none;
+  transition: background .12s;
+}
+.mini.playable .cell:not(.taken) { cursor: pointer; }
+.mini.playable .cell:not(.taken):hover { background: #2a3a48; }
+.cell.x { color: #7ec4e8; }
+.cell.o { color: #e8a87e; }
+.cell.last { box-shadow: inset 0 0 0 2px #d4a860; }
+
+/* The claimed-board overlay: a big mark drawn over the finished mini board */
+.claim {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 3.4em; line-height: 1; border-radius: 8px; pointer-events: none;
+  background: rgba(19,27,35,.82);
+}
+.claim.x { color: #7ec4e8; text-shadow: 0 0 22px rgba(126,196,232,.5); }
+.claim.o { color: #e8a87e; text-shadow: 0 0 22px rgba(232,168,126,.5); }
+.claim.tie { color: #56687a; font-size: 1.5em; letter-spacing: 2px; }
+.mini.metawin { border-color: #4e8a63; }
+
+.buttons { margin-top: 4px; }
+button.action {
+  padding: 8px 22px; font-size: .95em; font-family: Georgia, serif; cursor: pointer;
+  background: #33566b; color: #eaf2f7; border: 1px solid #4a6172; border-radius: 6px;
+}
+button.action:hover { background: #3f6a84; }
+
+.legend { font-size: .78em; color: #6f8496; margin-top: 10px; line-height: 1.6; }
+.legend b { color: #d4a860; font-weight: normal; }
+
+@media (max-width: 600px) {
+  h1 { font-size: 1.45em; letter-spacing: 4px; }
+  .mini { grid-template-columns: repeat(3, 30px); grid-template-rows: repeat(3, 30px); }
+  .claim { font-size: 2.8em; }
+}
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+
+<h1>ULTIMATE TIC-TAC-TOE</h1>
+<div class="subtitle">Nine boards inside a tenth — and your move decides where your opponent plays</div>
+
+<div class="config-row">
+  <div class="mode-selector">
+    <button class="mode-btn active" id="btn-1p" onclick="setMode(1)">1 Player</button>
+    <button class="mode-btn" id="btn-2p" onclick="setMode(2)">2 Players</button>
+  </div>
+</div>
+
+<div class="config-row" id="ai-config">
+  <span class="config-label">Opponent</span>
+  <div class="mode-selector">
+    <button class="mode-btn" id="lvl-casual" onclick="setLevel('casual')">Casual</button>
+    <button class="mode-btn active" id="lvl-tactician" onclick="setLevel('tactician')">Tactician</button>
+    <button class="mode-btn" id="lvl-strategist" onclick="setLevel('strategist')">Strategist</button>
+  </div>
+  <span class="config-label">You are</span>
+  <div class="mode-selector">
+    <button class="mode-btn active" id="side-x" onclick="setSide('X')">X</button>
+    <button class="mode-btn" id="side-o" onclick="setSide('O')">O</button>
+  </div>
+</div>
+
+<div class="hint" id="hint"></div>
+<div class="status" id="status">X to move — play anywhere</div>
+
+<div class="meta" id="meta"></div>
+
+<div class="buttons">
+  <button class="action" onclick="newGame()">New Game</button>
+</div>
+
+<div class="legend">
+  <b>Gold outline</b> = the board(s) you may play in. Win a small board to claim its cell on the big board.
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  /* Positional weights on a 3x3 grid: the centre sits on four winning lines,
+     a corner on three, an edge on two. Used for both the small boards and the
+     meta board, where it matters far more. */
+  var SQUARE_WEIGHT = [3, 2, 3, 2, 4, 2, 3, 2, 3];
+
+  var LEVELS = {
+    casual:     { depth: 2, noise: 90, timeMs: 700,
+                  label: 'Casual',
+                  hint: 'Looks two plies ahead and plays a little loosely. It will win small boards but rarely plans a meta-board line.' },
+    tactician:  { depth: 4, noise: 12, timeMs: 1500,
+                  label: 'Tactician',
+                  hint: 'Four plies with alpha-beta pruning. It sees the board it is sending you to and will avoid handing you a free move.' },
+    strategist: { depth: 7, noise: 0,  timeMs: 3000,
+                  label: 'Strategist',
+                  hint: 'Iterative deepening inside a 3-second budget. It plays for meta-board lines and will sacrifice a small board to build one.' }
+  };
+
+  /* ===== state =====
+     boards[b][c] : 'X' | 'O' | null   -- 9 boards of 9 cells
+     meta[b]      : 'X' | 'O' | 'T' | null  ('T' = full, nobody won it)
+     active       : board index you must play in, or -1 for free choice */
+  var boards, meta, active, turn, over, lastMove;
+  var mode = 1, level = 'tactician', human = 'X', ai = 'O';
+  var aiTimer = null;
+  var searchDeadline = 0, searchNodes = 0, searchAborted = false;
+
+  function other(m) { return m === 'X' ? 'O' : 'X'; }
+
+  function lineWinner(g) {
+    for (var i = 0; i < LINES.length; i++) {
+      var L = LINES[i];
+      if (g[L[0]] && g[L[0]] !== 'T' && g[L[0]] === g[L[1]] && g[L[1]] === g[L[2]]) return g[L[0]];
+    }
+    return null;
+  }
+
+  function gridFull(g) {
+    for (var i = 0; i < 9; i++) if (!g[i]) return false;
+    return true;
+  }
+
+  /* ===== position handling =====
+     A position is a plain object so the search can clone it cheaply. */
+  function clonePos(p) {
+    var nb = new Array(9);
+    for (var i = 0; i < 9; i++) nb[i] = p.boards[i].slice();
+    return { boards: nb, meta: p.meta.slice(), active: p.active, turn: p.turn };
+  }
+
+  function legalMoves(p) {
+    var out = [], b, c;
+    for (b = 0; b < 9; b++) {
+      if (p.meta[b]) continue;                       /* board already decided */
+      if (p.active !== -1 && b !== p.active) continue;
+      for (c = 0; c < 9; c++) if (!p.boards[b][c]) out.push(b * 9 + c);
+    }
+    return out;
+  }
+
+  function applyMove(p, move) {
+    var b = Math.floor(move / 9), c = move % 9;
+    p.boards[b][c] = p.turn;
+
+    if (!p.meta[b]) {
+      var w = lineWinner(p.boards[b]);
+      if (w) p.meta[b] = w;
+      else if (gridFull(p.boards[b])) p.meta[b] = 'T';
+    }
+    /* The cell you played inside the small board names the next board.
+       If that board is finished, the opponent chooses freely. */
+    p.active = p.meta[c] ? -1 : c;
+    p.turn = other(p.turn);
+    return p;
+  }
+
+  function gameResult(p) {
+    var w = lineWinner(p.meta);
+    if (w) return w;
+    for (var i = 0; i < 9; i++) if (!p.meta[i]) return null;
+    return 'T';
+  }
+
+  /* ===== evaluation =====
+     Scored from X's point of view. Three layers, in descending importance:
+       1. claimed boards, weighted by their cell on the meta board
+       2. two-in-a-row threats on the meta board (a near-win of the whole game)
+       3. control inside each undecided board, discounted heavily
+     Plus a small penalty for sending the opponent to a free board, which is
+     the single most common beginner mistake and the one the search has to be
+     told about because it sits just past the horizon. */
+  function lineScore(g, me, weightUnit) {
+    var score = 0;
+    for (var i = 0; i < LINES.length; i++) {
+      var L = LINES[i], mine = 0, theirs = 0, j;
+      for (j = 0; j < 3; j++) {
+        var v = g[L[j]];
+        if (v === me) mine++;
+        else if (v && v !== 'T') theirs++;
+      }
+      if (mine && theirs) continue;                  /* dead line */
+      if (mine === 2) score += weightUnit;
+      else if (mine === 1) score += weightUnit / 6;
+    }
+    return score;
+  }
+
+  function evaluate(p) {
+    var res = gameResult(p);
+    if (res === 'X') return 100000;
+    if (res === 'O') return -100000;
+    if (res === 'T') return 0;
+
+    var score = 0, b, c;
+
+    for (b = 0; b < 9; b++) {
+      if (p.meta[b] === 'X') score += 25 * SQUARE_WEIGHT[b];
+      else if (p.meta[b] === 'O') score -= 25 * SQUARE_WEIGHT[b];
+      else if (!p.meta[b]) {
+        /* control inside a live board is worth far less than owning it */
+        score += lineScore(p.boards[b], 'X', 2.0) * (SQUARE_WEIGHT[b] / 3);
+        score -= lineScore(p.boards[b], 'O', 2.0) * (SQUARE_WEIGHT[b] / 3);
+        for (c = 0; c < 9; c++) {
+          if (p.boards[b][c] === 'X') score += SQUARE_WEIGHT[c] * 0.4;
+          else if (p.boards[b][c] === 'O') score -= SQUARE_WEIGHT[c] * 0.4;
+        }
+      }
+    }
+
+    /* meta-board threats dominate everything above */
+    score += lineScore(p.meta, 'X', 90);
+    score -= lineScore(p.meta, 'O', 90);
+
+    /* whoever is on move having a free choice of board is a real advantage */
+    if (p.active === -1) score += p.turn === 'X' ? 30 : -30;
+
+    return score;
+  }
+
+  function outOfTime() {
+    if (searchAborted) return true;
+    if ((++searchNodes & 255) === 0 && Date.now() > searchDeadline) searchAborted = true;
+    return searchAborted;
+  }
+
+  function negamaxAB(p, depth, alpha, beta) {
+    var res = gameResult(p);
+    if (res) return res === 'X' ? 100000 - (20 - depth) : res === 'O' ? -100000 + (20 - depth) : 0;
+    if (depth === 0 || outOfTime()) return evaluate(p);
+
+    var moves = legalMoves(p);
+    if (moves.length === 0) return evaluate(p);
+
+    /* Cheap ordering: prefer moves in high-value cells, and moves that do not
+       hand the opponent a free board. Ordering is what makes depth 7 reachable. */
+    moves.sort(function (m1, m2) {
+      var c1 = m1 % 9, c2 = m2 % 9;
+      var s1 = SQUARE_WEIGHT[c1] + (p.meta[c1] ? -4 : 0);
+      var s2 = SQUARE_WEIGHT[c2] + (p.meta[c2] ? -4 : 0);
+      return s2 - s1;
+    });
+
+    var maximizing = p.turn === 'X';
+    var best = maximizing ? -Infinity : Infinity;
+
+    for (var i = 0; i < moves.length; i++) {
+      var child = applyMove(clonePos(p), moves[i]);
+      var v = negamaxAB(child, depth - 1, alpha, beta);
+      if (maximizing) {
+        if (v > best) best = v;
+        if (best > alpha) alpha = best;
+      } else {
+        if (v < best) best = v;
+        if (best < beta) beta = best;
+      }
+      if (beta <= alpha) break;
+    }
+    return best;
+  }
+
+  function chooseMove(p) {
+    var cfg = LEVELS[level];
+    var moves = legalMoves(p);
+    if (moves.length === 0) return -1;
+    if (moves.length === 1) return moves[0];
+
+    searchDeadline = Date.now() + cfg.timeMs;
+    searchNodes = 0;
+    searchAborted = false;
+
+    var maximizing = p.turn === 'X';
+    var best = moves[0];
+    var scored = null;
+
+    for (var d = 1; d <= cfg.depth; d++) {
+      var localBest = null, localScore = maximizing ? -Infinity : Infinity;
+      var alpha = -Infinity, beta = Infinity, completed = true;
+      var thisPass = [];
+
+      for (var i = 0; i < moves.length; i++) {
+        if (d > 1 && Date.now() > searchDeadline) { completed = false; break; }
+        var child = applyMove(clonePos(p), moves[i]);
+        var v = negamaxAB(child, d - 1, alpha, beta);
+        if (searchAborted && d > 1) { completed = false; break; }
+        thisPass.push({ m: moves[i], v: v });
+        if (maximizing ? v > localScore : v < localScore) { localScore = v; localBest = moves[i]; }
+        if (maximizing) { if (localScore > alpha) alpha = localScore; }
+        else { if (localScore < beta) beta = localScore; }
+      }
+
+      if (!completed || localBest === null) break;
+      best = localBest;
+      scored = thisPass;
+      /* best-first for the next iteration */
+      thisPass.sort(function (a, b2) { return maximizing ? b2.v - a.v : a.v - b2.v; });
+      moves = thisPass.map(function (e) { return e.m; });
+      if (Date.now() > searchDeadline) break;
+    }
+
+    /* Casual play: sometimes take a move that is merely near-best, so it feels
+       human rather than randomly bad. Never applied above Casual. */
+    if (cfg.noise > 0 && scored) {
+      var pool = scored.filter(function (e) {
+        return Math.abs(e.v - (maximizing ? Math.max.apply(null, scored.map(function (x) { return x.v; }))
+                                          : Math.min.apply(null, scored.map(function (x) { return x.v; })))) <= cfg.noise;
+      });
+      if (pool.length) return pool[Math.floor(Math.random() * pool.length)].m;
+    }
+
+    return best;
+  }
+
+  /* ===== rendering ===== */
+
+  function buildBoard() {
+    var metaEl = document.getElementById('meta');
+    metaEl.innerHTML = '';
+    for (var b = 0; b < 9; b++) {
+      var mini = document.createElement('div');
+      mini.className = 'mini';
+      mini.dataset.b = b;
+      for (var c = 0; c < 9; c++) {
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.b = b;
+        cell.dataset.c = c;
+        cell.addEventListener('click', onCellClick);
+        mini.appendChild(cell);
+      }
+      var claim = document.createElement('div');
+      claim.className = 'claim';
+      claim.style.display = 'none';
+      mini.appendChild(claim);
+      metaEl.appendChild(mini);
+    }
+  }
+
+  function playableBoards() {
+    if (over) return [];
+    if (active !== -1 && !meta[active]) return [active];
+    var out = [];
+    for (var b = 0; b < 9; b++) if (!meta[b]) out.push(b);
+    return out;
+  }
+
+  function render() {
+    var metaEl = document.getElementById('meta');
+    var playable = playableBoards();
+    var metaWin = lineWinner(meta);
+    var winLine = null;
+    if (metaWin) {
+      for (var i = 0; i < LINES.length; i++) {
+        var L = LINES[i];
+        if (meta[L[0]] === metaWin && meta[L[1]] === metaWin && meta[L[2]] === metaWin) { winLine = L; break; }
+      }
+    }
+
+    for (var b = 0; b < 9; b++) {
+      var mini = metaEl.children[b];
+      var cls = 'mini';
+      if (playable.indexOf(b) !== -1) cls += ' playable';
+      if (meta[b]) cls += ' done';
+      if (winLine && winLine.indexOf(b) !== -1) cls += ' metawin';
+      mini.className = cls;
+
+      for (var c = 0; c < 9; c++) {
+        var cell = mini.children[c];
+        var v = boards[b][c];
+        var ccls = 'cell';
+        if (v) ccls += ' taken ' + v.toLowerCase();
+        if (lastMove && lastMove.b === b && lastMove.c === c) ccls += ' last';
+        cell.className = ccls;
+        cell.textContent = v || '';
+      }
+
+      var claim = mini.children[9];
+      if (meta[b]) {
+        claim.style.display = 'flex';
+        claim.className = 'claim ' + (meta[b] === 'T' ? 'tie' : meta[b].toLowerCase());
+        claim.textContent = meta[b] === 'T' ? 'DRAW' : meta[b];
+      } else {
+        claim.style.display = 'none';
+      }
+    }
+
+    var status = document.getElementById('status');
+    var res = gameResult({ boards: boards, meta: meta, active: active, turn: turn });
+    if (res === 'T') {
+      status.textContent = 'Draw — no line on the big board';
+      status.className = 'status draw';
+    } else if (res) {
+      var youWon = mode === 1 && res === human;
+      status.textContent = mode === 2 ? res + ' wins the game'
+                                      : (youWon ? 'You win the game' : LEVELS[level].label + ' wins the game');
+      status.className = 'status ' + (mode === 2 || youWon ? 'win' : 'lose');
+    } else if (mode === 1 && turn === ai) {
+      status.textContent = LEVELS[level].label + ' is thinking...';
+      status.className = 'status';
+    } else {
+      status.textContent = turn + ' to move — ' +
+        (playable.length === 1 ? 'play in the highlighted board' : 'play in any open board');
+      status.className = 'status';
+    }
+  }
+
+  /* ===== flow ===== */
+
+  function place(b, c) {
+    var p = { boards: boards, meta: meta, active: active, turn: turn };
+    applyMove(p, b * 9 + c);
+    boards = p.boards; meta = p.meta; active = p.active; turn = p.turn;
+    lastMove = { b: b, c: c };
+    if (gameResult(p)) over = true;
+    render();
+    if (!over) scheduleAi();
+  }
+
+  function scheduleAi() {
+    if (mode !== 1 || over || turn !== ai) return;
+    if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
+    aiTimer = setTimeout(function () {
+      aiTimer = null;
+      if (mode !== 1 || over || turn !== ai) return;
+      var move = chooseMove(clonePos({ boards: boards, meta: meta, active: active, turn: turn }));
+      if (move >= 0) place(Math.floor(move / 9), move % 9);
+    }, 260);
+  }
+
+  function onCellClick(e) {
+    if (over) return;
+    if (mode === 1 && turn === ai) return;
+    var b = parseInt(e.currentTarget.dataset.b, 10);
+    var c = parseInt(e.currentTarget.dataset.c, 10);
+    if (playableBoards().indexOf(b) === -1) return;
+    if (boards[b][c]) return;
+    place(b, c);
+  }
+
+  function newGame() {
+    if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
+    boards = [];
+    for (var b = 0; b < 9; b++) boards.push([null,null,null,null,null,null,null,null,null]);
+    meta = [null,null,null,null,null,null,null,null,null];
+    active = -1;
+    turn = 'X';
+    over = false;
+    lastMove = null;
+    render();
+    scheduleAi();
+  }
+
+  /* ===== controls ===== */
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('btn-1p').className = m === 1 ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('btn-2p').className = m === 2 ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('ai-config').style.display = m === 1 ? 'flex' : 'none';
+    syncHint();
+    newGame();
+  }
+
+  function setLevel(k) {
+    if (!LEVELS[k]) return;
+    level = k;
+    syncButtons();
+    syncHint();
+    render();
+  }
+
+  function setSide(mark) {
+    human = mark;
+    ai = other(mark);
+    syncButtons();
+    newGame();
+  }
+
+  function syncButtons() {
+    for (var k in LEVELS) {
+      if (!LEVELS.hasOwnProperty(k)) continue;
+      document.getElementById('lvl-' + k).className = k === level ? 'mode-btn active' : 'mode-btn';
+    }
+    document.getElementById('side-x').className = human === 'X' ? 'mode-btn active' : 'mode-btn';
+    document.getElementById('side-o').className = human === 'O' ? 'mode-btn active' : 'mode-btn';
+  }
+
+  function syncHint() {
+    document.getElementById('hint').textContent = mode === 1 ? LEVELS[level].hint : '';
+  }
+
+  buildBoard();
+  syncButtons();
+  syncHint();
+  newGame();
+
+  window.newGame = newGame;
+  window.setMode = setMode;
+  window.setLevel = setLevel;
+  window.setSide = setSide;
+})();
+</script>
+
+<section class="seo-content">
+  <h2>Ultimate Tic-Tac-Toe</h2>
+  <p>Ultimate Tic-Tac-Toe takes the game everyone finds boring by age eight and makes it genuinely deep, using one extra rule. Nine tic-tac-toe boards sit in a 3&times;3 arrangement. Win a small board and you claim its cell on the big board; claim three big-board cells in a line and you win the game. The rule that changes everything: <strong>the cell you play inside a small board decides which small board your opponent must play in next</strong>.</p>
+
+  <h3>How to play</h3>
+  <ul>
+    <li>X moves first and may play anywhere.</li>
+    <li>Whichever cell you play — say the top-right cell of some board — sends your opponent to the corresponding board, here the top-right one.</li>
+    <li>If they are sent to a board that has already been won or filled, they may play in <em>any</em> open board. That free move is a real prize.</li>
+    <li>Winning three cells in a row on the big board wins the game. A small board that fills with no winner is dead and counts for nobody.</li>
+    <li>The board(s) you are allowed to play in are outlined in gold.</li>
+  </ul>
+
+  <h3>The three opponents</h3>
+  <table class="ref-table">
+    <thead><tr><th>Level</th><th>Search</th><th>Character</th></tr></thead>
+    <tbody>
+      <tr><td>Casual</td><td>2 plies, loose move choice</td><td>Wins small boards it happens to be in. Rarely builds toward a big-board line, and will send you somewhere useful by accident.</td></tr>
+      <tr><td>Tactician</td><td>4 plies, alpha-beta</td><td>Sees where its move sends you and avoids giving away free moves. It will spot a two-board threat.</td></tr>
+      <tr><td>Strategist</td><td>up to 7 plies, iterative deepening in a 3-second budget</td><td>Plays the big board. It will deliberately lose a small board to set up a meta-board line, and it punishes a careless free move immediately.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Strategy: it is not nine games, it is one</h3>
+  <p>The instinct is to win the small board in front of you. That instinct is wrong often enough to lose games. Three ideas do most of the work:</p>
+  <ul>
+    <li><strong>Your move has two effects.</strong> It marks a cell here, and it chooses your opponent's board. Both matter, and the second usually matters more. A move that wins a small board while sending your opponent to a board they dominate can be a losing move.</li>
+    <li><strong>Free moves are the currency.</strong> Sending your opponent to a finished board lets them play anywhere, which is close to a free tempo. Late in the game, when many boards are decided, the whole match often turns on who is forced to give away the last free move.</li>
+    <li><strong>Not all boards are worth the same.</strong> The centre board sits on four big-board lines; corners sit on three; edges on two. Losing an edge board to win the centre is usually a good trade — the engine's Strategist setting makes exactly that trade.</li>
+  </ul>
+  <p>A common opening is the centre cell of the centre board: it takes the best square of the best board, and it sends your opponent right back into the centre board where you already have a mark.</p>
+
+  <h3>How big is the game, really?</h3>
+  <p>Ordinary tic-tac-toe has 26,830 reachable positions — a browser can search all of them before you lift your finger, which is why <a href="/tictactoe">the classic game</a> here has a genuinely unbeatable setting. Ultimate Tic-Tac-Toe has an estimated state space around 10<sup>38</sup>. No exhaustive search is possible, so an engine must evaluate positions it cannot finish reading.</p>
+  <p>The evaluation used here is layered: claimed boards weighted by where they sit on the big board, then two-in-a-row threats on the big board, then a heavily discounted term for control inside boards still in play, plus an explicit penalty for handing over a free move. That last term exists because the cost of a free move usually lands just beyond the search horizon — the search cannot see it, so it has to be told.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details>
+    <summary>What are the rules of Ultimate Tic-Tac-Toe?</summary>
+    <p>Nine boards in a 3&times;3 grid. Win a small board to claim that cell of the big board; three claimed cells in a row wins. The cell you play within a small board dictates which board your opponent plays in next; if that board is finished, they may play anywhere.</p>
+  </details>
+  <details>
+    <summary>Is Ultimate Tic-Tac-Toe solved?</summary>
+    <p>No. The state space is roughly 10<sup>38</sup>, far past exhaustive search. Strong play comes from heuristic search or Monte Carlo tree search, not from a lookup table — which is precisely why the game stays interesting when plain tic-tac-toe does not.</p>
+  </details>
+  <details>
+    <summary>What happens if I am sent to a board that is already won?</summary>
+    <p>You may play in any board still open. Because this is such a strong position, avoiding giving one away is one of the central skills of the game.</p>
+  </details>
+  <details>
+    <summary>Does a drawn small board count for anyone?</summary>
+    <p>No. A small board that fills with no three-in-a-row is dead — it counts for neither player and can never be part of a big-board line. It still blocks that cell, so it can spoil a line you were building.</p>
+  </details>
+  <details>
+    <summary>What is the best opening move?</summary>
+    <p>Centre cell of the centre board is the standard choice: strongest square, strongest board, and it returns your opponent to a board where you already have a mark. Corner-of-centre is the usual alternative if you would rather avoid the well-known lines.</p>
+  </details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/tictactoe">Tic-Tac-Toe</a> — the original, with a genuinely unbeatable minimax opponent.</li>
+    <li><a href="/pentegrammai">Pente Grammai</a> — ancient line-and-capture play.</li>
+    <li><a href="/othello">Othello</a> — another game where the strongest move is often not the greediest.</li>
+    <li><a href="/go">Go</a> — the endpoint of "small rules, enormous tree".</li>
+  </ul>
+</section>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

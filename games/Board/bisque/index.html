@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function() {
+  var ua = navigator.userAgent;
+  var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+  if (isPhone) {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      var targetWidth = 780;
+      var scale = window.innerWidth / targetWidth;
+      meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+    }
+  }
+})();
+</script>
+<meta name="theme-color" content="#0c1016">
+<title>Bisque — Battle for the Bay (Risk-style Strategy) | Board Gaming Hub</title>
+<meta name="description" content="Risk-style territory war on Peconic Bay. Free turn-based strategy with rotating starts, no-tie network bonus, multi-fortify. Single HTML file, no signup.">
+<link rel="canonical" href="https://boardgaminghub.com/bisque">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/bisque">
+<meta property="og:title" content="Bisque — Battle for the Bay">
+<meta property="og:description" content="Free Risk-style territory strategy game on Peconic Bay. 100-game balance-validated.">
+<meta property="og:image" content="https://boardgaminghub.com/og/bisque.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/bisque.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Bisque",
+  "description": "Risk-style territory war set on Peconic Bay, Long Island. Deploy, attack, and fortify across 26 territories and 6 regions; last captain standing wins.",
+  "url": "https://boardgaminghub.com/bisque", "genre": "Strategy",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦞</text></svg>">
+<style>
+@keyframes diceRoll {
+  0% { transform: rotateX(0deg) rotateY(0deg) scale(0.5); opacity: 0; }
+  50% { transform: rotateX(180deg) rotateY(180deg) scale(1.2); opacity: 1; }
+  100% { transform: rotateX(360deg) rotateY(360deg) scale(1); opacity: 1; }
+}
+@keyframes glow {
+  0% { box-shadow: 0 0 5px rgba(255,200,100,0.5); }
+  50% { box-shadow: 0 0 18px rgba(255,200,100,0.9); }
+  100% { box-shadow: 0 0 5px rgba(255,200,100,0.5); }
+}
+@keyframes conquerFlash {
+  0% { filter: brightness(1); }
+  25% { filter: brightness(1.8); }
+  50% { filter: brightness(1); }
+  75% { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+@keyframes trapBounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0E1820;
+  color: #D8D0C0;
+  font-family: Georgia, serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none;
+}
+#header {
+  text-align: center;
+  padding: 12px 0 6px 0;
+}
+#header h1 {
+  font-size: 2.2em;
+  letter-spacing: 6px;
+  color: #C05030;
+  text-shadow: 0 2px 8px rgba(192,80,48,0.4);
+  margin: 0;
+}
+#header .subtitle {
+  font-size: 0.85em;
+  color: #8098A8;
+  letter-spacing: 2px;
+  margin-top: -2px;
+}
+#modeToggle {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 8px auto 4px auto;
+}
+#modeToggle button {
+  font-family: Georgia, serif;
+  font-size: 0.85em;
+  padding: 5px 18px;
+  border: 2px solid #C05030;
+  background: transparent;
+  color: #D8D0C0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#modeToggle button:first-child { border-radius: 6px 0 0 6px; }
+#modeToggle button:last-child { border-radius: 0 6px 6px 0; }
+#modeToggle button.active {
+  background: #C05030;
+  color: #fff;
+}
+#playerCountToggle {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 4px auto 4px auto;
+}
+#playerCountToggle button {
+  font-family: Georgia, serif;
+  font-size: 0.8em;
+  padding: 4px 14px;
+  border: 2px solid #806040;
+  background: transparent;
+  color: #D8D0C0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#playerCountToggle button:first-child { border-radius: 6px 0 0 6px; }
+#playerCountToggle button:last-child { border-radius: 0 6px 6px 0; }
+#playerCountToggle button.active {
+  background: #806040;
+  color: #fff;
+}
+#turnInfo {
+  text-align: center;
+  padding: 6px 0;
+  font-size: 0.95em;
+  min-height: 28px;
+}
+#turnInfo .phase-label {
+  color: #C05030;
+  font-weight: bold;
+}
+#mapWrap {
+  position: relative;
+  width: 750px;
+  height: 480px;
+  margin: 6px auto;
+  border-radius: 12px;
+  border: 2px solid #2A4050;
+  overflow: hidden;
+  background: #0E1820;
+}
+.water-label {
+  position: absolute;
+  color: rgba(80, 140, 170, 0.25);
+  font-family: Georgia, serif;
+  font-style: italic;
+  letter-spacing: 2px;
+  pointer-events: none;
+  z-index: 0;
+  white-space: nowrap;
+}
+#mapSvg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+#mapSvg line {
+  stroke: #2A4050;
+  stroke-width: 1.2;
+  stroke-dasharray: 4,3;
+  opacity: 0.6;
+}
+.territory {
+  position: absolute;
+  border-radius: 8px;
+  padding: 4px 8px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid #2A4050;
+  font-size: 0.58em;
+  min-width: 58px;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
+  z-index: 2;
+  line-height: 1.2;
+}
+.territory:hover {
+  border-color: #D8D0C0 !important;
+  z-index: 5;
+}
+.territory.selected {
+  animation: glow 1s infinite;
+  border-color: #FFC864 !important;
+  z-index: 10;
+}
+.territory.conquered {
+  animation: conquerFlash 0.5s ease;
+}
+.territory .t-name {
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+.territory .t-traps {
+  font-size: 1.7em;
+  font-weight: bold;
+  line-height: 1.1;
+}
+.territory .t-traps.bounce {
+  animation: trapBounce 0.3s ease;
+}
+.territory.water {
+  border-style: dashed;
+}
+.territory.bonus-active {
+  outline: 2px dashed #FFC864;
+  outline-offset: 2px;
+  box-shadow: 0 0 10px rgba(255,200,100,0.35);
+}
+.p1 { background: rgba(192,80,48,0.35); border-color: rgba(192,80,48,0.7); color: #F0D0C0; }
+.p2 { background: rgba(48,128,176,0.35); border-color: rgba(48,128,176,0.7); color: #C0D8E8; }
+.p3 { background: rgba(64,160,80,0.35); border-color: rgba(64,160,80,0.7); color: #C0E8C8; }
+.p4 { background: rgba(208,160,48,0.35); border-color: rgba(208,160,48,0.7); color: #E8DCC0; }
+.pN { background: rgba(136,136,136,0.30); border-color: rgba(136,136,136,0.6); color: #C0C0C0; }
+#diceArea {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  min-height: 60px;
+  padding: 4px 0;
+}
+.dice-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.dice-group .dice-label {
+  font-size: 0.75em;
+  color: #8098A8;
+  margin-right: 4px;
+}
+.die {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #fff;
+  animation: diceRoll 0.5s ease;
+}
+.die.atk { background: #C05030; }
+.die.def { background: #3080B0; }
+.die.win { box-shadow: 0 0 8px rgba(255,255,100,0.8); }
+.die.lose { opacity: 0.45; }
+#actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 0;
+}
+#actions button {
+  font-family: Georgia, serif;
+  font-size: 0.85em;
+  padding: 7px 20px;
+  border: 2px solid #C05030;
+  border-radius: 6px;
+  background: transparent;
+  color: #D8D0C0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+#actions button:hover:not(:disabled) {
+  background: #C05030;
+  color: #fff;
+}
+#actions button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+#messageArea {
+  text-align: center;
+  font-size: 0.9em;
+  color: #B0A890;
+  min-height: 22px;
+  padding: 4px 16px;
+  max-width: 750px;
+}
+#legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 10px 14px 10px;
+  max-width: 750px;
+}
+.legend-group {
+  background: #1A2028;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.72em;
+  border-left: 3px solid;
+}
+.legend-group .lg-name { font-weight: bold; }
+.legend-group .lg-bonus { color: #C05030; }
+.bisque-toggle {
+  margin: 4px 4px 0 4px;
+  padding: 5px 16px;
+  font-size: 0.82em;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  border: 1px solid #806040;
+  border-radius: 5px;
+  background: #1A2028;
+  color: #C0A878;
+}
+.bisque-toggle:hover { background: #2A2E38; }
+.bisque-doc {
+  display: none;
+  max-width: 540px;
+  background: #0E1820;
+  border: 1px solid #2A4050;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin: 10px auto;
+  font-size: 0.78em;
+  color: #B8C0C8;
+  line-height: 1.55;
+  text-align: left;
+  font-family: Georgia, serif;
+}
+.bisque-doc.show { display: block; }
+.bisque-doc h4 {
+  color: #C05030;
+  margin: 10px 0 4px;
+  letter-spacing: 1px;
+}
+.bisque-doc h4:first-child { margin-top: 0; }
+.bisque-doc ul { margin: 4px 0 6px 18px; padding: 0; }
+.bisque-doc li { margin: 2px 0; }
+.bisque-doc b { color: #E0C898; }
+#overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(14,24,32,0.85);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+}
+#overlay.show { display: flex; }
+#overlayBox {
+  background: #1A2028;
+  border: 2px solid #C05030;
+  border-radius: 12px;
+  padding: 30px 40px;
+  text-align: center;
+  max-width: 400px;
+}
+#overlayBox h2 {
+  color: #C05030;
+  font-size: 1.6em;
+  margin-bottom: 10px;
+}
+#overlayBox p {
+  color: #D8D0C0;
+  margin-bottom: 16px;
+  font-size: 1em;
+}
+#overlayBox button {
+  font-family: Georgia, serif;
+  font-size: 1em;
+  padding: 8px 28px;
+  border: 2px solid #C05030;
+  border-radius: 6px;
+  background: #C05030;
+  color: #fff;
+  cursor: pointer;
+}
+#deployInfo {
+  text-align: center;
+  font-size: 0.85em;
+  color: #C8A060;
+  min-height: 20px;
+}
+#scoreBar {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  font-size: 0.82em;
+  padding: 2px 0;
+  flex-wrap: wrap;
+}
+.score-p1 { color: #E08060; }
+.score-p2 { color: #60A0D0; }
+.score-p3 { color: #60C070; }
+.score-p4 { color: #D0B050; }
+.score-pN { color: #999; }
+/* Game nav (desktop + mobile) */
+#gameNav { display: block; position: sticky; top: 0; z-index: 9999; background: #1A2030; border-bottom: 1px solid #2A4050; font-family: Georgia, serif; width: 100%; }
+#gameNav .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px; max-width: 1200px; margin: 0 auto; position: relative; }
+#gameNav .nav-title { color: #D8D0C0; font-size: 0.9em; letter-spacing: 1px; }
+#gameNav .nav-toggle { background: none; border: 1px solid #3A5060; color: #D8D0C0; font-size: 1.1em; padding: 3px 10px; border-radius: 4px; cursor: pointer; font-family: Georgia, serif; }
+#gameNav .nav-toggle:hover { background: #1E2838; }
+#gameNav .nav-menu { display: none; position: absolute; right: 18px; top: 100%; background: #141C28; border: 1px solid #2A4050; border-top: none; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+#gameNav .nav-menu.open { display: block; }
+#gameNav .nav-menu a { display: block; padding: 10px 18px; color: #8098A8; text-decoration: none; font-size: 0.85em; border-bottom: 1px solid #1E2838; }
+#gameNav .nav-menu a:last-child { border-bottom: none; }
+#gameNav .nav-menu a:hover { background: #1E2838; color: #D8D0C0; }
+#gameNav .nav-menu a.current { color: #D8D0C0; font-weight: bold; }
+@media (max-width: 768px) {
+  #gameNav .nav-bar { padding: 8px 14px; }
+  #gameNav .nav-menu { position: static; right: auto; min-width: 0; border: none; border-top: 1px solid #2A4050; box-shadow: none; }
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Board Games","item":"https://boardgaminghub.com/#board"},{"@type":"ListItem","position":3,"name":"Bisque","item":"https://boardgaminghub.com/bisque"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is Bisque a real-time game?","acceptedAnswer":{"@type":"Answer","text":"No — it's turn-based. Each captain takes a full turn in sequence: deploy new traps, haul (attack) adjacent territories, then fortify, before passing to the next player."}},{"@type":"Question","name":"How do I win Bisque?","acceptedAnswer":{"@type":"Answer","text":"Eliminate every rival captain. A captain is knocked out when they lose their last territory, and the last captain standing wins. In 1-player mode you win by removing all AI rivals and lose if you are eliminated."}},{"@type":"Question","name":"How does combat work?","acceptedAnswer":{"@type":"Answer","text":"Combat is dice-based, Risk-style. Select one of your territories holding at least 2 traps, then attack an adjacent enemy or neutral territory; both sides roll and remove traps. Reduce a defender to 0 traps to conquer it and move traps in. Owning every territory in a region grants a deploy bonus."}},{"@type":"Question","name":"How long is a typical game?","acceptedAnswer":{"@type":"Answer","text":"Most games run 15–30 minutes, supporting 2 to 4 captains across the bay's 26 territories."}}]}</script>
+<style>
+/* The legacy per-game nav predates the site-wide header nav.js injects. It sits at
+   z-index 9999 and clips or covers that header, which carries the same game menu
+   plus search. One header is enough. */
+#gameNav { display: none !important; }
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div id="gameNav">
+  <div class="nav-bar">
+    <span class="nav-title">Bisque</span>
+    <button class="nav-toggle" onclick="document.querySelector('#gameNav .nav-menu').classList.toggle('open')">&#9776;</button>
+  </div>
+  <div class="nav-menu">
+    <a href="/agora" class="">Agora</a>
+    <a href="/apoapsis" class="">Apoapsis</a>
+    <a href="/aresia" class="">Aresia</a>
+    <a href="/backgammon" class="">Backgammon</a>
+    <a href="/bisque" class="current">Bisque</a>
+    <a href="/chess" class="">Chess</a>
+    <a href="/convergence" class="">Convergence</a>
+    <a href="/go" class="">Go</a>
+    <a href="/mancala" class="">Mancala</a>
+    <a href="/odyssey" class="">Odyssey</a>
+    <a href="/othello" class="">Othello</a>
+    <a href="/pentegrammai" class="">Pente Grammai</a>
+    <a href="/senet" class="">Senet</a>
+    <a href="/tidelands" class="">Tidelands</a>
+    <a href="/tower" class="">Tower</a>
+    <a href="/ur" class="">Ur</a>
+  </div>
+</div>
+
+<div id="header">
+  <h1>BISQUE <span style="font-size:0.7em">&#x1F99E;</span></h1>
+  <div class="subtitle">Battle for the Bay</div>
+</div>
+
+<div id="modeToggle">
+  <button id="btn1P" class="active" onclick="setMode(1)">1 Player</button>
+  <button id="btn2P" onclick="setMode(2)">All Human</button>
+</div>
+
+<div id="playerCountToggle">
+  <button id="btnPC2" class="active" onclick="setPlayerCount(2)">2 Captains</button>
+  <button id="btnPC3" onclick="setPlayerCount(3)">3 Captains</button>
+  <button id="btnPC4" onclick="setPlayerCount(4)">4 Captains</button>
+</div>
+
+<div id="scoreBar">
+  <span class="score-p1" id="score1"></span>
+  <span class="score-p2" id="score2"></span>
+  <span class="score-p3" id="score3"></span>
+  <span class="score-p4" id="score4"></span>
+  <span class="score-pN" id="scoreN"></span>
+</div>
+
+<div id="turnInfo"></div>
+<div id="deployInfo"></div>
+
+<div id="mapWrap">
+  <!-- 11 geographic regions of eastern Long Island -->
+  <svg id="regionBg" viewBox="0 0 750 480" preserveAspectRatio="none"
+       style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;">
+    <!-- WATER REGIONS (drawn first, land overlaps) -->
+
+    <!-- 1. Gardiners Bay — large eastern water, drawn first as base -->
+    <path d="M250,110 L300,100 L340,95 L380,88 L420,82 L460,78 L500,76 L540,74 L560,72
+             L750,72 L750,398
+             L720,398 L700,392 L660,388 L620,382 L580,374 L540,366 L500,356 L460,345
+             L462,210 L250,210 Z"
+          fill="#182E42" stroke="#1E3850" stroke-width="0.5"/>
+
+    <!-- 2. Noyack Bay — south of Shelter Island -->
+    <path d="M250,210 L462,210
+             L460,345 L420,332 L390,324 L370,316 L355,312 L330,322 L280,318 L250,322 Z"
+          fill="#1C3642" stroke="#224050" stroke-width="0.5"/>
+
+    <!-- 3. Great Peconic Bay — upper western water -->
+    <path d="M65,148 L120,140 L180,128 L240,112 L250,110
+             L250,225
+             L240,224 L180,226 L120,228 L65,229 Z"
+          fill="#1E3B4C" stroke="#245060" stroke-width="0.5"/>
+
+    <!-- 4. Little Peconic Bay — lower western water -->
+    <path d="M65,229 L120,228 L180,226 L240,224 L250,225
+             L250,322 L220,326 L160,320 L100,316 L65,312 Z"
+          fill="#1A3545" stroke="#204050" stroke-width="0.5"/>
+
+    <!-- 5. Long Island Sound — above North Fork -->
+    <path d="M0,0 L750,0 L750,72 L560,72
+             L540,65 L500,56 L460,42 L420,25 L380,12 L340,5 L300,5
+             L240,10 L180,18 L120,28 L60,40 L0,55 Z"
+          fill="#14283A" stroke="#1A3248" stroke-width="0.5"/>
+
+    <!-- LAND REGIONS (drawn on top of water) -->
+
+    <!-- 6. North Fork — diagonal peninsula, upper-left to Orient Point -->
+    <path d="M0,55 L60,40 L120,28 L180,18 L240,10 L300,5 L340,5
+             L380,12 L420,25 L460,42 L500,56 L540,65 L560,72
+             L540,74 L500,76 L460,78 L420,82 L380,88 L340,95
+             L300,100 L240,112 L180,128 L120,140 L60,148 L0,152 Z"
+          fill="#C8B088" stroke="#A89060" stroke-width="1"/>
+
+    <!-- 7. South Fork — wider lower peninsula to Montauk -->
+    <path d="M0,310 L60,312 L100,316 L160,320 L220,326 L280,318
+             L330,322 L355,312 L370,316 L390,324 L420,332 L460,345
+             L500,356 L540,366 L580,374 L620,382 L660,388 L700,392 L720,398
+             L710,415 L700,425 L660,432 L620,438 L580,442 L540,445
+             L500,446 L460,446 L420,445 L380,444 L340,442 L300,440
+             L260,438 L220,435 L180,432 L140,428 L100,424 L60,420 L0,415 Z"
+          fill="#B8A078" stroke="#9A7A50" stroke-width="1"/>
+
+    <!-- 8. Shelter Island — between the forks -->
+    <path d="M340,175 L365,165 L395,160 L425,162 L450,172 L462,188
+             L466,208 L462,228 L450,242 L428,252 L398,258 L368,255
+             L345,248 L332,235 L326,215 L328,195 Z"
+          fill="#C0B890" stroke="#A09050" stroke-width="1"/>
+
+    <!-- 9. Gardiners Island — in Gardiners Bay -->
+    <path d="M605,212 L622,202 L640,208 L648,228 L644,252
+             L632,268 L616,274 L602,265 L595,245 L598,225 Z"
+          fill="#A89870" stroke="#907840" stroke-width="1"/>
+
+    <!-- 10. Plum Island — in Long Island Sound, NE of Orient Point -->
+    <path d="M468,18 L486,10 L504,16 L510,28 L504,40 L488,46 L472,40 L466,28 Z"
+          fill="#A89870" stroke="#907840" stroke-width="1"/>
+
+    <!-- 12. Riverhead — mainland connecting the two forks -->
+    <path d="M0,148 L55,158 L72,192 L75,230 L72,268 L55,298 L0,314 Z"
+          fill="#B0986C" stroke="#9A7A50" stroke-width="1"/>
+
+    <!-- 11. Robins Island — in Great Peconic Bay (drawn after Riverhead) -->
+    <path d="M148,194 L164,188 L182,196 L186,210 L180,224 L162,228 L146,222 L142,208 Z"
+          fill="#A89870" stroke="#907840" stroke-width="1"/>
+
+    <!-- Fisher's Island — in Long Island Sound, far NE -->
+    <path d="M655,38 L672,32 L698,30 L712,36 L714,48 L700,54 L674,56 L658,50 Z"
+          fill="#A89870" stroke="#907840" stroke-width="1"/>
+  </svg>
+  <svg id="mapSvg"></svg>
+</div>
+
+<div id="diceArea"></div>
+
+<div id="actions">
+  <button id="btnEndAttacks" onclick="endAttacks()" disabled>End Hauling</button>
+  <button id="btnFortify" onclick="endFortify()" disabled>End Fortify</button>
+  <button id="btnEndTurn" onclick="endTurn()" disabled>End Turn</button>
+</div>
+
+<div id="messageArea"></div>
+
+<div id="legend"></div>
+
+<div style="text-align:center; margin-top:8px;">
+  <button class="bisque-toggle" onclick="toggleBisqueRules()">Rules</button>
+  <button class="bisque-toggle" onclick="toggleBisqueStrategy()">Strategy</button>
+</div>
+
+<div class="bisque-doc" id="bisque-rules">
+  <h4>Overview</h4>
+  Bisque is a Risk-style territory control game set in the Peconic Bay region of eastern Long Island. Players are lobster captains ("Captains") competing to dominate the bay by planting traps across 26 territories &mdash; towns, islands, and water bodies. The first captain to wipe out all rivals (or, in solo mode, the surviving human) wins.
+
+  <h4>The Map</h4>
+  26 territories grouped into 6 regions:
+  <ul>
+    <li><b>North Fork</b> (6) &mdash; Riverhead, Cutchogue, Mattituck, Southold, Greenport, Orient. Bonus +4.</li>
+    <li><b>South Fork West</b> (3) &mdash; Southampton, Bridgehampton, North Haven. Bonus +3.</li>
+    <li><b>South Fork East</b> (4) &mdash; Sag Harbor, East Hampton, Amagansett, Montauk. Bonus +3.</li>
+    <li><b>The Islands</b> (5) &mdash; S.I. Heights, Mashomack, Gardiners Is., Plum Island, Robins Island. Bonus +3.</li>
+    <li><b>Inner Bays</b> (5) &mdash; Peconic Bay, Little Peconic, Noyack Bay, S.I. Sound, NW Harbor. Bonus +3.</li>
+    <li><b>Outer Waters</b> (3) &mdash; Gardiners Bay, Block Island Sound, Fishers Is. Bonus +2.</li>
+  </ul>
+  Adjacencies follow real geography. Most nodes connect to 2&ndash;3 neighbors; a couple of bay hubs connect to 4. The small islands (Gardiners Is., Plum, Robins, Fishers) each have exactly 2 connections.
+
+  <h4>Setup</h4>
+  Choose <b>2 Captains</b>, <b>3 Captains</b>, or <b>4 Captains</b>, and either <b>1 Player vs AI</b> or <b>All Human (hotseat)</b>. Territories are randomly distributed:
+  <ul>
+    <li><b>2 captains:</b> 11 territories each, 4 neutral.</li>
+    <li><b>3 captains:</b> 8 each, 2 neutral.</li>
+    <li><b>4 captains:</b> 6 each, 2 neutral.</li>
+  </ul>
+  Each captain starts with 20 traps total &mdash; 1 placed automatically on each owned territory at setup, the rest distributed randomly across their holdings. Neutral territories start with 2 traps each and never reinforce or attack.
+
+  <h4>Each Turn (3 phases)</h4>
+  <b>1. Deploy</b> &mdash; You receive new traps to place on territories you already own. Reinforcement count = max(3, owned&divide;3) plus a <b>full-region bonus</b> if you own every territory in a group (+4 for North Fork, +3 for SF West/East/Islands/Inner Bays, +2 for Outer Waters). Click your territories to drop traps one at a time.<br><br>
+  <b>2. Hauling (Attack)</b> &mdash; Click one of your territories with at least 2 traps to select it as the source, then click an adjacent enemy or neutral territory to attack. Combat is dice-based:
+  <ul>
+    <li>Attacker rolls up to <b>3 dice</b> (= min(3, source traps &minus; 1)).</li>
+    <li>Defender rolls up to <b>2 dice</b> (= min(2, defender traps)).</li>
+    <li>Highest die vs. highest die, second-highest vs. second-highest. Defender wins ties.</li>
+    <li>Each loss removes one trap from that side.</li>
+  </ul>
+  If the defender is reduced to 0 traps, the attacker conquers the territory and moves up to (attacker dice rolled) traps in. You can attack as many times as you like, switching sources, until you click <b>End Hauling</b>.<br><br>
+  <b>3. Fortify</b> &mdash; Move traps from any of your territories (with &ge;2 traps) to an adjacent friendly territory. Half (rounded down, minimum 1) of the source's traps move over. You may repeat this as many times as you like; click <b>End Fortify</b> when you're done.
+
+  <h4>Eliminating Captains and Winning</h4>
+  When a captain loses their last territory they are <b>eliminated</b> and out for the rest of the game. The last captain standing wins. In 1 Player mode, you win if you eliminate every AI rival; you lose if you are eliminated yourself.
+</div>
+
+<div class="bisque-doc" id="bisque-strategy">
+  <h4>Opening (First 1&ndash;2 Turns)</h4>
+  <ul>
+    <li>Look at the random territory distribution. Identify the <b>group with the fewest territories owned by enemies</b> &mdash; that's your first conquest target. Outer Waters (3 territories), South Fork West (3), and South Fork East (4) are the cheapest groups to lock down.</li>
+    <li>Don't spread your initial deployments evenly. <b>Stack 4&ndash;5 traps on a single border territory</b> in your target region so you can attack on turn 1.</li>
+    <li>If you start with several connected territories, prioritize defending the chokepoints (the territories with only 1&ndash;2 enemy neighbors).</li>
+  </ul>
+
+  <h4>Reinforcement Math</h4>
+  <ul>
+    <li>Base reinforcements = max(3, territories&divide;3). Below 9 territories you're stuck at the 3 minimum &mdash; <b>get to 9+ as fast as possible</b> for the first marginal increase.</li>
+    <li>Region bonuses are huge: holding all 6 North Fork towns gives <b>+4 traps every turn forever</b>. The bonus pays for itself within 2&ndash;3 turns.</li>
+    <li>Compare a 3-territory grab in Outer Waters (+2 bonus) vs. a 6-territory North Fork sweep (+4): Outer Waters is faster and worth almost as much per turn.</li>
+  </ul>
+
+  <h4>Region Priorities</h4>
+  <ul>
+    <li><b>Outer Waters (+2)</b>: only 3 territories, all connected, easy to defend &mdash; the fastest first bonus. Grab this if you start with even one of: Gardiners Bay, Block Is. Sound, Fishers Is.</li>
+    <li><b>South Fork West (+3)</b>: 3 territories on a single linear chain. Easy to hold but only 2 chokepoint borders. A great second bonus.</li>
+    <li><b>The Islands (+3)</b>: 5 territories, but two of them (Plum, Robins) are isolated dead-ends and only have 2 connections. Hard to lose if you camp Mashomack and S.I. Heights.</li>
+    <li><b>North Fork (+4)</b>: highest bonus but 6 territories along a linear chain &mdash; 5 borders to defend. Worth it only if you can secure both ends.</li>
+    <li><b>SF East (+3)</b>: 4 territories ending at Montauk, but Montauk has the Block Is. Sound link &mdash; an attack vector you have to babysit.</li>
+    <li><b>Inner Bays (+3)</b>: 5 water territories, the most connected region &mdash; <b>lots of borders</b>. Avoid trying to hold this whole group; pick off pieces instead.</li>
+  </ul>
+
+  <h4>Combat Math</h4>
+  <ul>
+    <li>3 attacker vs. 2 defender dice slightly favors the attacker. Don't attack with fewer dice unless you have to &mdash; <b>always try to roll 3 attacker dice</b> (need 4+ traps in source).</li>
+    <li>The defender wins ties. A 2-defender stack is roughly even with a 3-attacker stack. Stacks of 3+ defenders are very hard to dislodge.</li>
+    <li>If you must attack a 3+ defender, build your source up to 6&ndash;7 traps first.</li>
+    <li>Long attack chains lose traps to attrition. Plan your conquest order so each successive attack starts with at least 4 traps after the previous move-in.</li>
+  </ul>
+
+  <h4>Chokepoints &amp; Defense</h4>
+  <ul>
+    <li>The dead-end islands (Plum, Robins, Fishers, Gardiners Is.) are <b>perfect anchors</b> &mdash; only 2 neighbors each, easy to wall off with a small garrison.</li>
+    <li>Riverhead is the only land bridge connecting North Fork to South Fork. Hold it and you split the entire western map.</li>
+    <li>Stack big defensive piles on territories with the most enemy neighbors (e.g., Noyack Bay touches 4 things). Leave the safe interior at 1&ndash;2 traps.</li>
+  </ul>
+
+  <h4>Fortify Smart</h4>
+  <ul>
+    <li>Fortify is your only way to move traps without combat &mdash; spend it on the territory you'll attack from <b>next turn</b>.</li>
+    <li>Half-move means it pays to stockpile big stacks before fortifying. Moving from a 9-stack gives you 4 traps; from a 3-stack only 1.</li>
+    <li>Don't fortify out of safe interior territories you might need to defend later (e.g., a flank against the AI).</li>
+  </ul>
+
+  <h4>Multiplayer Dynamics (3&ndash;4 captains)</h4>
+  <ul>
+    <li>The leader gets piled on. Stay <b>second or third</b> in territory count until you can knock someone out in a single turn.</li>
+    <li>Eliminating a captain in one turn is huge: you absorb their position and deny them future reinforcement.</li>
+    <li>Don't leave a wounded enemy alive across two turns &mdash; a captain with 1&ndash;2 territories will be obliterated by whoever attacks first, but if you don't finish them, the opponent gets the territory.</li>
+  </ul>
+
+  <h4>Endgame</h4>
+  <ul>
+    <li>Once you control 2+ full regions, your reinforcement income compounds. Switch from expansion to <b>methodical elimination</b>.</li>
+    <li>Save fortify moves to consolidate giant stacks (12+) and walk them across the map to crush the last enemy stronghold.</li>
+    <li>Watch for "kingmaker" situations &mdash; if two opponents are both close to elimination, attack the one whose territories you actually want.</li>
+  </ul>
+</div>
+
+<div id="overlay">
+  <div id="overlayBox">
+    <h2 id="olTitle"></h2>
+    <p id="olText"></p>
+    <button onclick="closeOverlay()">New Voyage</button>
+  </div>
+</div>
+
+<script>
+/* ===== DATA ===== */
+var TERRITORIES = [
+  /* North Fork (6) */
+  { id: 'riverhead',        name: 'Riverhead',        group: 'northfork',   x: 2,   y: 200, water: false },
+  { id: 'cutchogue',        name: 'Cutchogue',        group: 'northfork',   x: 10,  y: 90,  water: false },
+  { id: 'mattituck',        name: 'Mattituck',        group: 'northfork',   x: 95,  y: 72,  water: false },
+  { id: 'southold',         name: 'Southold',         group: 'northfork',   x: 185, y: 52,  water: false },
+  { id: 'greenport',        name: 'Greenport',        group: 'northfork',   x: 285, y: 35,  water: false },
+  { id: 'orient',           name: 'Orient',           group: 'northfork',   x: 405, y: 60,  water: false },
+
+  /* South Fork West (3) */
+  { id: 'southampton',      name: 'Southampton',      group: 'sfwest',      x: 30,  y: 380, water: false },
+  { id: 'bridgehampton',    name: 'Bridgehampton',    group: 'sfwest',      x: 175, y: 372, water: false },
+  { id: 'northHaven',       name: 'North Haven',      group: 'sfwest',      x: 250, y: 320, water: false },
+
+  /* South Fork East (4) */
+  { id: 'sagHarbor',        name: 'Sag Harbor',       group: 'sfeast',      x: 340, y: 320, water: false },
+  { id: 'eastHampton',      name: 'East Hampton',     group: 'sfeast',      x: 465, y: 366, water: false },
+  { id: 'amagansett',       name: 'Amagansett',       group: 'sfeast',      x: 545, y: 378, water: false },
+  { id: 'montauk',          name: 'Montauk',          group: 'sfeast',      x: 645, y: 392, water: false },
+
+  /* The Islands (5) */
+  { id: 'shelterHeights',   name: 'S.I. Heights',     group: 'islands',     x: 365, y: 168, water: false },
+  { id: 'mashomack',        name: 'Mashomack',        group: 'islands',     x: 425, y: 222, water: false },
+  { id: 'gardinersIsland',  name: 'Gardiners Is.',    group: 'islands',     x: 595, y: 230, water: false },
+  { id: 'plumIsland',       name: 'Plum Island',      group: 'islands',     x: 478, y: 12,  water: false },
+  { id: 'robinsIsland',     name: 'Robins Island',    group: 'islands',     x: 140, y: 195, water: false },
+
+  /* Inner Bays (5) */
+  { id: 'greatPeconicBay',  name: 'Peconic Bay',      group: 'innerBays',   x: 215, y: 175, water: true },
+  { id: 'littlePeconicBay', name: 'Little Peconic',   group: 'innerBays',   x: 75,  y: 270, water: true },
+  { id: 'noyackBay',        name: 'Noyack Bay',       group: 'innerBays',   x: 295, y: 268, water: true },
+  { id: 'siSound',          name: 'S.I. Sound',       group: 'innerBays',   x: 295, y: 128, water: true },
+  { id: 'northwestHarbor',  name: 'NW Harbor',        group: 'innerBays',   x: 478, y: 280, water: true },
+
+  /* Outer Waters (3) */
+  { id: 'gardinersBay',     name: 'Gardiners Bay',    group: 'outerWaters', x: 560, y: 155, water: true },
+  { id: 'blockIslandSound', name: 'Block Is. Snd',    group: 'outerWaters', x: 678, y: 295, water: true },
+  { id: 'fishersIsland',    name: 'Fishers Is.',      group: 'outerWaters', x: 660, y: 50,  water: false }
+];
+
+/* Fast O(1) lookup map — TERRITORIES array is static, build once. */
+var TERRITORY_BY_ID = (function() {
+  var m = {};
+  for (var i = 0; i < TERRITORIES.length; i++) m[TERRITORIES[i].id] = TERRITORIES[i];
+  return m;
+})();
+
+var GROUPS = {
+  northfork:   { name: 'North Fork',       bonus: 4, color: '#C8B088', border: '#B89858' },
+  sfwest:      { name: 'South Fork West',  bonus: 3, color: '#B8A078', border: '#A08858' },
+  sfeast:      { name: 'South Fork East',  bonus: 3, color: '#C0A880', border: '#A89058' },
+  islands:     { name: 'The Islands',      bonus: 3, color: '#C0B890', border: '#A8A068' },
+  innerBays:   { name: 'Inner Bays',       bonus: 3, color: '#2A5068', border: '#3A6888' },
+  outerWaters: { name: 'Outer Waters',     bonus: 2, color: '#1E3B4C', border: '#2A5570' }
+};
+
+var ADJACENCY = {
+  /* North Fork — linear chain + bay access */
+  riverhead:        ['cutchogue', 'southampton', 'robinsIsland'],
+  cutchogue:        ['riverhead', 'mattituck'],
+  mattituck:        ['cutchogue', 'southold'],
+  southold:         ['mattituck', 'greenport'],
+  greenport:        ['southold', 'orient', 'siSound'],
+  orient:           ['greenport', 'plumIsland'],
+
+  /* South Fork West */
+  southampton:      ['riverhead', 'bridgehampton', 'littlePeconicBay'],
+  bridgehampton:    ['southampton', 'northHaven'],
+  northHaven:       ['bridgehampton', 'sagHarbor'],
+
+  /* South Fork East */
+  sagHarbor:        ['northHaven', 'eastHampton', 'noyackBay'],
+  eastHampton:      ['sagHarbor', 'amagansett'],
+  amagansett:       ['eastHampton', 'montauk'],
+  montauk:          ['amagansett', 'blockIslandSound'],
+
+  /* The Islands — 2 connections each */
+  shelterHeights:   ['mashomack', 'siSound', 'noyackBay'],
+  mashomack:        ['shelterHeights', 'northwestHarbor'],
+  gardinersIsland:  ['gardinersBay', 'northwestHarbor'],
+  plumIsland:       ['orient', 'gardinersBay'],
+  robinsIsland:     ['greatPeconicBay', 'littlePeconicBay', 'riverhead'],
+
+  /* Inner Bays */
+  greatPeconicBay:  ['littlePeconicBay', 'robinsIsland'],
+  littlePeconicBay: ['greatPeconicBay', 'southampton', 'noyackBay', 'robinsIsland'],
+  noyackBay:        ['littlePeconicBay', 'shelterHeights', 'northwestHarbor', 'sagHarbor'],
+  siSound:          ['greenport', 'shelterHeights', 'gardinersBay'],
+  northwestHarbor:  ['noyackBay', 'mashomack', 'gardinersIsland'],
+
+  /* Outer Waters */
+  gardinersBay:     ['siSound', 'gardinersIsland', 'plumIsland', 'blockIslandSound', 'fishersIsland'],
+  blockIslandSound: ['gardinersBay', 'fishersIsland', 'montauk'],
+  fishersIsland:    ['blockIslandSound', 'gardinersBay']
+};
+
+var PLAYER_COLORS = {
+  1: { main: '#C05030', name: 'Captain Red',  rgba: 'rgba(192,80,48,',  rgbaWater: 'rgba(192,80,48,',  scoreClass: 'score-p1', icon: '&#x1F99E;', textColor: '#E08060' },
+  2: { main: '#3080B0', name: 'Captain Blue', rgba: 'rgba(48,128,176,', rgbaWater: 'rgba(48,128,176,', scoreClass: 'score-p2', icon: '&#x1F3A3;', textColor: '#60A0D0' },
+  3: { main: '#40A050', name: 'Captain Green', rgba: 'rgba(64,160,80,',  rgbaWater: 'rgba(64,160,80,',  scoreClass: 'score-p3', icon: '&#x2693;',  textColor: '#60C070' },
+  4: { main: '#D0A030', name: 'Captain Gold', rgba: 'rgba(208,160,48,', rgbaWater: 'rgba(208,160,48,', scoreClass: 'score-p4', icon: '&#x2B50;',  textColor: '#D0B050' },
+  0: { main: '#888888', name: 'Neutral',      rgba: 'rgba(136,136,136,',rgbaWater: 'rgba(136,136,136,',scoreClass: 'score-pN', icon: '&#x2693;',  textColor: '#999999' }
+};
+
+var LOBSTER_MESSAGES = {
+  deploy: [
+    "Set your traps, Captain!",
+    "Where shall we drop the pots?",
+    "Bait those traps and lower away!",
+    "Time to stake your claim on the bay.",
+    "Fresh territory, fresh catch."
+  ],
+  attack: [
+    "Haul away! Time to raid some territory.",
+    "Those waters look ripe for the taking.",
+    "Let's show 'em who runs this bay.",
+    "Claw your way to victory!",
+    "The best defense is a good lobster offense."
+  ],
+  fortify: [
+    "Reinforce your fishing grounds.",
+    "Move your traps to stronger positions.",
+    "Shore up your defenses, Captain.",
+    "Redistribute your fleet of traps.",
+    "Fortify or pass -- your call, skipper."
+  ],
+  atkWin: [
+    "Their traps are crab bait now!",
+    "You've claimed new fishing rights!",
+    "The bay bends to your will!",
+    "Another territory in the pot!",
+    "Shell-shocking victory!"
+  ],
+  atkLose: [
+    "The sea giveth, the sea taketh away.",
+    "Lost some traps in the current...",
+    "They fought like cornered lobsters!",
+    "Rough waters for the attacker.",
+    "Pinched! Pull back and regroup."
+  ],
+  defWin: [
+    "Your traps held the line!",
+    "They turned tail like scared shrimp!",
+    "Defensive shell held strong!",
+    "Not in our waters, pal!"
+  ],
+  defLose: [
+    "The invaders are relentless!",
+    "Traps lost in the skirmish...",
+    "They're breaking through!"
+  ]
+};
+
+/* ===== STATE ===== */
+var state = {};
+var mode = 1; /* 1 = vs AI, 2 = all human (hotseat) */
+var playerCount = 2;
+var aiTimer = null;
+var selectedTerritory = null;
+var attackSource = null;
+var fortifySource = null;
+
+function initState() {
+  state = {
+    territories: {},
+    currentPlayer: 1,
+    phase: 'deploy',
+    trapsToPlace: 0,
+    turnNumber: 1,
+    gameOver: false,
+    activePlayers: [],    /* list of active player numbers (1-based, 0=neutral) */
+    eliminatedPlayers: [], /* players who lost all territories */
+    hasNeutral: false
+  };
+  selectedTerritory = null;
+  attackSource = null;
+  fortifySource = null;
+  if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
+}
+
+/* ===== SETUP ===== */
+function resetGame() {
+  initState();
+
+  /* Determine active players and neutral */
+  var totalTerritories = TERRITORIES.length; /* 26 */
+  var hasNeutral = false;
+  var neutralCount = 0;
+  var perPlayer = 0;
+
+  if (playerCount === 2) {
+    perPlayer = 11;
+    neutralCount = totalTerritories - (perPlayer * 2);
+    hasNeutral = true;
+  } else if (playerCount === 3) {
+    perPlayer = 8;
+    neutralCount = totalTerritories - (perPlayer * 3);
+    hasNeutral = true;
+  } else {
+    perPlayer = Math.floor(totalTerritories / playerCount);
+    neutralCount = totalTerritories - (perPlayer * playerCount);
+    hasNeutral = neutralCount > 0;
+  }
+
+  state.hasNeutral = hasNeutral;
+
+  /* Build active player list */
+  state.activePlayers = [];
+  for (var p = 1; p <= playerCount; p++) {
+    state.activePlayers.push(p);
+  }
+
+  /* Shuffle & assign territories */
+  var ids = TERRITORIES.map(function(t) { return t.id; });
+  shuffle(ids);
+
+  var idx = 0;
+  /* Assign to each player */
+  for (var pi = 1; pi <= playerCount; pi++) {
+    var count = perPlayer;
+    for (var c = 0; c < count; c++) {
+      state.territories[ids[idx]] = {
+        owner: pi,
+        traps: 1
+      };
+      idx++;
+    }
+  }
+
+  /* Assign neutral territories */
+  for (var ni = 0; ni < neutralCount; ni++) {
+    state.territories[ids[idx]] = {
+      owner: 0, /* 0 = neutral */
+      traps: 2
+    };
+    idx++;
+  }
+
+  /* Assign any leftover (shouldn't happen but safety) */
+  while (idx < ids.length) {
+    state.territories[ids[idx]] = {
+      owner: 0,
+      traps: 2
+    };
+    idx++;
+  }
+
+  /* Distribute bonus starting traps to human/AI players (not neutral) */
+  var startTrapsPerPlayer = 20;
+  for (var sp = 1; sp <= playerCount; sp++) {
+    var ownedByP = ids.filter(function(tid) { return state.territories[tid].owner === sp; });
+    var alreadyPlaced = ownedByP.length; /* 1 per territory */
+    var remaining = startTrapsPerPlayer - alreadyPlaced;
+    if (remaining < 0) remaining = 0;
+    for (var rr = 0; rr < remaining; rr++) {
+      var pick = ownedByP[Math.floor(Math.random() * ownedByP.length)];
+      state.territories[pick].traps++;
+    }
+  }
+
+  /* Calculate initial deploy */
+  state.trapsToPlace = calcReinforcements(1);
+  state.phase = 'deploy';
+  state.currentPlayer = 1;
+
+  createMap();
+  render();
+  setMessage(randomMsg('deploy'));
+}
+
+function calcReinforcements(player) {
+  if (player === 0) return 0; /* Neutral never reinforces */
+  var owned = [];
+  for (var tid in state.territories) {
+    if (state.territories[tid].owner === player) owned.push(tid);
+  }
+  var base = Math.max(3, Math.floor(owned.length / 3));
+
+  /* Group bonuses */
+  var bonus = 0;
+  var groupKeys = Object.keys(GROUPS);
+  for (var g = 0; g < groupKeys.length; g++) {
+    var gk = groupKeys[g];
+    var groupTerrs = TERRITORIES.filter(function(t) { return t.group === gk; });
+    var allOwned = groupTerrs.every(function(t) { return state.territories[t.id] && state.territories[t.id].owner === player; });
+    if (allOwned) bonus += GROUPS[gk].bonus;
+  }
+
+  return base + bonus;
+}
+
+/* ===== MAP CREATION ===== */
+function createMap() {
+  var wrap = document.getElementById('mapWrap');
+  /* Clear old territory divs and labels */
+  var oldTs = wrap.querySelectorAll('.territory, .water-label');
+  for (var i = 0; i < oldTs.length; i++) wrap.removeChild(oldTs[i]);
+
+  /* Add water body labels */
+  var waterLabels = [
+    { text: 'Flanders Bay', x: 5, y: 225, size: '0.62em', rotate: -5 },
+    { text: 'Peconic Bay', x: 80, y: 172, size: '0.68em', rotate: -8 },
+    { text: 'Little Peconic', x: 80, y: 258, size: '0.62em', rotate: -3 },
+    { text: 'Noyack Bay', x: 265, y: 275, size: '0.62em', rotate: 0 },
+    { text: 'Gardiners Bay', x: 540, y: 138, size: '0.7em', rotate: 3 },
+    { text: 'L.I. Sound', x: 180, y: 12, size: '0.6em', rotate: 0 }
+  ];
+  for (var wl = 0; wl < waterLabels.length; wl++) {
+    var lbl = waterLabels[wl];
+    var labelDiv = document.createElement('div');
+    labelDiv.className = 'water-label';
+    labelDiv.textContent = lbl.text;
+    labelDiv.style.left = lbl.x + 'px';
+    labelDiv.style.top = lbl.y + 'px';
+    labelDiv.style.fontSize = lbl.size;
+    labelDiv.style.transform = 'rotate(' + lbl.rotate + 'deg)';
+    wrap.appendChild(labelDiv);
+  }
+
+  for (var t = 0; t < TERRITORIES.length; t++) {
+    var td = TERRITORIES[t];
+    var div = document.createElement('div');
+    div.className = 'territory' + (td.water ? ' water' : '');
+    div.id = 'terr-' + td.id;
+    div.style.left = td.x + 'px';
+    div.style.top = td.y + 'px';
+    div.innerHTML = '<div class="t-name">' + td.name + '</div><div class="t-traps" id="traps-' + td.id + '">1</div>';
+    div.setAttribute('data-id', td.id);
+    div.onclick = (function(id) { return function() { onTerritoryClick(id); }; })(td.id);
+    wrap.appendChild(div);
+  }
+
+  drawConnections();
+  buildLegend();
+}
+
+function drawConnections() {
+  var svg = document.getElementById('mapSvg');
+  svg.innerHTML = '';
+  var drawn = {};
+  var keys = Object.keys(ADJACENCY);
+  for (var i = 0; i < keys.length; i++) {
+    var from = keys[i];
+    var neighbors = ADJACENCY[from];
+    for (var j = 0; j < neighbors.length; j++) {
+      var to = neighbors[j];
+      var pairKey = [from, to].sort().join('-');
+      if (drawn[pairKey]) continue;
+      drawn[pairKey] = true;
+
+      var ft = getTerritoryData(from);
+      var tt = getTerritoryData(to);
+      if (!ft || !tt) continue;
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', ft.x + 30);
+      line.setAttribute('y1', ft.y + 18);
+      line.setAttribute('x2', tt.x + 30);
+      line.setAttribute('y2', tt.y + 18);
+      svg.appendChild(line);
+    }
+  }
+}
+
+function buildLegend() {
+  var legend = document.getElementById('legend');
+  legend.innerHTML = '';
+  var keys = Object.keys(GROUPS);
+  for (var i = 0; i < keys.length; i++) {
+    var g = GROUPS[keys[i]];
+    var div = document.createElement('div');
+    div.className = 'legend-group';
+    div.style.borderLeftColor = g.border;
+    div.innerHTML = '<span class="lg-name">' + g.name + '</span> <span class="lg-bonus">+' + g.bonus + ' traps</span>';
+    legend.appendChild(div);
+  }
+
+  /* Player legend entries */
+  for (var p = 1; p <= playerCount; p++) {
+    var pc = PLAYER_COLORS[p];
+    var pdiv = document.createElement('div');
+    pdiv.className = 'legend-group';
+    pdiv.style.borderLeftColor = pc.main;
+    pdiv.innerHTML = '<span class="lg-name" style="color:' + pc.textColor + '">' + pc.icon + ' ' + pc.name + '</span>';
+    legend.appendChild(pdiv);
+  }
+
+  /* Neutral legend if applicable */
+  if (state.hasNeutral) {
+    var nc = PLAYER_COLORS[0];
+    var ndiv = document.createElement('div');
+    ndiv.className = 'legend-group';
+    ndiv.style.borderLeftColor = nc.main;
+    ndiv.innerHTML = '<span class="lg-name" style="color:' + nc.textColor + '">' + nc.name + '</span>';
+    legend.appendChild(ndiv);
+  }
+}
+
+/* ===== RENDERING ===== */
+function render() {
+  /* Compute which groups are fully held by a single non-neutral owner */
+  var groupBonusOwner = {};
+  var groupKeysR = Object.keys(GROUPS);
+  for (var gi = 0; gi < groupKeysR.length; gi++) {
+    var gk = groupKeysR[gi];
+    var gOwner = null, unified = true;
+    for (var tt = 0; tt < TERRITORIES.length; tt++) {
+      if (TERRITORIES[tt].group !== gk) continue;
+      var o = state.territories[TERRITORIES[tt].id].owner;
+      if (gOwner === null) gOwner = o;
+      else if (o !== gOwner) { unified = false; break; }
+    }
+    if (unified && gOwner !== 0 && gOwner !== null) groupBonusOwner[gk] = gOwner;
+  }
+
+  for (var t = 0; t < TERRITORIES.length; t++) {
+    var td = TERRITORIES[t];
+    var ts = state.territories[td.id];
+    var div = document.getElementById('terr-' + td.id);
+    if (!div || !ts) continue;
+
+    /* Player class */
+    div.classList.remove('p1', 'p2', 'p3', 'p4', 'pN', 'selected', 'bonus-active');
+    if (ts.owner === 0) {
+      div.classList.add('pN');
+    } else {
+      div.classList.add('p' + ts.owner);
+    }
+
+    /* Coloring based on owner */
+    var pc = PLAYER_COLORS[ts.owner];
+    if (pc) {
+      div.style.background = td.water
+        ? pc.rgba + '0.25)'
+        : pc.rgba + '0.35)';
+      div.style.borderColor = pc.rgba + '0.7)';
+    }
+
+    /* Selected highlight */
+    if (selectedTerritory === td.id || attackSource === td.id || fortifySource === td.id) {
+      div.classList.add('selected');
+    }
+
+    /* Bonus-active halo: this territory is part of a fully-held group */
+    if (groupBonusOwner[td.group] === ts.owner) {
+      div.classList.add('bonus-active');
+    }
+
+    /* Trap count */
+    var trapsEl = document.getElementById('traps-' + td.id);
+    if (trapsEl) trapsEl.textContent = ts.traps;
+  }
+
+  updateTurnInfo();
+  updateButtons();
+  updateScores();
+}
+
+function getPlayerSpan(player) {
+  var pc = PLAYER_COLORS[player];
+  if (!pc) return '<span>???</span>';
+  return '<span style="color:' + pc.textColor + '">' + pc.name + '</span>';
+}
+
+function updateTurnInfo() {
+  var info = document.getElementById('turnInfo');
+  var di = document.getElementById('deployInfo');
+  if (state.gameOver) {
+    info.innerHTML = '';
+    di.innerHTML = '';
+    return;
+  }
+  var pName = getPlayerSpan(state.currentPlayer);
+  var phaseNames = { deploy: 'Deploy Traps', attack: 'Haul (Attack)', fortify: 'Fortify' };
+  info.innerHTML = 'Turn ' + state.turnNumber + ' &mdash; ' + pName + ' &mdash; <span class="phase-label">' + phaseNames[state.phase] + '</span>';
+
+  if (state.phase === 'deploy' && state.trapsToPlace > 0) {
+    di.innerHTML = 'Traps to deploy: <strong>' + state.trapsToPlace + '</strong>';
+  } else {
+    di.innerHTML = '';
+  }
+}
+
+function updateButtons() {
+  var btnEnd = document.getElementById('btnEndAttacks');
+  var btnFort = document.getElementById('btnFortify');
+  var btnTurn = document.getElementById('btnEndTurn');
+  var isHuman = isCurrentPlayerHuman();
+
+  btnEnd.disabled = !(state.phase === 'attack' && isHuman);
+  btnFort.disabled = !(state.phase === 'fortify' && isHuman);
+  btnTurn.disabled = !(state.phase !== 'deploy' && isHuman);
+}
+
+function isCurrentPlayerHuman() {
+  if (state.currentPlayer === 0) return false; /* neutral never plays */
+  if (mode === 2) return true; /* all human hotseat */
+  /* mode 1: only player 1 is human */
+  return state.currentPlayer === 1;
+}
+
+function updateScores() {
+  var counts = {};
+  for (var p = 0; p <= 4; p++) counts[p] = 0;
+  for (var tid in state.territories) {
+    counts[state.territories[tid].owner]++;
+  }
+
+  for (var pp = 1; pp <= 4; pp++) {
+    var el = document.getElementById('score' + pp);
+    if (el) {
+      if (pp <= playerCount) {
+        var pc = PLAYER_COLORS[pp];
+        el.innerHTML = pc.icon + ' ' + pc.name + ': ' + counts[pp] + ' territories';
+        el.style.display = '';
+      } else {
+        el.innerHTML = '';
+        el.style.display = 'none';
+      }
+    }
+  }
+
+  var elN = document.getElementById('scoreN');
+  if (elN) {
+    if (state.hasNeutral && counts[0] > 0) {
+      elN.innerHTML = '&#x2693; Neutral: ' + counts[0] + ' territories';
+      elN.style.display = '';
+    } else {
+      elN.innerHTML = '';
+      elN.style.display = 'none';
+    }
+  }
+}
+
+/* ===== TERRITORY CLICK ===== */
+function onTerritoryClick(id) {
+  if (state.gameOver) return;
+  /* Ignore clicks if current player is not human */
+  if (!isCurrentPlayerHuman()) return;
+
+  if (state.phase === 'deploy') {
+    handleDeploy(id);
+  } else if (state.phase === 'attack') {
+    handleAttack(id);
+  } else if (state.phase === 'fortify') {
+    handleFortify(id);
+  }
+}
+
+/* ===== DEPLOY PHASE ===== */
+function handleDeploy(id) {
+  var ts = state.territories[id];
+  if (!ts || ts.owner !== state.currentPlayer) {
+    setMessage("That's not your territory, Captain!");
+    return;
+  }
+  if (state.trapsToPlace <= 0) return;
+
+  ts.traps++;
+  state.trapsToPlace--;
+
+  /* Bounce animation */
+  var trapsEl = document.getElementById('traps-' + id);
+  if (trapsEl) {
+    trapsEl.classList.remove('bounce');
+    void trapsEl.offsetWidth;
+    trapsEl.classList.add('bounce');
+  }
+
+  render();
+
+  if (state.trapsToPlace <= 0) {
+    state.phase = 'attack';
+    attackSource = null;
+    render();
+    setMessage(randomMsg('attack'));
+  }
+}
+
+/* ===== ATTACK PHASE ===== */
+function handleAttack(id) {
+  var ts = state.territories[id];
+  if (!ts) return;
+
+  if (!attackSource) {
+    /* Selecting attack source */
+    if (ts.owner !== state.currentPlayer) {
+      setMessage("Select one of YOUR territories to haul from.");
+      return;
+    }
+    if (ts.traps < 2) {
+      setMessage("Need at least 2 traps to launch a raid!");
+      return;
+    }
+    /* Check for adjacent enemies */
+    var adj = ADJACENCY[id] || [];
+    var hasEnemy = adj.some(function(a) { return state.territories[a] && state.territories[a].owner !== state.currentPlayer; });
+    if (!hasEnemy) {
+      setMessage("No enemy neighbors to haul against.");
+      return;
+    }
+    attackSource = id;
+    selectedTerritory = null;
+    render();
+    setMessage("Now click an enemy neighbor to attack.");
+  } else {
+    /* Clicking same territory deselects */
+    if (id === attackSource) {
+      attackSource = null;
+      render();
+      setMessage(randomMsg('attack'));
+      return;
+    }
+    /* Must be adjacent enemy */
+    var adjList = ADJACENCY[attackSource] || [];
+    if (adjList.indexOf(id) === -1) {
+      setMessage("That territory isn't adjacent. Pick a neighbor.");
+      return;
+    }
+    if (ts.owner === state.currentPlayer) {
+      /* Switch source */
+      if (ts.traps >= 2) {
+        attackSource = id;
+        render();
+        setMessage("Source switched. Click an enemy neighbor to attack.");
+      } else {
+        setMessage("Need at least 2 traps to haul from there.");
+      }
+      return;
+    }
+
+    /* COMBAT */
+    resolveCombat(attackSource, id);
+  }
+}
+
+function resolveCombat(atkId, defId) {
+  var atk = state.territories[atkId];
+  var def = state.territories[defId];
+  var atkDice = Math.min(3, atk.traps - 1);
+  var defDice = Math.min(2, def.traps);
+
+  var atkRolls = rollDice(atkDice).sort(function(a, b) { return b - a; });
+  var defRolls = rollDice(defDice).sort(function(a, b) { return b - a; });
+
+  var comparisons = Math.min(atkRolls.length, defRolls.length);
+  var atkLosses = 0, defLosses = 0;
+  var atkResults = [], defResults = [];
+
+  for (var i = 0; i < comparisons; i++) {
+    if (atkRolls[i] > defRolls[i]) {
+      defLosses++;
+      atkResults.push('win');
+      defResults.push('lose');
+    } else {
+      atkLosses++;
+      atkResults.push('lose');
+      defResults.push('win');
+    }
+  }
+  /* Mark extra dice as neutral */
+  for (var j = comparisons; j < atkRolls.length; j++) atkResults.push('');
+  for (var k = comparisons; k < defRolls.length; k++) defResults.push('');
+
+  showDice(atkRolls, atkResults, defRolls, defResults);
+
+  atk.traps -= atkLosses;
+  def.traps -= defLosses;
+
+  /* Territory conquered */
+  if (def.traps <= 0) {
+    var previousOwner = def.owner;
+    def.owner = state.currentPlayer;
+    var moved = atkDice;
+    if (moved > atk.traps - 1) moved = atk.traps - 1;
+    if (moved < 1) moved = 1;
+    def.traps = moved;
+    atk.traps -= moved;
+
+    /* Flash animation */
+    var terrDiv = document.getElementById('terr-' + defId);
+    if (terrDiv) {
+      terrDiv.classList.add('conquered');
+      setTimeout(function() { terrDiv.classList.remove('conquered'); }, 600);
+    }
+
+    setMessage(randomMsg('atkWin'));
+    attackSource = null;
+
+    /* Check if previous owner is eliminated */
+    if (previousOwner !== 0) {
+      checkPlayerEliminated(previousOwner);
+    }
+
+    /* Check victory */
+    if (checkVictory()) return;
+  } else {
+    /* Attack continues, check if source can still attack */
+    if (atk.traps < 2) {
+      setMessage(randomMsg('atkLose') + " Not enough traps to continue from here.");
+      attackSource = null;
+    } else {
+      if (atkLosses > 0) {
+        setMessage(randomMsg('atkLose'));
+      } else {
+        setMessage(randomMsg('defLose'));
+      }
+    }
+  }
+
+  render();
+}
+
+function rollDice(n) {
+  var rolls = [];
+  for (var i = 0; i < n; i++) {
+    rolls.push(Math.floor(Math.random() * 6) + 1);
+  }
+  return rolls;
+}
+
+function showDice(atkRolls, atkResults, defRolls, defResults) {
+  var area = document.getElementById('diceArea');
+  var html = '<div class="dice-group"><span class="dice-label">ATK</span>';
+  for (var i = 0; i < atkRolls.length; i++) {
+    html += '<div class="die atk ' + atkResults[i] + '">' + atkRolls[i] + '</div>';
+  }
+  html += '</div>';
+  html += '<div style="color:#555;font-size:1.5em">vs</div>';
+  html += '<div class="dice-group"><span class="dice-label">DEF</span>';
+  for (var j = 0; j < defRolls.length; j++) {
+    html += '<div class="die def ' + defResults[j] + '">' + defRolls[j] + '</div>';
+  }
+  html += '</div>';
+  area.innerHTML = html;
+}
+
+/* ===== FORTIFY PHASE ===== */
+function handleFortify(id) {
+  var ts = state.territories[id];
+  if (!ts) return;
+
+  if (!fortifySource) {
+    if (ts.owner !== state.currentPlayer) {
+      setMessage("Select one of your territories to move traps FROM.");
+      return;
+    }
+    if (ts.traps < 2) {
+      setMessage("Need at least 2 traps to fortify from here.");
+      return;
+    }
+    fortifySource = id;
+    render();
+    setMessage("Click an adjacent friendly territory to move traps TO.");
+  } else {
+    if (id === fortifySource) {
+      fortifySource = null;
+      render();
+      setMessage(randomMsg('fortify'));
+      return;
+    }
+    /* Must be adjacent and owned */
+    var adj = ADJACENCY[fortifySource] || [];
+    if (adj.indexOf(id) === -1) {
+      setMessage("Not adjacent. Pick a neighboring territory.");
+      return;
+    }
+    if (ts.owner !== state.currentPlayer) {
+      setMessage("That's enemy territory! Pick a friendly neighbor.");
+      return;
+    }
+
+    /* Move half (rounded down) or at least 1 */
+    var src = state.territories[fortifySource];
+    var toMove = Math.floor(src.traps / 2);
+    if (toMove < 1) toMove = 1;
+    src.traps -= toMove;
+    ts.traps += toMove;
+
+    setMessage("Moved " + toMove + " trap" + (toMove > 1 ? "s" : "") + " to " + getTerritoryData(id).name + ". Fortify again or click End Fortify.");
+    fortifySource = null;
+    render();
+  }
+}
+
+/* ===== PHASE TRANSITIONS ===== */
+function endAttacks() {
+  if (state.phase !== 'attack') return;
+  attackSource = null;
+  state.phase = 'fortify';
+  fortifySource = null;
+  document.getElementById('diceArea').innerHTML = '';
+  render();
+  setMessage(randomMsg('fortify'));
+}
+
+function endFortify() {
+  if (state.phase !== 'fortify') return;
+  fortifySource = null;
+  nextTurn();
+}
+
+function endTurn() {
+  if (state.phase === 'deploy') return;
+  attackSource = null;
+  fortifySource = null;
+  document.getElementById('diceArea').innerHTML = '';
+  nextTurn();
+}
+
+function getNextActivePlayer(current) {
+  /* Find the next non-eliminated, non-neutral player */
+  var start = current;
+  var next = current;
+  for (var attempt = 0; attempt < playerCount; attempt++) {
+    next = next % playerCount + 1; /* cycle 1 -> 2 -> 3 -> 4 -> 1 */
+    /* Skip eliminated players */
+    if (state.eliminatedPlayers.indexOf(next) === -1) {
+      return next;
+    }
+  }
+  return start; /* fallback -- shouldn't happen */
+}
+
+function nextTurn() {
+  var next = getNextActivePlayer(state.currentPlayer);
+  if (next <= state.currentPlayer && state.eliminatedPlayers.length < playerCount - 1) {
+    /* We've wrapped around, increment turn number */
+    /* But only if next is less/equal AND we haven't just started */
+    state.turnNumber++;
+  }
+  state.currentPlayer = next;
+  state.phase = 'deploy';
+  state.trapsToPlace = calcReinforcements(next);
+  selectedTerritory = null;
+  attackSource = null;
+  fortifySource = null;
+  document.getElementById('diceArea').innerHTML = '';
+  render();
+  setMessage(randomMsg('deploy'));
+
+  /* AI turn */
+  if (mode === 1 && next !== 1) {
+    scheduleAi();
+  }
+}
+
+/* ===== PLAYER ELIMINATION ===== */
+function checkPlayerEliminated(player) {
+  if (player === 0) return; /* Neutral can't be "eliminated" in the normal sense */
+  var count = 0;
+  for (var tid in state.territories) {
+    if (state.territories[tid].owner === player) count++;
+  }
+  if (count === 0 && state.eliminatedPlayers.indexOf(player) === -1) {
+    state.eliminatedPlayers.push(player);
+    var pc = PLAYER_COLORS[player];
+    setMessage(pc.name + " has been eliminated from the bay!");
+    /* If the human player is knocked out, declare their loss rather than
+       silently continuing AI-vs-AI. */
+    if (mode === 1 && player === 1) {
+      showDefeat();
+    }
+  }
+}
+
+function showDefeat() {
+  state.gameOver = true;
+  document.getElementById('olTitle').textContent = "Defeated 🦞";
+  document.getElementById('olText').textContent = "Your fleet has been driven from the Peconic. The rival captains fight on without you. Better luck next season!";
+  document.getElementById('overlay').classList.add('show');
+  render();
+}
+
+/* ===== VICTORY ===== */
+function checkVictory() {
+  /* If the game is already over (e.g. the human was just eliminated), don't
+     overwrite that outcome. */
+  if (state.gameOver) return true;
+  /* Count territories per player (excluding neutral = 0) */
+  var counts = {};
+  var neutralCount = 0;
+  for (var p = 1; p <= playerCount; p++) counts[p] = 0;
+  for (var tid in state.territories) {
+    var owner = state.territories[tid].owner;
+    if (owner === 0) {
+      neutralCount++;
+    } else {
+      counts[owner] = (counts[owner] || 0) + 1;
+    }
+  }
+
+  /* Find players still alive */
+  var alivePlayers = [];
+  for (var pp = 1; pp <= playerCount; pp++) {
+    if (counts[pp] > 0) alivePlayers.push(pp);
+  }
+
+  /* Victory: only one player remains with territories (neutral territories can still exist,
+     but if only one player holds non-neutral territories, they win) */
+  if (alivePlayers.length === 1) {
+    showVictory(alivePlayers[0]);
+    return true;
+  }
+
+  /* Also victory if someone owns ALL territories including neutral */
+  for (var ap = 0; ap < alivePlayers.length; ap++) {
+    if (counts[alivePlayers[ap]] + 0 === TERRITORIES.length) { /* owns everything */
+      showVictory(alivePlayers[ap]);
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function showVictory(player) {
+  state.gameOver = true;
+  var pc = PLAYER_COLORS[player];
+  var title = pc.name + " Wins!";
+  var text;
+  if (mode === 1 && player === 1) {
+    text = "You control the bay! Every lobster answers to you now. The Peconic is yours, Captain!";
+  } else if (mode === 1 && player !== 1) {
+    text = "The AI lobster captain (" + pc.name + ") has conquered the bay. Better luck next season!";
+  } else {
+    text = pc.name + " controls the bay! All fishing rights belong to the " + pc.name.split(' ')[1].toLowerCase() + " fleet!";
+  }
+
+  document.getElementById('olTitle').textContent = title + " \uD83E\uDD9E";
+  document.getElementById('olText').textContent = text;
+  document.getElementById('overlay').classList.add('show');
+  render();
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('show');
+  resetGame();
+}
+
+function toggleBisqueRules() {
+  var r = document.getElementById('bisque-rules');
+  var s = document.getElementById('bisque-strategy');
+  if (s) s.classList.remove('show');
+  r.classList.toggle('show');
+}
+
+function toggleBisqueStrategy() {
+  var s = document.getElementById('bisque-strategy');
+  var r = document.getElementById('bisque-rules');
+  if (r) r.classList.remove('show');
+  s.classList.toggle('show');
+}
+
+/* ===== AI ===== */
+function scheduleAi() {
+  if (state.gameOver) return;
+  if (aiTimer) { clearTimeout(aiTimer); }
+  aiTimer = setTimeout(aiTurn, 600);
+}
+
+function aiTurn() {
+  if (state.gameOver) return;
+  var cp = state.currentPlayer;
+  if (mode === 1 && cp === 1) return; /* Player 1 is human */
+  if (mode === 2) return; /* All human mode, no AI */
+
+  if (state.phase === 'deploy') {
+    aiDeploy(cp);
+  } else if (state.phase === 'attack') {
+    aiAttack(cp);
+  } else if (state.phase === 'fortify') {
+    aiFortify(cp);
+  }
+}
+
+function aiDeploy(player) {
+  if (state.trapsToPlace <= 0) {
+    state.phase = 'attack';
+    render();
+    scheduleAi();
+    return;
+  }
+
+  /* Find border territories (adjacent to enemy) and prioritize them */
+  var owned = getOwnedTerritories(player);
+  var borderTs = owned.filter(function(tid) {
+    var adj = ADJACENCY[tid] || [];
+    return adj.some(function(a) { return state.territories[a].owner !== player; });
+  });
+
+  var target = borderTs.length > 0 ? borderTs : owned;
+
+  /* Deploy to weakest border territory */
+  target.sort(function(a, b) { return state.territories[a].traps - state.territories[b].traps; });
+  var pick = target[0];
+  state.territories[pick].traps++;
+  state.trapsToPlace--;
+
+  var trapsEl = document.getElementById('traps-' + pick);
+  if (trapsEl) {
+    trapsEl.classList.remove('bounce');
+    void trapsEl.offsetWidth;
+    trapsEl.classList.add('bounce');
+  }
+
+  render();
+
+  if (state.trapsToPlace > 0) {
+    scheduleAi();
+  } else {
+    state.phase = 'attack';
+    render();
+    var pc = PLAYER_COLORS[player];
+    setMessage(pc.name + " is hauling...");
+    scheduleAi();
+  }
+}
+
+function aiAttack(player) {
+  /* Find best attack opportunity */
+  var owned = getOwnedTerritories(player);
+  var bestAtk = null;
+  var bestScore = -999;
+
+  for (var i = 0; i < owned.length; i++) {
+    var tid = owned[i];
+    var ts = state.territories[tid];
+    if (ts.traps < 2) continue;
+
+    var adj = ADJACENCY[tid] || [];
+    for (var j = 0; j < adj.length; j++) {
+      var neighbor = adj[j];
+      var ns = state.territories[neighbor];
+      if (ns.owner === player) continue;
+
+      /* Score: our traps minus their traps, with bonus for group completion */
+      var diff = ts.traps - ns.traps;
+      if (diff < 1) continue; /* Don't attack unless we have advantage */
+
+      var score = diff;
+      /* Bonus for completing a group */
+      var nData = getTerritoryData(neighbor);
+      if (nData) {
+        var groupTerrs = TERRITORIES.filter(function(t) { return t.group === nData.group; });
+        var ownedInGroup = groupTerrs.filter(function(t) { return state.territories[t.id].owner === player; }).length;
+        if (ownedInGroup === groupTerrs.length - 1) score += 5; /* Would complete group */
+      }
+
+      /* Slight bonus for attacking neutral (easier target) */
+      if (ns.owner === 0) score += 1;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestAtk = { from: tid, to: neighbor };
+      }
+    }
+  }
+
+  if (bestAtk) {
+    attackSource = bestAtk.from;
+    render();
+    if (aiTimer) { clearTimeout(aiTimer); }
+    aiTimer = setTimeout(function() {
+      resolveCombat(bestAtk.from, bestAtk.to);
+      attackSource = null;
+      if (!state.gameOver) {
+        scheduleAi();
+      }
+    }, 500);
+  } else {
+    /* No good attacks, move to fortify */
+    state.phase = 'fortify';
+    document.getElementById('diceArea').innerHTML = '';
+    render();
+    var pc = PLAYER_COLORS[player];
+    setMessage(pc.name + " is fortifying...");
+    scheduleAi();
+  }
+}
+
+function aiFortify(player) {
+  /* Find a territory with excess traps adjacent to a weaker border territory */
+  var owned = getOwnedTerritories(player);
+  var bestMove = null;
+  var bestScore = -1;
+
+  for (var i = 0; i < owned.length; i++) {
+    var tid = owned[i];
+    var ts = state.territories[tid];
+    if (ts.traps < 3) continue;
+
+    /* Is this NOT a border territory? (interior) */
+    var adj = ADJACENCY[tid] || [];
+    var isBorder = adj.some(function(a) { return state.territories[a].owner !== player; });
+
+    if (!isBorder) {
+      /* Interior territory, move to adjacent border */
+      for (var j = 0; j < adj.length; j++) {
+        if (state.territories[adj[j]].owner === player) {
+          var adjBorder = (ADJACENCY[adj[j]] || []).some(function(a) { return state.territories[a].owner !== player; });
+          if (adjBorder) {
+            var score = ts.traps;
+            if (score > bestScore) {
+              bestScore = score;
+              bestMove = { from: tid, to: adj[j] };
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (bestMove) {
+    var src = state.territories[bestMove.from];
+    var dst = state.territories[bestMove.to];
+    var toMove = Math.floor(src.traps / 2);
+    if (toMove < 1) toMove = 1;
+    src.traps -= toMove;
+    dst.traps += toMove;
+    render();
+  }
+
+  if (aiTimer) { clearTimeout(aiTimer); }
+  aiTimer = setTimeout(function() {
+    nextTurn();
+  }, 400);
+}
+
+function getOwnedTerritories(player) {
+  var result = [];
+  for (var tid in state.territories) {
+    if (state.territories[tid].owner === player) result.push(tid);
+  }
+  return result;
+}
+
+/* ===== UTILITIES ===== */
+function getTerritoryData(id) {
+  return TERRITORY_BY_ID[id] || null;
+}
+
+function shuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = temp;
+  }
+  return arr;
+}
+
+function randomMsg(category) {
+  var msgs = LOBSTER_MESSAGES[category];
+  if (!msgs || msgs.length === 0) return '';
+  return msgs[Math.floor(Math.random() * msgs.length)];
+}
+
+function setMessage(msg) {
+  document.getElementById('messageArea').textContent = msg;
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn1P').className = m === 1 ? 'active' : '';
+  document.getElementById('btn2P').className = m === 2 ? 'active' : '';
+  resetGame();
+}
+
+function setPlayerCount(n) {
+  playerCount = n;
+  document.getElementById('btnPC2').className = n === 2 ? 'active' : '';
+  document.getElementById('btnPC3').className = n === 3 ? 'active' : '';
+  document.getElementById('btnPC4').className = n === 4 ? 'active' : '';
+  resetGame();
+}
+
+/* ===== INIT ===== */
+resetGame();
+</script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Bisque</h2>
+  <p>Bisque is an original Risk-style strategy game about the battle for Peconic Bay on eastern Long Island. Rival lobster captains plant traps across 26 territories — towns, islands, and water bodies grouped into 6 regions — each fighting to drive every other captain off the bay. Turn-based for 2 to 4 captains, with an AI to fill any empty seat.</p>
+
+  <h3>How to play</h3>
+  <p>On your turn you deploy, haul, and fortify. First, deploy new traps onto territories you own — you get more the larger your holdings, plus a bonus for controlling an entire region. Then haul (attack): pick a territory with at least 2 traps and strike an adjacent enemy or neutral one in dice-based combat; reduce a defender to zero to conquer it. Finally, fortify by shifting traps to a neighboring friendly territory. Lose your last territory and you're eliminated; the last captain standing wins.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>Is Bisque a real-time game?</summary><p>No — it's turn-based. Each captain takes a full turn in sequence (deploy, haul, fortify) before play passes on.</p></details>
+  <details><summary>How do I win Bisque?</summary><p>Eliminate every rival captain. A captain is out once they lose their last territory, and the last one standing wins. In 1-player mode you win by removing all AI rivals.</p></details>
+  <details><summary>How does combat work?</summary><p>It's dice-based, like Risk. Select a territory with 2+ traps, attack an adjacent enemy or neutral territory, and both sides roll. Owning every territory in a region gives you a deploy bonus each turn.</p></details>
+  <details><summary>How long is a typical game?</summary><p>15–30 minutes, for 2 to 4 captains across the bay's 26 territories.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/aresia">Aresia</a> — strategic colonization.</li>
+    <li><a href="/convergence">Convergence</a> — rival civilizations.</li>
+    <li><a href="/tidelands">Tidelands</a> — maritime trade.</li>
+    <li><a href="/doctrine">Doctrine</a> — geopolitical sim.</li>
+  </ul>
+</section>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

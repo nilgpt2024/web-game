@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c1016">
+<title>Othello — Free Online Reversi Game | Board Gaming Hub</title>
+<!-- Phase 2: Lead magnet / audience flywheel (STRATEGY.md). Strategy board sims like this drive topical backlinks and audience for the ecosystem. Concepts of position/evaluation map to analysis in the open engine (Rational/SCS/network in stormsewer/hydro-tools/hc). Pro (FieldHydro/HydroComplete) add the real-world dam-safety impact + provenance. See pe-calc, fieldhydro, STRATEGY.md for the serious tools and feedback. -->
+<meta name="description" content="Play Othello (Reversi) online for free. Flip your opponent's discs to claim the board. Single-player vs AI, mobile-friendly. No signup.">
+<link rel="canonical" href="https://boardgaminghub.com/othello">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/othello">
+<meta property="og:title" content="Othello — Free Online Reversi">
+<meta property="og:description" content="Free in-browser Othello / Reversi. Single-player vs AI.">
+<meta property="og:image" content="https://boardgaminghub.com/og/othello.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/othello.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Othello (Reversi)",
+  "description": "Classic two-player flipping game on an 8×8 board.",
+  "url": "https://boardgaminghub.com/othello", "genre": "Board Game",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚪</text></svg>">
+<script>
+(function() {
+  var ua = navigator.userAgent;
+  var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+  if (isPhone) {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      var targetWidth = 780;
+      var scale = window.innerWidth / targetWidth;
+      meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+    }
+  }
+})();
+</script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Georgia, serif;
+  background: #1A1A10;
+  color: #D8D0C0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  min-height: 100vh;
+  user-select: none;
+}
+h1 { font-size: 1.7em; color: #50A060; margin-bottom: 4px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); letter-spacing: 0.1em; }
+.subtitle { font-size: 0.8em; color: #6A7A60; margin-bottom: 14px; font-style: italic; }
+
+.mode-selector { display: flex; gap: 0; margin-bottom: 12px; border-radius: 6px; overflow: hidden; border: 2px solid #3A6040; }
+.mode-btn { padding: 6px 18px; font-size: 0.95em; font-family: Georgia, serif; cursor: pointer; border: none; background: #1A2818; color: #6A7A60; transition: background 0.2s, color 0.2s; }
+.mode-btn:not(:last-child) { border-right: 1px solid #3A6040; }
+.mode-btn.active { background: #3A6040; color: #D8D0C0; cursor: default; }
+.mode-btn:hover:not(.active) { background: #243020; color: #50A060; }
+
+#message { font-size: 0.95em; color: #50A060; text-align: center; min-height: 1.5em; margin: 6px 0; }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 56px);
+  grid-template-rows: repeat(8, 56px);
+  gap: 2px;
+  background: #2A4030;
+  padding: 4px;
+  border-radius: 6px;
+  border: 3px solid #1A3020;
+  box-shadow: 2px 4px 14px rgba(0,0,0,0.5);
+}
+.cell {
+  width: 56px;
+  height: 56px;
+  background: #306040;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  position: relative;
+  transition: background 0.15s;
+}
+.cell.valid {
+  cursor: pointer;
+}
+.cell.valid:hover {
+  background: #3A7848;
+}
+.cell.valid::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  position: absolute;
+}
+.cell.last-move {
+  box-shadow: inset 0 0 0 2px rgba(255,200,50,0.5);
+}
+
+.piece {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  transition: transform 0.3s, background 0.3s;
+  box-shadow: 1px 2px 5px rgba(0,0,0,0.5);
+}
+.piece.black {
+  background: radial-gradient(circle at 35% 30%, #444, #111);
+}
+.piece.white {
+  background: radial-gradient(circle at 35% 30%, #fff, #bbb);
+}
+.piece.flip {
+  animation: flipAnim 0.4s ease;
+}
+@keyframes flipAnim {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+.scores {
+  display: flex;
+  gap: 30px;
+  margin: 10px 0;
+  font-size: 1em;
+}
+.score-item { display: flex; align-items: center; gap: 8px; }
+.score-disc {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
+.score-disc.black { background: radial-gradient(circle at 35% 30%, #444, #111); }
+.score-disc.white { background: radial-gradient(circle at 35% 30%, #fff, #bbb); }
+.score-num { font-size: 1.3em; font-weight: bold; color: #D8D0C0; }
+.score-item.active .score-num { color: #50A060; }
+
+button {
+  padding: 8px 22px;
+  font-size: 1em;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  margin: 6px 5px;
+  border: 2px solid #3A6040;
+  border-radius: 6px;
+  background: #1A2818;
+  color: #D8D0C0;
+  transition: background 0.2s;
+}
+button:hover { background: #243020; }
+
+.rules-toggle { background: none; border: 1px solid #3A6040; color: #6A7A60; padding: 4px 14px; font-size: 0.78em; font-family: Georgia, serif; border-radius: 4px; cursor: pointer; margin: 10px 4px; }
+.rules-toggle:hover { background: #1A2818; color: #50A060; }
+.rules-panel { display: none; max-width: 520px; font-size: 0.8em; color: #A0987A; line-height: 1.5; text-align: left; margin: 8px auto; padding: 12px 16px; border: 1px solid #3A6040; border-radius: 6px; background: #1A2818; }
+.rules-panel.show { display: block; }
+.rules-panel h4 { color: #50A060; margin: 8px 0 4px; }
+.rules-panel h4:first-child { margin-top: 0; }
+.rules-panel b { color: #80B880; }
+
+.overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10001; align-items: center; justify-content: center; }
+.overlay.show { display: flex; }
+.overlay-box { background: #1A2818; border: 2px solid #3A6040; border-radius: 10px; padding: 28px 36px; text-align: center; max-width: 340px; }
+.overlay-box h2 { color: #50A060; font-size: 1.5em; margin-bottom: 10px; }
+.overlay-box p { color: #A0987A; margin-bottom: 14px; font-size: 0.95em; }
+
+/* Game nav */
+#gameNav { display: block; position: sticky; top: 0; z-index: 9999; background: #1A1A10; border-bottom: 1px solid #3A6040; font-family: Georgia, serif; width: calc(100% + 40px); margin: -20px -20px 12px -20px; }
+#gameNav .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px; max-width: 1200px; margin: 0 auto; position: relative; }
+#gameNav .nav-title { color: #D8D0C0; font-size: 0.9em; letter-spacing: 1px; }
+#gameNav .nav-toggle { background: none; border: 1px solid #3A6040; color: #D8D0C0; font-size: 1.1em; padding: 3px 10px; border-radius: 4px; cursor: pointer; font-family: Georgia, serif; }
+#gameNav .nav-toggle:hover { background: #1A2818; }
+#gameNav .nav-menu { display: none; position: absolute; right: 18px; top: 100%; background: #1A1A10; border: 1px solid #3A6040; border-top: none; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 10000; }
+#gameNav .nav-menu.open { display: block; }
+#gameNav .nav-menu a { display: block; padding: 10px 18px; color: #6A7A60; text-decoration: none; font-size: 0.85em; border-bottom: 1px solid #1A2818; }
+#gameNav .nav-menu a:last-child { border-bottom: none; }
+#gameNav .nav-menu a:hover { background: #1A2818; color: #50A060; }
+#gameNav .nav-menu a.current { color: #D8D0C0; font-weight: bold; }
+@media (max-width: 768px) {
+  #gameNav .nav-bar { padding: 8px 14px; }
+  #gameNav .nav-menu { position: static; right: auto; min-width: 0; border: none; border-top: 1px solid #3A6040; box-shadow: none; }
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Board Games","item":"https://boardgaminghub.com/#board"},{"@type":"ListItem","position":3,"name":"Othello","item":"https://boardgaminghub.com/othello"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How is Othello different from chess?","acceptedAnswer":{"@type":"Answer","text":"Othello takes minutes to learn; chess years. Othello games typically end in 60 moves; chess can stretch hundreds. Othello also features the famous \"mobility paradox\" — having many pieces early is often a disadvantage."}},{"@type":"Question","name":"Best Othello opening strategy?","acceptedAnswer":{"@type":"Answer","text":"Counterintuitively, prefer to have FEWER disks early. More disks reduce your move options and give opponent more flanking targets. Aim for \"quiet\" central play; corners and edges become decisive in the endgame."}},{"@type":"Question","name":"Is Othello solved?","acceptedAnswer":{"@type":"Answer","text":"8×8 Othello is not yet weakly solved (as of 2026), but engines play above all-time human champion level. 6×6 was weakly solved in 1993 (draw with perfect play)."}},{"@type":"Question","name":"What's the corner strategy?","acceptedAnswer":{"@type":"Answer","text":"Corners are permanent (can never be flipped). Avoid giving your opponent access to a corner; squares adjacent to corners (\"X-squares\") often hand the corner to opponent if you play them early."}}]}</script>
+<style>
+/* The legacy per-game nav predates the site-wide header nav.js injects. It sits at
+   z-index 9999 and clips or covers that header, which carries the same game menu
+   plus search. One header is enough. */
+#gameNav { display: none !important; }
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div id="gameNav">
+  <div class="nav-bar">
+    <span class="nav-title">Othello</span>
+    <button class="nav-toggle" onclick="document.querySelector('#gameNav .nav-menu').classList.toggle('open')">&#9776;</button>
+  </div>
+  <div class="nav-menu">
+    <a href="/agora">Agora</a>
+    <a href="/apoapsis">Apoapsis</a>
+    <a href="/aresia">Aresia</a>
+    <a href="/backgammon">Backgammon</a>
+    <a href="/bisque">Bisque</a>
+    <a href="/chess">Chess</a>
+    <a href="/convergence">Convergence</a>
+    <a href="/go">Go</a>
+    <a href="/mancala">Mancala</a>
+    <a href="/odyssey">Odyssey</a>
+    <a href="/othello" class="current">Othello</a>
+    <a href="/pentegrammai">Pente Grammai</a>
+    <a href="/senet">Senet</a>
+    <a href="/tidelands">Tidelands</a>
+    <a href="/tower">Tower</a>
+    <a href="/ur">Ur</a>
+  </div>
+</div>
+
+<h1>OTHELLO</h1>
+<div class="subtitle">Reversi</div>
+
+<div class="mode-selector">
+  <button class="mode-btn active" id="btn1P" onclick="setMode(1)">vs AI</button>
+  <button class="mode-btn" id="btn2P" onclick="setMode(2)">2 Player</button>
+</div>
+
+<div class="scores">
+  <div class="score-item" id="scoreBlack">
+    <div class="score-disc black"></div>
+    <span class="score-num" id="countBlack">2</span>
+  </div>
+  <div class="score-item" id="scoreWhite">
+    <div class="score-disc white"></div>
+    <span class="score-num" id="countWhite">2</span>
+  </div>
+</div>
+
+<div id="message">Black's turn.</div>
+
+<div class="board" id="board"></div>
+
+<div>
+  <button onclick="newGame()">New Game</button>
+</div>
+
+<button class="rules-toggle" onclick="toggleRules()">Rules &amp; Algorithm</button>
+<div class="rules-panel" id="rulesPanel">
+  <h4>Rules</h4>
+  Place a disc to <b>outflank</b> your opponent: your disc must form a straight line (horizontal, vertical, or diagonal) with another of your discs, with one or more opponent discs in between. All outflanked discs flip to your color. If you can't make a valid move, your turn is skipped. The game ends when neither player can move. Most discs wins.
+
+  <h4>The AI: Minimax with Alpha-Beta Pruning</h4>
+  The AI looks <b>5 moves ahead</b> using a tree search. At each level, it assumes <b>Black picks the move that maximizes</b> the score and <b>White picks the move that minimizes</b> it (minimax). <b>Alpha-beta pruning</b> skips branches that can't possibly affect the outcome, cutting the search from ~30,000 nodes to ~3,000.
+
+  <h4>Board Evaluation (Heuristic)</h4>
+  The AI scores positions using: <b>corners</b> (worth +25, nearly uncapturable), <b>edges</b> (+5, stable), <b>squares adjacent to corners</b> (-10, dangerous to occupy early), <b>mobility</b> (how many moves you have vs opponent), and <b>disc count</b> (only matters late-game). This weighted sum guides the search.
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <h2 id="overlayTitle">Game Over</h2>
+    <p id="overlayText"></p>
+    <button onclick="document.getElementById('overlay').classList.remove('show'); newGame();">Play Again</button>
+  </div>
+</div>
+
+<script>
+/* ===== CONSTANTS ===== */
+var EMPTY = 0, BLACK = 1, WHITE = 2;
+var DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+/*
+ * POSITION WEIGHTS — the AI's "wisdom" about which squares matter.
+ * Corners are gold (+25): once taken, they can never be flipped.
+ * Edges are strong (+5): hard to outflank.
+ * Squares next to empty corners are traps (-10): they give your
+ * opponent access to the corner.
+ */
+var WEIGHTS = [
+  [25,-10, 5, 3, 3, 5,-10, 25],
+  [-10,-15, 1, 1, 1, 1,-15,-10],
+  [ 5,  1, 1, 1, 1, 1,  1,  5],
+  [ 3,  1, 1, 0, 0, 1,  1,  3],
+  [ 3,  1, 1, 0, 0, 1,  1,  3],
+  [ 5,  1, 1, 1, 1, 1,  1,  5],
+  [-10,-15, 1, 1, 1, 1,-15,-10],
+  [25,-10, 5, 3, 3, 5,-10, 25]
+];
+
+/* ===== STATE ===== */
+var board = [];    // 8x8 array: EMPTY, BLACK, or WHITE
+var turn = BLACK;  // whose turn
+var mode = 1;      // 1 = vs AI, 2 = two player
+var gameOver = false;
+var aiThinking = false;
+var aiTimer = null;
+var lastMove = null;
+
+/* ===== CORE GAME LOGIC ===== */
+
+/*
+ * Initialize the board: 8x8 grid of EMPTY, with the classic
+ * 4-disc starting position in the center.
+ *
+ * Data structure: a 2D array (array of arrays).
+ * board[row][col] = EMPTY | BLACK | WHITE
+ *
+ * We use a 2D array instead of a 1D array because Othello's
+ * move logic needs to walk in 8 directions (the DIRS array).
+ * With 2D, that's just board[r + dr][c + dc].
+ */
+function initBoard() {
+  board = [];
+  for (var r = 0; r < 8; r++) {
+    board[r] = [];
+    for (var c = 0; c < 8; c++) board[r][c] = EMPTY;
+  }
+  board[3][3] = WHITE; board[3][4] = BLACK;
+  board[4][3] = BLACK; board[4][4] = WHITE;
+}
+
+/*
+ * FIND FLIPS — the heart of Othello logic.
+ *
+ * Given a position (r, c) and a player, check all 8 directions.
+ * In each direction, walk outward:
+ *   - If we hit EMPTY or the board edge → no flip this direction.
+ *   - If we hit opponent discs then our own disc → flip those opponent discs.
+ *
+ * Returns: array of [row, col] positions to flip.
+ *
+ * Algorithm: O(8 * 7) = O(56) per call — constant time since
+ * the board is fixed-size. We do this for every candidate move.
+ *
+ * This is a GREEDY SCAN along each ray direction. Think of it
+ * like casting 8 rays from the placed piece, collecting enemy
+ * pieces until you hit a friendly bookend.
+ */
+function getFlips(b, r, c, player) {
+  if (b[r][c] !== EMPTY) return [];
+  var opp = player === BLACK ? WHITE : BLACK;
+  var allFlips = [];
+
+  for (var d = 0; d < 8; d++) {
+    var dr = DIRS[d][0], dc = DIRS[d][1];
+    var flips = [];
+    var nr = r + dr, nc = c + dc;
+
+    // Walk along the ray, collecting opponent pieces
+    while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === opp) {
+      flips.push([nr, nc]);
+      nr += dr;
+      nc += dc;
+    }
+
+    // If we ended on our own piece (the "bookend"), those flips count
+    if (flips.length > 0 && nr >= 0 && nr < 8 && nc >= 0 && nc < 8 && b[nr][nc] === player) {
+      for (var f = 0; f < flips.length; f++) allFlips.push(flips[f]);
+    }
+    // Otherwise: hit empty/edge, so no flips in this direction
+  }
+
+  return allFlips;
+}
+
+/*
+ * GET VALID MOVES — scan every empty cell and check if placing
+ * there would flip at least one disc.
+ *
+ * Returns: array of {r, c, flips: [...]} objects.
+ *
+ * Complexity: O(64 * 56) = O(3584) — trivial.
+ * We call this at the start of every turn.
+ */
+function getValidMoves(b, player) {
+  var moves = [];
+  for (var r = 0; r < 8; r++) {
+    for (var c = 0; c < 8; c++) {
+      var flips = getFlips(b, r, c, player);
+      if (flips.length > 0) moves.push({ r: r, c: c, flips: flips });
+    }
+  }
+  return moves;
+}
+
+/*
+ * APPLY MOVE — place a disc and flip all captured discs.
+ * Mutates the board array in-place.
+ */
+function applyMove(b, r, c, player, flips) {
+  b[r][c] = player;
+  for (var i = 0; i < flips.length; i++) {
+    b[flips[i][0]][flips[i][1]] = player;
+  }
+}
+
+/*
+ * CLONE BOARD — deep-copy the 2D array.
+ * Needed for AI search: we simulate moves on copies without
+ * changing the real board.
+ */
+function cloneBoard(b) {
+  var nb = [];
+  for (var r = 0; r < 8; r++) {
+    nb[r] = [];
+    for (var c = 0; c < 8; c++) nb[r][c] = b[r][c];
+  }
+  return nb;
+}
+
+/* Count discs */
+function countDiscs(b) {
+  var black = 0, white = 0;
+  for (var r = 0; r < 8; r++)
+    for (var c = 0; c < 8; c++) {
+      if (b[r][c] === BLACK) black++;
+      if (b[r][c] === WHITE) white++;
+    }
+  return { black: black, white: white };
+}
+
+/* ===== AI: MINIMAX WITH ALPHA-BETA PRUNING ===== */
+
+/*
+ * EVALUATE — score a board position from Black's perspective.
+ *
+ * This is the HEURISTIC FUNCTION — the AI's judgment about
+ * who's winning. It returns a number: positive = good for Black,
+ * negative = good for White.
+ *
+ * Components:
+ * 1. POSITIONAL WEIGHT: sum of WEIGHTS[r][c] for each disc.
+ *    Corners and edges are valuable; corner-adjacent squares are dangerous.
+ *
+ * 2. MOBILITY: how many legal moves each side has.
+ *    More moves = more options = better position.
+ *    This prevents the AI from getting "stuck."
+ *
+ * 3. DISC COUNT: only weighted heavily in the endgame (>50 discs placed).
+ *    Early on, having MORE discs is actually bad — it gives your
+ *    opponent fewer targets and more flexibility.
+ */
+function evaluate(b) {
+  var counts = countDiscs(b);
+  var positional = 0;
+
+  for (var r = 0; r < 8; r++) {
+    for (var c = 0; c < 8; c++) {
+      if (b[r][c] === BLACK) positional += WEIGHTS[r][c];
+      else if (b[r][c] === WHITE) positional -= WEIGHTS[r][c];
+    }
+  }
+
+  // Mobility: count valid moves for each side
+  var blackMoves = getValidMoves(b, BLACK).length;
+  var whiteMoves = getValidMoves(b, WHITE).length;
+  var mobility = (blackMoves - whiteMoves) * 3;
+
+  // Disc count matters more in endgame
+  var total = counts.black + counts.white;
+  var discWeight = total > 50 ? 2 : 0.5;
+  var discScore = (counts.black - counts.white) * discWeight;
+
+  return positional + mobility + discScore;
+}
+
+/*
+ * MINIMAX WITH ALPHA-BETA PRUNING
+ *
+ * The core AI algorithm. Here's the idea:
+ *
+ * 1. MINIMAX: Build a GAME TREE — at each node, consider all
+ *    possible moves. Black wants to MAXIMIZE the score.
+ *    White wants to MINIMIZE it. Alternate between max and min
+ *    at each depth level. This is "adversarial search."
+ *
+ * 2. ALPHA-BETA PRUNING: The key optimization.
+ *    - Alpha = the best score Black can guarantee so far.
+ *    - Beta = the best score White can guarantee so far.
+ *    - If at any point beta <= alpha, we can STOP searching
+ *      this branch — the opponent will never let us reach it.
+ *
+ *    Example: Black has found a move scoring 10. Now exploring
+ *    another branch, White finds a response scoring 5 for Black.
+ *    Black already has 10, so it won't pick this branch.
+ *    We "prune" (skip) the rest of this branch.
+ *
+ *    This typically cuts the search from O(b^d) to O(b^(d/2)),
+ *    where b = branching factor (~10 for Othello), d = depth.
+ *    At depth 5: ~100,000 nodes → ~300 nodes. Massive speedup.
+ *
+ * Parameters:
+ *   b     — the board state (2D array)
+ *   depth — how many moves to look ahead (0 = evaluate now)
+ *   alpha — best guaranteed score for maximizer (starts at -Infinity)
+ *   beta  — best guaranteed score for minimizer (starts at +Infinity)
+ *   maximizing — true if it's the maximizer's turn (Black)
+ *
+ * Returns: { score: number }
+ */
+function minimax(b, depth, alpha, beta, maximizing) {
+  // BASE CASE: reached our search depth, or game is over.
+  // Return the heuristic evaluation of this position.
+  if (depth === 0) return { score: evaluate(b) };
+
+  var player = maximizing ? BLACK : WHITE;
+  var moves = getValidMoves(b, player);
+
+  // If no moves: pass to the other player
+  if (moves.length === 0) {
+    var oppMoves = getValidMoves(b, maximizing ? WHITE : BLACK);
+    if (oppMoves.length === 0) {
+      // GAME OVER — neither can move. Score by disc count.
+      var c = countDiscs(b);
+      if (c.black > c.white) return { score: 1000 + c.black - c.white };
+      if (c.white > c.black) return { score: -1000 - c.white + c.black };
+      return { score: 0 };
+    }
+    // Pass: same board, other player, same depth
+    return minimax(b, depth - 1, alpha, beta, !maximizing);
+  }
+
+  if (maximizing) {
+    // BLACK wants the HIGHEST score
+    var best = -Infinity;
+    for (var i = 0; i < moves.length; i++) {
+      var nb = cloneBoard(b);
+      applyMove(nb, moves[i].r, moves[i].c, BLACK, moves[i].flips);
+      var result = minimax(nb, depth - 1, alpha, beta, false);
+
+      if (result.score > best) best = result.score;
+      if (best > alpha) alpha = best;
+
+      // PRUNE: White won't allow Black to reach this good a position
+      if (beta <= alpha) break;  // <— This is the "pruning" line
+    }
+    return { score: best };
+  } else {
+    // WHITE wants the LOWEST score
+    var best = Infinity;
+    for (var i = 0; i < moves.length; i++) {
+      var nb = cloneBoard(b);
+      applyMove(nb, moves[i].r, moves[i].c, WHITE, moves[i].flips);
+      var result = minimax(nb, depth - 1, alpha, beta, true);
+
+      if (result.score < best) best = result.score;
+      if (best < beta) beta = best;
+
+      // PRUNE: Black won't pick a move leading here
+      if (beta <= alpha) break;  // <— Pruning again
+    }
+    return { score: best };
+  }
+}
+
+/*
+ * AI CHOOSE MOVE — run minimax on each legal move
+ * and pick the best one.
+ *
+ * Depth 5 searches ~5 moves ahead, which takes <100ms
+ * on modern hardware thanks to alpha-beta pruning.
+ */
+function aiChooseMove(b, player) {
+  var moves = getValidMoves(b, player);
+  if (moves.length === 0) return null;
+
+  var bestMove = moves[0];
+  var bestScore = player === BLACK ? -Infinity : Infinity;
+  var isMax = player === BLACK;
+
+  for (var i = 0; i < moves.length; i++) {
+    var nb = cloneBoard(b);
+    applyMove(nb, moves[i].r, moves[i].c, player, moves[i].flips);
+    var result = minimax(nb, 5, -Infinity, Infinity, !isMax);
+
+    if (isMax && result.score > bestScore) {
+      bestScore = result.score;
+      bestMove = moves[i];
+    }
+    if (!isMax && result.score < bestScore) {
+      bestScore = result.score;
+      bestMove = moves[i];
+    }
+  }
+  return bestMove;
+}
+
+/* ===== GAME FLOW ===== */
+function newGame() {
+  if (aiTimer) { clearTimeout(aiTimer); aiTimer = null; }
+  initBoard();
+  turn = BLACK;
+  gameOver = false;
+  aiThinking = false;
+  lastMove = null;
+  document.getElementById('overlay').classList.remove('show');
+  setMessage(turnLabel() + "'s turn.");
+  render();
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn1P').classList.toggle('active', m === 1);
+  document.getElementById('btn2P').classList.toggle('active', m === 2);
+  newGame();
+}
+
+function turnLabel() {
+  if (mode === 1) return turn === BLACK ? 'Your' : "AI's";
+  return turn === BLACK ? "Black's" : "White's";
+}
+
+function handleClick(r, c) {
+  if (gameOver || aiThinking) return;
+  if (mode === 1 && turn === WHITE) return;
+
+  var flips = getFlips(board, r, c, turn);
+  if (flips.length === 0) return;
+
+  makeMove(r, c, flips);
+}
+
+function makeMove(r, c, flips) {
+  applyMove(board, r, c, turn, flips);
+  lastMove = { r: r, c: c };
+  render();
+  advanceTurn();
+}
+
+function advanceTurn() {
+  var opp = turn === BLACK ? WHITE : BLACK;
+  var oppMoves = getValidMoves(board, opp);
+
+  if (oppMoves.length > 0) {
+    turn = opp;
+    setMessage(turnLabel() + "'s turn.");
+    render();
+    if (mode === 1 && turn === WHITE) scheduleAI();
+    return;
+  }
+
+  // Opponent has no moves — check if current player can still go
+  var myMoves = getValidMoves(board, turn);
+  if (myMoves.length > 0) {
+    setMessage((opp === BLACK ? 'Black' : 'White') + ' has no moves — skipped.');
+    render();
+    if (mode === 1 && turn === WHITE) scheduleAI();
+    return;
+  }
+
+  // Neither can move — game over
+  endGame();
+}
+
+function scheduleAI() {
+  aiThinking = true;
+  setMessage('AI is thinking...');
+  aiTimer = setTimeout(function() {
+    aiTimer = null;
+    var move = aiChooseMove(board, WHITE);
+    aiThinking = false;
+    if (move) {
+      makeMove(move.r, move.c, move.flips);
+    } else {
+      advanceTurn();
+    }
+  }, 200);
+}
+
+function endGame() {
+  gameOver = true;
+  var c = countDiscs(board);
+  var title, text;
+  if (c.black > c.white) {
+    title = mode === 1 ? 'You Win!' : 'Black Wins!';
+  } else if (c.white > c.black) {
+    title = mode === 1 ? 'AI Wins!' : 'White Wins!';
+  } else {
+    title = 'Draw!';
+  }
+  text = 'Black: ' + c.black + ' — White: ' + c.white;
+  document.getElementById('overlayTitle').textContent = title;
+  document.getElementById('overlayText').textContent = text;
+  document.getElementById('overlay').classList.add('show');
+  setMessage(title + ' ' + text);
+}
+
+/* ===== RENDERING ===== */
+
+/*
+ * RENDER — rebuild the board DOM each frame.
+ *
+ * For each cell, we:
+ * 1. Create a div with class "cell"
+ * 2. If it contains a disc, add a .piece child with .black/.white
+ * 3. If it's a valid move for the current player, add class "valid"
+ * 4. Attach an onclick handler that calls handleClick(r, c)
+ *
+ * This is a simple DOM-rebuild approach. For a 64-cell board,
+ * it's fast enough (<1ms). A production game might use virtual
+ * DOM diffing, but innerHTML replacement works fine here.
+ */
+function render() {
+  var boardEl = document.getElementById('board');
+  var validMoves = gameOver ? [] : getValidMoves(board, turn);
+  var validSet = {};
+  for (var i = 0; i < validMoves.length; i++) {
+    validSet[validMoves[i].r + ',' + validMoves[i].c] = true;
+  }
+
+  var html = '';
+  for (var r = 0; r < 8; r++) {
+    for (var c = 0; c < 8; c++) {
+      var classes = 'cell';
+      var showValid = !gameOver && !(mode === 1 && turn === WHITE) && !aiThinking;
+      if (showValid && validSet[r + ',' + c]) classes += ' valid';
+      if (lastMove && lastMove.r === r && lastMove.c === c) classes += ' last-move';
+      html += '<div class="' + classes + '" onclick="handleClick(' + r + ',' + c + ')">';
+      if (board[r][c] === BLACK) html += '<div class="piece black"></div>';
+      else if (board[r][c] === WHITE) html += '<div class="piece white"></div>';
+      html += '</div>';
+    }
+  }
+  boardEl.innerHTML = html;
+
+  var counts = countDiscs(board);
+  document.getElementById('countBlack').textContent = counts.black;
+  document.getElementById('countWhite').textContent = counts.white;
+  document.getElementById('scoreBlack').classList.toggle('active', turn === BLACK && !gameOver);
+  document.getElementById('scoreWhite').classList.toggle('active', turn === WHITE && !gameOver);
+}
+
+function setMessage(msg) { document.getElementById('message').textContent = msg; }
+function toggleRules() { document.getElementById('rulesPanel').classList.toggle('show'); }
+
+/* ===== INIT ===== */
+newGame();
+</script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Othello</h2>
+  <p>Othello (also called Reversi) is a two-player abstract strategy game on an 8×8 board. Each side has 64 disks white-on-one-side and black-on-the-other. Players alternate placing disks; any disks flanked between two of your color flip to your color. Whoever has the most disks of their color when the board fills wins.</p>
+
+  <h3>How to play</h3>
+  <p>Each turn, place one disk on any empty square that flanks at least one enemy disk (in any direction — horizontal, vertical, or diagonal) between your new disk and another of your existing disks. All flanked enemies flip. If you have no legal placement, you pass. Game ends when neither side can move.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How is Othello different from chess?</summary><p>Othello takes minutes to learn; chess years. Othello games typically end in 60 moves; chess can stretch hundreds. Othello also features the famous "mobility paradox" — having many pieces early is often a disadvantage.</p></details>
+  <details><summary>Best Othello opening strategy?</summary><p>Counterintuitively, prefer to have FEWER disks early. More disks reduce your move options and give opponent more flanking targets. Aim for "quiet" central play; corners and edges become decisive in the endgame.</p></details>
+  <details><summary>Is Othello solved?</summary><p>8×8 Othello is not yet weakly solved (as of 2026), but engines play above all-time human champion level. 6×6 was weakly solved in 1993 (draw with perfect play).</p></details>
+  <details><summary>What's the corner strategy?</summary><p>Corners are permanent (can never be flipped). Avoid giving your opponent access to a corner; squares adjacent to corners ("X-squares") often hand the corner to opponent if you play them early.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/chess">Chess</a> — two-player abstract strategy.</li>
+    <li><a href="/go">Go</a> — territory and influence.</li>
+    <li><a href="/backgammon">Backgammon</a> — dice race classic.</li>
+    <li><a href="/mancala">Mancala</a> — ancient count-and-capture.</li>
+  </ul>
+</section>
+<!-- merged from /guides/othello-reversi -->
+<section class="seo-content guide-merged" id="guide">
+  <h2>Othello (Reversi) Rules &amp; Winning Strategy</h2>
+<p><a href="/othello">Othello</a> — also known as Reversi — is a two-player disc-flipping game on an 8×8 board. It takes a minute to learn and years to master: the rules are trivial, but the strategy is deep enough that top play looks almost paradoxical. This guide covers the rules and the handful of ideas that will beat a casual opponent or the browser AI.</p>
+
+    <h3>The rules in a minute</h3>
+    <ul>
+      <li>The board starts with four discs in the center — two black, two white, placed diagonally.</li>
+      <li>On your turn you place a disc so that it <b>flanks</b> one or more of the opponent&rsquo;s discs in a straight line (horizontal, vertical, or diagonal) between your new disc and another of your discs.</li>
+      <li>Every flanked disc <b>flips to your color</b>. You must flip at least one disc — if you cannot, you pass.</li>
+      <li>The game ends when neither player can move (usually when the board is full). Whoever has more discs wins.</li>
+    </ul>
+
+    <h3>The beginner&rsquo;s trap: don&rsquo;t grab discs early</h3>
+    <p>New players flip as many discs as possible every turn. This loses. Because any disc can be flipped again later, a big early lead means nothing — and having more discs mid-game often means you have <em>fewer</em> safe moves. The real currency of Othello is not discs; it is <b>stable squares</b> and <b>mobility</b>.</p>
+
+    <h3>Corners win games</h3>
+    <p>A disc in a corner can never be flipped — there is no square beyond it to flank from. Corners anchor entire edges and rows of stability. The whole game is really a fight to take corners and to force your opponent into giving them to you.</p>
+    <h4>Avoid the X-squares and C-squares</h4>
+    <p>The square diagonally adjacent to a corner (the <b>X-square</b>) is the most dangerous square on the board — playing there early usually hands your opponent the corner. The squares orthogonally next to a corner (<b>C-squares</b>) are risky for the same reason. Leave the region around empty corners alone until you can take the corner itself.</p>
+
+    <h3>Mobility: the counter-intuitive core</h3>
+    <p>Good Othello players try to have <b>many</b> moves while their opponent has <b>few</b>. Fewer discs of your own, placed compactly in the center early on, often gives you more flanking options later. If your opponent runs out of safe moves, they are forced to play an X-square or C-square and surrender a corner. Aim to end the midgame with your opponent nearly out of good options.</p>
+
+    <h3>Edges and parity</h3>
+    <ul>
+      <li><b>Edge discs</b> are harder to flip than interior discs and support corner captures — but only take an edge when it does not expose a corner.</li>
+      <li><b>Parity</b> — who plays the last disc in a region — decides many close endgames. Late in the game, count empty squares in each isolated region; playing last in a region often lets you flip without reply.</li>
+    </ul>
+
+    <div class="callout">
+      <b>Practical plan vs. the AI:</b> keep your discs central and few for the first dozen moves, refuse the squares next to empty corners, take corners when offered, then convert corners into stable edges and flip aggressively only in the final ten moves.
+    </div>
+
+    <h3>Also try</h3>
+    <p>If you like the pure-abstract tension of Othello, <a href="/go">Go</a> (see the <a href="/go#guide">beginner&rsquo;s guide</a>) rewards the same territorial thinking on a bigger canvas, and <a href="/chess">Chess</a> scratches the tactical itch.</p>
+</section>
+<style>.guide-merged .callout{background:#141c28;border:1px solid #3a5060;border-radius:4px;padding:14px 18px;margin:20px 0}.guide-merged .scenario-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.92em}.guide-merged .scenario-table th,.guide-merged .scenario-table td{border:1px solid #2a3540;padding:8px 10px;text-align:left;vertical-align:top}</style>
+
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

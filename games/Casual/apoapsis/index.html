@@ -1,0 +1,3481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0c1016">
+<title>Apoapsis — Free 3D Rocket & Orbital Flight Sim | Board Gaming Hub</title>
+<meta name="description" content="Real Tsiolkovsky physics, 3D orbital mechanics, Luma landings, maneuver nodes. Free in-browser rocket and spaceflight simulator. Single HTML file.">
+<link rel="canonical" href="https://boardgaminghub.com/apoapsis">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/apoapsis">
+<meta property="og:title" content="Apoapsis — Free 3D Rocket Sim">
+<meta property="og:description" content="Real Tsiolkovsky physics, 3D orbital mechanics, Luma landings — free in-browser rocket simulator.">
+<meta property="og:image" content="https://boardgaminghub.com/og/apoapsis.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/apoapsis.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Apoapsis",
+  "description": "3D rocket and orbital mechanics simulator with Tsiolkovsky physics, patched-conic SOI transitions, and Luma landings.",
+  "url": "https://boardgaminghub.com/apoapsis", "genre": "Simulation",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Courier New', monospace; background: #0A0A1A; color: #B0C8E0; min-height: 100vh; overflow-x: hidden; user-select: none; }
+/* The game owns exactly one viewport; the article below it scrolls normally.
+   --apo-chrome is the height of the site header nav.js injects, measured at runtime. */
+#gameHost { display: flex; flex-direction: column; height: calc(100vh - var(--apo-chrome, 0px)); height: calc(100dvh - var(--apo-chrome, 0px)); min-height: 460px; position: relative; overflow: hidden; }
+
+#gameNav { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #0A0A1A; border-bottom: 1px solid #1A2A40; font-family: Georgia, serif; }
+#gameNav .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 18px; max-width: 1200px; margin: 0 auto; position: relative; }
+#gameNav .nav-title { color: #B0C8E0; font-size: 0.9em; letter-spacing: 1px; }
+#gameNav .nav-toggle { background: none; border: 1px solid #1A2A40; color: #B0C8E0; font-size: 1.1em; padding: 3px 10px; border-radius: 4px; cursor: pointer; font-family: Georgia, serif; }
+#gameNav .nav-toggle:hover { background: #0E1428; }
+#gameNav .nav-menu { display: none; position: absolute; right: 18px; top: 100%; background: #0A0A1A; border: 1px solid #1A2A40; border-top: none; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 10000; }
+#gameNav .nav-menu.open { display: block; }
+#gameNav .nav-menu a { display: block; padding: 10px 18px; color: #6080A0; text-decoration: none; font-size: 0.85em; border-bottom: 1px solid #0E1428; }
+#gameNav .nav-menu a:last-child { border-bottom: none; }
+#gameNav .nav-menu a:hover { background: #0E1428; color: #4080D0; }
+#gameNav .nav-menu a.current { color: #B0C8E0; font-weight: bold; }
+@media (max-width: 768px) {
+  #gameNav .nav-bar { padding: 6px 14px; }
+  #gameNav .nav-menu { position: static; right: auto; min-width: 0; border: none; border-top: 1px solid #1A2A40; box-shadow: none; }
+}
+
+.screen { display: none; width: 100%; flex: 1; min-height: 0; }
+.screen.active { display: flex; }
+
+.catalog { width: 220px; background: #0E1428; border-right: 1px solid #1A2A40; overflow-y: auto; padding: 8px; }
+.catalog h3 { color: #4080D0; font-size: 0.85em; margin: 8px 0 4px; border-bottom: 1px solid #1A2A40; padding-bottom: 2px; }
+.cat-part { padding: 5px 6px; margin: 2px 0; background: #121830; border: 1px solid #1A2A40; border-radius: 4px; cursor: pointer; font-size: 0.7em; }
+.cat-part:hover { background: #1A2848; border-color: #4080D0; }
+.cat-part .pname { color: #B0C8E0; font-weight: bold; }
+.cat-part .pstat { color: #6080A0; }
+
+.preview-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+#previewCanvas { background: #060810; border: 1px solid #1A2A40; }
+.preview-info { color: #6080A0; font-size: 0.75em; margin-top: 8px; text-align: center; }
+.preview-info b { color: #4080D0; }
+
+.stage-panel { width: 200px; background: #0E1428; border-left: 1px solid #1A2A40; overflow-y: auto; padding: 8px; }
+.stage-panel h3 { color: #4080D0; font-size: 0.85em; margin-bottom: 4px; }
+.stage-group { margin: 4px 0; padding: 4px; border: 1px solid #1A2A40; border-radius: 4px; background: #0A1020; }
+.stage-group .sg-header { color: #4080D0; font-size: 0.75em; font-weight: bold; margin-bottom: 2px; }
+.stage-group .sg-part { font-size: 0.65em; color: #8098B0; padding: 1px 0; cursor: pointer; }
+.stage-group .sg-part:hover { color: #B0C8E0; }
+.stage-group .sg-part.selected { color: #FFD040; }
+.stage-dv { font-size: 0.7em; color: #40C080; margin-top: 2px; }
+
+.btn { padding: 6px 16px; font-size: 0.85em; font-family: 'Courier New', monospace; cursor: pointer; border: 1px solid #4080D0; border-radius: 4px; background: #0E1428; color: #B0C8E0; margin: 4px; }
+.btn:hover { background: #1A2848; }
+.btn.launch { border-color: #40D080; color: #40D080; font-weight: bold; }
+.btn.launch:hover { background: #0A2818; }
+.builder-bar { position: absolute; bottom: 10px; display: flex; gap: 4px; align-items: center; }
+
+#builderScreen { flex-direction: row; }
+
+#flightScreen { position: relative; }
+#threeContainer { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+.hud { position: absolute; font-size: 0.95em; pointer-events: none; z-index: 10; padding: 8px 12px; background: rgba(5,10,25,0.55); border: 1px solid rgba(64,128,208,0.35); border-radius: 6px; line-height: 1.55; color: #C0D0E0; backdrop-filter: blur(2px); }
+.hud-tl { top: 44px; left: 8px; min-width: 140px; }
+.hud-tr { top: 78px; right: 8px; text-align: right; min-width: 140px; }
+.hud-bl { bottom: 20px; left: 56px; min-width: 140px; }
+.hud-br { bottom: 28px; right: 210px; text-align: right; min-width: 140px; }
+.hud b { color: #4090E0; font-size: 0.85em; letter-spacing: 1px; }
+.hud .val { color: #40E090; font-weight: bold; }
+.hud .warn { color: #FFD040; }
+.hud .q-warn { color: #FF6040; font-weight: bold; }
+
+.navball { position: absolute; bottom: 22px; right: 22px; width: 170px; height: 170px; z-index: 10; pointer-events: none; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 3px #304060, inset 0 0 18px rgba(0,0,0,0.5), 0 4px 18px rgba(0,0,0,0.6); }
+.navball canvas { display: block; width: 170px; height: 170px; }
+.navball::before { content: ''; position: absolute; top: 50%; left: 50%; width: 22px; height: 22px; margin: -11px 0 0 -11px; border: 2px solid #40E090; border-radius: 50%; box-sizing: border-box; z-index: 2; box-shadow: 0 0 3px rgba(64,224,144,0.6); }
+.navball::after { content: ''; position: absolute; top: 50%; left: 50%; width: 70px; height: 2px; margin: -1px 0 0 -35px; background: linear-gradient(to right, #40E090 0, #40E090 18%, transparent 18%, transparent 82%, #40E090 82%, #40E090 100%); z-index: 2; box-shadow: 0 0 3px rgba(64,224,144,0.5); }
+
+.throttle-bar { position: absolute; bottom: 30px; left: 20px; width: 24px; height: 200px; background: rgba(5,10,25,0.7); border: 2px solid #304060; border-radius: 6px; z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.6); }
+.throttle-fill { position: absolute; bottom: 2px; left: 2px; right: 2px; background: linear-gradient(to top, #D06020 0%, #E0A040 40%, #40E080 100%); border-radius: 0 0 4px 4px; transition: height 0.1s; }
+.throttle-bar::before { content: 'THR'; position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7em; color: #6090C0; letter-spacing: 2px; font-family: 'Courier New', monospace; font-weight: bold; }
+
+.controls-hint { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 0.7em; color: #93B4D8; background: rgba(6,10,22,0.72); padding: 4px 12px; border-radius: 4px; pointer-events: none; z-index: 10; }
+
+.g-vignette { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 5; border-radius: 0; transition: box-shadow 0.1s; }
+
+.result-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; }
+.result-overlay.show { display: flex; }
+.result-box { background: #0E1428; border: 2px solid #4080D0; border-radius: 10px; padding: 24px 32px; text-align: center; max-width: 400px; }
+.result-box h2 { color: #40D080; font-size: 1.4em; margin-bottom: 10px; }
+.result-box h2.fail { color: #D04040; }
+.result-box p { color: #8098B0; margin: 4px 0; font-size: 0.85em; }
+.result-box p b { color: #B0C8E0; }
+
+.rules-toggle { background: none; border: 1px solid #1A2A40; color: #6080A0; padding: 3px 10px; font-size: 0.7em; font-family: 'Courier New', monospace; border-radius: 4px; cursor: pointer; position: absolute; bottom: 40px; right: 10px; z-index: 10; }
+.rules-toggle:hover { background: #0E1428; }
+
+.sas-panel { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 120px; background: rgba(10,20,40,0.8); border: 1px solid #1A2A40; border-radius: 6px; padding: 6px; z-index: 10; }
+.sas-panel h4 { color: #4080D0; font-size: 0.7em; margin-bottom: 4px; text-align: center; font-family: Georgia, serif; letter-spacing: 1px; }
+.sas-btn { display: block; width: 100%; padding: 3px 5px; margin: 2px 0; font-size: 0.65em; font-family: 'Courier New', monospace; background: #0A1020; color: #6080A0; border: 1px solid #1A2A40; border-radius: 3px; cursor: pointer; text-align: left; }
+.sas-btn .sas-key { color: #3A5070; float: right; }
+.sas-btn:hover { background: #122040; color: #B0C8E0; }
+.sas-btn.active { background: #1A3860; color: #FFD040; border-color: #FFD040; }
+.sas-btn.active .sas-key { color: #FFD040; }
+
+.view-toggle { position: absolute; top: 42px; left: 50%; transform: translateX(-50%); z-index: 15; display: flex; gap: 4px; }
+.view-toggle .vt-btn { background: #0E1428; border: 1px solid #4080D0; color: #B0C8E0; padding: 4px 14px; font-family: 'Courier New', monospace; font-size: 0.75em; cursor: pointer; border-radius: 4px; }
+.view-toggle .vt-btn:hover { background: #1A2848; }
+.view-toggle .vt-btn.active { background: #1A3860; color: #FFD040; border-color: #FFD040; }
+
+.q-warn { color: #D04040; font-weight: bold; }
+.plasma-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 4; transition: opacity 0.3s; opacity: 0; background: radial-gradient(ellipse at 50% 100%, rgba(255,120,40,0.55) 0%, rgba(255,60,0,0.25) 40%, transparent 75%); }
+
+.tutorial-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(5,10,25,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
+.tutorial-overlay.show { display: flex; }
+.tutorial-box { background: #0E1428; border: 2px solid #4080D0; border-radius: 10px; padding: 24px 32px; max-width: 600px; color: #B0C8E0; font-family: Georgia, serif; }
+.tutorial-box h2 { color: #40D080; font-size: 1.5em; margin-bottom: 12px; }
+.tutorial-box h3 { color: #4080D0; font-size: 1em; margin: 12px 0 6px; }
+.tutorial-box p { font-size: 0.85em; line-height: 1.55; margin: 4px 0; font-family: 'Courier New', monospace; color: #8098B0; }
+.tutorial-box kbd { background: #1A2848; color: #FFD040; border: 1px solid #4080D0; border-radius: 3px; padding: 1px 5px; font-family: 'Courier New', monospace; font-size: 0.9em; }
+.tutorial-box .btn { font-family: Georgia, serif; font-size: 0.9em; margin-top: 14px; }
+
+.sound-toggle { position: absolute; top: 42px; right: 10px; z-index: 15; background: #0E1428; border: 1px solid #1A2A40; color: #6080A0; padding: 3px 8px; font-size: 0.7em; font-family: 'Courier New', monospace; border-radius: 3px; cursor: pointer; }
+.sound-toggle:hover { background: #1A2848; }
+
+.map-hud { position: absolute; padding: 6px 10px; font-size: 0.75em; pointer-events: none; font-family: 'Courier New', monospace; z-index: 11; }
+.map-hud b { color: #4080D0; }
+.missions-panel { margin-top: 10px; padding-top: 8px; border-top: 1px solid #1A2A40; }
+.missions-panel h3 { color: #4080D0; font-size: 0.85em; margin-bottom: 4px; }
+.mission { padding: 4px 6px; margin: 3px 0; background: #0A1020; border: 1px solid #1A2A40; border-radius: 3px; font-size: 0.68em; }
+.mission.done { background: #0A2018; border-color: #40D080; opacity: 0.85; }
+.mission .mn { color: #B0C8E0; font-weight: bold; }
+.mission.done .mn { color: #40D080; }
+.mission .md { color: #6080A0; font-size: 0.95em; }
+.mission .mr { color: #FFD040; float: right; font-size: 0.85em; }
+.mission.done .mr { color: #40D080; }
+.funds-display { font-size: 0.9em; color: #FFD040; text-align: center; margin: 6px 0; padding: 4px; background: #1A1830; border-radius: 3px; }
+
+.maneuver-panel { position: absolute; bottom: 30px; left: 10px; width: 280px; background: rgba(20,10,40,0.88); border: 1px solid #8040D0; border-radius: 6px; padding: 8px 10px; z-index: 12; font-family: 'Courier New', monospace; font-size: 0.75em; color: #C0A0E0; display: none; }
+.maneuver-panel.active { display: block; }
+.maneuver-panel h4 { color: #B080FF; font-size: 0.85em; margin-bottom: 6px; text-align: center; font-family: Georgia, serif; letter-spacing: 2px; }
+.man-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+.man-row label { width: 72px; color: #A080D0; }
+.man-row input[type=range] { flex: 1; accent-color: #B080FF; }
+.man-row .man-val { width: 64px; text-align: right; color: #FFD040; }
+.man-btn { padding: 3px 10px; margin: 3px 2px 0 0; font-size: 0.75em; font-family: 'Courier New', monospace; background: #1A1030; color: #C0A0E0; border: 1px solid #8040D0; border-radius: 3px; cursor: pointer; }
+.man-btn:hover { background: #2A1850; }
+.man-btn.go { border-color: #40D080; color: #40D080; }
+.man-btn.clear { border-color: #D04080; color: #D04080; }
+.man-info { font-size: 0.7em; color: #8070A0; margin-top: 4px; }
+.man-info b { color: #FFD040; }
+.map-legend { position: absolute; bottom: 30px; right: 10px; background: rgba(10,20,40,0.7); border: 1px solid #1A2A40; padding: 6px 10px; font-size: 0.65em; color: #8098B0; border-radius: 4px; z-index: 11; font-family: 'Courier New', monospace; }
+.map-legend span.sw { display: inline-block; width: 18px; height: 2px; vertical-align: middle; margin-right: 4px; }
+
+/* ===== APOAPSIS RESPONSIVE + TOUCH ===== */
+/* The legacy per-game bar is fixed at z-9999 and covers the site header nav.js
+   injects, which carries the same links plus search. One header is enough. */
+#gameNav { display: none; }
+
+.builder-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; padding: 4px 8px; }
+.btn { min-height: 40px; }
+
+@media (max-width: 820px) {
+  #builderScreen { flex-direction: column; }
+  .preview-area { order: 1; flex: 1 1 auto; min-height: 0; justify-content: flex-start; padding-top: 4px; }
+  /* the bar is a child of .preview-area, so it needs its own order to sit above the canvas */
+  .builder-bar { order: -1; position: static; }   /* base rule is absolute, which ignores order */
+  #previewCanvas { height: 26vh; max-height: 100%; width: auto; flex: 0 1 auto; min-height: 0; }
+  .catalog { order: 2; width: 100%; max-height: 27vh; border-right: none; border-top: 1px solid #1A2A40; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 6px; align-content: start; }
+  .catalog h3 { grid-column: 1 / -1; margin: 6px 0 0; }
+  .cat-part { margin: 0; font-size: 0.72em; }
+  .stage-panel { order: 3; width: 100%; max-height: 22vh; border-left: none; border-top: 1px solid #1A2A40; }
+  .builder-bar { gap: 4px; padding: 6px; border-bottom: 1px solid #1A2A40; }
+  .builder-bar .btn { flex: 1 1 28%; margin: 0; padding: 8px 4px; font-size: 0.78em; }
+  .builder-bar .btn.launch { flex: 1 1 100%; order: -1; font-size: 1em; padding: 12px; }
+  .preview-info { font-size: 0.68em; margin-top: 4px; }
+}
+
+/* On-screen flight controls. Shown only for coarse pointers so a touchscreen
+   laptop keeps the keyboard layout it already works with. */
+.touch-controls { display: none; position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+body.touch .touch-controls { display: block; }
+body.touch .controls-hint { display: none; }
+.touch-controls > div { pointer-events: auto; }
+.tc-btn { border-radius: 8px; border: 1px solid #4080D0; background: rgba(10,20,40,0.86); color: #B0C8E0; font-family: 'Courier New', monospace; font-size: 0.62em; font-weight: bold; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.tc-btn:active, .tc-btn.active { background: #1A3860; color: #FFD040; border-color: #FFD040; }
+.tc-pad { position: absolute; bottom: 12px; left: 10px; display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 44px); gap: 4px; }
+.tc-pad .tc-btn { width: 48px; height: 44px; }
+.tc-actions { position: absolute; top: 8px; left: 10px; display: flex; gap: 4px; }
+.tc-actions .tc-btn { min-width: 58px; height: 38px; }
+.tc-sas { position: absolute; bottom: 12px; right: 10px; display: grid; grid-template-columns: 58px 58px; gap: 4px; }
+.tc-sas .tc-btn { height: 38px; }
+
+/* Touch phones: reserve a control band at the bottom and lift every HUD element
+   clear of it, so nothing is drawn underneath a button. */
+@media (max-width: 820px) {
+  body.touch { --tc-band: 150px; }
+  body.touch .touch-controls::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: var(--tc-band); background: linear-gradient(to top, rgba(6,10,22,0.92), rgba(6,10,22,0)); pointer-events: none; }
+  body.touch .tc-pad { bottom: 10px; left: 8px; }
+  body.touch .tc-sas { bottom: 10px; right: 8px; }
+  body.touch .tc-actions { top: 6px; left: 8px; }
+
+  /* the full 10-row SAS list is desktop-only; PRO/RET/HOLD/BURN cover it on touch */
+  body.touch .sas-panel { display: none !important; }   /* JS sets an inline display */
+  body.touch .view-toggle { display: none; }   /* MAP is a touch button already */
+
+  body.touch .hud { font-size: 0.6em; }
+  body.touch .hud-tl { top: 48px; left: 8px; }
+  body.touch .hud-tr { top: 100px; right: 8px; }
+  body.touch .hud-bl { bottom: calc(var(--tc-band) + 6px); left: 34px; }
+  body.touch .hud-br { bottom: calc(var(--tc-band) + 6px); right: 8px; text-align: right; }
+  body.touch .throttle-bar { bottom: calc(var(--tc-band) + 6px); left: 8px; height: 120px; width: 18px; }
+  body.touch .navball { width: 96px; height: 96px; bottom: auto; top: 284px; right: 8px; }
+  body.touch .navball canvas { width: 96px; height: 96px; }
+  body.touch .sound-toggle { font-size: 0.62em; padding: 3px 6px; }
+  body.touch .man-panel { bottom: calc(var(--tc-band) + 6px); }
+
+  /* the site search box costs a fifth of a phone screen on a page that is a game */
+  body.touch .bgh-head .bgh-search, body.touch .bgh-head form { display: none; }
+}
+
+
+/* onboarding: one action first, reference material behind a disclosure */
+.tutorial-box .tut-lead { font-family: Georgia, serif; font-size: 0.95em; color: #B0C8E0; margin-bottom: 14px; }
+.tut-steps { border-left: 2px solid #4080D0; padding-left: 12px; margin: 0 0 14px; }
+.tut-steps p { margin: 6px 0; color: #B0C8E0; }
+.tut-steps b { color: #FFD040; }
+.tut-touch { display: none; }
+body.touch .tut-touch { display: block; }
+.tut-more { margin: 6px 0; }
+.tut-more summary { cursor: pointer; color: #4080D0; font-family: Georgia, serif; font-size: 0.9em; padding: 4px 0; }
+.tut-more summary:hover { color: #FFD040; }
+.tut-more p { margin: 5px 0; }
+.tut-go { margin-top: 14px; border-color: #40D080; color: #40D080; font-weight: bold; font-size: 1em; padding: 10px 22px; }
+.help-btn { position: absolute; top: 44px; left: 8px; z-index: 16; background: rgba(10,20,40,0.8); border: 1px solid #4080D0; color: #93B4D8; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-family: Georgia, serif; font-size: 0.95em; }
+.help-btn:hover { color: #FFD040; border-color: #FFD040; }
+body.touch .help-btn { top: 52px; left: auto; right: 8px; }
+@media (max-width: 820px) { .tutorial-box { padding: 18px 16px; max-height: 82vh; overflow-y: auto; } }
+
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Simulations","item":"https://boardgaminghub.com/#sims"},{"@type":"ListItem","position":3,"name":"Apoapsis","item":"https://boardgaminghub.com/apoapsis"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What is apoapsis?","acceptedAnswer":{"@type":"Answer","text":"The highest point of an orbit — opposite of periapsis (lowest point). On Earth it's \"apogee\"; for the Sun it's \"aphelion\". The game is named after this orbital concept."}},{"@type":"Question","name":"Is the physics realistic?","acceptedAnswer":{"@type":"Answer","text":"Yes — Newtonian point-mass gravity within each sphere of influence, patched-conic transitions between bodies, realistic engine ISP/thrust specs, and altitude-dependent atmospheric drag. Moon orbits and SOI sizes are scaled for playable transfer times, not 1:1 real-world."}},{"@type":"Question","name":"What's a good gravity-turn altitude?","acceptedAnswer":{"@type":"Answer","text":"Begin pitching over at ~5 km, target ~45° pitch by 20 km. Earlier pitch wastes fuel on horizontal velocity at sea level (high drag); later pitch wastes fuel fighting gravity."}},{"@type":"Question","name":"Can I land on the Moon?","acceptedAnswer":{"@type":"Answer","text":"Single-stage to orbit and a circumlunar flyby are both achievable with the default rocket. A surface-landing mission requires a custom multi-stage build."}}]}</script>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div id="gameNav">
+  <div class="nav-bar">
+    <span class="nav-title">Apoapsis</span>
+    <button class="nav-toggle" onclick="document.querySelector('#gameNav .nav-menu').classList.toggle('open')">&#9776;</button>
+  </div>
+  <div class="nav-menu">
+    <a href="/agora">Agora</a>
+    <a href="/apoapsis" class="current">Apoapsis</a>
+    <a href="/aresia">Aresia</a>
+    <a href="/backgammon">Backgammon</a>
+    <a href="/bisque">Bisque</a>
+    <a href="/chess">Chess</a>
+    <a href="/convergence">Convergence</a>
+    <a href="/go">Go</a>
+    <a href="/mancala">Mancala</a>
+    <a href="/odyssey">Odyssey</a>
+    <a href="/othello" class="">Othello</a>
+    <a href="/pentegrammai">Pente Grammai</a>
+    <a href="/senet">Senet</a>
+    <a href="/tidelands">Tidelands</a>
+    <a href="/tower">Tower</a>
+    <a href="/ur">Ur</a>
+  </div>
+</div>
+
+<div class="tutorial-overlay" id="tutorialOverlay">
+  <div class="tutorial-box">
+    <h2>&#x1F680; Apoapsis</h2>
+    <p class="tut-lead">A rocket sim with the real equations underneath &mdash; Tsiolkovsky, vis-viva, patched conics. Your first goal: <b>reach orbit</b>.</p>
+    <div class="tut-steps">
+      <p><b>1.</b> A ready-to-fly rocket is already loaded. Press <b>LAUNCH</b>.</p>
+      <p><b>2.</b> Hold <kbd>W</kbd> to throttle up. Steer with <kbd>A</kbd>/<kbd>D</kbd>.</p>
+      <p><b>3.</b> Or press <kbd>L</kbd> and let the autopilot fly the ascent for you.</p>
+      <p class="tut-touch">On a phone, use the on-screen buttons &mdash; <b>THR+</b> to climb, <b>AUTO</b> to autopilot.</p>
+    </div>
+    <details class="tut-more">
+      <summary>All controls</summary>
+      <p><kbd>W</kbd>/<kbd>S</kbd> throttle &nbsp; <kbd>A</kbd>/<kbd>D</kbd> pitch &nbsp; <kbd>Q</kbd>/<kbd>E</kbd> yaw &nbsp; <kbd>Space</kbd> stage</p>
+      <p><kbd>0</kbd>-<kbd>9</kbd> SAS modes (prograde, retrograde, maneuver, target&hellip;)</p>
+      <p><kbd>L</kbd> autopilot &mdash; ascent on Earth, landing once in Luma/Pebble SOI</p>
+      <p><kbd>M</kbd> map &nbsp; <kbd>N</kbd> maneuver node &nbsp; <kbd>,</kbd>/<kbd>.</kbd> time warp &nbsp; <kbd>G</kbd> chute</p>
+      <p><kbd>Shift</kbd>+WASDQE = RCS translate (precision docking) &nbsp; <kbd>X</kbd> abort</p>
+      <p>Builder: click catalog parts to stack them; <kbd>S0</kbd>/<kbd>S1</kbd> assign stages, highest number fires first.</p>
+    </details>
+    <details class="tut-more">
+      <summary>Getting to Luma</summary>
+      <p>From a stable orbit, open the maneuver panel and click <b>&rarr; Luma</b>. Warp with <kbd>.</kbd> to the burn window, press <kbd>8</kbd> for SAS MANEUVER, then throttle up with <kbd>W</kbd>.</p>
+    </details>
+    <button class="btn tut-go" onclick="dismissTutorial()">Start flying</button>
+  </div>
+</div>
+
+<div id="gameHost">
+<div id="builderScreen" class="screen active">
+  <div class="catalog" id="catalog"></div>
+  <div class="preview-area">
+    <canvas id="previewCanvas" width="300" height="500"></canvas>
+    <div class="preview-info" id="previewInfo"></div>
+    <div class="builder-bar">
+      <button class="btn" onclick="loadPreset('sounding')">Sounding</button>
+      <button class="btn" onclick="loadPreset('orbital')">Orbital</button>
+      <button class="btn" onclick="loadPreset('heavy')">Heavy</button>
+      <button class="btn" onclick="loadPreset('munship')">LumaShip</button>
+      <button class="btn" onclick="saveCraft()">Save</button>
+      <button class="btn" onclick="clearRocket()">Clear</button>
+      <button class="btn launch" onclick="startFlight()">LAUNCH</button>
+    </div>
+  </div>
+  <div class="stage-panel" id="stagePanel"></div>
+</div>
+
+<div id="flightScreen" class="screen">
+  <div id="threeContainer"></div>
+  <div class="plasma-overlay" id="plasmaOverlay"></div>
+  <div class="g-vignette" id="gVignette"></div>
+  <div class="view-toggle">
+    <button class="vt-btn active" id="vtFlight" onclick="setView('flight')">FLIGHT</button>
+    <button class="vt-btn" id="vtMap" onclick="setView('map')">MAP</button>
+  </div>
+  <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">&#x1F50A; ON</button>
+  <div class="hud hud-tl" id="hudTL"></div>
+  <div class="hud hud-tr" id="hudTR"></div>
+  <div class="hud hud-bl" id="hudBL"></div>
+  <div class="hud hud-br" id="hudBR"></div>
+  <div class="throttle-bar" id="throttleBar"><div class="throttle-fill" id="throttleFill"></div></div>
+  <div class="navball" id="navball"><canvas id="navballCanvas" width="170" height="170"></canvas></div>
+  <div class="sas-panel" id="sasPanel">
+    <h4>SAS</h4>
+    <button class="sas-btn active" data-sas="off" onclick="setSAS('off')">OFF<span class="sas-key">0</span></button>
+    <button class="sas-btn" data-sas="stability" onclick="setSAS('stability')">STABILITY<span class="sas-key">1</span></button>
+    <button class="sas-btn" data-sas="prograde" onclick="setSAS('prograde')">PROGRADE<span class="sas-key">2</span></button>
+    <button class="sas-btn" data-sas="retrograde" onclick="setSAS('retrograde')">RETROGRADE<span class="sas-key">3</span></button>
+    <button class="sas-btn" data-sas="radial-out" onclick="setSAS('radial-out')">RADIAL+<span class="sas-key">4</span></button>
+    <button class="sas-btn" data-sas="radial-in" onclick="setSAS('radial-in')">RADIAL-<span class="sas-key">5</span></button>
+    <button class="sas-btn" data-sas="normal" onclick="setSAS('normal')">NORMAL+<span class="sas-key">6</span></button>
+    <button class="sas-btn" data-sas="antinormal" onclick="setSAS('antinormal')">NORMAL-<span class="sas-key">7</span></button>
+    <button class="sas-btn" data-sas="maneuver" onclick="setSAS('maneuver')">MANEUVER<span class="sas-key">8</span></button>
+    <button class="sas-btn" data-sas="target" onclick="setSAS('target')">TARGET<span class="sas-key">9</span></button>
+  </div>
+  <button class="sound-toggle" id="targetToggle" onclick="toggleTarget()" style="top:72px;">&#x2316; Target</button>
+  <div class="maneuver-panel" id="maneuverPanel">
+    <h4>&#9733; MANEUVER NODE</h4>
+    <div class="man-row"><label>T+</label><input type="range" id="manTime" min="0" max="14400" step="10" value="0"><span class="man-val" id="manTimeVal">+0s</span></div>
+    <div class="man-row"><label>Prograde</label><input type="range" id="manPro" min="-3000" max="3000" step="5" value="0"><span class="man-val" id="manProVal">0</span></div>
+    <div class="man-row"><label>Normal</label><input type="range" id="manNorm" min="-1500" max="1500" step="5" value="0"><span class="man-val" id="manNormVal">0</span></div>
+    <div class="man-row"><label>Radial</label><input type="range" id="manRad" min="-1500" max="1500" step="5" value="0"><span class="man-val" id="manRadVal">0</span></div>
+    <div class="man-info" id="manInfo"></div>
+    <button class="man-btn go" onclick="alignToNode()">Align SAS</button>
+    <button class="man-btn" onclick="planMunTransfer()">&rarr; Luma</button>
+    <button class="man-btn" onclick="planMinmusTransfer()">&rarr; Pebble</button>
+    <button class="man-btn clear" onclick="clearNode()">Clear</button>
+  </div>
+  <div class="map-hud" id="mapInfoTL" style="top:78px;left:8px;color:#B0C8E0;display:none;"></div>
+  <div class="map-legend" id="mapLegend" style="display:none;"><b style="color:#4080D0;">MAP LEGEND</b><br><span class="sw" style="background:#40D080;"></span>Orbit<br><span class="sw" style="background:#D04040;"></span>Periapsis<br><span class="sw" style="background:#40C0FF;"></span>Apoapsis<br><span class="sw" style="background:#FFD040;"></span>Ship<br><br>Drag: rotate &nbsp; Wheel: zoom</div>
+  <button class="help-btn" onclick="showTutorial()" title="Controls and help" type="button">?</button>
+  <div class="controls-hint">W/S Throttle &nbsp; A/D Pitch &nbsp; Q/E Yaw &nbsp; Shift+move=RCS &nbsp; SPACE Stage &nbsp; 0-9 SAS &nbsp; M Map &nbsp; N Node &nbsp; G Chute &nbsp; X Abort &nbsp; L Autopilot &nbsp; ,/. Warp &nbsp; Drag/Scroll=Camera &nbsp; ESC Quit</div>
+<div class="touch-controls" id="touchControls">
+  <div class="tc-actions">
+    <button class="tc-btn" data-action="stage" type="button">STAGE</button>
+    <button class="tc-btn" data-action="autopilot" type="button">AUTO</button>
+    <button class="tc-btn" data-action="map" type="button">MAP</button>
+    <button class="tc-btn" data-action="chute" type="button">CHUTE</button>
+  </div>
+  <div class="tc-pad">
+    <span></span>
+    <button class="tc-btn" data-key="w" type="button">THR+</button>
+    <span></span>
+    <button class="tc-btn" data-key="a" type="button">PCH-</button>
+    <button class="tc-btn" data-key="s" type="button">THR-</button>
+    <button class="tc-btn" data-key="d" type="button">PCH+</button>
+    <button class="tc-btn" data-key="q" type="button">YAW-</button>
+    <span></span>
+    <button class="tc-btn" data-key="e" type="button">YAW+</button>
+  </div>
+  <div class="tc-sas">
+    <button class="tc-btn" data-action="sas-prograde" type="button">PRO</button>
+    <button class="tc-btn" data-action="sas-retrograde" type="button">RET</button>
+    <button class="tc-btn" data-action="sas-stability" type="button">HOLD</button>
+    <button class="tc-btn" data-action="sas-maneuver" type="button">BURN</button>
+    <button class="tc-btn" data-action="warp-down" type="button">WARP-</button>
+    <button class="tc-btn" data-action="warp-up" type="button">WARP+</button>
+  </div>
+</div>
+  <div class="result-overlay" id="resultOverlay">
+    <div class="result-box" id="resultBox">
+      <h2 id="resultTitle">Orbit Achieved!</h2>
+      <div id="resultStats"></div>
+      <button class="btn" onclick="backToBuilder()" style="margin-top:12px;">Build Again</button>
+    </div>
+  </div>
+</div>
+</div><!-- /#gameHost -->
+
+<script src="/three.r128.min.js"></script>
+<script>
+/* ===== CONSTANTS ===== */
+var ENV = { R: 6371000, g0: 9.80665, KARMAN: 100000, P0: 101325, T0: 288.15, LAPSE: 0.0065, M_ATM: 0.029, R_GAS: 8.314 };
+var MU = ENV.g0 * ENV.R * ENV.R;
+
+// Multi-body system. Luma is scaled down for playable Hohmann transfer times.
+// Earth-centered inertial frame = world. Luma orbits Earth in XZ plane.
+var BODIES = {
+  'earth':  { name:'Earth', mu: MU,       radius: ENV.R,  atm: true,  color: 0x1a5533, markerColor:'#40D080', parent: null,    soiRadius: Infinity, orbitR: 0,        period: 0,     phase: 0,   inclination: 0 },
+  'mun':    { name:'Luma',   mu: 2.7e10,   radius: 300000, atm: false, color: 0x9CA0A5, markerColor:'#9CA0A5', parent: 'earth', soiRadius: 1500000,  orbitR: 10033000, period: 10000, phase: 0,   inclination: 0 },
+  'minmus': { name:'Pebble',mu: 1.766e9,  radius: 60000,  atm: false, color: 0xAAE8C0, markerColor:'#AAE8C0', parent: 'earth', soiRadius: 2000000,  orbitR: 14500000, period: 17000, phase: 1.2, inclination: 0.105 }
+};
+var PARTS = {
+  'pod':       { type:'pod',    name:'Command Pod',    mass:1.2,  h:30, w:24, color:'#8090A0' },
+  'tank-sm':   { type:'tank',   name:'Tank S (1.5t)',   mass:0.15, fuel:1.5, h:25, w:24, color:'#C0C8D0' },
+  'tank-md':   { type:'tank',   name:'Tank M (3.5t)',   mass:0.30, fuel:3.5, h:40, w:24, color:'#C0C8D0' },
+  'tank-lg':   { type:'tank',   name:'Tank L (8.0t)',   mass:0.70, fuel:8.0, h:60, w:24, color:'#C0C8D0' },
+  'tank-xl':   { type:'tank',   name:'Tank XL (28t)',   mass:2.30, fuel:28.0, h:80, w:28, color:'#C0C8D0' },
+  'eng-sm':    { type:'engine', name:'Kestrel (60kN)',  mass:0.5,  thrust:60,  isp:345, h:18, w:18, color:'#606870' },
+  'eng-md':    { type:'engine', name:'Stalwart (215kN)', mass:1.25, thrust:215, isp:310, h:22, w:24, color:'#606870' },
+  'eng-lg':    { type:'engine', name:'Colossus (1.5MN)',mass:4.0,  thrust:1500,isp:285, h:30, w:30, color:'#606870' },
+  'srb-sm':    { type:'srb',    name:'Gnat SRB',       mass:0.45, fuel:3.3, thrust:192, isp:140, h:40, w:18, color:'#8A7050' },
+  'srb-lg':    { type:'srb',    name:'Mallet SRB',     mass:0.75, fuel:7.2, thrust:227, isp:170, h:55, w:20, color:'#8A7050' },
+  'srb-rd-2':  { type:'srb',    name:'Mallet x2 (radial)', mass:1.5, fuel:14.4, thrust:454, isp:170, h:55, w:20, color:'#8A7050', radial:2 },
+  'srb-rd-4':  { type:'srb',    name:'Mallet x4 (radial)', mass:3.0, fuel:28.8, thrust:908, isp:170, h:55, w:20, color:'#8A7050', radial:4 },
+  'fin':       { type:'fin',    name:'Aero Fin',        mass:0.08, h:12, w:36, color:'#7080A0' },
+  'chute':     { type:'chute',  name:'Parachute',       mass:0.15, h:8,  w:20, color:'#FFE080' },
+  'leg':       { type:'leg',    name:'Landing Legs',    mass:0.20, h:14, w:30, color:'#606570' },
+  'rcs':       { type:'rcs',    name:'RCS Block',       mass:0.12, h:10, w:16, fuel:0.8, thrust:4, isp:240, color:'#B0C0D0' },
+  'abort':     { type:'abort',  name:'Launch Escape',   mass:0.9,  h:18, w:18, fuel:0.6, thrust:320, isp:190, color:'#D04040' },
+  'decoupler': { type:'decoupler',name:'Decoupler',     mass:0.04, h:5, w:26, color:'#D06020' }
+};
+
+var MISSIONS = [
+  { id:'rookie',   name:'Rookie Launch',    desc:'Reach altitude &ge; 50 km',   reward: 500,   check:function(s) { return s.maxAlt >= 50000; } },
+  { id:'karman',   name:'Cross Karman',     desc:'Reach altitude &ge; 100 km',  reward: 1000,  check:function(s) { return s.maxAlt >= 100000; } },
+  { id:'orbit',    name:'First Orbit',      desc:'Earth orbit, PE > 70 km',      reward: 3000,  check:function(s) { return s.parent==='earth' && s.periapsis > 70000 && s.eccentricity < 1; } },
+  { id:'munflyby', name:'Luma Flyby',        desc:'Enter Luma SOI',            reward: 5000,  check:function(s) { return s._everInMun; } },
+  { id:'munorbit', name:'Luma Orbit',        desc:'Bound orbit around Luma (PE>5km)', reward: 10000, check:function(s) { return s.parent==='mun' && s.periapsis > 5000 && s.eccentricity < 1; } },
+  { id:'munland',  name:'Luma Landing',      desc:'Soft-land on Luma (&lt;12 m/s)', reward: 25000, check:function(s) { return s.munLanded; } },
+  { id:'return',   name:'Safe Return',      desc:'Return home from Luma',         reward: 40000, check:function(s) { return s._everInMun && s.parent==='earth' && s.altitude < 500 && s.speed < 12 && s.maxAlt > 100000; } },
+  { id:'minflyby', name:'Pebble Flyby',     desc:'Enter Pebble SOI',         reward: 7000,  check:function(s) { return s._everInMinmus; } },
+  { id:'minland',  name:'Pebble Landing',   desc:'Soft-land on Pebble',          reward: 30000, check:function(s) { return s.minmusLanded; } },
+  { id:'rendez',   name:'Rendezvous',       desc:'Approach target within 1 km',  reward: 8000,  check:function(s) { var tm = targetMetrics(s); return !!tm && tm.d < 1000; } },
+  { id:'dock',     name:'Docking',          desc:'Approach target &lt;30 m at &lt;2 m/s', reward: 25000, check:function(s) { var tm = targetMetrics(s); return !!tm && tm.d < 30 && tm.vRel < 2; } }
+];
+var PRESETS = {
+  sounding: [{key:'pod',stage:0},{key:'chute',stage:0},{key:'tank-sm',stage:0},{key:'eng-sm',stage:0}],
+  orbital:  [{key:'pod',stage:0},{key:'chute',stage:0},{key:'tank-md',stage:0},{key:'eng-sm',stage:0},{key:'decoupler',stage:1},{key:'tank-lg',stage:1},{key:'tank-lg',stage:1},{key:'eng-md',stage:1},{key:'decoupler',stage:2},{key:'tank-xl',stage:2},{key:'tank-xl',stage:2},{key:'eng-lg',stage:2}],
+  heavy:    [{key:'pod',stage:0},{key:'chute',stage:0},{key:'tank-md',stage:0},{key:'eng-sm',stage:0},{key:'decoupler',stage:1},{key:'tank-lg',stage:1},{key:'eng-md',stage:1},{key:'decoupler',stage:2},{key:'tank-xl',stage:2},{key:'tank-xl',stage:2},{key:'eng-lg',stage:2},{key:'fin',stage:2},{key:'srb-rd-2',stage:3}],
+  munship:  [{key:'pod',stage:0},{key:'chute',stage:0},{key:'leg',stage:0},{key:'tank-md',stage:0},{key:'eng-sm',stage:0},{key:'decoupler',stage:1},{key:'tank-lg',stage:1},{key:'tank-lg',stage:1},{key:'eng-md',stage:1},{key:'decoupler',stage:2},{key:'tank-xl',stage:2},{key:'tank-xl',stage:2},{key:'eng-lg',stage:2},{key:'fin',stage:2},{key:'srb-rd-4',stage:3}]
+};
+var PART_SCALE = 0.12;
+
+/* ===== STATE ===== */
+var gameState = 'builder';
+var rocket = { parts: [] };
+var selectedPart = -1;
+var partIdCounter = 0;
+var sim = null;
+var keys = {};
+var timeWarp = 1;
+var lastTime = 0;
+var accumulator = 0;
+var PHYSICS_DT = 0.01;
+var viewMode = 'flight';
+var sasMode = 'off';
+var SAS_KEYS = { '0':'off', '1':'stability', '2':'prograde', '3':'retrograde', '4':'radial-out', '5':'radial-in', '6':'normal', '7':'antinormal', '8':'maneuver', '9':'target' };
+var maneuverNode = null; // { dt: seconds from NOW, dvPro, dvNorm, dvRad }
+var plannedOrbitLine = null, manNodeMarker = null;
+var autopilot = null; // { mode, targetAlt }
+var target = null;    // rendezvous target: { kep, nu0, t0, parent, mesh, orbitLine, marker }
+var audio = { ctx:null, engineGain:null, engineOsc:null, engineFilter:null, noiseSrc:null, plasmaGain:null, plasmaSrc:null, muted:false };
+var mapState = { dist:ENV.R*4, yaw:0.0, pitch:0.35, dragging:false, lx:0, ly:0 };
+var flightCam = { yaw:0, pitch:0.35, zoom:1, dragging:false, lx:0, ly:0 };
+var orbitLine = null, peMarker = null, apMarker = null, shipMarker = null, mapCamera = null;
+var nextPatchLine = null, encounterMarker = null, escapeMarker = null;
+
+/* ===== THREE.JS ===== */
+var renderer, scene, camera;
+var navRenderer, navScene, navCamera, navBall, navPrograde, navRetrograde, navTarget;
+var earthMesh, atmMesh, cloudMesh, rocketGroup, flameLight;
+var bodyMeshes = {}, bodyOrbitLines = {}, bodyMarkers = {};
+var exhaustParticles, exhaustPositions, exhaustColors, exhaustSizes, exhaustData = [];
+var trailGeom, trailLine;
+var threeReady = false;
+
+function initThree() {
+  if (threeReady) return;
+  var container = document.getElementById('threeContainer');
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000005);
+
+  camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 1, 120000000);
+  mapCamera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 10000, 250000000);
+
+  var amb = new THREE.AmbientLight(0x334455, 0.6);
+  scene.add(amb);
+  var sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  var sunDir = new THREE.Vector3(5000000, 8000000, 3000000).normalize();
+  var sunDist = 70000000;
+  var sunPos = sunDir.clone().multiplyScalar(sunDist);
+  sunLight.position.copy(sunPos);
+  scene.add(sunLight);
+  // Visible Sun disc + corona
+  var sunGeo = new THREE.SphereGeometry(2200000, 32, 24);
+  var sunMat = new THREE.MeshBasicMaterial({ color: 0xFFFED0 });
+  var sunMesh = new THREE.Mesh(sunGeo, sunMat);
+  sunMesh.position.copy(sunPos);
+  scene.add(sunMesh);
+  var coronaMat = new THREE.MeshBasicMaterial({ color: 0xFFE880, transparent: true, opacity: 0.25, depthWrite: false, blending: THREE.AdditiveBlending });
+  var coronaMesh = new THREE.Mesh(new THREE.SphereGeometry(5500000, 32, 24), coronaMat);
+  coronaMesh.position.copy(sunPos);
+  scene.add(coronaMesh);
+  // Wide soft glow
+  var glowMat = new THREE.MeshBasicMaterial({ color: 0xFFC860, transparent: true, opacity: 0.08, depthWrite: false, blending: THREE.AdditiveBlending });
+  var glowMesh = new THREE.Mesh(new THREE.SphereGeometry(12000000, 24, 16), glowMat);
+  glowMesh.position.copy(sunPos);
+  scene.add(glowMesh);
+
+  // Earth
+  var earthGeo = new THREE.SphereGeometry(ENV.R, 64, 64);
+  var earthMat = new THREE.MeshPhongMaterial({ color: 0x1a5533, emissive: 0x0a1a10, specular: 0x222222, shininess: 10 });
+  earthMesh = new THREE.Mesh(earthGeo, earthMat);
+  scene.add(earthMesh);
+
+  // Ocean overlay
+  var oceanGeo = new THREE.SphereGeometry(ENV.R + 50, 64, 64);
+  var oceanMat = new THREE.MeshPhongMaterial({ color: 0x1a3366, emissive: 0x0a1028, transparent: true, opacity: 0.6 });
+  var oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
+  scene.add(oceanMesh);
+
+  // Launch pad (concrete disc at north pole) + tower
+  var padGeo = new THREE.CircleGeometry(80, 48);
+  var padCanvas = document.createElement('canvas');
+  padCanvas.width = 256; padCanvas.height = 256;
+  var pctx = padCanvas.getContext('2d');
+  pctx.fillStyle = '#606266'; pctx.fillRect(0, 0, 256, 256);
+  pctx.strokeStyle = '#3a3c40'; pctx.lineWidth = 2;
+  for (var gi = 0; gi < 8; gi++) {
+    pctx.beginPath(); pctx.moveTo(gi*32, 0); pctx.lineTo(gi*32, 256); pctx.stroke();
+    pctx.beginPath(); pctx.moveTo(0, gi*32); pctx.lineTo(256, gi*32); pctx.stroke();
+  }
+  // Hazard stripes in center
+  pctx.strokeStyle = '#FFD040'; pctx.lineWidth = 4;
+  pctx.beginPath(); pctx.arc(128, 128, 30, 0, Math.PI*2); pctx.stroke();
+  pctx.beginPath(); pctx.arc(128, 128, 50, 0, Math.PI*2); pctx.stroke();
+  var padMat = new THREE.MeshPhongMaterial({ map: new THREE.CanvasTexture(padCanvas), shininess: 4 });
+  var pad = new THREE.Mesh(padGeo, padMat);
+  pad.position.set(0, ENV.R + 1, 0);
+  pad.rotation.x = -Math.PI/2;
+  scene.add(pad);
+  // Launch tower: 4 legs + beams
+  var towerMat = new THREE.MeshPhongMaterial({ color: 0x303438 });
+  var beamMat = new THREE.MeshPhongMaterial({ color: 0x404448 });
+  var towerOffset = 22;
+  var towerHeight = 46;
+  for (var ti = 0; ti < 4; ti++) {
+    var ang = ti * Math.PI/2 + Math.PI/4;
+    var leg = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, towerHeight, 6), towerMat);
+    leg.position.set(towerOffset * Math.cos(ang), ENV.R + towerHeight/2, towerOffset * Math.sin(ang));
+    scene.add(leg);
+  }
+  for (var lv = 0; lv < 4; lv++) {
+    var y = ENV.R + 8 + lv * 11;
+    for (var side = 0; side < 4; side++) {
+      var a1 = side * Math.PI/2 + Math.PI/4;
+      var a2 = ((side+1) % 4) * Math.PI/2 + Math.PI/4;
+      var p1 = new THREE.Vector3(towerOffset*Math.cos(a1), y, towerOffset*Math.sin(a1));
+      var p2 = new THREE.Vector3(towerOffset*Math.cos(a2), y, towerOffset*Math.sin(a2));
+      var len = p1.distanceTo(p2);
+      var beam = new THREE.Mesh(new THREE.BoxGeometry(len, 0.5, 0.5), beamMat);
+      beam.position.copy(p1).add(p2).multiplyScalar(0.5);
+      beam.lookAt(p2);
+      beam.rotateY(Math.PI/2);
+      scene.add(beam);
+    }
+  }
+  // Tower platform (walkway at the top)
+  var plat = new THREE.Mesh(new THREE.BoxGeometry(towerOffset*2+6, 1, 8), beamMat);
+  plat.position.set(0, ENV.R + towerHeight, 0);
+  scene.add(plat);
+
+  // Earth cloud layer
+  var cloudCanvas = document.createElement('canvas');
+  cloudCanvas.width = 1024; cloudCanvas.height = 512;
+  var cctx = cloudCanvas.getContext('2d');
+  cctx.fillStyle = 'rgba(0,0,0,0)';
+  cctx.fillRect(0, 0, 1024, 512);
+  for (var i = 0; i < 140; i++) {
+    var cx = Math.random() * 1024, cy = 30 + Math.random() * 452;
+    var cr = 25 + Math.random() * 90;
+    var g = cctx.createRadialGradient(cx, cy, 0, cx, cy, cr);
+    g.addColorStop(0, 'rgba(255,255,255,' + (0.5 + Math.random()*0.4) + ')');
+    g.addColorStop(0.6, 'rgba(255,255,255,' + (0.15 + Math.random()*0.2) + ')');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    cctx.fillStyle = g;
+    cctx.fillRect(cx-cr, cy-cr, 2*cr, 2*cr);
+  }
+  var cloudTex = new THREE.CanvasTexture(cloudCanvas);
+  var cloudGeo = new THREE.SphereGeometry(ENV.R + 12000, 48, 48);
+  var cloudMat = new THREE.MeshLambertMaterial({ map: cloudTex, transparent: true, opacity: 0.85, depthWrite: false });
+  cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+  scene.add(cloudMesh);
+
+  // Atmosphere glow
+  var atmGeo = new THREE.SphereGeometry(ENV.R + 80000, 48, 48);
+  var atmMat = new THREE.MeshBasicMaterial({ color: 0x4488ff, transparent: true, opacity: 0.08, side: THREE.BackSide });
+  atmMesh = new THREE.Mesh(atmGeo, atmMat);
+  scene.add(atmMesh);
+
+  // Non-Earth bodies: mesh + orbit line
+  for (var bk in BODIES) {
+    var b = BODIES[bk];
+    if (!b.parent) continue;
+    var bGeo = new THREE.SphereGeometry(b.radius, 96, 64);
+    var tex = new THREE.CanvasTexture(buildBodyTexture(bk));
+    var bMat = new THREE.MeshPhongMaterial({ map: tex, bumpMap: tex, bumpScale: bk === 'mun' ? 12000 : 5000, emissive: 0x0f0f12, shininess: 3 });
+    var bMesh = new THREE.Mesh(bGeo, bMat);
+    scene.add(bMesh);
+    bodyMeshes[bk] = bMesh;
+    // Orbit line sampled from inertialBodyPos so inclination is honored
+    var N = 96;
+    var pos = new Float32Array(N * 3);
+    for (var i = 0; i < N; i++) {
+      var tS = (i / (N - 1)) * b.period;
+      var p = inertialBodyPos(bk, tS);
+      pos[i*3] = p.x; pos[i*3+1] = p.y; pos[i*3+2] = p.z;
+    }
+    var oGeom = new THREE.BufferGeometry();
+    oGeom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    var oMat = new THREE.LineBasicMaterial({ color: 0x6070A0, transparent: true, opacity: 0.4 });
+    var oLine = new THREE.Line(oGeom, oMat);
+    oLine.visible = false;
+    scene.add(oLine);
+    bodyOrbitLines[bk] = oLine;
+  }
+
+  // Stars
+  var starGeo = new THREE.BufferGeometry();
+  var starPos = new Float32Array(6000 * 3);
+  for (var i = 0; i < 6000; i++) {
+    var theta = Math.random() * Math.PI * 2;
+    var phi = Math.acos(2 * Math.random() - 1);
+    var r = 15000000;
+    starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    starPos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+    starPos[i * 3 + 2] = r * Math.cos(phi);
+  }
+  starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+  var starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 15000, sizeAttenuation: true });
+  scene.add(new THREE.Points(starGeo, starMat));
+
+  // Rocket group
+  rocketGroup = new THREE.Group();
+  scene.add(rocketGroup);
+
+  // Flame point light
+  flameLight = new THREE.PointLight(0xff8833, 0, 500);
+  rocketGroup.add(flameLight);
+
+  // Exhaust particles
+  var maxP = 300;
+  exhaustPositions = new Float32Array(maxP * 3);
+  exhaustColors = new Float32Array(maxP * 3);
+  exhaustSizes = new Float32Array(maxP);
+  var exhaustGeo = new THREE.BufferGeometry();
+  exhaustGeo.setAttribute('position', new THREE.BufferAttribute(exhaustPositions, 3));
+  exhaustGeo.setAttribute('color', new THREE.BufferAttribute(exhaustColors, 3));
+  exhaustGeo.setAttribute('size', new THREE.BufferAttribute(exhaustSizes, 1));
+  var exhaustMat = new THREE.PointsMaterial({ vertexColors: true, size: 5, sizeAttenuation: true, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false });
+  exhaustParticles = new THREE.Points(exhaustGeo, exhaustMat);
+  scene.add(exhaustParticles);
+
+  // Trail — preallocate max-capacity buffer once; updated in place each frame
+  trailGeom = new THREE.BufferGeometry();
+  trailGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(500 * 3), 3));
+  trailGeom.setDrawRange(0, 0);
+  var trailMat = new THREE.LineBasicMaterial({ color: 0xff8844, transparent: true, opacity: 0.4 });
+  trailLine = new THREE.Line(trailGeom, trailMat);
+  scene.add(trailLine);
+
+  // Orbit prediction line (map view)
+  var orbitGeom = new THREE.BufferGeometry();
+  orbitGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(129 * 3), 3));
+  var orbitMat = new THREE.LineBasicMaterial({ color: 0x40D080, transparent: true, opacity: 0.75 });
+  orbitLine = new THREE.Line(orbitGeom, orbitMat);
+  orbitLine.visible = false;
+  orbitLine.frustumCulled = false;
+  scene.add(orbitLine);
+
+  // Next-patch orbit line (patched conic prediction across SOI)
+  var nextGeom = new THREE.BufferGeometry();
+  nextGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(129 * 3), 3));
+  var nextMat = new THREE.LineBasicMaterial({ color: 0xFFD040, transparent: true, opacity: 0.65 });
+  nextPatchLine = new THREE.Line(nextGeom, nextMat);
+  nextPatchLine.visible = false;
+  nextPatchLine.frustumCulled = false;
+  scene.add(nextPatchLine);
+
+  // Planned maneuver orbit (post-burn)
+  var plannedGeom = new THREE.BufferGeometry();
+  plannedGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(129 * 3), 3));
+  var plannedMat = new THREE.LineBasicMaterial({ color: 0xB080FF, transparent: true, opacity: 0.8 });
+  plannedOrbitLine = new THREE.Line(plannedGeom, plannedMat);
+  plannedOrbitLine.visible = false;
+  plannedOrbitLine.frustumCulled = false;
+  scene.add(plannedOrbitLine);
+
+  // Maneuver node marker
+  var manCanvas = makeMarkerCanvas('\u2606', '#B080FF');
+  manNodeMarker = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(manCanvas), depthTest: false, transparent: true }));
+  manNodeMarker.scale.set(400000, 400000, 1);
+  manNodeMarker.visible = false;
+  manNodeMarker.renderOrder = 1000;
+  scene.add(manNodeMarker);
+
+  // Encounter / escape markers
+  var encCanvas = makeMarkerCanvas('\u2694', '#FFD040');
+  var escCanvas = makeMarkerCanvas('\u2192', '#D08040');
+  encounterMarker = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(encCanvas), depthTest: false, transparent: true }));
+  escapeMarker = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(escCanvas), depthTest: false, transparent: true }));
+  encounterMarker.scale.set(350000, 350000, 1);
+  escapeMarker.scale.set(350000, 350000, 1);
+  encounterMarker.visible = escapeMarker.visible = false;
+  encounterMarker.renderOrder = escapeMarker.renderOrder = 999;
+  scene.add(encounterMarker); scene.add(escapeMarker);
+
+  // Ap/Pe markers (billboarded sprites)
+  var peCanvas = makeMarkerCanvas('Pe', '#D04040');
+  var apCanvas = makeMarkerCanvas('Ap', '#40C0FF');
+  var shipCanvas = makeMarkerCanvas('\u25B2', '#FFD040');
+  var peTex = new THREE.CanvasTexture(peCanvas);
+  var apTex = new THREE.CanvasTexture(apCanvas);
+  var shipTex = new THREE.CanvasTexture(shipCanvas);
+  peMarker = new THREE.Sprite(new THREE.SpriteMaterial({ map: peTex, depthTest: false, transparent: true }));
+  apMarker = new THREE.Sprite(new THREE.SpriteMaterial({ map: apTex, depthTest: false, transparent: true }));
+  shipMarker = new THREE.Sprite(new THREE.SpriteMaterial({ map: shipTex, depthTest: false, transparent: true }));
+  peMarker.scale.set(400000, 400000, 1);
+  apMarker.scale.set(400000, 400000, 1);
+  shipMarker.scale.set(350000, 350000, 1);
+  peMarker.visible = apMarker.visible = shipMarker.visible = false;
+  peMarker.renderOrder = apMarker.renderOrder = shipMarker.renderOrder = 999;
+  scene.add(peMarker); scene.add(apMarker); scene.add(shipMarker);
+
+  // Body markers
+  for (var bk in BODIES) {
+    var b = BODIES[bk];
+    if (!b.parent) continue;
+    var canvas = makeMarkerCanvas(b.name, b.markerColor || '#9CA0A5');
+    var tex = new THREE.CanvasTexture(canvas);
+    var spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+    spr.scale.set(600000, 600000, 1);
+    spr.visible = false;
+    spr.renderOrder = 998;
+    scene.add(spr);
+    bodyMarkers[bk] = spr;
+  }
+
+  window.addEventListener('resize', function() {
+    var c = document.getElementById('threeContainer');
+    camera.aspect = c.clientWidth / c.clientHeight;
+    camera.updateProjectionMatrix();
+    mapCamera.aspect = c.clientWidth / c.clientHeight;
+    mapCamera.updateProjectionMatrix();
+    renderer.setSize(c.clientWidth, c.clientHeight);
+  });
+
+  // Mouse handling shared by flight & map views
+  var cv = renderer.domElement;
+  var mapClickStart = null;
+  cv.addEventListener('mousedown', function(e) {
+    if (viewMode === 'map') {
+      mapState.dragging = true;
+      mapState.lx = e.clientX; mapState.ly = e.clientY;
+      mapClickStart = { x: e.clientX, y: e.clientY, t: Date.now(), moved: 0 };
+    } else {
+      flightCam.dragging = true;
+      flightCam.lx = e.clientX; flightCam.ly = e.clientY;
+    }
+  });
+  window.addEventListener('mouseup', function(e) {
+    mapState.dragging = false;
+    flightCam.dragging = false;
+    if (viewMode !== 'map' || !mapClickStart) return;
+    var dx = e.clientX - mapClickStart.x, dy = e.clientY - mapClickStart.y;
+    var dur = Date.now() - mapClickStart.t;
+    if (Math.sqrt(dx*dx + dy*dy) < 5 && dur < 500) handleMapClick(e);
+    mapClickStart = null;
+  });
+  window.addEventListener('mousemove', function(e) {
+    if (viewMode === 'map' && mapState.dragging) {
+      var dx = e.clientX - mapState.lx, dy = e.clientY - mapState.ly;
+      mapState.lx = e.clientX; mapState.ly = e.clientY;
+      if (mapClickStart) mapClickStart.moved += Math.abs(dx) + Math.abs(dy);
+      mapState.yaw -= dx * 0.005;
+      mapState.pitch = Math.max(-1.4, Math.min(1.4, mapState.pitch + dy * 0.005));
+    } else if (viewMode === 'flight' && flightCam.dragging) {
+      var dx = e.clientX - flightCam.lx, dy = e.clientY - flightCam.ly;
+      flightCam.lx = e.clientX; flightCam.ly = e.clientY;
+      flightCam.yaw -= dx * 0.008;
+      flightCam.pitch = Math.max(-1.3, Math.min(1.3, flightCam.pitch + dy * 0.008));
+    }
+  });
+  cv.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var f = Math.pow(1.1, e.deltaY > 0 ? 1 : -1);
+    if (viewMode === 'map') {
+      mapState.dist = Math.max(ENV.R * 1.3, Math.min(ENV.R * 200, mapState.dist * f));
+    } else {
+      flightCam.zoom = Math.max(0.25, Math.min(10, flightCam.zoom * f));
+    }
+  }, { passive: false });
+
+  threeReady = true;
+}
+
+function buildBodyTexture(bodyKey) {
+  var b = BODIES[bodyKey];
+  var W = 1024, H = 512;
+  var c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  var ctx = c.getContext('2d');
+  // Base fill with slight shading variation
+  var baseHex = '#' + b.color.toString(16).padStart(6, '0');
+  ctx.fillStyle = baseHex;
+  ctx.fillRect(0, 0, W, H);
+  // Mare / darker regions (large low-frequency blobs)
+  var mareCount = bodyKey === 'minmus' ? 30 : 18;
+  for (var i = 0; i < mareCount; i++) {
+    var cx = Math.random()*W, cy = Math.random()*H;
+    var r = 40 + Math.random()*140;
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    var shade = bodyKey === 'minmus' ? 'rgba(180,230,200,0.35)' : 'rgba(55,58,65,0.55)';
+    g.addColorStop(0, shade);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx-r, cy-r, 2*r, 2*r);
+  }
+  // Craters
+  var craterCount = bodyKey === 'minmus' ? 40 : 160;
+  for (var i = 0; i < craterCount; i++) {
+    var cx = Math.random()*W, cy = Math.random()*H;
+    var r = 3 + Math.random()*45;
+    // Dark floor
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    var dark = bodyKey === 'minmus' ? 'rgba(100,160,130,0.7)' : 'rgba(45,45,50,0.85)';
+    g.addColorStop(0, dark);
+    g.addColorStop(0.6, dark.replace(/[\d.]+\)$/, '0.2)'));
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(cx-r, cy-r, 2*r, 2*r);
+    // Bright rim
+    var rim = bodyKey === 'minmus' ? 'rgba(220,245,230,0.55)' : 'rgba(195,200,205,0.55)';
+    ctx.strokeStyle = rim;
+    ctx.lineWidth = 1 + r * 0.08;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.95, 0, Math.PI*2);
+    ctx.stroke();
+  }
+  // Speckle
+  var speckleCount = 800;
+  for (var i = 0; i < speckleCount; i++) {
+    var x = Math.random()*W, y = Math.random()*H;
+    ctx.fillStyle = 'rgba(' + (40+Math.random()*30) + ',' + (40+Math.random()*30) + ',' + (45+Math.random()*30) + ',' + (0.1 + Math.random()*0.15) + ')';
+    ctx.fillRect(x, y, 2, 2);
+  }
+  return c;
+}
+
+function makeMarkerCanvas(label, color) {
+  var c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  var ctx = c.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(32, 32, 10, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(32, 32, 16, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px Courier New';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(label, 32, 50);
+  return c;
+}
+
+/* ===== PHYSICS ===== */
+function gravity(alt) { return ENV.g0 * Math.pow(ENV.R / (ENV.R + Math.max(0, alt)), 2); }
+function atmDensity(alt) {
+  if (alt > 140000) return 0;
+  if (alt < 0) alt = 0;
+  if (alt < 11000) {
+    var T = ENV.T0 - ENV.LAPSE * alt;
+    var P = ENV.P0 * Math.pow(T / ENV.T0, ENV.g0 * ENV.M_ATM / (ENV.R_GAS * ENV.LAPSE));
+    return P * ENV.M_ATM / (ENV.R_GAS * T);
+  }
+  var T11 = ENV.T0 - ENV.LAPSE * 11000;
+  var P11 = ENV.P0 * Math.pow(T11 / ENV.T0, ENV.g0 * ENV.M_ATM / (ENV.R_GAS * ENV.LAPSE));
+  var rho11 = P11 * ENV.M_ATM / (ENV.R_GAS * T11);
+  return rho11 * Math.exp(-(alt - 11000) / 6500);
+}
+function dragMag(speed, alt, Cd, A) { return 0.5 * atmDensity(alt) * speed * speed * Cd * A; }
+function computeThrust(parts, stage, throttle) {
+  var thr = 0, mdot = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var p = parts[i], def = PARTS[p.key];
+    if (p.stage !== stage) continue;
+    if (def.type === 'engine' && stageFuel(parts, stage) > 0) {
+      thr += def.thrust * throttle;
+      mdot += (def.thrust * throttle) / (def.isp * ENV.g0);
+    } else if ((def.type === 'srb' || def.type === 'abort') && p.fuel > 0) {
+      thr += def.thrust;
+      mdot += def.thrust / (def.isp * ENV.g0);
+    }
+  }
+  return { thrust: thr * 1000, mdot: mdot * 1000 };
+}
+function stageFuel(parts, stage) {
+  var f = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var t = PARTS[parts[i].key].type;
+    if (parts[i].stage === stage && (t === 'tank' || t === 'srb' || t === 'abort'))
+      f += parts[i].fuel || 0;
+  }
+  return f;
+}
+function totalMass(parts) {
+  var m = 0;
+  for (var i = 0; i < parts.length; i++) { m += PARTS[parts[i].key].mass + (parts[i].fuel || 0); }
+  return m * 1000;
+}
+function consumeFuel(parts, stage, kgToConsume) {
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].stage !== stage) continue;
+    var def = PARTS[parts[i].key];
+    if ((def.type === 'tank' || def.type === 'srb' || def.type === 'abort') && parts[i].fuel > 0) {
+      var take = Math.min(parts[i].fuel * 1000, kgToConsume);
+      parts[i].fuel -= take / 1000;
+      kgToConsume -= take;
+      if (kgToConsume <= 0.001) break;
+    }
+  }
+}
+function rcsFuelRemaining(parts) {
+  var f = 0;
+  for (var i = 0; i < parts.length; i++) if (PARTS[parts[i].key].type === 'rcs') f += parts[i].fuel || 0;
+  return f;
+}
+function rcsFuelMax(parts) {
+  var f = 0;
+  for (var i = 0; i < parts.length; i++) if (PARTS[parts[i].key].type === 'rcs') f += PARTS[parts[i].key].fuel || 0;
+  return f;
+}
+function rcsTotalThrust(parts) {
+  var t = 0;
+  for (var i = 0; i < parts.length; i++) if (PARTS[parts[i].key].type === 'rcs') t += PARTS[parts[i].key].thrust;
+  return t;
+}
+function consumeRCSFuel(parts, kg) {
+  for (var i = 0; i < parts.length && kg > 0; i++) {
+    if (PARTS[parts[i].key].type !== 'rcs') continue;
+    var take = Math.min(parts[i].fuel * 1000, kg);
+    parts[i].fuel -= take / 1000;
+    kg -= take;
+    if (parts[i].fuel < 0.0001) parts[i].fuel = 0;
+  }
+}
+
+function crossSection(parts) {
+  var maxW = 0;
+  for (var i = 0; i < parts.length; i++) { var w = PARTS[parts[i].key].w; if (w > maxW) maxW = w; }
+  var r = maxW / 2 * PART_SCALE;
+  return Math.PI * r * r;
+}
+function orbitalVelocity(alt, bodyKey) { var b = BODIES[bodyKey || 'earth']; return Math.sqrt(b.mu / (b.radius + alt)); }
+function stageDv(parts, stageNum) {
+  var engines = [], tanks = [], aboveMass = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var def = PARTS[parts[i].key];
+    if (parts[i].stage < stageNum) aboveMass += def.mass + (parts[i].fuel || 0);
+    else if (parts[i].stage === stageNum) {
+      if (def.type === 'engine' || def.type === 'srb') engines.push(def);
+      if (def.type === 'tank' || def.type === 'srb') tanks.push(parts[i]);
+    }
+  }
+  if (engines.length === 0) return 0;
+  var wIsp = 0, wT = 0;
+  for (var i = 0; i < engines.length; i++) { wIsp += engines[i].isp * engines[i].thrust; wT += engines[i].thrust; }
+  var avgIsp = wT > 0 ? wIsp / wT : 0;
+  var fuelMass = 0;
+  for (var i = 0; i < tanks.length; i++) fuelMass += tanks[i].fuel || 0;
+  var stageMass = 0;
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].stage === stageNum) stageMass += PARTS[parts[i].key].mass + (parts[i].fuel || 0);
+  }
+  var wet = aboveMass + stageMass, dry = wet - fuelMass;
+  if (dry <= 0 || wet <= 0) return 0;
+  return avgIsp * ENV.g0 * Math.log(wet / dry);
+}
+function totalDv(parts) {
+  var stages = getStages(parts);
+  var dv = 0;
+  for (var i = 0; i < stages.length; i++) dv += stageDv(parts, stages[i]);
+  return dv;
+}
+
+/* ===== MULTI-BODY ===== */
+function inertialBodyPos(bodyKey, t) {
+  var b = BODIES[bodyKey];
+  if (!b.parent) return new THREE.Vector3(0, 0, 0);
+  var omega = 2 * Math.PI / b.period;
+  var nu = b.phase + omega * t;
+  var x = b.orbitR * Math.cos(nu), z = b.orbitR * Math.sin(nu), y = 0;
+  var inc = b.inclination || 0;
+  if (inc) { var c = Math.cos(inc), s = Math.sin(inc); var yN = -z*s, zN = z*c; y = yN; z = zN; }
+  return new THREE.Vector3(x, y, z).add(inertialBodyPos(b.parent, t));
+}
+function inertialBodyVel(bodyKey, t) {
+  var b = BODIES[bodyKey];
+  if (!b.parent) return new THREE.Vector3(0, 0, 0);
+  var omega = 2 * Math.PI / b.period;
+  var nu = b.phase + omega * t;
+  var vx = -b.orbitR*omega*Math.sin(nu), vz = b.orbitR*omega*Math.cos(nu), vy = 0;
+  var inc = b.inclination || 0;
+  if (inc) { var c = Math.cos(inc), s = Math.sin(inc); var yN = -vz*s, zN = vz*c; vy = yN; vz = zN; }
+  return new THREE.Vector3(vx, vy, vz).add(inertialBodyVel(b.parent, t));
+}
+function inertialPosOf(s) { return s.pos.clone().add(inertialBodyPos(s.parent, s.t)); }
+function inertialVelOf(s) { return s.vel.clone().add(inertialBodyVel(s.parent, s.t)); }
+function transitionSOI(s, newParent, reason) {
+  var iPos = inertialPosOf(s), iVel = inertialVelOf(s);
+  s.parent = newParent;
+  s.pos = iPos.sub(inertialBodyPos(newParent, s.t));
+  s.vel = iVel.sub(inertialBodyVel(newParent, s.t));
+  s.stabilityLock = null;
+  s.soiEvent = { body: newParent, t: s.t, reason: reason };
+  if (newParent === 'mun') s._everInMun = true;
+  if (newParent === 'minmus') s._everInMinmus = true;
+}
+function checkSOIChange(s) {
+  var curBody = BODIES[s.parent];
+  if (isFinite(curBody.soiRadius) && s.pos.length() > curBody.soiRadius && curBody.parent) {
+    transitionSOI(s, curBody.parent, 'exit');
+    return;
+  }
+  var iPos = inertialPosOf(s);
+  for (var k in BODIES) {
+    if (k === s.parent) continue;
+    var b = BODIES[k];
+    if (!isFinite(b.soiRadius)) continue;
+    var d = iPos.clone().sub(inertialBodyPos(k, s.t)).length();
+    if (d < b.soiRadius) { transitionSOI(s, k, 'enter'); return; }
+  }
+}
+
+/* ===== 3D PHYSICS ===== */
+// Hot-path scratch vectors hoisted to module scope to avoid per-tick allocation.
+var _phyGravDir = new THREE.Vector3();
+var _phyForward = new THREE.Vector3();
+var _phyThrustAcc = new THREE.Vector3();
+var _phyDragAcc = new THREE.Vector3();
+var _phyAccel = new THREE.Vector3();
+var _phyDelta = new THREE.Vector3();
+var _phyTargetQ = new THREE.Quaternion();
+var _phyRotQ = new THREE.Quaternion();
+var _phyUpY = new THREE.Vector3(0, 1, 0);
+var _phyLocalRight = new THREE.Vector3();
+var _phyLocalUp = new THREE.Vector3();
+var _phyRadial = new THREE.Vector3();
+function physicsTick3D(s) {
+  var parent = BODIES[s.parent];
+  var r = s.pos.length();
+  var alt = r - parent.radius;
+  s.altitude = alt;
+  var gMag = parent.mu / (r * r);
+  // gravDir = -pos_hat
+  _phyGravDir.copy(s.pos).multiplyScalar(-1 / r);
+  var mass = totalMass(s.parts);
+  if (mass <= 0) mass = 1;
+  var t = computeThrust(s.parts, s.currentStage, s.throttle);
+  s.thrustN = t.thrust;
+  _phyForward.set(0, 1, 0).applyQuaternion(s.orientation);
+  _phyThrustAcc.copy(_phyForward).multiplyScalar(t.thrust / mass);
+  var speed = s.vel.length();
+  var rho = parent.atm ? atmDensity(alt) : 0;
+  var q = 0.5 * rho * speed * speed;
+  s.q = q;
+  var chuteAreaCd = 0;
+  var hasChute = false;
+  for (var i = 0; i < s.parts.length; i++) if (PARTS[s.parts[i].key].type === 'chute') hasChute = true;
+  if (s.chuteDeployed && hasChute) chuteAreaCd = 80;
+  // Chute rips if deployed at high Q or supersonic in atm
+  if (s.chuteDeployed && (q > 40000 || (rho > 0.05 && speed > 350))) {
+    s.chuteDeployed = false; s.chuteRipped = true; chuteAreaCd = 0;
+    showToast('<span style="color:#D04040;">Parachute ripped!</span>');
+  }
+  var dm = rho > 0 ? (0.5 * rho * speed * speed * (0.3 * crossSection(s.parts) + chuteAreaCd)) : 0;
+  _phyDragAcc.set(0, 0, 0);
+  if (speed > 0.1) _phyDragAcc.copy(s.vel).multiplyScalar(-dm / (mass * speed));
+  // gravAcc = gravDir * gMag (gravDir is unit -radial)
+  _phyAccel.copy(_phyThrustAcc).add(_phyDragAcc).addScaledVector(_phyGravDir, gMag);
+  s.vel.addScaledVector(_phyAccel, PHYSICS_DT);
+  s.pos.addScaledVector(s.vel, PHYSICS_DT);
+  s.t += PHYSICS_DT;
+  if (t.mdot > 0) consumeFuel(s.parts, s.currentStage, t.mdot * PHYSICS_DT);
+
+  // Autopilot runs before SAS; overrides throttle + target direction
+  var sasTarget;
+  if (autopilot && autopilot.mode !== 'done') {
+    sasTarget = runAutopilot(s);
+  } else {
+    sasTarget = sasTargetDir(s);
+  }
+  if (sasTarget) {
+    _phyTargetQ.setFromUnitVectors(_phyUpY, sasTarget);
+    s.orientation.slerp(_phyTargetQ, 0.08);
+  } else {
+    if (s.pitchRate !== 0) {
+      _phyLocalRight.set(1, 0, 0).applyQuaternion(s.orientation);
+      _phyRotQ.setFromAxisAngle(_phyLocalRight, s.pitchRate * PHYSICS_DT);
+      s.orientation.premultiply(_phyRotQ);
+    }
+    if (s.yawRate !== 0) {
+      _phyLocalUp.set(0, 0, 1).applyQuaternion(s.orientation);
+      _phyRotQ.setFromAxisAngle(_phyLocalUp, s.yawRate * PHYSICS_DT);
+      s.orientation.premultiply(_phyRotQ);
+    }
+  }
+  s.orientation.normalize();
+
+  // Reentry heating: high Q AND descending AND in atmosphere
+  // (s.pos has been updated above; recompute radial from current pos)
+  var rNow = s.pos.length();
+  var altNow = rNow - parent.radius;
+  _phyRadial.copy(s.pos).multiplyScalar(rNow > 0 ? 1 / rNow : 0);
+  var descending = s.vel.dot(_phyRadial) < 0;
+  if (parent.atm && alt < ENV.KARMAN && descending && q > 4000) {
+    s.heat = Math.min(1, (q - 4000) / 35000);
+  } else {
+    s.heat = Math.max(0, s.heat - PHYSICS_DT * 1.5);
+  }
+
+  s.mass = mass;
+  s.grav = gMag;
+  s.accel = _phyThrustAcc.length() + dm / mass;
+  s.speed = speed;
+  if (alt > s.maxAlt) s.maxAlt = alt;
+  if (speed > s.maxVel) s.maxVel = speed;
+  if (q > s.maxQ) s.maxQ = q;
+  if (altNow < 0 && descending) {
+    s.pos.normalize().multiplyScalar(parent.radius);
+    var impactSpeed = s.vel.length();
+    s.vel.set(0, 0, 0);
+    var hasLegs = false;
+    for (var li = 0; li < s.parts.length; li++) if (PARTS[s.parts[li].key].type === 'leg') { hasLegs = true; break; }
+    var softLimit;
+    if (s.parent === 'minmus') softLimit = hasLegs ? 15 : 8;
+    else if (s.parent === 'mun') softLimit = hasLegs ? 18 : 12;
+    else softLimit = hasLegs ? 22 : 15;
+    if (impactSpeed < softLimit) {
+      if (s.parent === 'mun') s.munLanded = true;
+      if (s.parent === 'minmus') s.minmusLanded = true;
+      s.landed = true;
+    } else {
+      s.crashed = true;
+      s.crashBody = s.parent;
+    }
+  }
+  computeOrbitalElements(s);
+  checkSOIChange(s);
+}
+
+function sasTargetDir(s) {
+  switch (sasMode) {
+    case 'prograde': return s.speed > 0.5 ? s.vel.clone().normalize() : null;
+    case 'retrograde': return s.speed > 0.5 ? s.vel.clone().normalize().negate() : null;
+    case 'radial-out': return s.pos.clone().normalize();
+    case 'radial-in': return s.pos.clone().normalize().negate();
+    case 'normal': {
+      var n = new THREE.Vector3().crossVectors(s.pos, s.vel);
+      return n.lengthSq() > 1 ? n.normalize() : null;
+    }
+    case 'antinormal': {
+      var n = new THREE.Vector3().crossVectors(s.pos, s.vel);
+      return n.lengthSq() > 1 ? n.normalize().negate() : null;
+    }
+    case 'stability':
+      if (!s.stabilityLock) s.stabilityLock = new THREE.Vector3(0, 1, 0).applyQuaternion(s.orientation);
+      return s.stabilityLock.clone();
+    case 'maneuver': {
+      if (!maneuverNode) return null;
+      var bs = burnStateAtNode();
+      if (!bs) return null;
+      var burnVec = maneuverBurnVector(bs);
+      if (burnVec.lengthSq() < 1) return null;
+      return burnVec.normalize();
+    }
+    case 'target': {
+      if (!target) return null;
+      var rel = targetRelPos(s);
+      return rel && rel.lengthSq() > 1 ? rel.normalize() : null;
+    }
+  }
+  return null;
+}
+
+function setSAS(mode) {
+  sasMode = mode;
+  if (sim) sim.stabilityLock = null;
+  var btns = document.querySelectorAll('.sas-btn');
+  btns.forEach(function(b) { b.classList.toggle('active', b.getAttribute('data-sas') === mode); });
+}
+
+function computeOrbitalElements(s) {
+  var parent = BODIES[s.parent];
+  var mu = parent.mu;
+  var r = s.pos.length(), v = s.vel.length();
+  s.orbitalEnergy = v * v / 2 - mu / r;
+  var h = new THREE.Vector3().crossVectors(s.pos, s.vel);
+  var rHat = s.pos.clone().normalize();
+  var eVec = new THREE.Vector3().crossVectors(s.vel, h).divideScalar(mu).sub(rHat);
+  var e = eVec.length();
+  s.eccentricity = e;
+  if (s.orbitalEnergy < 0) {
+    // Bound elliptical orbit
+    var a = -mu / (2 * s.orbitalEnergy);
+    s.periapsis = a * (1 - e) - parent.radius;
+    s.apoapsis = a * (1 + e) - parent.radius;
+  } else {
+    // Unbound (hyperbolic e>1, or parabolic e≈1): no apoapsis. Periapsis from
+    // proper hyperbolic elements — a is negative so a(1-e) is positive.
+    if (s.orbitalEnergy > 0) {
+      var aHyp = -mu / (2 * s.orbitalEnergy); // negative
+      s.periapsis = aHyp * (1 - e) - parent.radius;
+    } else {
+      // parabolic: rp = p/(1+e) = h^2 / (mu*(1+e))
+      s.periapsis = h.lengthSq() / (mu * (1 + e)) - parent.radius;
+    }
+    s.apoapsis = Infinity;
+  }
+}
+
+/* ===== STAGING ===== */
+function getStages(parts) {
+  var s = [];
+  for (var i = 0; i < parts.length; i++) if (s.indexOf(parts[i].stage) < 0) s.push(parts[i].stage);
+  return s.sort(function(a, b) { return b - a; });
+}
+function doStage(s) {
+  var stg = s.currentStage;
+  var keep = [];
+  for (var i = 0; i < s.parts.length; i++) {
+    if (s.parts[i].stage !== stg) keep.push(s.parts[i]);
+  }
+  s.parts = keep;
+  var remaining = getStages(s.parts);
+  s.currentStage = remaining.length > 0 ? remaining[0] : -1;
+  buildRocketMeshes(s.parts);
+  playStageSound();
+}
+function checkAutoStage(s) {
+  if (s.currentStage < 0) return;
+  if (stageFuel(s.parts, s.currentStage) <= 0.001 && computeThrust(s.parts, s.currentStage, 1).thrust <= 0) doStage(s);
+}
+
+function buildFlameGroup(nominalThrust, radius) {
+  var grp = new THREE.Group();
+  var r = radius * PART_SCALE;
+  // Outer plume (red)
+  var outer = new THREE.Mesh(new THREE.ConeGeometry(r * 1.8, 8, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xFF5020, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
+  outer.rotation.x = Math.PI;
+  outer.position.y = -4;
+  grp.add(outer);
+  // Mid plume (orange)
+  var mid = new THREE.Mesh(new THREE.ConeGeometry(r * 1.25, 6, 12, 1, true), new THREE.MeshBasicMaterial({ color: 0xFFAA30, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
+  mid.rotation.x = Math.PI;
+  mid.position.y = -3;
+  grp.add(mid);
+  // Inner core (white-yellow)
+  var inner = new THREE.Mesh(new THREE.ConeGeometry(r * 0.85, 4, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xFFFFC0, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, side: THREE.DoubleSide }));
+  inner.rotation.x = Math.PI;
+  inner.position.y = -2;
+  grp.add(inner);
+  // Flame length scales linearly with thrust magnitude
+  grp.userData = { isFlame: true, nominalThrust: nominalThrust, baseLen: Math.max(0.6, Math.sqrt(nominalThrust) * 0.08) };
+  grp.visible = false;
+  return grp;
+}
+
+/* ===== 3D ROCKET MESH ===== */
+function buildRocketMeshes(parts) {
+  while (rocketGroup.children.length > 0) {
+    var child = rocketGroup.children[0];
+    rocketGroup.remove(child);
+    if (child.geometry) child.geometry.dispose();
+    if (child.material) child.material.dispose();
+  }
+  rocketGroup.add(flameLight);
+  var y = 0;
+  var STACK_R = 24/2 * PART_SCALE;
+  for (var i = parts.length - 1; i >= 0; i--) {
+    var def = PARTS[parts[i].key];
+    var h = def.h * PART_SCALE, r = def.w / 2 * PART_SCALE;
+    if (def.radial) {
+      // Radial SRB cluster: N cylinders around Y axis, don't advance y
+      var N = def.radial;
+      var boosterR = def.w/2 * PART_SCALE;
+      var offset = STACK_R + boosterR * 1.15;
+      var perUnitThrust = def.thrust / N;
+      for (var j = 0; j < N; j++) {
+        var ang = (j / N) * Math.PI * 2;
+        var bm = new THREE.Mesh(new THREE.CylinderGeometry(boosterR, boosterR, h, 8), new THREE.MeshPhongMaterial({ color: def.color }));
+        bm.position.set(offset * Math.cos(ang), y + h / 2, offset * Math.sin(ang));
+        rocketGroup.add(bm);
+        var noz = new THREE.Mesh(new THREE.ConeGeometry(boosterR * 0.8, boosterR, 8), new THREE.MeshPhongMaterial({ color: 0x303030 }));
+        noz.rotation.x = Math.PI;
+        noz.position.set(offset * Math.cos(ang), y - boosterR * 0.5, offset * Math.sin(ang));
+        rocketGroup.add(noz);
+        var flame = buildFlameGroup(perUnitThrust, def.w/2);
+        flame.position.set(offset * Math.cos(ang), y - boosterR, offset * Math.sin(ang));
+        flame.userData.stage = parts[i].stage;
+        flame.userData.partIdx = i;
+        rocketGroup.add(flame);
+      }
+      continue;
+    }
+    if (def.type === 'leg') {
+      var legLen = def.h * PART_SCALE;
+      var footOffset = def.w/2 * PART_SCALE;
+      for (var j = 0; j < 4; j++) {
+        var ang = (j / 4) * Math.PI * 2 + Math.PI/4;
+        var legM = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, legLen, 6), new THREE.MeshPhongMaterial({ color: def.color }));
+        var outX = (STACK_R + footOffset*0.8) * Math.cos(ang);
+        var outZ = (STACK_R + footOffset*0.8) * Math.sin(ang);
+        legM.position.set(outX*0.6, y - legLen*0.2, outZ*0.6);
+        legM.lookAt(outX, y - legLen, outZ);
+        legM.rotateX(Math.PI/2);
+        rocketGroup.add(legM);
+        var footM = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), new THREE.MeshPhongMaterial({ color: def.color }));
+        footM.position.set(outX, y - legLen*0.9, outZ);
+        rocketGroup.add(footM);
+      }
+      continue;
+    }
+    if (def.type === 'abort') {
+      var spireH = h, spireR = def.w/2 * PART_SCALE;
+      var spire = new THREE.Mesh(new THREE.CylinderGeometry(spireR*0.2, spireR*0.9, spireH*0.55, 8), new THREE.MeshPhongMaterial({ color: def.color }));
+      spire.position.y = y + spireH * 0.725;
+      rocketGroup.add(spire);
+      var basePart = new THREE.Mesh(new THREE.CylinderGeometry(spireR*0.95, spireR*1.05, spireH*0.35, 8), new THREE.MeshPhongMaterial({ color: 0x803030 }));
+      basePart.position.y = y + spireH * 0.25;
+      rocketGroup.add(basePart);
+      for (var j = 0; j < 4; j++) {
+        var ang = j * Math.PI/2;
+        var noz = new THREE.Mesh(new THREE.ConeGeometry(spireR*0.3, spireR*0.9, 6), new THREE.MeshPhongMaterial({ color: 0x202428 }));
+        noz.position.set(spireR*1.1 * Math.cos(ang), y + spireH*0.1, spireR*1.1 * Math.sin(ang));
+        noz.rotation.z = Math.cos(ang) * 0.5;
+        noz.rotation.x = Math.sin(ang) * 0.5;
+        rocketGroup.add(noz);
+        var fl = buildFlameGroup(def.thrust/4, def.w/4);
+        fl.position.set(spireR*1.3 * Math.cos(ang), y + spireH*0.05, spireR*1.3 * Math.sin(ang));
+        // Nozzles are canted outward; flame along their axis but simplification: point downward
+        fl.userData.stage = parts[i].stage;
+        fl.userData.partIdx = i;
+        rocketGroup.add(fl);
+      }
+      y += spireH;
+      continue;
+    }
+    if (def.type === 'rcs') {
+      // Four small quad thrusters around the stack
+      var rcsH = h, rcsL = def.w/2 * PART_SCALE, rcsThk = 0.35;
+      for (var j = 0; j < 4; j++) {
+        var ang = (j / 4) * Math.PI * 2;
+        var rcsM = new THREE.Mesh(new THREE.BoxGeometry(rcsL*0.6, rcsH*0.6, rcsThk), new THREE.MeshPhongMaterial({ color: def.color }));
+        rcsM.position.set((STACK_R + rcsL*0.3) * Math.cos(ang), y + h/2, (STACK_R + rcsL*0.3) * Math.sin(ang));
+        rcsM.rotation.y = ang;
+        rocketGroup.add(rcsM);
+      }
+      y += h * 0.4;
+      continue;
+    }
+    if (def.type === 'fin') {
+      // Four thin fin blades at base of stack
+      var finH = h, finL = def.w/2 * PART_SCALE, finThick = 0.15;
+      for (var j = 0; j < 4; j++) {
+        var ang = (j / 4) * Math.PI * 2;
+        var fm = new THREE.Mesh(new THREE.BoxGeometry(finL, finH, finThick), new THREE.MeshPhongMaterial({ color: def.color }));
+        fm.position.set((STACK_R + finL/2) * Math.cos(ang), y + h/2, (STACK_R + finL/2) * Math.sin(ang));
+        fm.rotation.y = ang;
+        rocketGroup.add(fm);
+      }
+      y += h * 0.3;
+      continue;
+    }
+    var mesh;
+    if (def.type === 'pod') {
+      mesh = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8), new THREE.MeshPhongMaterial({ color: def.color }));
+      mesh.position.y = y + h / 2;
+    } else if (def.type === 'chute') {
+      // Canister
+      mesh = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.8, r * 0.8, h, 8), new THREE.MeshPhongMaterial({ color: def.color }));
+      mesh.position.y = y + h / 2;
+      rocketGroup.add(mesh);
+      if (sim && sim.chuteDeployed) {
+        var canopyR = 3.5;
+        var canopy = new THREE.Mesh(
+          new THREE.SphereGeometry(canopyR, 14, 8, 0, Math.PI*2, 0, Math.PI/2),
+          new THREE.MeshPhongMaterial({ color: 0xFFA030, emissive: 0x401800, side: THREE.DoubleSide, shininess: 20 })
+        );
+        canopy.position.y = y + h + canopyR * 0.9;
+        rocketGroup.add(canopy);
+        // Shroud lines
+        var lineMat = new THREE.LineBasicMaterial({ color: 0xF0C050 });
+        for (var lj = 0; lj < 6; lj++) {
+          var la = (lj / 6) * Math.PI * 2;
+          var pts = [new THREE.Vector3(0, y + h, 0), new THREE.Vector3(canopyR*0.7*Math.cos(la), y + h + canopyR*0.85, canopyR*0.7*Math.sin(la))];
+          var lg = new THREE.BufferGeometry().setFromPoints(pts);
+          rocketGroup.add(new THREE.Line(lg, lineMat));
+        }
+      }
+      y += h;
+      continue;
+    } else {
+      mesh = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 8), new THREE.MeshPhongMaterial({ color: def.color }));
+      mesh.position.y = y + h / 2;
+    }
+    rocketGroup.add(mesh);
+    // Attach a flame to engines and SRBs (stack-mounted)
+    if (def.type === 'engine' || def.type === 'srb') {
+      var fl2 = buildFlameGroup(def.thrust, def.w/2);
+      fl2.position.y = y;
+      fl2.userData.stage = parts[i].stage;
+      fl2.userData.partIdx = i;
+      rocketGroup.add(fl2);
+    }
+    y += h;
+  }
+  flameLight.position.y = -2;
+}
+
+/* ===== BUILDER (same as 2D) ===== */
+function addPart(key) {
+  var def = PARTS[key];
+  var p = { id: partIdCounter++, key: key, stage: maxStage() };
+  if (def.fuel !== undefined) p.fuel = def.fuel;
+  rocket.parts.push(p);
+  renderBuilder();
+}
+function removePart(idx) { rocket.parts.splice(idx, 1); selectedPart = -1; renderBuilder(); }
+function maxStage() { var m = 0; for (var i = 0; i < rocket.parts.length; i++) if (rocket.parts[i].stage > m) m = rocket.parts[i].stage; return m; }
+function clearRocket() { rocket.parts = []; selectedPart = -1; renderBuilder(); }
+function loadPreset(name) {
+  rocket.parts = []; partIdCounter = 0;
+  var preset = PRESETS[name];
+  for (var i = 0; i < preset.length; i++) {
+    var def = PARTS[preset[i].key];
+    var p = { id: partIdCounter++, key: preset[i].key, stage: preset[i].stage };
+    if (def.fuel !== undefined) p.fuel = def.fuel;
+    rocket.parts.push(p);
+  }
+  selectedPart = -1;
+  renderBuilder();
+}
+function renderCatalog() {
+  var cat = document.getElementById('catalog');
+  var html = '';
+  var saves = loadAllCrafts();
+  var saveKeys = Object.keys(saves);
+  if (saveKeys.length > 0) {
+    html += '<h3>&#x1F4BE; My Crafts</h3>';
+    for (var i = 0; i < saveKeys.length; i++) {
+      var k = saveKeys[i];
+      html += '<div class="cat-part" style="display:flex;justify-content:space-between;align-items:center;"><span class="pname" style="flex:1;cursor:pointer;" onclick="loadCraft(' + JSON.stringify(k).replace(/"/g,'&quot;') + ')">' + k + '</span><span style="color:#D04040;cursor:pointer;padding:0 4px;" onclick="deleteCraft(' + JSON.stringify(k).replace(/"/g,'&quot;') + ');event.stopPropagation();">&times;</span></div>';
+    }
+  }
+  html += '<h3>&#x1F680; Parts</h3>';
+  var groups = { pod:'Pods', abort:'Abort System', chute:'Parachutes', tank:'Fuel Tanks', engine:'Engines', srb:'Solid Boosters', rcs:'RCS', fin:'Aero Fins', leg:'Landing Gear', decoupler:'Decouplers' };
+  for (var g in groups) {
+    html += '<h3>' + groups[g] + '</h3>';
+    for (var k in PARTS) {
+      if (PARTS[k].type !== g) continue;
+      var p = PARTS[k], stats = p.mass + 't';
+      if (p.fuel) stats += ' / ' + p.fuel + 't fuel';
+      if (p.thrust) stats += ' / ' + p.thrust + 'kN';
+      if (p.isp) stats += ' / ' + p.isp + 's Isp';
+      html += '<div class="cat-part" onclick="addPart(\'' + k + '\')"><span class="pname">' + p.name + '</span><br><span class="pstat">' + stats + '</span></div>';
+    }
+  }
+  cat.innerHTML = html;
+}
+function renderPreview() {
+  var c = document.getElementById('previewCanvas'), ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+  var cx = c.width / 2, cy = c.height - 40, totalH = 0;
+  for (var i = rocket.parts.length - 1; i >= 0; i--) totalH += PARTS[rocket.parts[i].key].h;
+  var scale = Math.min(2, (c.height - 80) / Math.max(totalH, 1));
+  var y = cy;
+  for (var i = rocket.parts.length - 1; i >= 0; i--) {
+    var def = PARTS[rocket.parts[i].key];
+    var h = def.h * scale, w = def.w * scale;
+    y -= h;
+    var sc = ['#4080D0','#40D080','#D0A040','#D04080','#8040D0'];
+    ctx.fillStyle = def.color;
+    if (def.type === 'pod') { ctx.beginPath(); ctx.moveTo(cx, y); ctx.lineTo(cx + w / 2, y + h); ctx.lineTo(cx - w / 2, y + h); ctx.closePath(); ctx.fill(); }
+    else ctx.fillRect(cx - w / 2, y, w, h);
+    if (def.type === 'tank' && rocket.parts[i].fuel !== undefined) {
+      var frac = rocket.parts[i].fuel / def.fuel;
+      ctx.fillStyle = 'rgba(64,208,128,0.4)';
+      ctx.fillRect(cx - w / 2 + 1, y + h * (1 - frac), w - 2, h * frac);
+    }
+    ctx.strokeStyle = sc[rocket.parts[i].stage % sc.length];
+    ctx.lineWidth = i === selectedPart ? 2 : 1;
+    if (def.type === 'pod') { ctx.beginPath(); ctx.moveTo(cx, y); ctx.lineTo(cx + w / 2, y + h); ctx.lineTo(cx - w / 2, y + h); ctx.closePath(); ctx.stroke(); }
+    else ctx.strokeRect(cx - w / 2, y, w, h);
+    ctx.fillStyle = '#8098B0'; ctx.font = (8 * scale) + 'px Courier New'; ctx.textAlign = 'center';
+    ctx.fillText(def.name, cx, y + h / 2 + 3 * scale);
+  }
+}
+function renderStagePanel() {
+  var panel = document.getElementById('stagePanel');
+  var stages = getStages(rocket.parts); stages.sort(function(a, b) { return b - a; });
+  var html = '<h3>Stages (fire order &darr;)</h3>';
+  for (var si = 0; si < stages.length; si++) {
+    var sn = stages[si], dv = stageDv(rocket.parts, sn);
+    html += '<div class="stage-group"><div class="sg-header">Stage ' + sn + '</div>';
+    for (var i = 0; i < rocket.parts.length; i++) {
+      if (rocket.parts[i].stage !== sn) continue;
+      html += '<div class="sg-part' + (i === selectedPart ? ' selected' : '') + '" onclick="selectPart(' + i + ')">' + PARTS[rocket.parts[i].key].name + '</div>';
+    }
+    html += '<div class="stage-dv">&Delta;v: ' + Math.round(dv) + ' m/s</div></div>';
+  }
+  html += '<div style="margin-top:8px;font-size:0.8em;color:#40D080;">Total &Delta;v: <b>' + Math.round(totalDv(rocket.parts)) + '</b> m/s</div>';
+  html += '<div style="font-size:0.7em;color:#6080A0;margin-top:2px;">Need ~9400 m/s for orbit</div>';
+  var m = 0;
+  for (var i = 0; i < rocket.parts.length; i++) m += PARTS[rocket.parts[i].key].mass + (rocket.parts[i].fuel || 0);
+  html += '<div style="font-size:0.75em;color:#8098B0;margin-top:4px;">Mass: ' + m.toFixed(1) + 't</div>';
+  if (selectedPart >= 0) {
+    html += '<div style="margin-top:8px;border-top:1px solid #1A2A40;padding-top:4px;"><div style="font-size:0.7em;color:#B0C8E0;">Selected: ' + PARTS[rocket.parts[selectedPart].key].name + '</div>';
+    html += '<button class="btn" style="font-size:0.7em;padding:2px 8px;" onclick="removePart(' + selectedPart + ')">Delete</button>';
+    for (var s = 0; s <= maxStage() + 1; s++) html += '<button class="btn" style="font-size:0.65em;padding:1px 6px;" onclick="assignStage(' + selectedPart + ',' + s + ')">S' + s + '</button>';
+    html += '</div>';
+  }
+  // Missions
+  html += '<div class="missions-panel"><h3>&#x1F680; MISSIONS</h3>';
+  html += '<div class="funds-display">Funds: &#164;' + getFunds().toLocaleString() + '</div>';
+  for (var i = 0; i < MISSIONS.length; i++) {
+    var mis = MISSIONS[i];
+    var done = missionProgress[mis.id] && missionProgress[mis.id].completed;
+    html += '<div class="mission' + (done ? ' done' : '') + '"><span class="mr">&#164;' + mis.reward + '</span><span class="mn">' + (done ? '&#10003; ' : '') + mis.name + '</span><br><span class="md">' + mis.desc + '</span></div>';
+  }
+  html += '</div>';
+  panel.innerHTML = html;
+}
+
+/* ===== MISSION TRACKING ===== */
+var missionProgress = loadMissionProgress();
+
+function loadMissionProgress() {
+  try { return JSON.parse(localStorage.getItem('apoapsis_missions') || '{}'); }
+  catch(e) { return {}; }
+}
+function saveMissionProgress() {
+  try { localStorage.setItem('apoapsis_missions', JSON.stringify(missionProgress)); } catch(e) {}
+}
+function getFunds() {
+  var total = 0;
+  for (var k in missionProgress) {
+    if (!missionProgress[k].completed) continue;
+    for (var i = 0; i < MISSIONS.length; i++) if (MISSIONS[i].id === k) total += MISSIONS[i].reward;
+  }
+  return total;
+}
+function loadAllCrafts() {
+  try { return JSON.parse(localStorage.getItem('apoapsis_craft') || '{}'); }
+  catch(e) { return {}; }
+}
+function saveCraft() {
+  if (rocket.parts.length === 0) { alert('Nothing to save.'); return; }
+  var name = prompt('Craft name:');
+  if (!name) return;
+  name = name.trim().slice(0, 20);
+  if (!name) return;
+  var saves = loadAllCrafts();
+  saves[name] = rocket.parts.map(function(p) { return { key: p.key, stage: p.stage, fuel: p.fuel }; });
+  try { localStorage.setItem('apoapsis_craft', JSON.stringify(saves)); } catch(e) {}
+  renderBuilder();
+}
+function loadCraft(name) {
+  var saves = loadAllCrafts();
+  if (!saves[name]) return;
+  rocket.parts = [];
+  partIdCounter = 0;
+  for (var i = 0; i < saves[name].length; i++) {
+    var sp = saves[name][i];
+    var def = PARTS[sp.key];
+    if (!def) continue;
+    var p = { id: partIdCounter++, key: sp.key, stage: sp.stage };
+    if (sp.fuel !== undefined) p.fuel = sp.fuel;
+    else if (def.fuel) p.fuel = def.fuel;
+    rocket.parts.push(p);
+  }
+  selectedPart = -1;
+  renderBuilder();
+}
+function deleteCraft(name) {
+  if (!confirm('Delete "' + name + '"?')) return;
+  var saves = loadAllCrafts();
+  delete saves[name];
+  try { localStorage.setItem('apoapsis_craft', JSON.stringify(saves)); } catch(e) {}
+  renderBuilder();
+}
+
+function checkMissions(s) {
+  for (var i = 0; i < MISSIONS.length; i++) {
+    var mis = MISSIONS[i];
+    if (missionProgress[mis.id] && missionProgress[mis.id].completed) continue;
+    if (mis.check(s)) {
+      missionProgress[mis.id] = { completed: true, completedAt: Date.now() };
+      saveMissionProgress();
+      showToast('MISSION: <b style="color:#FFD040;">' + mis.name + '</b><br>&#164;' + mis.reward + ' earned');
+      playMissionChime();
+      if (s.completedThisFlight == null) s.completedThisFlight = [];
+      s.completedThisFlight.push(mis);
+    }
+  }
+}
+function selectPart(idx) { selectedPart = idx; renderBuilder(); }
+function assignStage(idx, s) { rocket.parts[idx].stage = s; renderBuilder(); }
+function renderBuilder() { renderPreview(); renderStagePanel(); document.getElementById('previewInfo').innerHTML = 'Click catalog to add. Click part to select. <b>' + rocket.parts.length + '</b> parts.'; }
+
+/* ===== FLIGHT ===== */
+function startFlight() {
+  if (rocket.parts.length === 0) return;
+  initThree();
+  var parts = [];
+  for (var i = 0; i < rocket.parts.length; i++) {
+    var p = { key: rocket.parts[i].key, stage: rocket.parts[i].stage };
+    if (rocket.parts[i].fuel !== undefined) p.fuel = rocket.parts[i].fuel;
+    parts.push(p);
+  }
+  var stages = getStages(parts);
+  sim = {
+    parts: parts,
+    parent: 'earth',
+    pos: new THREE.Vector3(0, ENV.R, 0),
+    vel: new THREE.Vector3(0, 0, 0),
+    orientation: new THREE.Quaternion(),
+    t: 0, throttle: 1.0, pitchRate: 0, yawRate: 0,
+    currentStage: stages[0],
+    altitude: 0, speed: 0, thrustN: 0, grav: 0, mass: 0, accel: 0,
+    maxAlt: 0, maxVel: 0, maxQ: 0, q: 0, heat: 0,
+    crashed: false, munLanded: false, minmusLanded: false, landed: false, crashBody: null,
+    chuteDeployed: false, chuteRipped: false,
+    _everInMun: false, _everInMinmus: false,
+    completedThisFlight: [],
+    periapsis: 0, apoapsis: 0, eccentricity: 1, orbitalEnergy: 0,
+    trail: [],
+    stabilityLock: null,
+    soiEvent: null
+  };
+  buildRocketMeshes(sim.parts);
+  exhaustData = [];
+  gameState = 'flight';
+  timeWarp = 1;
+  maneuverNode = null;
+  autopilot = null;
+  if (camera) camera._initialized = false;
+  flightCam.yaw = 0; flightCam.pitch = 0.35; flightCam.zoom = 1;
+  if (target) clearTarget();
+  if (document.getElementById('maneuverPanel')) document.getElementById('maneuverPanel').classList.remove('active');
+  setSAS('off');
+  setView('flight');
+  accumulator = 0;
+  lastTime = 0;
+  initAudio();
+  document.getElementById('builderScreen').classList.remove('active');
+  document.getElementById('flightScreen').classList.add('active');
+  document.getElementById('resultOverlay').classList.remove('show');
+  // Now that flightScreen is visible, threeContainer finally has real pixel dimensions.
+  // initThree ran while the container was hidden (0x0), so the renderer canvas is also 0x0 — fix it.
+  resizeFlightCanvas();
+  requestAnimationFrame(gameLoop);
+}
+
+function resizeFlightCanvas() {
+  var c = document.getElementById('threeContainer');
+  if (!c || !renderer) return;
+  var w = c.clientWidth, h = c.clientHeight;
+  if (w <= 0 || h <= 0) return;
+  renderer.setSize(w, h);
+  if (camera) { camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  if (mapCamera) { mapCamera.aspect = w / h; mapCamera.updateProjectionMatrix(); }
+}
+
+function backToBuilder() {
+  gameState = 'builder';
+  document.getElementById('flightScreen').classList.remove('active');
+  document.getElementById('builderScreen').classList.add('active');
+  if (document.getElementById('maneuverPanel')) document.getElementById('maneuverPanel').classList.remove('active');
+  renderBuilder();
+}
+
+function canRail(s) {
+  if (!s) return false;
+  var parent = BODIES[s.parent];
+  var aboveAtm = !parent.atm || s.altitude > ENV.KARMAN;
+  return s.thrustN === 0 && s.throttle === 0 && aboveAtm;
+}
+
+function railStep(s, dt) {
+  var remaining = dt;
+  var MAX_SUB = 10; // sim seconds per kepler step
+  while (remaining > 0.001) {
+    var sub = Math.min(MAX_SUB, remaining);
+    var parent = BODIES[s.parent];
+    var kep = keplerianFromState(s.pos, s.vel, parent.mu);
+    if (!kep || !kep.bound) return false;
+    var n = Math.sqrt(parent.mu / (kep.a*kep.a*kep.a));
+    var nu0 = trueAnomalyFromState(s.pos, s.vel, kep);
+    var E0 = 2*Math.atan2(Math.sqrt(1-kep.e)*Math.sin(nu0/2), Math.sqrt(1+kep.e)*Math.cos(nu0/2));
+    var M = E0 - kep.e*Math.sin(E0) + n*sub;
+    var E = solveKepler(M, kep.e);
+    var nu = 2*Math.atan2(Math.sqrt(1+kep.e)*Math.sin(E/2), Math.sqrt(1-kep.e)*Math.cos(E/2));
+    var pv = posVelFromKepler(kep, nu, parent.mu);
+    s.pos.copy(pv.pos);
+    s.vel.copy(pv.vel);
+    s.t += sub;
+    s.altitude = s.pos.length() - parent.radius;
+    s.speed = s.vel.length();
+    checkSOIChange(s);
+    computeOrbitalElements(s);
+    if (!canRail(s)) return true;
+    remaining -= sub;
+  }
+  return true;
+}
+
+function gameLoop(timestamp) {
+  if (gameState !== 'flight') return;
+  // Recover from any stale canvas sizing (e.g. first-frame after screen swap, window resize while hidden)
+  var _c = document.getElementById('threeContainer');
+  if (_c && renderer && (_c.clientWidth !== renderer.domElement.width || _c.clientHeight !== renderer.domElement.height)) {
+    resizeFlightCanvas();
+  }
+  if (lastTime === 0) lastTime = timestamp;
+  var frameTime = Math.min((timestamp - lastTime) / 1000, 0.1) * timeWarp;
+  lastTime = timestamp;
+  // High warp on rails: skip integration loop, use Kepler propagation
+  if (canRail(sim) && timeWarp >= 50) {
+    var railed = railStep(sim, frameTime);
+    if (railed) {
+      accumulator = 0;
+      if (checkWinLose()) return;
+      if (sim.soiEvent) {
+        var ev = sim.soiEvent; sim.soiEvent = null;
+        showToast((ev.reason === 'enter' ? 'Entered ' : 'Exited to ') + BODIES[ev.body].name + ' SOI');
+        playStageSound();
+      }
+      checkMissions(sim);
+      if (viewMode === 'map') renderMapView();
+      else renderFlight3D();
+      renderHUD();
+      updateAudio(sim);
+      updatePlasmaOverlay(sim);
+      requestAnimationFrame(gameLoop);
+      return;
+    }
+  }
+  if (timeWarp > 10 && !canRail(sim)) { timeWarp = 10; showToast('<span style="color:#D04040;">Rails broken &mdash; warp capped at 10x</span>'); }
+  accumulator += frameTime;
+  while (accumulator >= PHYSICS_DT) {
+    handleInput();
+    physicsTick3D(sim);
+    checkAutoStage(sim);
+    accumulator -= PHYSICS_DT;
+    if (sim.thrustN > 0 && sim.t - (sim._lastTrailT || 0) >= 1) {
+      sim.trail.push(inertialPosOf(sim));
+      sim._lastTrailT = sim.t;
+    }
+    if (sim.trail.length > 500) sim.trail.shift();
+    if (checkWinLose()) return;
+  }
+  if (sim.soiEvent) {
+    var ev = sim.soiEvent; sim.soiEvent = null;
+    var bName = BODIES[ev.body].name;
+    showToast((ev.reason === 'enter' ? 'Entered ' : 'Exited to ') + bName + ' SOI');
+    playStageSound();
+  }
+  checkMissions(sim);
+  if (viewMode === 'map') renderMapView();
+  else renderFlight3D();
+  renderHUD();
+  renderNavball();
+  updateAudio(sim);
+  updatePlasmaOverlay(sim);
+  requestAnimationFrame(gameLoop);
+}
+
+function updatePlasmaOverlay(s) {
+  document.getElementById('plasmaOverlay').style.opacity = (s.heat || 0).toFixed(2);
+}
+
+function checkWinLose() {
+  if (sim.munLanded) { showResult(true, 'Luma Landing!'); return true; }
+  if (sim.minmusLanded) { showResult(true, 'Pebble Landing!'); return true; }
+  if (sim.landed && sim.parent === 'earth' && sim._everInMun) { showResult(true, 'Safe Return from Luma!'); return true; }
+  if (sim.landed && sim.parent === 'earth' && sim.maxAlt > 50000 && !sim.landedShown) {
+    sim.landedShown = true; showToast('Landed safely.');
+  }
+  if (sim.parent === 'earth' && sim.periapsis > 70000 && sim.orbitalEnergy < 0 && sim.eccentricity < 1 && !sim.orbitAchieved) {
+    sim.orbitAchieved = true;
+    showToast('Orbit achieved! Keep going to Luma &rarr;');
+    return false;
+  }
+  if (sim.crashed) {
+    var title = sim.crashBody === 'mun' ? 'Crashed on Luma' : (sim.maxAlt > 1000 ? 'Crashed on Return' : 'Launch Failure');
+    showResult(false, title);
+    return true;
+  }
+  if (sim.t > 10 && sim.altitude <= 0 && sim.speed < 1 && sim.maxAlt < 10) { showResult(false, 'No Thrust'); return true; }
+  return false;
+}
+
+function showToast(html) {
+  var el = document.getElementById('toast');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'toast';
+    el.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(10,40,20,0.9);border:2px solid #40D080;color:#B0C8E0;padding:16px 28px;border-radius:8px;font-family:\'Courier New\',monospace;font-size:1em;z-index:50;pointer-events:none;opacity:0;transition:opacity 0.4s;';
+    document.getElementById('flightScreen').appendChild(el);
+  }
+  el.innerHTML = html;
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function() { el.style.opacity = '0'; }, 3000);
+}
+
+function showResult(win, title) {
+  gameState = 'result';
+  var el = document.getElementById('resultTitle');
+  el.textContent = title;
+  el.className = win ? '' : 'fail';
+  var missionsHtml = '';
+  var earned = 0;
+  if (sim.completedThisFlight && sim.completedThisFlight.length > 0) {
+    missionsHtml = '<p style="margin-top:8px;color:#FFD040;"><b>Missions this flight:</b></p>';
+    for (var i = 0; i < sim.completedThisFlight.length; i++) {
+      var mis = sim.completedThisFlight[i];
+      missionsHtml += '<p style="color:#40D080;">&#10003; ' + mis.name + ' &nbsp; <b>&#164;' + mis.reward + '</b></p>';
+      earned += mis.reward;
+    }
+    if (earned > 0) missionsHtml += '<p style="color:#FFD040;font-size:0.95em;">+&#164;' + earned + ' &nbsp; total: &#164;' + getFunds().toLocaleString() + '</p>';
+  }
+  document.getElementById('resultStats').innerHTML =
+    '<p>Max Altitude: <b>' + fmtAlt(sim.maxAlt) + '</b></p>' +
+    '<p>Max Velocity: <b>' + Math.round(sim.maxVel) + ' m/s</b></p>' +
+    '<p>Periapsis: <b>' + fmtAlt(sim.periapsis) + '</b></p>' +
+    '<p>Apoapsis: <b>' + fmtAlt(sim.apoapsis) + '</b></p>' +
+    '<p>Flight Time: <b>' + fmtTime(sim.t) + '</b></p>' + missionsHtml;
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+/* ===== 3D RENDERER ===== */
+function renderFlight3D() {
+  if (cloudMesh) cloudMesh.rotation.y = sim.t * 0.00003;
+  var shipInertialPos = inertialPosOf(sim);
+  rocketGroup.position.copy(shipInertialPos);
+  // sim.orientation is in world/inertial frame; model's +Y = nose
+  rocketGroup.quaternion.copy(sim.orientation);
+
+  // Update all non-Earth body positions
+  for (var bk in bodyMeshes) {
+    bodyMeshes[bk].position.copy(inertialBodyPos(bk, sim.t));
+    bodyMeshes[bk].visible = true;
+  }
+  // Target
+  if (target) {
+    var ts = targetStateAt(sim.t);
+    if (ts) target.mesh.position.copy(ts.pos);
+    target.mesh.visible = true;
+    if (target.marker) target.marker.visible = false;
+    if (target.orbitLine) target.orbitLine.visible = false;
+  }
+
+  // Flame light
+  flameLight.intensity = sim.thrustN > 0 ? sim.throttle * 3 : 0;
+  // Engine flame animation: scale length by throttle, jitter for life
+  for (var fi = 0; fi < rocketGroup.children.length; fi++) {
+    var ch = rocketGroup.children[fi];
+    if (!ch.userData || !ch.userData.isFlame) continue;
+    var isCurStage = ch.userData.stage === sim.currentStage;
+    var firing = isCurStage && sim.throttle > 0 && sim.thrustN > 0;
+    if (firing) {
+      var throttle = sim.throttle;
+      var jitter = 0.85 + Math.random() * 0.3;
+      var lenScale = ch.userData.baseLen * throttle * jitter;
+      var widthScale = (0.7 + throttle * 0.4) * (0.9 + Math.random() * 0.2);
+      ch.scale.set(widthScale, lenScale, widthScale);
+      ch.visible = true;
+    } else {
+      ch.visible = false;
+    }
+  }
+
+  // Exhaust particles
+  if (sim.thrustN > 0) {
+    var nozzleWorld = rocketGroup.localToWorld(new THREE.Vector3(0, -2, 0));
+    var thrustDir = new THREE.Vector3(0, -1, 0).applyQuaternion(rocketGroup.quaternion);
+    for (var sp = 0; sp < Math.ceil(sim.throttle * 5); sp++) {
+      if (exhaustData.length >= 300) break;
+      var pVel = thrustDir.clone().multiplyScalar(50 + Math.random() * 100)
+        .add(new THREE.Vector3((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10));
+      exhaustData.push({ pos: nozzleWorld.clone(), vel: pVel, life: 0, maxLife: 0.4 + Math.random() * 0.6 });
+    }
+  }
+  for (var i = exhaustData.length - 1; i >= 0; i--) {
+    exhaustData[i].pos.add(exhaustData[i].vel.clone().multiplyScalar(PHYSICS_DT * timeWarp));
+    exhaustData[i].life += PHYSICS_DT * timeWarp;
+    if (exhaustData[i].life >= exhaustData[i].maxLife) exhaustData.splice(i, 1);
+  }
+  for (var i = 0; i < 300; i++) {
+    if (i < exhaustData.length) {
+      var ep = exhaustData[i], frac = 1 - ep.life / ep.maxLife;
+      exhaustPositions[i * 3] = ep.pos.x;
+      exhaustPositions[i * 3 + 1] = ep.pos.y;
+      exhaustPositions[i * 3 + 2] = ep.pos.z;
+      exhaustColors[i * 3] = frac;
+      exhaustColors[i * 3 + 1] = frac * 0.6;
+      exhaustColors[i * 3 + 2] = frac * 0.2;
+      exhaustSizes[i] = 3 + 8 * frac;
+    } else {
+      exhaustPositions[i * 3] = 0; exhaustPositions[i * 3 + 1] = 0; exhaustPositions[i * 3 + 2] = 0;
+      exhaustSizes[i] = 0;
+    }
+  }
+  exhaustParticles.geometry.attributes.position.needsUpdate = true;
+  exhaustParticles.geometry.attributes.color.needsUpdate = true;
+  exhaustParticles.geometry.attributes.size.needsUpdate = true;
+
+  // Trail — update the preallocated buffer in place
+  if (sim.trail.length > 1) {
+    var trailAttr = trailGeom.getAttribute('position');
+    var arr = trailAttr.array;
+    for (var i = 0; i < sim.trail.length; i++) {
+      arr[i * 3]     = sim.trail[i].x;
+      arr[i * 3 + 1] = sim.trail[i].y;
+      arr[i * 3 + 2] = sim.trail[i].z;
+    }
+    trailAttr.needsUpdate = true;
+    trailGeom.setDrawRange(0, sim.trail.length);
+  } else {
+    trailGeom.setDrawRange(0, 0);
+  }
+
+  // Orbit-cam: frame the whole rocket, positioned behind-and-above in the local (radial=up) frame
+  var radial = sim.pos.clone().normalize();
+  var shipFwd = new THREE.Vector3(0, 1, 0).applyQuaternion(rocketGroup.quaternion);
+
+  // Compute rocket stack height and pick the visual center of the craft (not its base)
+  var totalH = 0;
+  for (var pi = 0; pi < sim.parts.length; pi++) totalH += PARTS[sim.parts[pi].key].h;
+  var rocketSize = totalH * PART_SCALE;
+  var focusPoint = shipInertialPos.clone().add(shipFwd.clone().multiplyScalar(rocketSize * 0.5));
+
+  // "Behind" direction in the tangent plane — fallback if rocket is perfectly radial (launch pose)
+  var horizFwd = shipFwd.clone().sub(radial.clone().multiplyScalar(shipFwd.dot(radial)));
+  if (horizFwd.lengthSq() < 0.01) {
+    horizFwd = Math.abs(radial.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+    horizFwd.sub(radial.clone().multiplyScalar(horizFwd.dot(radial))).normalize();
+  } else {
+    horizFwd.normalize();
+  }
+  var horizRight = new THREE.Vector3().crossVectors(horizFwd, radial).normalize();
+
+  // Distance chosen so the rocket fills about 55% of the vertical FOV, plus altitude-dependent padding for context
+  var fitDist = Math.max(20, rocketSize * 1.9);
+  var camDist = (fitDist + Math.log10(Math.max(1, sim.altitude + 1)) * 18) * flightCam.zoom;
+
+  // Orbit around focus: behind→yaw→pitch
+  var dir = horizFwd.clone().negate();
+  var cy = Math.cos(flightCam.yaw), sy = Math.sin(flightCam.yaw);
+  var rotated = dir.clone().multiplyScalar(cy).add(horizRight.clone().multiplyScalar(-sy));
+  var cp = Math.cos(flightCam.pitch), sp = Math.sin(flightCam.pitch);
+  var offsetDir = rotated.multiplyScalar(cp).add(radial.clone().multiplyScalar(sp));
+  var camTarget = focusPoint.clone().add(offsetDir.multiplyScalar(camDist));
+
+  // Screen shake only at real g-loads (> 2g) and high throttle — prevents constant jitter at launch
+  var gForce = sim.accel / ENV.g0;
+  if (sim.thrustN > 0 && gForce > 2 && sim.throttle > 0.5) {
+    var shake = Math.min((gForce - 2) * 0.25, 1.5);
+    camTarget.add(new THREE.Vector3((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake));
+  }
+
+  if (!camera._initialized) {
+    camera.position.copy(camTarget);
+    camera._initialized = true;
+  } else {
+    camera.position.lerp(camTarget, 0.08);
+  }
+  camera.up.copy(radial);
+  camera.lookAt(focusPoint);
+  camera.near = Math.max(0.5, sim.altitude * 0.0005);
+  camera.far = 120000000;
+  camera.updateProjectionMatrix();
+
+  // G-force vignette
+  var vig = document.getElementById('gVignette');
+  if (gForce > 2 && sim.thrustN > 0) {
+    var vi = Math.min((gForce - 2) / 6, 1);
+    vig.style.boxShadow = 'inset 0 0 ' + (100 + vi * 200) + 'px rgba(80,0,0,' + (vi * 0.6) + ')';
+  } else {
+    vig.style.boxShadow = 'none';
+  }
+
+  renderer.render(scene, camera);
+}
+
+function renderHUD() {
+  document.getElementById('hudTL').innerHTML =
+    '<b>ALT</b> <span class="val">' + fmtAlt(sim.altitude) + '</span><br>' +
+    '<b>VEL</b> <span class="val">' + Math.round(sim.speed) + ' m/s</span><br>' +
+    '<b>PE</b> <span class="' + (sim.periapsis > 70000 ? 'val' : '') + '">' + fmtAlt(sim.periapsis) + '</span><br>' +
+    '<b>AP</b> <span class="val">' + fmtAlt(sim.apoapsis) + '</span>';
+  var qKPa = (sim.q || 0) / 1000;
+  var qClass = qKPa > 40 ? 'q-warn' : qKPa > 15 ? 'warn' : 'val';
+  document.getElementById('hudTR').innerHTML =
+    '<b>T+</b> ' + fmtTime(sim.t) + (timeWarp > 1 ? ' <span class="warn">x' + timeWarp + (canRail(sim) && timeWarp >= 50 ? ' RAIL' : '') + '</span>' : '') + '<br>' +
+    '<b>G</b> ' + sim.grav.toFixed(1) + ' m/s&sup2;<br>' +
+    '<b>ACC</b> ' + (sim.accel / ENV.g0).toFixed(1) + ' g<br>' +
+    '<b>Q</b> <span class="' + qClass + '">' + qKPa.toFixed(1) + ' kPa</span><br>' +
+    '<b>SAS</b> <span class="val">' + sasMode.toUpperCase() + '</span>';
+  var stgF = stageFuel(sim.parts, sim.currentStage), stgFM = 0;
+  for (var i = 0; i < sim.parts.length; i++)
+    if (sim.parts[i].stage === sim.currentStage && PARTS[sim.parts[i].key].fuel) stgFM += PARTS[sim.parts[i].key].fuel;
+  var fp = stgFM > 0 ? Math.round(stgF / stgFM * 100) : 0;
+  var twr = stageTWR(sim.parts, sim.currentStage, sim.altitude);
+  var twrClass = twr < 1 ? 'warn' : 'val';
+  var rcsMax = rcsFuelMax(sim.parts);
+  var rcsLine = '';
+  if (rcsMax > 0) {
+    var rcsPct = Math.round(rcsFuelRemaining(sim.parts) / rcsMax * 100);
+    rcsLine = '<br><b>RCS</b> <span class="' + (rcsPct < 15 ? 'warn' : 'val') + '">' + rcsPct + '%</span>';
+  }
+  document.getElementById('hudBL').innerHTML =
+    '<b>STAGE</b> ' + sim.currentStage + '<br>' +
+    '<b>FUEL</b> <span class="' + (fp < 10 ? 'warn' : 'val') + '">' + fp + '%</span><br>' +
+    '<b>TWR</b> <span class="' + twrClass + '">' + twr.toFixed(2) + '</span><br>' +
+    '<b>&Delta;v</b> ' + Math.round(totalDv(sim.parts)) + ' m/s' + rcsLine;
+  var vorb = orbitalVelocity(Math.max(0, sim.altitude), sim.parent);
+  var parent = BODIES[sim.parent];
+  var bodyInfo = '';
+  if (sim.parent === 'earth') {
+    var iPos = inertialPosOf(sim);
+    for (var bk in BODIES) {
+      var b = BODIES[bk];
+      if (!b.parent) continue;
+      var d = iPos.clone().sub(inertialBodyPos(bk, sim.t)).length() - b.radius;
+      bodyInfo += '<br><b>' + b.name.toUpperCase() + '</b> ' + fmtAlt(d);
+    }
+  }
+  document.getElementById('hudBR').innerHTML =
+    '<b>SOI</b> <span class="val">' + parent.name + '</span><br>' +
+    '<b>ORBIT V</b> ' + Math.round(vorb) + ' m/s<br>' +
+    '<b>PROGRESS</b> ' + Math.min(100, Math.round(sim.speed / vorb * 100)) + '%<br>' +
+    '<b>ECC</b> ' + (sim.eccentricity < 10 ? sim.eccentricity.toFixed(3) : '---') + bodyInfo;
+  var tm = targetMetrics(sim);
+  if (tm) {
+    var tgtDiv = document.getElementById('hudTgt');
+    if (!tgtDiv) {
+      tgtDiv = document.createElement('div');
+      tgtDiv.id = 'hudTgt';
+      tgtDiv.className = 'hud';
+      tgtDiv.style.cssText = 'position:absolute;top:110px;right:8px;text-align:right;z-index:10;pointer-events:none;font-size:0.75em;';
+      document.getElementById('flightScreen').appendChild(tgtDiv);
+    }
+    tgtDiv.innerHTML =
+      '<b style="color:#FFA030;">TARGET</b><br>' +
+      '<b>DIST</b> ' + fmtAlt(tm.d) + '<br>' +
+      '<b>V-REL</b> ' + tm.vRel.toFixed(1) + ' m/s<br>' +
+      '<b>CLOSE</b> ' + (tm.closing >= 0 ? '+' : '') + tm.closing.toFixed(1) + ' m/s';
+    tgtDiv.style.display = viewMode === 'map' ? 'none' : 'block';
+  } else {
+    var tgtDiv = document.getElementById('hudTgt');
+    if (tgtDiv) tgtDiv.style.display = 'none';
+  }
+  document.getElementById('throttleFill').style.height = (sim.throttle * 100) + '%';
+}
+
+function stageTWR(parts, stage, alt) {
+  if (stage < 0) return 0;
+  var thr = 0;
+  for (var i = 0; i < parts.length; i++) {
+    var def = PARTS[parts[i].key];
+    if (parts[i].stage === stage && (def.type === 'engine' || def.type === 'srb')) thr += def.thrust;
+  }
+  var m = 0;
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i].stage <= stage) m += PARTS[parts[i].key].mass + (parts[i].fuel || 0);
+  }
+  if (m <= 0) return 0;
+  var parent = sim ? BODIES[sim.parent] : BODIES.earth;
+  var r = parent.radius + Math.max(0, alt || 0);
+  var gLocal = parent.mu / (r * r);
+  return (thr * 1000) / (m * 1000 * gLocal);
+}
+
+/* ===== MAP VIEW + ORBIT PREDICTION ===== */
+function keplerianFromState(pos, vel, mu) {
+  if (!mu) mu = MU;
+  var r = pos.length(), v = vel.length();
+  if (r < 1 || v < 0.01) return null;
+  var eps = v*v/2 - mu/r;
+  var h = new THREE.Vector3().crossVectors(pos, vel);
+  var hMag = h.length();
+  if (hMag < 1) return null;
+  var eVec = new THREE.Vector3().crossVectors(vel, h).divideScalar(mu).sub(pos.clone().divideScalar(r));
+  var e = eVec.length();
+  var hHat = h.clone().normalize();
+  var eHat;
+  if (e > 1e-6) eHat = eVec.clone().normalize();
+  else {
+    eHat = Math.abs(hHat.dot(new THREE.Vector3(1,0,0))) < 0.9 ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,1,0);
+    eHat.sub(hHat.clone().multiplyScalar(hHat.dot(eHat))).normalize();
+  }
+  var bHat = new THREE.Vector3().crossVectors(hHat, eHat);
+  var p = hMag*hMag/mu;
+  var a = (eps < 0 && e < 1) ? -mu/(2*eps) : 0;
+  return { a:a, e:e, p:p, eHat:eHat, bHat:bHat, hHat:hHat, energy:eps, bound:(eps<0 && e<1), mu:mu };
+}
+
+function trueAnomalyFromState(pos, vel, kep) {
+  var r = pos.length();
+  if (kep.e < 1e-6) {
+    var cosNu = kep.eHat.dot(pos) / r;
+    cosNu = Math.max(-1, Math.min(1, cosNu));
+    var nu0 = Math.acos(cosNu);
+    var sinSign = kep.bHat.dot(pos) >= 0 ? 1 : -1;
+    return sinSign > 0 ? nu0 : (2*Math.PI - nu0);
+  }
+  var cosNu = kep.eHat.dot(pos) / r;
+  cosNu = Math.max(-1, Math.min(1, cosNu));
+  var nu = Math.acos(cosNu);
+  if (pos.dot(vel) < 0) nu = 2*Math.PI - nu;
+  return nu;
+}
+function solveKepler(M, e) {
+  M = ((M % (2*Math.PI)) + 2*Math.PI) % (2*Math.PI);
+  var E = M;
+  for (var i = 0; i < 8; i++) {
+    var d = (E - e*Math.sin(E) - M) / (1 - e*Math.cos(E));
+    E -= d;
+    if (Math.abs(d) < 1e-9) break;
+  }
+  return E;
+}
+function posVelFromKepler(kep, nu, mu) {
+  var rN = kep.p / (1 + kep.e * Math.cos(nu));
+  var pos = kep.eHat.clone().multiplyScalar(rN*Math.cos(nu)).add(kep.bHat.clone().multiplyScalar(rN*Math.sin(nu)));
+  var h = Math.sqrt(mu * kep.p);
+  var vr = (mu / h) * kep.e * Math.sin(nu);
+  var vp = (mu / h) * (1 + kep.e * Math.cos(nu));
+  var rHat = pos.clone().normalize();
+  var tHat = new THREE.Vector3().crossVectors(kep.hHat, rHat).normalize();
+  var vel = rHat.clone().multiplyScalar(vr).add(tHat.multiplyScalar(vp));
+  return { pos: pos, vel: vel };
+}
+
+// Sample a bounded elliptical orbit forward in time, detecting SOI events.
+function sampleBoundPatch(cur, kep, maxLookAhead) {
+  var parent = BODIES[cur.parent];
+  var n = Math.sqrt(parent.mu / (kep.a*kep.a*kep.a));
+  var period = 2 * Math.PI / n;
+  var lookSec = Math.min(period * 1.05, maxLookAhead);
+  var steps = 96, dt = lookSec / steps;
+  var nu0 = trueAnomalyFromState(cur.pos, cur.vel, kep);
+  var E0 = 2*Math.atan2(Math.sqrt(1-kep.e)*Math.sin(nu0/2), Math.sqrt(1+kep.e)*Math.cos(nu0/2));
+  var M0 = E0 - kep.e*Math.sin(E0);
+  var points = [], event = null;
+  for (var i = 0; i <= steps; i++) {
+    var dti = i * dt;
+    var M = M0 + n * dti;
+    var E = solveKepler(M, kep.e);
+    var nu = 2*Math.atan2(Math.sqrt(1+kep.e)*Math.sin(E/2), Math.sqrt(1-kep.e)*Math.cos(E/2));
+    var pv = posVelFromKepler(kep, nu, parent.mu);
+    var tSample = cur.t + dti;
+    var parentInertial = inertialBodyPos(cur.parent, tSample);
+    var ptInertial = pv.pos.clone().add(parentInertial);
+    points.push(ptInertial);
+    event = soiEventAt(cur.parent, pv, parentInertial, ptInertial, tSample);
+    if (event) break;
+  }
+  return { parent: cur.parent, points: points, kep: kep, event: event };
+}
+
+// Sample a hyperbolic/unbound orbit by true anomaly forward, clipped to SOI.
+function sampleHyperbolicPatch(cur, kep, maxLookAhead) {
+  var parent = BODIES[cur.parent];
+  var nu0 = trueAnomalyFromState(cur.pos, cur.vel, kep);
+  if (nu0 > Math.PI) nu0 -= 2*Math.PI;
+  var nuMax = kep.e > 1 ? Math.acos(-1/kep.e) - 0.01 : nu0 + Math.PI; // hyperbolic asymptote
+  var steps = 64;
+  var points = [], event = null;
+  // Advance time along the arc using the hyperbolic Kepler equation so moving
+  // bodies are evaluated at their FUTURE positions (mirrors sampleBoundPatch).
+  // kep.a is 0 for unbound states, so derive the semi-major axis from energy.
+  var canTime = kep.e > 1 && kep.energy > 0;
+  var aAbs = canTime ? parent.mu / (2 * kep.energy) : 0; // |a|, a<0 for hyperbola
+  var meanMotion = canTime ? Math.sqrt(parent.mu / (aAbs * aAbs * aAbs)) : 0;
+  var hypF = function(nu) { return 2 * Math.atanh(Math.sqrt((kep.e - 1) / (kep.e + 1)) * Math.tan(nu / 2)); };
+  var hypM = function(nu) { var F = hypF(nu); return kep.e * Math.sinh(F) - F; };
+  var M0 = canTime ? hypM(nu0) : 0;
+  for (var i = 0; i <= steps; i++) {
+    var nu = nu0 + (nuMax - nu0) * (i/steps);
+    var rN = kep.p / (1 + kep.e * Math.cos(nu));
+    if (rN < 0 || !isFinite(rN)) break;
+    if (isFinite(parent.soiRadius) && rN > parent.soiRadius * 1.02) break;
+    var pv = posVelFromKepler(kep, nu, parent.mu);
+    // Time since current state from hyperbolic mean anomaly difference.
+    var tSample = cur.t;
+    if (canTime) { var dtH = (hypM(nu) - M0) / meanMotion; if (isFinite(dtH)) tSample = cur.t + dtH; }
+    var parentInertial = inertialBodyPos(cur.parent, tSample);
+    var ptInertial = pv.pos.clone().add(parentInertial);
+    points.push(ptInertial);
+    // Only flag SOI escape once we're past periapsis
+    if (isFinite(parent.soiRadius) && parent.parent && pv.pos.length() > parent.soiRadius) {
+      event = soiEventAt(cur.parent, pv, parentInertial, ptInertial, tSample);
+      if (event) break;
+    }
+  }
+  return { parent: cur.parent, points: points, kep: kep, event: event };
+}
+
+// Detect SOI entry/exit at a sampled state. pv has pos/vel in cur.parent frame.
+function soiEventAt(curParentKey, pv, parentInertial, ptInertial, tSample) {
+  var parent = BODIES[curParentKey];
+  if (isFinite(parent.soiRadius) && parent.parent && pv.pos.length() > parent.soiRadius) {
+    var newParent = parent.parent;
+    var velInertial = pv.vel.clone().add(inertialBodyVel(curParentKey, tSample));
+    var npInertial = inertialBodyPos(newParent, tSample);
+    var npVelInertial = inertialBodyVel(newParent, tSample);
+    return { kind: 'escape', newParent: newParent, pos: ptInertial.clone().sub(npInertial), vel: velInertial.clone().sub(npVelInertial), t: tSample, inertialPos: ptInertial.clone() };
+  }
+  for (var bk in BODIES) {
+    if (bk === curParentKey) continue;
+    var b = BODIES[bk];
+    if (!isFinite(b.soiRadius)) continue;
+    var bPos = inertialBodyPos(bk, tSample);
+    var d = ptInertial.clone().sub(bPos).length();
+    if (d < b.soiRadius) {
+      var velInertial = pv.vel.clone().add(inertialBodyVel(curParentKey, tSample));
+      var bVel = inertialBodyVel(bk, tSample);
+      return { kind: 'encounter', newParent: bk, pos: ptInertial.clone().sub(bPos), vel: velInertial.clone().sub(bVel), t: tSample, inertialPos: ptInertial.clone() };
+    }
+  }
+  return null;
+}
+
+// Returns array of patches. Up to 2 patches (current + one after SOI transition).
+function predictTrajectory(s, maxLookAhead) {
+  var patches = [];
+  var cur = { pos: s.pos.clone(), vel: s.vel.clone(), parent: s.parent, t: s.t };
+  var timeUsed = 0;
+  for (var patch = 0; patch < 2; patch++) {
+    var parent = BODIES[cur.parent];
+    var kep = keplerianFromState(cur.pos, cur.vel, parent.mu);
+    if (!kep) break;
+    var p = kep.bound ? sampleBoundPatch(cur, kep, maxLookAhead - timeUsed) : sampleHyperbolicPatch(cur, kep, maxLookAhead - timeUsed);
+    patches.push(p);
+    if (!p.event) break;
+    timeUsed += (p.event.t - cur.t);
+    if (timeUsed >= maxLookAhead) break;
+    cur = { pos: p.event.pos, vel: p.event.vel, parent: p.event.newParent, t: p.event.t };
+  }
+  return patches;
+}
+
+function fillLineFromPoints(line, pts) {
+  var arr = line.geometry.attributes.position.array;
+  var cap = Math.floor(arr.length / 3);
+  var nn = Math.min(pts.length, cap);
+  for (var i = 0; i < nn; i++) {
+    arr[i*3] = pts[i].x; arr[i*3+1] = pts[i].y; arr[i*3+2] = pts[i].z;
+  }
+  var lastIdx = nn > 0 ? nn - 1 : 0;
+  for (var i = nn; i < cap; i++) {
+    arr[i*3] = pts[lastIdx] ? pts[lastIdx].x : 0;
+    arr[i*3+1] = pts[lastIdx] ? pts[lastIdx].y : 0;
+    arr[i*3+2] = pts[lastIdx] ? pts[lastIdx].z : 0;
+  }
+  line.geometry.attributes.position.needsUpdate = true;
+  line.geometry.computeBoundingSphere();
+  line.visible = nn > 1;
+}
+
+function updateOrbitLine() {
+  var parent = BODIES[sim.parent];
+  var parentInertial = inertialBodyPos(sim.parent, sim.t);
+  var kep = keplerianFromState(sim.pos, sim.vel, parent.mu);
+  if (!kep) {
+    orbitLine.visible = false;
+    peMarker.visible = false;
+    apMarker.visible = false;
+    nextPatchLine.visible = false;
+    encounterMarker.visible = false;
+    escapeMarker.visible = false;
+    return;
+  }
+  var patches = predictTrajectory(sim, BODIES.mun.period * 2);
+  if (patches.length > 0) fillLineFromPoints(orbitLine, patches[0].points);
+  else orbitLine.visible = false;
+
+  // Pe/Ap markers only for bound orbits
+  if (kep.bound) {
+    peMarker.position.copy(kep.eHat).multiplyScalar(kep.a * (1 - kep.e)).add(parentInertial);
+    apMarker.position.copy(kep.eHat).multiplyScalar(-kep.a * (1 + kep.e)).add(parentInertial);
+    peMarker.visible = apMarker.visible = true;
+  } else {
+    peMarker.visible = apMarker.visible = false;
+  }
+
+  encounterMarker.visible = false;
+  escapeMarker.visible = false;
+  nextPatchLine.visible = false;
+  if (patches.length > 0 && patches[0].event) {
+    var ev = patches[0].event;
+    if (ev.kind === 'encounter') { encounterMarker.position.copy(ev.inertialPos); encounterMarker.visible = true; }
+    else { escapeMarker.position.copy(ev.inertialPos); escapeMarker.visible = true; }
+    if (patches.length > 1) fillLineFromPoints(nextPatchLine, patches[1].points);
+  }
+}
+
+/* ===== RENDEZVOUS TARGET ===== */
+function toggleTarget() {
+  if (target) { clearTarget(); return; }
+  spawnTarget();
+}
+
+function buildStationMesh() {
+  var grp = new THREE.Group();
+  var coreMat = new THREE.MeshPhongMaterial({ color: 0xDDE0E8, shininess: 30 });
+  var accMat = new THREE.MeshPhongMaterial({ color: 0x9090A0 });
+  // Hull: 3 cylindrical modules end-to-end along Y
+  for (var i = 0; i < 3; i++) {
+    var mod = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 6, 16), coreMat);
+    mod.position.y = (i - 1) * 6;
+    grp.add(mod);
+    // Ring belt between modules
+    if (i < 2) {
+      var belt = new THREE.Mesh(new THREE.TorusGeometry(3.1, 0.35, 8, 18), accMat);
+      belt.position.y = (i - 1) * 6 + 3;
+      belt.rotation.x = Math.PI/2;
+      grp.add(belt);
+    }
+  }
+  // Glowing orange docking port at +Y end
+  var port = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.0, 1.8, 12), new THREE.MeshPhongMaterial({ color: 0xFFA030, emissive: 0xFF6020 }));
+  port.position.y = 9.9;
+  grp.add(port);
+  var portRing = new THREE.Mesh(new THREE.TorusGeometry(2.7, 0.2, 6, 18), new THREE.MeshPhongMaterial({ color: 0xFFD040, emissive: 0x806000 }));
+  portRing.position.y = 10.9;
+  portRing.rotation.x = Math.PI/2;
+  grp.add(portRing);
+  // Aft thruster cluster
+  var aft = new THREE.Mesh(new THREE.CylinderGeometry(2, 1.5, 1.2, 10), accMat);
+  aft.position.y = -9.6;
+  grp.add(aft);
+  for (var j = 0; j < 4; j++) {
+    var ang = j * Math.PI/2 + Math.PI/4;
+    var nozzle = new THREE.Mesh(new THREE.ConeGeometry(0.35, 0.8, 6), new THREE.MeshPhongMaterial({ color: 0x202428 }));
+    nozzle.position.set(1.4 * Math.cos(ang), -10.6, 1.4 * Math.sin(ang));
+    nozzle.rotation.x = Math.PI;
+    grp.add(nozzle);
+  }
+  // Solar panel arrays (two trussed wings along X)
+  var panelMat = new THREE.MeshPhongMaterial({ color: 0x253058, emissive: 0x0e1530, shininess: 100 });
+  var gridOverlayMat = new THREE.MeshBasicMaterial({ color: 0x4a6ab0, transparent: true, opacity: 0.25 });
+  for (var side = 0; side < 2; side++) {
+    var sign = side === 0 ? -1 : 1;
+    // Truss extension
+    var strut = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 7, 6), accMat);
+    strut.rotation.z = Math.PI/2;
+    strut.position.set(sign * 6.5, 0, 0);
+    grp.add(strut);
+    // Two panels (forward and aft pairs)
+    for (var p = 0; p < 2; p++) {
+      var panel = new THREE.Mesh(new THREE.BoxGeometry(16, 0.25, 5), panelMat);
+      panel.position.set(sign * 18, 0, p === 0 ? 3 : -3);
+      grp.add(panel);
+      var grid = new THREE.Mesh(new THREE.BoxGeometry(16.02, 0.26, 5.02), gridOverlayMat);
+      grid.position.copy(panel.position);
+      grp.add(grid);
+    }
+  }
+  // Antenna dish
+  var dish = new THREE.Mesh(new THREE.SphereGeometry(2.5, 16, 10, 0, Math.PI*2, 0, Math.PI/2.3), new THREE.MeshPhongMaterial({ color: 0xE0E4EC, side: THREE.DoubleSide }));
+  dish.position.set(0, 2, 4.5);
+  dish.rotation.x = -Math.PI/3;
+  grp.add(dish);
+  var dishPole = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 3.5, 6), accMat);
+  dishPole.position.set(0, 1, 3);
+  dishPole.rotation.x = Math.PI/3;
+  grp.add(dishPole);
+  // Proximity halo
+  var halo = new THREE.Mesh(new THREE.SphereGeometry(30, 12, 10), new THREE.MeshBasicMaterial({ color: 0xFFA030, transparent: true, opacity: 0.12, depthWrite: false }));
+  grp.add(halo);
+  return grp;
+}
+
+function spawnTarget() {
+  // 200 km circular equatorial orbit; phase 90° from ship's current angle (if on Earth) so player chases it.
+  var r = ENV.R + 200000;
+  var v = Math.sqrt(MU / r);
+  var shipAngle = 0;
+  if (sim) {
+    var iPos = inertialPosOf(sim);
+    shipAngle = Math.atan2(iPos.z, iPos.x);
+  }
+  var a = shipAngle + Math.PI/2;
+  var pos = new THREE.Vector3(r * Math.cos(a), 0, r * Math.sin(a));
+  var vel = new THREE.Vector3(-v * Math.sin(a), 0, v * Math.cos(a));
+  var kep = keplerianFromState(pos, vel, MU);
+  var nu0 = trueAnomalyFromState(pos, vel, kep);
+  target = { kep: kep, nu0: nu0, t0: sim ? sim.t : 0, parent: 'earth' };
+  target.mesh = buildStationMesh();
+  scene.add(target.mesh);
+  // Orbit line (sampled once at spawn since kep is fixed)
+  var N = 96, arr = new Float32Array(N*3);
+  for (var i = 0; i < N; i++) {
+    var nu = (i/(N-1))*Math.PI*2;
+    var rN = kep.p / (1 + kep.e*Math.cos(nu));
+    arr[i*3] = kep.eHat.x*rN*Math.cos(nu) + kep.bHat.x*rN*Math.sin(nu);
+    arr[i*3+1] = kep.eHat.y*rN*Math.cos(nu) + kep.bHat.y*rN*Math.sin(nu);
+    arr[i*3+2] = kep.eHat.z*rN*Math.cos(nu) + kep.bHat.z*rN*Math.sin(nu);
+  }
+  var tGeom = new THREE.BufferGeometry();
+  tGeom.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+  var tLine = new THREE.Line(tGeom, new THREE.LineBasicMaterial({ color: 0xFFA030, transparent: true, opacity: 0.6 }));
+  tLine.visible = false;
+  scene.add(tLine);
+  target.orbitLine = tLine;
+  // Map marker
+  var markerCanvas = makeMarkerCanvas('\u2316', '#FFA030');
+  var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(markerCanvas), depthTest: false, transparent: true }));
+  sprite.scale.set(350000, 350000, 1);
+  sprite.visible = false;
+  sprite.renderOrder = 999;
+  scene.add(sprite);
+  target.marker = sprite;
+  showToast('Target in 200 km Earth orbit');
+}
+
+function clearTarget() {
+  if (!target) return;
+  if (target.mesh) { scene.remove(target.mesh); target.mesh.children.forEach(function(c) { if (c.geometry) c.geometry.dispose(); if (c.material) c.material.dispose(); }); }
+  if (target.orbitLine) { scene.remove(target.orbitLine); target.orbitLine.geometry.dispose(); target.orbitLine.material.dispose(); }
+  if (target.marker) { scene.remove(target.marker); target.marker.material.map.dispose(); target.marker.material.dispose(); }
+  target = null;
+  if (sasMode === 'target') setSAS('off');
+  showToast('Target cleared');
+}
+
+function targetStateAt(t) {
+  if (!target) return null;
+  var kep = target.kep;
+  var dt = t - target.t0;
+  var n = Math.sqrt(MU / (kep.a*kep.a*kep.a));
+  var E0 = 2*Math.atan2(Math.sqrt(1-kep.e)*Math.sin(target.nu0/2), Math.sqrt(1+kep.e)*Math.cos(target.nu0/2));
+  var M = E0 - kep.e*Math.sin(E0) + n*dt;
+  var E = solveKepler(M, kep.e);
+  var nu = 2*Math.atan2(Math.sqrt(1+kep.e)*Math.sin(E/2), Math.sqrt(1-kep.e)*Math.cos(E/2));
+  var pv = posVelFromKepler(kep, nu, MU);
+  return pv; // Earth-centered inertial
+}
+
+// Returns relative position ship→target in ship's parent frame (for SAS aim).
+function targetRelPos(s) {
+  if (!target) return null;
+  var ts = targetStateAt(s.t);
+  if (!ts) return null;
+  var shipInertial = inertialPosOf(s);
+  return ts.pos.clone().sub(shipInertial);
+}
+
+function targetMetrics(s) {
+  if (!target) return null;
+  var ts = targetStateAt(s.t);
+  if (!ts) return null;
+  var shipI = inertialPosOf(s), shipV = inertialVelOf(s);
+  var relP = ts.pos.clone().sub(shipI);
+  var relV = ts.vel.clone().sub(shipV);
+  var d = relP.length();
+  var vRel = relV.length();
+  // Closing speed = -relV · relP_hat
+  var closing = d > 1 ? -relV.dot(relP)/d : 0;
+  return { d: d, vRel: vRel, closing: closing, tPos: ts.pos.clone(), tVel: ts.vel.clone() };
+}
+
+/* ===== ASCENT AUTOPILOT ===== */
+function timeToApoapsis(s) {
+  var parent = BODIES[s.parent];
+  var kep = keplerianFromState(s.pos, s.vel, parent.mu);
+  if (!kep || !kep.bound) return Infinity;
+  var nu0 = trueAnomalyFromState(s.pos, s.vel, kep);
+  var E0 = 2*Math.atan2(Math.sqrt(1-kep.e)*Math.sin(nu0/2), Math.sqrt(1+kep.e)*Math.cos(nu0/2));
+  var M0 = E0 - kep.e*Math.sin(E0);
+  var dM = (Math.PI - M0 + 2*Math.PI) % (2*Math.PI);
+  var n = Math.sqrt(parent.mu / (kep.a*kep.a*kep.a));
+  return dM / n;
+}
+
+function runAutopilot(s) {
+  if (!autopilot) return null;
+  var targetAltitude = autopilot.targetAlt;
+  var radial = s.pos.clone().normalize();
+  var prograde = s.speed > 10 ? s.vel.clone().normalize() : radial.clone();
+  switch (autopilot.mode) {
+    case 'docking': {
+      if (!target) { autopilot.mode = 'done'; return null; }
+      var rcsF = rcsTotalThrust(s.parts) * 1000;
+      if (rcsF < 100 || rcsFuelRemaining(s.parts) < 0.001) { autopilot.mode = 'done'; showToast('<span style="color:#D04040;">Docking aborted: RCS empty</span>'); return null; }
+      var ts = targetStateAt(s.t);
+      var shipI = inertialPosOf(s), shipV = inertialVelOf(s);
+      var relP = ts.pos.clone().sub(shipI);
+      var relV = ts.vel.clone().sub(shipV);
+      var d = relP.length();
+      if (d < 25 && relV.length() < 0.4) { autopilot.mode = 'done'; showToast('<b style="color:#40D080;">Docked!</b>'); s.throttle = 0; return null; }
+      var relDir = relP.clone().normalize();
+      var approachSpeed = d > 500 ? 8 : (d > 100 ? 3 : (d > 30 ? 1 : 0.25));
+      // Want relV (target - ship) = -approachSpeed * relDir so ship closes on target
+      var desiredRelV = relDir.clone().multiplyScalar(-approachSpeed);
+      var deltaShipV = desiredRelV.clone().sub(relV).multiplyScalar(-1); // ship.vel change needed
+      var mass = totalMass(s.parts);
+      var maxDv = (rcsF / mass) * PHYSICS_DT;
+      var magDv = deltaShipV.length();
+      var applyDv;
+      if (magDv <= maxDv) applyDv = deltaShipV;
+      else applyDv = deltaShipV.clone().setLength(maxDv);
+      s.vel.add(applyDv);
+      var actualThrust = (applyDv.length() / PHYSICS_DT) * mass;
+      var mdot = actualThrust / (240 * ENV.g0);
+      consumeRCSFuel(s.parts, mdot * PHYSICS_DT);
+      s.throttle = 0;
+      return relDir; // SAS points at target
+    }
+    case 'landing': {
+      var retrograde = s.speed > 0.5 ? s.vel.clone().normalize().negate() : radial.clone();
+      var mass = totalMass(s.parts);
+      var tt = computeThrust(s.parts, s.currentStage, 1.0);
+      if (tt.thrust === 0 || mass <= 0) { s.throttle = 0; return retrograde; }
+      var a_thrust = tt.thrust / mass;
+      var parent = BODIES[s.parent];
+      var g = parent.mu / (s.pos.length() * s.pos.length());
+      var a_eff = a_thrust - g;
+      var vRadial = -s.vel.dot(radial); // descending > 0
+      // Gentle touchdown window
+      if (s.altitude < 15 && s.speed < 2.5) {
+        s.throttle = 0;
+        autopilot.mode = 'done';
+        showToast('Autopilot: touchdown');
+        return radial.clone();
+      }
+      // Suicide-burn threshold (vertical-only approximation); burns retro full throttle when below burn altitude
+      if (a_eff <= 0.05) { s.throttle = 1; return retrograde; }
+      var burnAlt = (s.speed * s.speed) / (2 * a_eff) + 300; // 300 m safety margin
+      if (s.altitude <= burnAlt) {
+        s.throttle = 1;
+      } else {
+        s.throttle = 0;
+      }
+      // Low-altitude hover corrections
+      if (s.altitude < 80 && s.speed > 4) s.throttle = 1;
+      if (s.altitude < 40 && s.speed < 1.5) s.throttle = 0;
+      return retrograde;
+    }
+    case 'ascent': {
+      s.throttle = 1.0;
+      var pitchRatio;
+      if (s.altitude < 1000) pitchRatio = 0;
+      else if (s.altitude > targetAltitude * 0.7) pitchRatio = 1;
+      else pitchRatio = Math.min(1, (s.altitude - 1000) / (targetAltitude * 0.7 - 1000));
+      var dir = radial.clone().multiplyScalar(1 - pitchRatio).add(prograde.clone().multiplyScalar(pitchRatio)).normalize();
+      if (s.apoapsis >= targetAltitude && s.altitude > ENV.KARMAN) {
+        s.throttle = 0;
+        autopilot.mode = 'coast';
+        showToast('Autopilot: coasting to apoapsis');
+      }
+      return dir;
+    }
+    case 'coast': {
+      s.throttle = 0;
+      var tAp = timeToApoapsis(s);
+      if (tAp < 8 || s.altitude >= targetAltitude - 2000) {
+        autopilot.mode = 'circularize';
+        showToast('Autopilot: circularizing');
+      }
+      return prograde;
+    }
+    case 'circularize': {
+      var wantPe = targetAltitude - 3000;
+      if (s.periapsis < wantPe) {
+        s.throttle = 1.0;
+      } else {
+        s.throttle = 0;
+        autopilot.mode = 'done';
+        showToast('Autopilot: orbit achieved. Hand-off to you.');
+      }
+      return prograde;
+    }
+    case 'done':
+      return prograde;
+  }
+  return null;
+}
+
+function toggleAutopilot() {
+  if (autopilot) { autopilot = null; showToast('Autopilot disengaged'); return; }
+  if (!sim) return;
+  setSAS('off');
+  // Docking if target is active and within 10 km
+  if (target) {
+    var tm = targetMetrics(sim);
+    if (tm && tm.d < 10000) {
+      if (rcsTotalThrust(sim.parts) < 1 || rcsFuelRemaining(sim.parts) < 0.001) {
+        showToast('<span style="color:#D04040;">Need RCS + monoprop to dock</span>');
+        return;
+      }
+      autopilot = { mode: 'docking' };
+      showToast('Autopilot: docking');
+      return;
+    }
+  }
+  // Landing if in a non-Earth SOI
+  if (sim.parent !== 'earth') {
+    autopilot = { mode: 'landing' };
+    showToast('Autopilot: landing on ' + BODIES[sim.parent].name);
+    return;
+  }
+  // Earth ascent default (only when below orbit)
+  if (sim.altitude < ENV.KARMAN) {
+    autopilot = { mode: 'ascent', targetAlt: 100000 };
+    showToast('Autopilot: ascent to 100 km');
+    return;
+  }
+  showToast('Autopilot: no task available in current regime');
+}
+
+/* ===== MANEUVER NODES ===== */
+// Propagate the current state forward by dt within the current SOI (no SOI crossing).
+// Returns { pos, vel, parent } at t + dt. Works for elliptic; falls back for others.
+function propagateKeplerFromSim(dt) {
+  var parent = BODIES[sim.parent];
+  var kep = keplerianFromState(sim.pos, sim.vel, parent.mu);
+  if (!kep || !kep.bound) return { pos: sim.pos.clone(), vel: sim.vel.clone(), parent: sim.parent };
+  var n = Math.sqrt(parent.mu / (kep.a*kep.a*kep.a));
+  var nu0 = trueAnomalyFromState(sim.pos, sim.vel, kep);
+  var E0 = 2*Math.atan2(Math.sqrt(1-kep.e)*Math.sin(nu0/2), Math.sqrt(1+kep.e)*Math.cos(nu0/2));
+  var M = E0 - kep.e*Math.sin(E0) + n*dt;
+  var E = solveKepler(M, kep.e);
+  var nu = 2*Math.atan2(Math.sqrt(1+kep.e)*Math.sin(E/2), Math.sqrt(1-kep.e)*Math.cos(E/2));
+  var pv = posVelFromKepler(kep, nu, parent.mu);
+  return { pos: pv.pos, vel: pv.vel, parent: sim.parent };
+}
+
+function burnStateAtNode() {
+  if (!maneuverNode) return null;
+  return propagateKeplerFromSim(maneuverNode.dt);
+}
+
+// Returns the world-space direction the craft should point to execute the planned burn.
+function maneuverBurnVector(burnState) {
+  var parent = BODIES[burnState.parent];
+  var prograde = burnState.vel.clone().normalize();
+  var radial = burnState.pos.clone().normalize();
+  var normal = new THREE.Vector3().crossVectors(burnState.pos, burnState.vel);
+  if (normal.lengthSq() > 0) normal.normalize();
+  return prograde.clone().multiplyScalar(maneuverNode.dvPro)
+    .add(normal.multiplyScalar(maneuverNode.dvNorm))
+    .add(radial.multiplyScalar(maneuverNode.dvRad));
+}
+
+function createNode() {
+  // Default: 1/4 period forward, no ΔV
+  var parent = BODIES[sim.parent];
+  var kep = keplerianFromState(sim.pos, sim.vel, parent.mu);
+  var defaultDt = 60;
+  if (kep && kep.bound) {
+    var period = 2 * Math.PI * Math.sqrt(kep.a*kep.a*kep.a / parent.mu);
+    defaultDt = Math.min(period * 0.25, 3600);
+  }
+  maneuverNode = { dt: defaultDt, dvPro: 0, dvNorm: 0, dvRad: 0 };
+  document.getElementById('maneuverPanel').classList.add('active');
+  document.getElementById('manTime').value = Math.round(defaultDt);
+  document.getElementById('manPro').value = 0;
+  document.getElementById('manNorm').value = 0;
+  document.getElementById('manRad').value = 0;
+  updateManeuverUI();
+}
+
+function clearNode() {
+  maneuverNode = null;
+  document.getElementById('maneuverPanel').classList.remove('active');
+  if (plannedOrbitLine) plannedOrbitLine.visible = false;
+  if (manNodeMarker) manNodeMarker.visible = false;
+  if (sasMode === 'maneuver') setSAS('off');
+}
+
+function alignToNode() {
+  if (!maneuverNode) return;
+  setSAS('maneuver');
+  setView('flight');
+}
+
+function planMunTransfer() { planBodyTransfer('mun'); }
+function planMinmusTransfer() { planBodyTransfer('minmus'); }
+
+function planBodyTransfer(targetKey) {
+  if (!sim || sim.parent !== 'earth') { showToast('Only plannable from Earth orbit'); return; }
+  var parent = BODIES.earth, targetBody = BODIES[targetKey];
+  if (!targetBody || targetBody.parent !== 'earth') { showToast('Invalid targetBody'); return; }
+  var kep = keplerianFromState(sim.pos, sim.vel, parent.mu);
+  if (!kep || !kep.bound) { showToast('Need bound Earth orbit first'); return; }
+  if (kep.e > 0.15) { showToast('Circularize first (ecc too high)'); return; }
+  var r1 = sim.pos.length();
+  var r2 = targetBody.orbitR;
+  var a_t = (r1 + r2) / 2;
+  var v_t = Math.sqrt(parent.mu * (2/r1 - 1/a_t));
+  var v_now = sim.vel.length();
+  var dv_pro = v_t - v_now;
+  dv_pro = Math.max(-3000, Math.min(3000, dv_pro));
+  // Plane-change component if targetBody is inclined (approximate: add normal dv)
+  var inc = targetBody.inclination || 0;
+  var dv_norm = inc ? Math.round(v_t * Math.sin(inc) * 0.8) : 0;
+  dv_norm = Math.max(-1500, Math.min(1500, dv_norm));
+  var T_transfer = Math.PI * Math.sqrt(a_t*a_t*a_t / parent.mu);
+  var shipAngle = Math.atan2(sim.pos.z, sim.pos.x);
+  var omegaShip = Math.sqrt(parent.mu / (r1*r1*r1));
+  var signProgade = (sim.vel.x * -Math.sin(shipAngle) + sim.vel.z * Math.cos(shipAngle)) > 0 ? 1 : -1;
+  omegaShip *= signProgade;
+  var omegaTarget = 2*Math.PI / targetBody.period;
+  var rhs = (targetBody.phase + omegaTarget*(sim.t + T_transfer)) - (shipAngle + Math.PI);
+  var denom = omegaShip - omegaTarget;
+  var dt_wait = -rhs / denom;
+  var synodic = 2*Math.PI / Math.abs(denom);
+  while (dt_wait < 10) dt_wait += synodic;
+  if (dt_wait > 14400) dt_wait = dt_wait % synodic;
+  if (dt_wait > 14400) dt_wait = 14400;
+  createNode();
+  maneuverNode.dt = dt_wait;
+  maneuverNode.dvPro = dv_pro;
+  maneuverNode.dvNorm = dv_norm;
+  document.getElementById('manTime').value = Math.round(dt_wait);
+  document.getElementById('manPro').value = Math.round(dv_pro);
+  document.getElementById('manNorm').value = dv_norm;
+  updateManeuverUI();
+  var bName = targetBody.name;
+  showToast('Hohmann to ' + bName + ': &Delta;v ' + Math.round(dv_pro) + (dv_norm ? ' pro, ' + dv_norm + ' norm' : '') + ', T+ ' + Math.round(dt_wait) + 's');
+}
+
+function updateManeuverUI() {
+  if (!maneuverNode) return;
+  maneuverNode.dt = parseFloat(document.getElementById('manTime').value);
+  maneuverNode.dvPro = parseFloat(document.getElementById('manPro').value);
+  maneuverNode.dvNorm = parseFloat(document.getElementById('manNorm').value);
+  maneuverNode.dvRad = parseFloat(document.getElementById('manRad').value);
+  document.getElementById('manTimeVal').textContent = (maneuverNode.dt >= 0 ? '+' : '') + Math.round(maneuverNode.dt) + 's';
+  document.getElementById('manProVal').textContent = maneuverNode.dvPro.toFixed(0);
+  document.getElementById('manNormVal').textContent = maneuverNode.dvNorm.toFixed(0);
+  document.getElementById('manRadVal').textContent = maneuverNode.dvRad.toFixed(0);
+  var total = Math.sqrt(maneuverNode.dvPro*maneuverNode.dvPro + maneuverNode.dvNorm*maneuverNode.dvNorm + maneuverNode.dvRad*maneuverNode.dvRad);
+  var bs = burnStateAtNode();
+  var info = '<b>&Delta;v</b> ' + total.toFixed(0) + ' m/s';
+  if (bs) {
+    var parent = BODIES[bs.parent];
+    var postVel = bs.vel.clone().add(maneuverBurnVector(bs));
+    var postKep = keplerianFromState(bs.pos, postVel, parent.mu);
+    if (postKep && postKep.bound) {
+      info += ' &nbsp; <b>PE</b> ' + fmtAlt(postKep.a*(1-postKep.e) - parent.radius) + ' &nbsp; <b>AP</b> ' + fmtAlt(postKep.a*(1+postKep.e) - parent.radius);
+    } else if (postKep) {
+      info += ' &nbsp; <span style="color:#FFD040;">Escape trajectory</span>';
+    }
+    // Burn time estimate
+    if (total > 0 && sim.thrustN > 0) {
+      var tBurn = sim.mass * total / sim.thrustN;
+      info += '<br><b>Burn</b> ' + tBurn.toFixed(1) + 's';
+    }
+  }
+  document.getElementById('manInfo').innerHTML = info;
+}
+
+function updatePlannedOrbitLine() {
+  if (!maneuverNode) {
+    if (plannedOrbitLine) plannedOrbitLine.visible = false;
+    if (manNodeMarker) manNodeMarker.visible = false;
+    return;
+  }
+  var bs = burnStateAtNode();
+  if (!bs) return;
+  var parent = BODIES[bs.parent];
+  var parentInertial = inertialBodyPos(bs.parent, sim.t + maneuverNode.dt);
+  manNodeMarker.position.copy(bs.pos).add(parentInertial);
+  manNodeMarker.visible = true;
+  // Post-burn state
+  var postVel = bs.vel.clone().add(maneuverBurnVector(bs));
+  var postKep = keplerianFromState(bs.pos, postVel, parent.mu);
+  if (!postKep) { plannedOrbitLine.visible = false; return; }
+  // Synthesize a predictTrajectory-style patch for the planned orbit
+  var fakeSim = { pos: bs.pos, vel: postVel, parent: bs.parent, t: sim.t + maneuverNode.dt };
+  var patches = predictTrajectory(fakeSim, BODIES.mun.period * 2);
+  if (patches.length > 0) fillLineFromPoints(plannedOrbitLine, patches[0].points);
+}
+
+function handleMapClick(e) {
+  if (!sim) return;
+  var cv = renderer.domElement;
+  var rect = cv.getBoundingClientRect();
+  var mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  var my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  var parent = BODIES[sim.parent];
+  var kep = keplerianFromState(sim.pos, sim.vel, parent.mu);
+  if (!kep || !kep.bound) { showToast('Need bound orbit to place node'); return; }
+  var parentInertial = inertialBodyPos(sim.parent, sim.t);
+  var bestNu = 0, bestDist2 = Infinity;
+  var N = 128;
+  for (var i = 0; i <= N; i++) {
+    var nu = (i / N) * Math.PI * 2;
+    var rN = kep.p / (1 + kep.e * Math.cos(nu));
+    var pt = kep.eHat.clone().multiplyScalar(rN * Math.cos(nu))
+      .add(kep.bHat.clone().multiplyScalar(rN * Math.sin(nu)))
+      .add(parentInertial);
+    var ndc = pt.clone().project(mapCamera);
+    if (ndc.z < -1 || ndc.z > 1) continue;
+    var d2 = (ndc.x - mx)*(ndc.x - mx) + (ndc.y - my)*(ndc.y - my);
+    if (d2 < bestDist2) { bestDist2 = d2; bestNu = nu; }
+  }
+  if (bestDist2 > 0.015) return; // clicked too far from orbit (~12% of screen)
+  var nu0 = trueAnomalyFromState(sim.pos, sim.vel, kep);
+  var n = Math.sqrt(parent.mu / (kep.a*kep.a*kep.a));
+  var E0 = 2*Math.atan2(Math.sqrt(1-kep.e)*Math.sin(nu0/2), Math.sqrt(1+kep.e)*Math.cos(nu0/2));
+  var E1 = 2*Math.atan2(Math.sqrt(1-kep.e)*Math.sin(bestNu/2), Math.sqrt(1+kep.e)*Math.cos(bestNu/2));
+  var M0 = E0 - kep.e*Math.sin(E0);
+  var M1 = E1 - kep.e*Math.sin(E1);
+  var dM = M1 - M0;
+  while (dM < 0) dM += 2*Math.PI;
+  var dt_sec = dM / n;
+  if (dt_sec > 14400) dt_sec = 14400;
+  if (!maneuverNode) createNode();
+  maneuverNode.dt = dt_sec;
+  document.getElementById('manTime').value = Math.round(dt_sec);
+  updateManeuverUI();
+  showToast('Node placed at T+ ' + Math.round(dt_sec) + 's');
+}
+
+function setView(mode) {
+  viewMode = mode;
+  document.getElementById('vtFlight').classList.toggle('active', mode === 'flight');
+  document.getElementById('vtMap').classList.toggle('active', mode === 'map');
+  var mapOnly = mode === 'map';
+  document.getElementById('mapInfoTL').style.display = mapOnly ? 'block' : 'none';
+  document.getElementById('mapLegend').style.display = mapOnly ? 'block' : 'none';
+  document.getElementById('sasPanel').style.display = mapOnly ? 'none' : 'block';
+  document.getElementById('throttleBar').style.display = mapOnly ? 'none' : 'block';
+  document.getElementById('navball').style.display = mapOnly ? 'none' : 'block';
+  var hudDisp = mapOnly ? 'none' : 'block';
+  document.getElementById('hudTL').style.display = hudDisp;
+  document.getElementById('hudBL').style.display = hudDisp;
+  document.getElementById('hudBR').style.display = hudDisp;
+  if (!mapOnly && peMarker) {
+    peMarker.visible = false; apMarker.visible = false; shipMarker.visible = false; orbitLine.visible = false;
+    for (var bk in bodyMarkers) bodyMarkers[bk].visible = false;
+    for (var bk in bodyOrbitLines) bodyOrbitLines[bk].visible = false;
+    if (target && target.marker) target.marker.visible = false;
+    if (target && target.orbitLine) target.orbitLine.visible = false;
+    if (nextPatchLine) nextPatchLine.visible = false;
+    if (encounterMarker) encounterMarker.visible = false;
+    if (escapeMarker) escapeMarker.visible = false;
+    if (plannedOrbitLine) plannedOrbitLine.visible = false;
+    if (manNodeMarker) manNodeMarker.visible = false;
+  }
+}
+
+function renderMapView() {
+  updateOrbitLine();
+  updatePlannedOrbitLine();
+  var shipInertialPos = inertialPosOf(sim);
+  shipMarker.position.copy(shipInertialPos);
+  shipMarker.visible = true;
+  // Update all non-Earth bodies + markers + orbit lines
+  for (var bk in bodyMeshes) {
+    var bp = inertialBodyPos(bk, sim.t);
+    bodyMeshes[bk].position.copy(bp);
+    bodyMeshes[bk].visible = true;
+    bodyMarkers[bk].position.copy(bp);
+    bodyMarkers[bk].visible = true;
+    bodyOrbitLines[bk].visible = true;
+  }
+  // Target on map
+  if (target) {
+    var ts = targetStateAt(sim.t);
+    if (ts) {
+      target.mesh.position.copy(ts.pos);
+      target.mesh.visible = true;
+      target.marker.position.copy(ts.pos);
+      target.marker.visible = true;
+    }
+    target.orbitLine.visible = true;
+  }
+  var munPos = inertialBodyPos('mun', sim.t);
+  // Hide rocket mesh in map (too small anyway; ship sprite replaces it)
+  rocketGroup.visible = false;
+  // Center map camera on current parent body
+  var focus = inertialBodyPos(sim.parent, sim.t);
+  var d = mapState.dist;
+  var cp = Math.cos(mapState.pitch), sp = Math.sin(mapState.pitch);
+  var cy = Math.cos(mapState.yaw), sy = Math.sin(mapState.yaw);
+  mapCamera.position.set(focus.x + d*cp*sy, focus.y + d*sp, focus.z + d*cp*cy);
+  mapCamera.up.set(0, 1, 0);
+  mapCamera.lookAt(focus);
+  renderer.render(scene, mapCamera);
+  // Update map info HUD
+  var parent = BODIES[sim.parent];
+  var kep = keplerianFromState(sim.pos, sim.vel, parent.mu);
+  var info = '<b>SOI</b> ' + parent.name + '<br><b>PE</b> ' + fmtAlt(sim.periapsis) + '<br><b>AP</b> ' + fmtAlt(sim.apoapsis) + '<br><b>ECC</b> ' + (kep ? kep.e.toFixed(4) : '---') + '<br><b>ZOOM</b> ' + (mapState.dist/parent.radius).toFixed(1) + 'R';
+  if (kep && kep.bound) {
+    var period = 2 * Math.PI * Math.sqrt(kep.a * kep.a * kep.a / parent.mu);
+    info += '<br><b>PERIOD</b> ' + fmtTime(period);
+  }
+  if (sim.parent === 'earth') {
+    var dMun = shipInertialPos.clone().sub(munPos).length();
+    info += '<br><b>LUMA D</b> ' + fmtAlt(dMun - BODIES.mun.radius);
+  }
+  document.getElementById('mapInfoTL').innerHTML = info;
+  // After map render, un-hide rocket so flight view next frame works
+  rocketGroup.visible = true;
+}
+
+/* ===== AUDIO ===== */
+function initAudio() {
+  if (audio.ctx) { if (audio.ctx.state === 'suspended') audio.ctx.resume(); return; }
+  try {
+    audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  } catch (e) { return; }
+  // Layered sine oscillators for a deep chest-rumble instead of a buzzy sawtooth
+  audio.engineOsc = audio.ctx.createOscillator();
+  audio.engineOsc.type = 'sine';
+  audio.engineOsc.frequency.value = 42;
+  audio.engineOsc2 = audio.ctx.createOscillator();
+  audio.engineOsc2.type = 'sine';
+  audio.engineOsc2.frequency.value = 63;
+  audio.engineOsc3 = audio.ctx.createOscillator();
+  audio.engineOsc3.type = 'triangle';
+  audio.engineOsc3.frequency.value = 98;
+  // Pink noise for natural turbulence
+  var noiseBuf = audio.ctx.createBuffer(1, audio.ctx.sampleRate * 3, audio.ctx.sampleRate);
+  var nd = noiseBuf.getChannelData(0);
+  var b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+  for (var i = 0; i < nd.length; i++) {
+    var w = Math.random() * 2 - 1;
+    b0 = 0.99886 * b0 + w * 0.0555179;
+    b1 = 0.99332 * b1 + w * 0.0750759;
+    b2 = 0.96900 * b2 + w * 0.1538520;
+    b3 = 0.86650 * b3 + w * 0.3104856;
+    b4 = 0.55000 * b4 + w * 0.5329522;
+    b5 = -0.7616 * b5 - w * 0.0168980;
+    nd[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.09;
+    b6 = w * 0.115926;
+  }
+  audio.noiseSrc = audio.ctx.createBufferSource();
+  audio.noiseSrc.buffer = noiseBuf;
+  audio.noiseSrc.loop = true;
+  audio.engineFilter = audio.ctx.createBiquadFilter();
+  audio.engineFilter.type = 'lowpass';
+  audio.engineFilter.frequency.value = 300;
+  audio.engineFilter.Q.value = 0.7;
+  // A touch of distortion via waveshaper at the tail
+  audio.engineShaper = audio.ctx.createWaveShaper();
+  var curve = new Float32Array(1024);
+  for (var si = 0; si < 1024; si++) {
+    var x = si / 512 - 1;
+    curve[si] = Math.tanh(x * 1.4);
+  }
+  audio.engineShaper.curve = curve;
+  audio.engineGain = audio.ctx.createGain();
+  audio.engineGain.gain.value = 0;
+  audio.noiseSrc.connect(audio.engineFilter);
+  audio.engineOsc.connect(audio.engineFilter);
+  audio.engineOsc2.connect(audio.engineFilter);
+  audio.engineOsc3.connect(audio.engineFilter);
+  audio.engineFilter.connect(audio.engineShaper);
+  audio.engineShaper.connect(audio.engineGain);
+  audio.engineGain.connect(audio.ctx.destination);
+  audio.engineOsc.start();
+  audio.engineOsc2.start();
+  audio.engineOsc3.start();
+  audio.noiseSrc.start();
+  // Reentry wind: separate noise + bandpass chain, driven by Q
+  audio.windSrc = audio.ctx.createBufferSource();
+  audio.windSrc.buffer = noiseBuf; // reuse buffer
+  audio.windSrc.loop = true;
+  audio.windFilter = audio.ctx.createBiquadFilter();
+  audio.windFilter.type = 'bandpass';
+  audio.windFilter.frequency.value = 800;
+  audio.windFilter.Q.value = 0.7;
+  audio.windGain = audio.ctx.createGain();
+  audio.windGain.gain.value = 0;
+  audio.windSrc.connect(audio.windFilter);
+  audio.windFilter.connect(audio.windGain);
+  audio.windGain.connect(audio.ctx.destination);
+  audio.windSrc.start();
+}
+
+function updateAudio(s) {
+  if (!audio.ctx) return;
+  if (audio.muted) {
+    audio.engineGain.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.05);
+    if (audio.windGain) audio.windGain.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.05);
+    return;
+  }
+  var thrFrac = s.thrustN > 0 ? s.throttle : 0;
+  var rho = s.parent === 'earth' ? atmDensity(s.altitude) : 0;
+  var atmFactor = Math.min(1, rho / 0.4);
+  // Audible but muffled in vacuum (cinematic convention) — 30% volume, hard low-pass
+  var vacFactor = 0.3 + atmFactor * 0.7;
+  var vol = thrFrac * 0.3 * vacFactor;
+  audio.engineGain.gain.setTargetAtTime(vol, audio.ctx.currentTime, 0.08);
+  // Cutoff: vacuum muffled (~200Hz), atm full range (~1800Hz). Throttle adds brightness.
+  var cutoff = 180 + atmFactor * 1500 + thrFrac * 350;
+  audio.engineFilter.frequency.setTargetAtTime(cutoff, audio.ctx.currentTime, 0.08);
+  if (audio.windGain && audio.windFilter) {
+    var q = s.q || 0;
+    var windVol = Math.min(0.35, q / 80000);
+    if (s.parent !== 'earth' || s.altitude > ENV.KARMAN) windVol = 0;
+    audio.windGain.gain.setTargetAtTime(windVol, audio.ctx.currentTime, 0.1);
+    var windFreq = 400 + Math.min(2500, s.speed * 3);
+    audio.windFilter.frequency.setTargetAtTime(windFreq, audio.ctx.currentTime, 0.1);
+  }
+}
+
+function playMissionChime() {
+  if (!audio.ctx || audio.muted) return;
+  var t0 = audio.ctx.currentTime;
+  [523.25, 659.25, 783.99].forEach(function(freq, i) {
+    var o = audio.ctx.createOscillator(), g = audio.ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.value = freq;
+    var st = t0 + i * 0.12;
+    g.gain.setValueAtTime(0.0001, st);
+    g.gain.exponentialRampToValueAtTime(0.18, st + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, st + 0.5);
+    o.connect(g); g.connect(audio.ctx.destination);
+    o.start(st); o.stop(st + 0.55);
+  });
+}
+
+function playChuteSound() {
+  if (!audio.ctx || audio.muted) return;
+  var buf = audio.ctx.createBuffer(1, audio.ctx.sampleRate * 0.7, audio.ctx.sampleRate);
+  var d = buf.getChannelData(0);
+  for (var i = 0; i < d.length; i++) {
+    var env = i < d.length*0.1 ? i/(d.length*0.1) : Math.pow(1 - (i - d.length*0.1)/(d.length*0.9), 1.5);
+    d[i] = (Math.random()*2 - 1) * env * 0.6;
+  }
+  var src = audio.ctx.createBufferSource(); src.buffer = buf;
+  var filt = audio.ctx.createBiquadFilter(); filt.type = 'lowpass'; filt.frequency.value = 1200;
+  var g = audio.ctx.createGain(); g.gain.value = 0.5;
+  src.connect(filt); filt.connect(g); g.connect(audio.ctx.destination);
+  src.start();
+}
+
+function playStageSound() {
+  if (!audio.ctx || audio.muted) return;
+  var osc = audio.ctx.createOscillator(), g = audio.ctx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(320, audio.ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(70, audio.ctx.currentTime + 0.25);
+  g.gain.setValueAtTime(0.25, audio.ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.01, audio.ctx.currentTime + 0.3);
+  osc.connect(g); g.connect(audio.ctx.destination);
+  osc.start(); osc.stop(audio.ctx.currentTime + 0.3);
+}
+
+function toggleSound() {
+  audio.muted = !audio.muted;
+  document.getElementById('soundToggle').innerHTML = audio.muted ? '\u{1F507} OFF' : '\u{1F50A} ON';
+}
+
+/* ===== NAVBALL (3D) ===== */
+function buildNavballTexture() {
+  var W = 1024, H = 512;
+  var c = document.createElement('canvas'); c.width = W; c.height = H;
+  var ctx = c.getContext('2d');
+  // Canvas y=0 top; Three SphereGeometry default UV: v=0 at bottom (south pole -Y), v=1 at top (+Y north)
+  // CanvasTexture uploads canvas as-is; Three flipY defaults to true so canvas top becomes v=1. Fine.
+  var skyGrad = ctx.createLinearGradient(0, 0, 0, H/2);
+  skyGrad.addColorStop(0, '#2e538a');
+  skyGrad.addColorStop(1, '#a7c6e8');
+  ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, W, H/2);
+  var groundGrad = ctx.createLinearGradient(0, H/2, 0, H);
+  groundGrad.addColorStop(0, '#8a6830');
+  groundGrad.addColorStop(1, '#3a2810');
+  ctx.fillStyle = groundGrad; ctx.fillRect(0, H/2, W, H/2);
+  // Horizon
+  ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+  // Pitch ticks (±15°, 30°, 45°, 60°, 75°)
+  ctx.strokeStyle = '#FFFFFF'; ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center';
+  for (var p = -75; p <= 75; p += 15) {
+    if (p === 0) continue;
+    var y = H/2 - (p / 90) * (H/2 - 12);
+    for (var xl = 0; xl < 8; xl++) {
+      var xc = (xl + 0.5) * (W / 8);
+      ctx.beginPath(); ctx.moveTo(xc - 40, y); ctx.lineTo(xc + 40, y); ctx.stroke();
+      ctx.fillText((p > 0 ? '+' : '') + p, xc, y + 5);
+    }
+  }
+  // Compass (N E S W etc) at equator
+  var labels = ['N','NE','E','SE','S','SW','W','NW'];
+  var compassColors = ['#FF6040','#FFA030','#40D080','#40A0FF','#A080FF','#FF60C0','#60E0C0','#F0F040'];
+  ctx.font = 'bold 26px monospace';
+  for (var i = 0; i < 8; i++) {
+    var x = (i / 8) * W + W/16;
+    ctx.fillStyle = compassColors[i];
+    ctx.fillText(labels[i], x, H/2 - 18);
+    ctx.fillText(labels[i], x, H/2 + 36);
+  }
+  return c;
+}
+
+function initNavball3D() {
+  var canvas = document.getElementById('navballCanvas');
+  if (!canvas) return;
+  navRenderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+  navRenderer.setSize(170, 170);
+  navRenderer.setPixelRatio(window.devicePixelRatio || 1);
+  navScene = new THREE.Scene();
+  navCamera = new THREE.PerspectiveCamera(65, 1, 0.01, 10);
+  navCamera.position.set(0, 0, 0);
+  // Ball: sphere with backside texture (camera is inside)
+  var geo = new THREE.SphereGeometry(1, 32, 24);
+  var tex = new THREE.CanvasTexture(buildNavballTexture());
+  var mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide });
+  navBall = new THREE.Mesh(geo, mat);
+  navScene.add(navBall);
+  // Prograde/retrograde/target sprites — positioned per frame at their world direction
+  navPrograde = makeNavSprite('#FFD040', 'P');
+  navRetrograde = makeNavSprite('#FFD040', 'X', true);
+  navTarget = makeNavSprite('#FFA030', 'T');
+  [navPrograde, navRetrograde, navTarget].forEach(function(s) { s.visible = false; navScene.add(s); });
+}
+
+function makeNavSprite(color, letter, hollow) {
+  var c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  var ctx = c.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 3;
+  if (hollow) {
+    ctx.beginPath(); ctx.arc(32, 32, 14, 0, Math.PI*2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(16, 16); ctx.lineTo(48, 48); ctx.moveTo(48, 16); ctx.lineTo(16, 48); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.arc(32, 32, 10, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(32, 32, 16, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 14px monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(letter, 32, 33);
+  }
+  var tex = new THREE.CanvasTexture(c);
+  var mat = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
+  var sprite = new THREE.Sprite(mat);
+  sprite.scale.set(0.22, 0.22, 1);
+  return sprite;
+}
+
+function renderNavball() {
+  if (!sim) return;
+  if (!navRenderer) { initNavball3D(); if (!navRenderer) return; }
+  // Camera at origin (ball center), looking in ship's nose direction
+  var shipFwd = new THREE.Vector3(0, 1, 0).applyQuaternion(sim.orientation);
+  var localUp = sim.pos.clone().normalize();
+  navCamera.up.copy(localUp);
+  navCamera.lookAt(shipFwd);
+  // Prograde marker at velocity direction
+  if (sim.speed > 1) {
+    var v = sim.vel.clone().normalize();
+    navPrograde.position.copy(v.clone().multiplyScalar(0.96));
+    navRetrograde.position.copy(v.clone().multiplyScalar(-0.96));
+    navPrograde.visible = true;
+    navRetrograde.visible = true;
+  } else { navPrograde.visible = false; navRetrograde.visible = false; }
+  // Target marker
+  if (target) {
+    var ts = targetStateAt(sim.t);
+    if (ts) {
+      var relDir = ts.pos.clone().sub(inertialPosOf(sim)).normalize();
+      navTarget.position.copy(relDir.clone().multiplyScalar(0.96));
+      navTarget.visible = true;
+    }
+  } else navTarget.visible = false;
+  navRenderer.render(navScene, navCamera);
+}
+
+function activateAbort() {
+  if (!sim) return;
+  var hasAbort = false;
+  for (var i = 0; i < sim.parts.length; i++) {
+    var p = sim.parts[i];
+    if (PARTS[p.key].type === 'abort' && p.fuel > 0.001) { hasAbort = true; break; }
+  }
+  if (!hasAbort) { showToast('<span style="color:#D04040;">No abort system / already spent</span>'); return; }
+  // Keep only survival parts
+  var keepTypes = { pod:true, chute:true, leg:true, rcs:true, abort:true };
+  sim.parts = sim.parts.filter(function(p) { return keepTypes[PARTS[p.key].type]; });
+  for (var i = 0; i < sim.parts.length; i++) sim.parts[i].stage = 0;
+  sim.currentStage = 0;
+  sim.aborted = true;
+  sim.throttle = 1.0;
+  setSAS('radial-out');
+  if (autopilot) autopilot = null;
+  buildRocketMeshes(sim.parts);
+  playStageSound();
+  showToast('<b style="color:#D04040;">ABORT! &mdash; Escape motor firing</b>');
+}
+
+function deployChute() {
+  if (!sim) return;
+  var hasChute = false;
+  for (var i = 0; i < sim.parts.length; i++) if (PARTS[sim.parts[i].key].type === 'chute') hasChute = true;
+  if (!hasChute) { showToast('<span style="color:#D04040;">No parachute!</span>'); return; }
+  if (sim.chuteDeployed) { showToast('Chute already deployed.'); return; }
+  if (sim.chuteRipped) { showToast('<span style="color:#D04040;">Chute has been ripped.</span>'); return; }
+  sim.chuteDeployed = true;
+  showToast('Parachute deployed');
+  playChuteSound();
+  buildRocketMeshes(sim.parts); // rebuild to show canopy
+}
+
+/* ===== INPUT ===== */
+function handleInput() {
+  sim.pitchRate = 0;
+  sim.yawRate = 0;
+  var shift = keys['shift'];
+  // RCS translation (Shift + WASD + QE). Requires an RCS block with fuel.
+  if (shift && rcsFuelRemaining(sim.parts) > 0 && rcsTotalThrust(sim.parts) > 0) {
+    var mass = sim.mass > 0 ? sim.mass : totalMass(sim.parts);
+    var totalThrustN = rcsTotalThrust(sim.parts) * 1000; // thrust stored in kN per block
+    var dv = totalThrustN / mass * PHYSICS_DT;
+    var bodyDir = new THREE.Vector3();
+    if (keys['w'] || keys['arrowup']) bodyDir.y += 1;
+    if (keys['s'] || keys['arrowdown']) bodyDir.y -= 1;
+    if (keys['a'] || keys['arrowleft']) bodyDir.x -= 1;
+    if (keys['d'] || keys['arrowright']) bodyDir.x += 1;
+    if (keys['q']) bodyDir.z -= 1;
+    if (keys['e']) bodyDir.z += 1;
+    if (bodyDir.lengthSq() > 0) {
+      bodyDir.normalize().applyQuaternion(sim.orientation);
+      sim.vel.add(bodyDir.multiplyScalar(dv));
+      // Consume monopropellant: mdot = F / (Isp * g0)
+      var isp = 240;
+      var mdot = totalThrustN / (isp * ENV.g0);
+      consumeRCSFuel(sim.parts, mdot * PHYSICS_DT);
+    }
+    return; // while Shift held, don't also throttle/pitch/yaw
+  }
+  if (keys['w'] || keys['arrowup']) sim.throttle = Math.min(1, sim.throttle + 0.02);
+  if (keys['s'] || keys['arrowdown']) sim.throttle = Math.max(0, sim.throttle - 0.02);
+  if (keys['a'] || keys['arrowleft']) sim.pitchRate = -1.0;
+  if (keys['d'] || keys['arrowright']) sim.pitchRate = 1.0;
+  if (keys['q']) sim.yawRate = -1.0;
+  if (keys['e']) sim.yawRate = 1.0;
+}
+document.addEventListener('keydown', function(e) {
+  keys[e.key.toLowerCase()] = true;
+  if (gameState !== 'flight') return;
+  if (e.key === ' ') { e.preventDefault(); doStage(sim); }
+  if (e.key === '.') {
+    var cap = canRail(sim) ? 10000 : 10;
+    timeWarp = Math.min(cap, timeWarp * 2);
+  }
+  if (e.key === ',') timeWarp = Math.max(1, timeWarp / 2);
+  if (e.key.toLowerCase() === 'm') setView(viewMode === 'flight' ? 'map' : 'flight');
+  if (e.key.toLowerCase() === 'n') { if (maneuverNode) clearNode(); else createNode(); }
+  if (e.key.toLowerCase() === 'g') deployChute();
+  if (e.key.toLowerCase() === 'l') toggleAutopilot();
+  if (e.key.toLowerCase() === 'x') activateAbort();
+  if (SAS_KYS_HANDLED.indexOf(e.key) >= 0) setSAS(SAS_KEYS[e.key]);
+  if (e.key === 'Escape') backToBuilder();
+});
+var SAS_KYS_HANDLED = ['0','1','2','3','4','5','6','7','8','9'];
+
+// Wire up maneuver node sliders
+['manTime','manPro','manNorm','manRad'].forEach(function(id) {
+  document.addEventListener('input', function(e) { if (e.target && e.target.id === id) updateManeuverUI(); });
+});
+document.addEventListener('keyup', function(e) { keys[e.key.toLowerCase()] = false; });
+
+/* ===== TOUCH CONTROLS =====
+   Buttons drive the same keys[] map the keyboard writes, so flight logic is untouched. */
+function initTouchControls() {
+  var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if (!coarse) return;
+  document.body.classList.add('touch');
+  var panel = document.getElementById('touchControls');
+  if (!panel) return;
+  Array.prototype.forEach.call(panel.querySelectorAll('[data-key]'), function(btn) {
+    var k = btn.getAttribute('data-key');
+    var down = function(e) { e.preventDefault(); keys[k] = true; btn.classList.add('active'); };
+    var up = function() { keys[k] = false; btn.classList.remove('active'); };
+    btn.addEventListener('touchstart', down, { passive: false });
+    btn.addEventListener('touchend', up);
+    btn.addEventListener('touchcancel', up);
+    btn.addEventListener('mousedown', down);
+    btn.addEventListener('mouseup', up);
+    btn.addEventListener('mouseleave', up);
+  });
+  Array.prototype.forEach.call(panel.querySelectorAll('[data-action]'), function(btn) {
+    var act = btn.getAttribute('data-action');
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (gameState !== 'flight' || !sim) return;
+      if (act === 'stage') doStage(sim);
+      else if (act === 'autopilot') toggleAutopilot();
+      else if (act === 'map') setView(viewMode === 'flight' ? 'map' : 'flight');
+      else if (act === 'chute') deployChute();
+      else if (act === 'warp-up') { var cap = canRail(sim) ? 10000 : 10; timeWarp = Math.min(cap, timeWarp * 2); showToast('Warp: <b>' + timeWarp + 'x</b>'); }
+      else if (act === 'warp-down') { timeWarp = Math.max(1, timeWarp / 2); showToast('Warp: <b>' + timeWarp + 'x</b>'); }
+      else if (act.indexOf('sas-') === 0) setSAS(act.slice(4));
+    });
+  });
+}
+
+
+/* ===== HELPERS ===== */
+function fmtAlt(m) { if (!isFinite(m)) return '---'; if (Math.abs(m) >= 1e6) return (m/1000).toFixed(0) + ' km'; if (Math.abs(m) >= 1000) return (m/1000).toFixed(1) + ' km'; return Math.round(m) + ' m'; }
+function fmtTime(s) { var m = Math.floor(s / 60), sec = Math.floor(s % 60); return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec; }
+
+function showTutorial() {
+  document.getElementById('tutorialOverlay').classList.add('show');
+}
+function dismissTutorial() {
+  document.getElementById('tutorialOverlay').classList.remove('show');
+  try { localStorage.setItem('apoapsis_tutorial_seen', '1'); } catch(e) {}
+}
+function maybeShowTutorial() {
+  try {
+    if (!localStorage.getItem('apoapsis_tutorial_seen')) {
+      document.getElementById('tutorialOverlay').classList.add('show');
+    }
+  } catch(e) {}
+}
+
+/* nav.js injects the site header after load, so measure it instead of hard-coding. */
+function sizeGameHost() {
+  var head = document.querySelector('.bgh-head');
+  var h = head ? Math.round(head.getBoundingClientRect().height) : 0;
+  document.documentElement.style.setProperty('--apo-chrome', h + 'px');
+}
+window.addEventListener('resize', sizeGameHost);
+window.addEventListener('load', sizeGameHost);
+setTimeout(sizeGameHost, 60);
+setTimeout(sizeGameHost, 400);
+
+/* ===== INIT ===== */
+sizeGameHost();
+initTouchControls();
+renderCatalog();
+loadPreset('orbital');
+maybeShowTutorial();
+</script>
+<section class="seo-content">
+  <h2>About Apoapsis</h2>
+  <p>Apoapsis is a 3D rocket-flight simulation. Plan an ascent profile, manage staging, and reach a stable orbit around Earth — or beyond. Newtonian gravity within each sphere of influence, patched-conic SOI transitions, realistic engine specifications, and atmospheric drag all shape your trajectory.</p>
+
+  <h3>How to play</h3>
+  <p>Configure your rocket: payload, stages, fuel mass. Throttle up, gravity-turn during ascent, stage at appropriate altitudes, circularize at apoapsis to lock in orbit. Three.js renders the trajectory in 3D; orbit parameters update live.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>What is apoapsis?</summary><p>The highest point of an orbit — opposite of periapsis (lowest point). On Earth it's "apogee"; for the Sun it's "aphelion". The game is named after this orbital concept.</p></details>
+  <details><summary>Is the physics realistic?</summary><p>Yes — Newtonian point-mass gravity within each sphere of influence, patched-conic transitions between bodies, realistic engine ISP/thrust specs, and altitude-dependent atmospheric drag. Moon orbits and SOI sizes are scaled for playable transfer times, not 1:1 real-world.</p></details>
+  <details><summary>What's a good gravity-turn altitude?</summary><p>Begin pitching over at ~5 km, target ~45° pitch by 20 km. Earlier pitch wastes fuel on horizontal velocity at sea level (high drag); later pitch wastes fuel fighting gravity.</p></details>
+  <details><summary>Can I land on the Moon?</summary><p>Single-stage to orbit and a circumlunar flyby are both achievable with the default rocket. A surface-landing mission requires a custom multi-stage build.</p></details>
+
+  <h2>How the model works — the real physics</h2>
+  <p>Apoapsis integrates the equations of motion numerically every tick rather than drawing an analytic conic — the trajectory you see emerges from the forces, so a badly timed burn distorts the orbit exactly as it should. Units are SI throughout (metres, kilograms, seconds, newtons). Here is the actual math the code runs.</p>
+
+  <h3>Gravity</h3>
+  <p>Gravity is inverse-square about the current primary body. Earth's gravitational parameter is built from surface gravity and radius:</p>
+  <ul>
+    <li><strong>GM = g₀·R²</strong>, with g₀ = 9.80665 m/s² and R = 6 371 000 m.</li>
+    <li>Acceleration magnitude at radius r is <strong>g = GM / r²</strong>, directed along −r̂ (toward the body centre). Equivalently g(alt) = g₀·(R/(R+alt))².</li>
+  </ul>
+
+  <h3>Integration — semi-implicit (symplectic) Euler</h3>
+  <p>Each step advances velocity first, then position with the <em>updated</em> velocity:</p>
+  <ul>
+    <li><strong>v ← v + a·dt</strong>, then <strong>x ← x + v·dt</strong>, with a fixed step dt = 0.01 s.</li>
+  </ul>
+  <p>This ordering is what makes the method symplectic: unlike plain (explicit) Euler it conserves orbital energy over many revolutions, so a circular orbit stays circular instead of spiralling out from integration error.</p>
+
+  <h3>Thrust, mass flow &amp; the rocket equation</h3>
+  <p>Engines are defined by thrust F and specific impulse Isp. Propellant burns at the mass-flow rate</p>
+  <ul>
+    <li><strong>ṁ = F / (Isp · g₀)</strong> — mass is drained from the active stage each step, so the vehicle accelerates harder as tanks empty (a = F/m with m falling).</li>
+  </ul>
+  <p>Stage and total Δv budgets come straight from the <strong><a href="https://pe-calc.com/tools/tsiolkovsky-rocket-equation.html" style="color:inherit">Tsiolkovsky rocket equation</a></strong> (run the numbers yourself on that calculator):</p>
+  <ul>
+    <li><strong>Δv = Isp · g₀ · ln(m_wet / m_dry)</strong>, where Isp is thrust-weighted-averaged across the engines firing in that stage and m_wet/m_dry include all mass carried above the stage.</li>
+  </ul>
+
+  <h3>Atmosphere &amp; drag</h3>
+  <p>Air density follows the International Standard Atmosphere in the troposphere and an exponential fall-off above it:</p>
+  <ul>
+    <li>Below 11 km: T = T₀ − L·alt, then <strong>P = P₀·(T/T₀)^(g₀·M/(R·L))</strong> and <strong>ρ = P·M/(R·T)</strong>, with T₀ = 288.15 K, P₀ = 101 325 Pa, lapse L = 0.0065 K/m, molar mass M = 0.029 kg/mol, gas constant R = 8.314.</li>
+    <li>Above 11 km: ρ = ρ₁₁·exp(−(alt−11000)/6500) — a 6.5 km scale height — cut to zero above 140 km.</li>
+    <li>Drag force <strong>F_d = ½·ρ·v²·C_d·A</strong>, opposing the velocity vector.</li>
+  </ul>
+
+  <h3>Orbital elements — vis-viva &amp; the eccentricity vector</h3>
+  <p>Live orbit readouts are derived every tick from the state vectors (position r, velocity v):</p>
+  <ul>
+    <li>Specific orbital energy (the vis-viva relation) <strong>ε = v²/2 − μ/r</strong>.</li>
+    <li>Specific angular momentum <strong>h = r × v</strong>.</li>
+    <li>Eccentricity vector <strong>e = (v × h)/μ − r̂</strong>; eccentricity is its magnitude.</li>
+    <li>Semi-major axis <strong>a = −μ/(2ε)</strong>, giving periapsis a(1−e) and apoapsis a(1+e), each minus the body radius to report altitude. When ε ≥ 0 the orbit is unbound (hyperbolic/parabolic) and apoapsis is infinite.</li>
+  </ul>
+
+  <h3>What's simplified</h3>
+  <p>Within the active body's sphere of influence gravity is integrated numerically from the single primary — genuine Newtonian motion, not a precomputed two-body conic. Transitions between bodies use the standard <strong>patched-conic / SOI hand-off</strong> (only one gravitating body at a time; no n-body perturbations). Luma and Pebble and their SOI radii are <strong>scaled-down toy bodies</strong> (Luma radius 300 km, SOI 1500 km, etc.), deliberately shrunk so a transfer fits in a short play session rather than matching the real Earth-Moon system.</p>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/biosphereblue">BiosphereBlue</a> — planet-scale geosim.</li>
+    <li><a href="/bonnevillespillwayoperator">BonnevilleSpillwayOperator</a> — dam operator sim.</li>
+    <li><a href="/doctrine">Doctrine</a> — geopolitical sim.</li>
+    <li><a href="/floodline">Floodline</a> — flood defense sim.</li>
+  </ul>
+</section>
+
+<script src="/analytics.js"></script>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

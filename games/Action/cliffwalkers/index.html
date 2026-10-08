@@ -1,0 +1,2110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, follow">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0c1016">
+<title>Cliffwalkers — Free Lemmings-style Puzzle Game | Board Gaming Hub</title>
+<meta name="description" content="Save the wee folk. A free Lemmings-style puzzle: assign skills, dig tunnels, build bridges, climb cliffs. Single HTML file, mobile-friendly.">
+<link rel="canonical" href="https://boardgaminghub.com/cliffwalkers">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/cliffwalkers">
+<meta property="og:title" content="Cliffwalkers — Free Lemmings-style Puzzle">
+<meta property="og:description" content="Free Lemmings-style puzzle game. Assign skills, save the wee folk.">
+<meta property="og:image" content="https://boardgaminghub.com/og/cliffwalkers.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/cliffwalkers.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Cliffwalkers",
+  "description": "Lemmings-inspired puzzle game where you assign skills to wee folk to navigate hazards.",
+  "url": "https://boardgaminghub.com/cliffwalkers", "genre": "Puzzle",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<style>
+  :root {
+    --bg: #0a0e14;
+    --panel: #141b26;
+    --panel2: #1d2735;
+    --accent: #7dd3fc;
+    --accent2: #fbbf24;
+    --danger: #ef4444;
+    --ok: #22c55e;
+    --text: #e6edf3;
+    --dim: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; overflow: hidden; height: 100%; user-select: none; }
+  #game { display: grid; grid-template-rows: 44px 1fr auto; height: 100vh; gap: 4px; padding: 4px; }
+  #topbar { background: var(--panel); border-radius: 6px; display: flex; align-items: center; padding: 0 14px; gap: 14px; flex-wrap: nowrap; overflow-x: auto; }
+  #canvaswrap { background: #000; border-radius: 6px; position: relative; overflow: hidden; }
+  #canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; cursor: crosshair; }
+  #minimap { position: absolute; right: 8px; top: 8px; background: rgba(10,14,20,0.85); border: 1px solid var(--accent); border-radius: 4px; image-rendering: pixelated; cursor: pointer; }
+  #skillbar { background: var(--panel); border-radius: 6px; padding: 8px; display: flex; gap: 4px; align-items: stretch; flex-wrap: wrap; }
+  .skill { background: var(--panel2); border-radius: 4px; padding: 4px 6px; cursor: pointer; border: 2px solid transparent; min-width: 64px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; transition: background 0.1s; flex: 1; max-width: 110px; }
+  .skill:hover:not(.locked) { background: #263142; }
+  .skill.active { border-color: var(--accent); background: #1e2c42; }
+  .skill.locked { opacity: 0.35; cursor: not-allowed; }
+  .skill .name { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .skill .count { font-size: 18px; font-weight: bold; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1; margin: 2px 0; }
+  .skill .hot { font-size: 9px; color: var(--accent2); }
+  .skill.danger .count { color: var(--danger); }
+
+  .stat { display: inline-flex; flex-direction: column; align-items: flex-start; padding: 3px 8px; background: var(--panel2); border-radius: 4px; font-size: 10px; color: var(--dim); white-space: nowrap; line-height: 1.25; min-width: 52px; }
+  .stat b { font-size: 13px; color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 10px; letter-spacing: 0.02em; }
+  .stat.warn b { color: var(--accent2); }
+  .stat.danger b { color: var(--danger); }
+  .stat.ok b { color: var(--ok); }
+
+  button { background: #2563eb; color: white; border: none; padding: 6px 12px; border-radius: 5px; font-size: 12px; cursor: pointer; font-weight: 500; }
+  button:hover { background: #3b82f6; }
+  button:disabled { background: #374151; cursor: not-allowed; color: #64748b; }
+  button.danger { background: #b91c1c; }
+  button.danger:hover { background: #dc2626; }
+  button.ghost { background: transparent; border: 1px solid #475569; color: var(--text); }
+  button.ghost:hover { background: #1e293b; }
+  button.warn { background: #d97706; }
+  button.warn:hover { background: #f59e0b; }
+
+  .speed-btns { display: inline-flex; gap: 2px; background: var(--panel2); padding: 2px; border-radius: 4px; }
+  .speed-btns button { background: transparent; padding: 4px 10px; font-size: 11px; }
+  .speed-btns button.active { background: var(--accent); color: #0a0e14; }
+
+  #overlay { position: absolute; inset: 0; background: rgba(5,10,18,0.96); z-index: 100; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; }
+  .modal { background: var(--panel); border-radius: 8px; padding: 24px 32px; max-width: 920px; width: 95%; max-height: 92vh; overflow-y: auto; }
+  .modal h1 { color: var(--accent); margin: 0 0 4px 0; font-size: 32px; letter-spacing: 0.04em; }
+  .modal h2 { color: var(--accent2); font-size: 16px; margin-top: 18px; }
+  .modal p { line-height: 1.5; color: #cbd5e1; }
+  .modal .tagline { color: var(--dim); font-size: 13px; margin-bottom: 18px; font-style: italic; }
+
+  .levels { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 12px; }
+  .level-card { background: var(--panel2); border-radius: 6px; padding: 14px; cursor: pointer; border: 2px solid transparent; transition: all 0.1s; }
+  .level-card:hover:not(.locked) { border-color: var(--accent); transform: translateY(-2px); }
+  .level-card.locked { opacity: 0.45; cursor: not-allowed; }
+  .level-card .num { color: var(--accent); font-size: 11px; font-weight: bold; letter-spacing: 0.05em; }
+  .level-card h3 { margin: 2px 0 4px 0; color: var(--text); text-transform: none; font-size: 15px; }
+  .level-card .stats-line { color: var(--dim); font-size: 11px; }
+  .level-card .best { color: var(--accent2); font-size: 11px; margin-top: 4px; }
+  .level-card .best.gold { color: #fde68a; }
+  .level-card .blurb { color: var(--dim); font-size: 11px; margin-top: 6px; line-height: 1.4; font-style: italic; }
+  .chapter-divider { grid-column: 1 / -1; padding: 18px 4px 6px; border-bottom: 1px solid #2a3540; margin-top: 6px; display: flex; align-items: baseline; gap: 10px; }
+  .chapter-divider .ch-label { color: var(--accent2); font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: bold; }
+  .chapter-divider .ch-name { color: var(--text); font-size: 16px; }
+  .chapter-divider .ch-range { color: var(--dim); font-size: 11px; margin-left: auto; }
+  .difficulty-pill { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; background: #475569; color: white; }
+  .difficulty-pill.easy { background: #166534; }
+  .difficulty-pill.medium { background: #a16207; }
+  .difficulty-pill.hard { background: #9a3412; }
+  .difficulty-pill.extreme { background: #7f1d1d; }
+
+  .toast { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); background: var(--panel2); padding: 8px 16px; border-radius: 4px; border: 1px solid var(--accent); font-size: 13px; z-index: 50; animation: fadeInOut 3.5s forwards; pointer-events: none; }
+  @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+  .scroll-hint { position: absolute; top: 50%; transform: translateY(-50%); width: 32px; height: 80px; background: rgba(125, 211, 252, 0.08); pointer-events: none; }
+  .scroll-hint.left { left: 0; }
+  .scroll-hint.right { right: 0; }
+
+  .key { display: inline-block; padding: 1px 6px; background: var(--panel2); border: 1px solid #475569; border-radius: 3px; font-size: 11px; font-family: monospace; }
+
+  body.touch .hot,
+  body.touch .hotkey-hint { display: none; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+  /* Mobile */
+  @media (max-width: 720px) {
+    #game { grid-template-rows: 38px 1fr auto; gap: 2px; padding: 2px; }
+    #topbar { padding: 0 6px; gap: 6px; font-size: 10px; }
+    #topbar .stat { padding: 2px 5px; min-width: 38px; font-size: 9px; }
+    #topbar .stat b { font-size: 11px; }
+    .skill { min-width: 50px; padding: 2px 4px; }
+    .skill .name { font-size: 8px; }
+    .skill .count { font-size: 14px; }
+    .skill .hot { display: none; }
+  }
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Simulations","item":"https://boardgaminghub.com/#sims"},{"@type":"ListItem","position":3,"name":"Cliffwalkers","item":"https://boardgaminghub.com/cliffwalkers"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is it a Lemmings clone?","acceptedAnswer":{"@type":"Answer","text":"Cliffwalkers borrows the original Lemmings (1991) gameplay loop but ships original level designs and a more forgiving difficulty curve."}},{"@type":"Question","name":"What's the trick to hard levels?","acceptedAnswer":{"@type":"Answer","text":"Skill economy — the puzzle is usually \"with these exact skill counts, can I save the target percentage?\" Solve the resource problem before the timing."}},{"@type":"Question","name":"Can I pause and re-plan?","acceptedAnswer":{"@type":"Answer","text":"Yes — pausing gives you time to reassign roles and reconsider. Most levels expect a few pauses."}},{"@type":"Question","name":"Is there a level editor?","acceptedAnswer":{"@type":"Answer","text":"Not yet. On the roadmap."}}]}</script>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div id="game">
+  <div id="topbar">
+    <div class="stat"><b id="lvlNum">--</b><span>LEVEL</span></div>
+    <div class="stat" style="min-width:140px"><b id="lvlName">—</b><span>NAME</span></div>
+    <div class="stat warn"><b id="timeRemaining">--:--</b><span>TIME</span></div>
+    <div class="stat ok"><b id="savedCount">0/0</b><span>SAVED</span></div>
+    <div class="stat"><b id="aliveCount">0</b><span>ALIVE</span></div>
+    <div class="stat"><b id="targetTxt">--%</b><span>TARGET</span></div>
+    <div class="stat"><b id="rrTxt">--</b><span>SPAWN</span></div>
+    <div class="speed-btns" id="speedBtns">
+      <button data-speed="0">⏸</button>
+      <button data-speed="1" class="active">1×</button>
+      <button data-speed="3">3×</button>
+    </div>
+    <button class="ghost" id="menuBtn">Menu</button>
+  </div>
+  <div id="canvaswrap">
+    <canvas id="canvas"></canvas>
+    <canvas id="minimap" width="160" height="20"></canvas>
+  </div>
+  <div id="skillbar">
+    <div class="skill" data-skill="climber"><div class="name">Climber</div><div class="count">0</div><div class="hot">[1]</div></div>
+    <div class="skill" data-skill="floater"><div class="name">Floater</div><div class="count">0</div><div class="hot">[2]</div></div>
+    <div class="skill" data-skill="bomber"><div class="name">Bomber</div><div class="count">0</div><div class="hot">[3]</div></div>
+    <div class="skill" data-skill="blocker"><div class="name">Blocker</div><div class="count">0</div><div class="hot">[4]</div></div>
+    <div class="skill" data-skill="builder"><div class="name">Builder</div><div class="count">0</div><div class="hot">[5]</div></div>
+    <div class="skill" data-skill="basher"><div class="name">Basher</div><div class="count">0</div><div class="hot">[6]</div></div>
+    <div class="skill" data-skill="miner"><div class="name">Miner</div><div class="count">0</div><div class="hot">[7]</div></div>
+    <div class="skill" data-skill="digger"><div class="name">Digger</div><div class="count">0</div><div class="hot">[8]</div></div>
+    <div style="display:flex; flex-direction:column; gap:3px; min-width:72px; align-self:stretch;">
+      <button id="rrUp" style="flex:1; font-size:13px;" title="Faster spawn">Spawn ▲</button>
+      <button id="rrDn" style="flex:1; font-size:13px;" title="Slower spawn">Spawn ▼</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:3px; min-width:72px; align-self:stretch;">
+      <button id="pauseBtn" class="ghost" style="flex:1; font-size:13px;">⏸ Pause</button>
+      <button id="nukeBtn" class="danger" style="flex:1; font-size:13px;" title="Bomb everyone">☢ Nuke</button>
+    </div>
+  </div>
+</div>
+
+<div id="overlay">
+  <div class="modal" id="modalContent">
+    <!-- filled by JS -->
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// Touch-device detection — hides hotkey labels.
+if (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+  document.body.classList.add('touch');
+}
+
+// =====================================================================
+// CONFIG / CONSTANTS
+// =====================================================================
+
+const LVL_W = 1600;        // level width (pixels)
+const LVL_H = 200;         // level height (pixels)
+const VIEW_BASE_H = 200;   // canvas internal height
+const SCALE_DEFAULT = 3;   // display scale
+const TICK_HZ = 30;        // logic ticks per second
+const TICK_MS = 1000 / TICK_HZ;
+
+// Lemming dimensions
+const L_HEIGHT = 10;       // total height
+const L_HALF_W = 1;        // half width (so lemming is 3px wide)
+
+// Physics
+const FALL_SPEED = 2;      // px per tick
+const FLOAT_SPEED = 1;     // px per tick (slow fall)
+const SPLAT_DIST = 60;     // fall distance for splat
+const STEP_UP_MAX = 4;     // max walker step up (stops walker if taller wall, climbs only if Climber)
+const STEP_DOWN_MAX = 3;   // walker descends up to this without falling
+const BUILDER_BRICKS = 12; // bricks per builder
+const BOMBER_FUSE = 5 * TICK_HZ; // 5 seconds in ticks
+const BOMBER_RADIUS = 9;   // explosion radius
+const EXIT_RADIUS = 6;
+const BLOCK_RADIUS = 6;    // blocker repulsion radius
+const BUILDER_TICK = 6;    // ticks between bricks
+const BASHER_TICK = 3;
+const MINER_TICK = 3;
+const DIGGER_TICK = 3;
+
+// Terrain mask values
+const T_EMPTY = 0;
+const T_DIRT = 1;
+const T_STEEL = 2;
+
+// Lemming states
+const ST = {
+  WALKER: 'walker',
+  FALLER: 'faller',
+  FLOATER: 'floater',
+  CLIMBER: 'climber',
+  HOISTER: 'hoister',
+  BLOCKER: 'blocker',
+  BUILDER: 'builder',
+  SHRUGGER: 'shrugger',
+  BASHER: 'basher',
+  MINER: 'miner',
+  DIGGER: 'digger',
+  BOMBER_TIMER: 'bomber_timer', // walking with active fuse
+  OHNO: 'ohno',
+  EXITER: 'exiter',
+  SPLATTER: 'splatter',
+  DROWNER: 'drowner',
+  DEAD: 'dead'
+};
+
+// Theme palette
+const THEMES = {
+  dirt:   { dirt: '#92400e', dirt2: '#78350f', steel: '#52525b', steel2: '#3f3f46', sky: '#1e3a5f', sky2: '#0c1d33', water: '#1d4ed8' },
+  ice:    { dirt: '#94a3b8', dirt2: '#64748b', steel: '#475569', steel2: '#334155', sky: '#1e293b', sky2: '#0f172a', water: '#0ea5e9' },
+  jungle: { dirt: '#365314', dirt2: '#1a2e05', steel: '#44403c', steel2: '#292524', sky: '#052e16', sky2: '#020a04', water: '#15803d' },
+  hell:   { dirt: '#7f1d1d', dirt2: '#450a0a', steel: '#27272a', steel2: '#18181b', sky: '#3b0a0a', sky2: '#170303', water: '#dc2626' },
+};
+
+// Body color per state
+function bodyColor(state, frame) {
+  switch (state) {
+    case ST.CLIMBER: case ST.HOISTER: return '#f87171';
+    case ST.FLOATER: return '#60a5fa';
+    case ST.BUILDER: case ST.SHRUGGER: return '#fbbf24';
+    case ST.BLOCKER: return '#a78bfa';
+    case ST.BASHER: case ST.MINER: case ST.DIGGER: return '#fb923c';
+    case ST.OHNO: return (frame & 2) ? '#ef4444' : '#fde68a';
+    case ST.SPLATTER: return '#7f1d1d';
+    case ST.DROWNER: return '#1e40af';
+    case ST.EXITER: return '#22c55e';
+    default: return '#22c55e';
+  }
+}
+
+// =====================================================================
+// LEVELS
+// =====================================================================
+
+const LEVELS = [
+  // L1 — only diggers needed. Walled-off mound, dig down to steel floor.
+  {
+    name: "Just Dig!",
+    blurb: "Carve a path straight down to the exit.",
+    difficulty: 'easy',
+    theme: 'dirt',
+    time: 180,
+    count: 10,
+    target: 5,
+    minRR: 30, maxRR: 99, startRR: 50,
+    skills: { climber: 0, floater: 0, bomber: 0, blocker: 0, builder: 0, basher: 0, miner: 0, digger: 5 },
+    spawn: { x: 500, y: 30 },
+    exit:  { x: 500, y: 188 },
+    geometry: [
+      ['rect', 0,   190, 1600, 10, 'steel'],          // floor
+      ['rect', 290, 60,  420, 130, 'dirt'],           // dirt mound x:290-709
+      ['rect', 290, 48,  12,  12, 'dirt'],            // left lip (containment)
+      ['rect', 700, 48,  12,  12, 'dirt'],            // right lip (containment)
+    ]
+  },
+  // L2 — only floaters needed. Long fall to floor, must float.
+  {
+    name: "Don't Splat",
+    blurb: "It's a long way down. Open your umbrellas.",
+    difficulty: 'easy',
+    theme: 'jungle',
+    time: 180,
+    count: 10,
+    target: 6,
+    minRR: 20, maxRR: 80, startRR: 30,
+    skills: { climber: 0, floater: 10, bomber: 0, blocker: 0, builder: 0, basher: 0, miner: 0, digger: 0 },
+    spawn: { x: 80, y: 30 },
+    exit:  { x: 1500, y: 184 },
+    geometry: [
+      ['rect', 0,   188, 1600, 12, 'steel'],          // bottom floor
+      ['rect', 0,   50,  600, 6, 'dirt'],             // top platform x:0-599
+      ['rect', 0,   56,  12, 132, 'dirt'],            // left support
+    ]
+  },
+  // L3 — only bashers needed. Vertical dirt wall blocks path.
+  {
+    name: "Bash Through",
+    blurb: "A wall of dirt. Tunnel right through it.",
+    difficulty: 'easy',
+    theme: 'dirt',
+    time: 180,
+    count: 12,
+    target: 8,
+    minRR: 30, maxRR: 99, startRR: 50,
+    skills: { climber: 0, floater: 0, bomber: 0, blocker: 0, builder: 0, basher: 6, miner: 0, digger: 0 },
+    spawn: { x: 80, y: 110 },
+    exit:  { x: 1500, y: 128 },
+    geometry: [
+      ['rect', 0,   130, 1600, 70, 'dirt'],           // dirt floor
+      ['rect', 700, 30,  40,  100, 'dirt'],           // tall wall to bash
+    ]
+  },
+  // L4 — only climbers needed. Tall narrow walls.
+  {
+    name: "Climb On",
+    blurb: "What goes up, must walk to the exit.",
+    difficulty: 'medium',
+    theme: 'ice',
+    time: 240,
+    count: 12,
+    target: 8,
+    minRR: 30, maxRR: 99, startRR: 50,
+    skills: { climber: 12, floater: 0, bomber: 0, blocker: 0, builder: 0, basher: 0, miner: 0, digger: 0 },
+    spawn: { x: 80, y: 110 },
+    exit:  { x: 1500, y: 128 },
+    geometry: [
+      ['rect', 0,    130, 1600, 70, 'dirt'],
+      ['rect', 0,    30,  600, 6,  'dirt'],           // left top catch (so leftward walkers don't fall off climb wall)
+      ['rect', 600,  30,  12,  100, 'dirt'],          // tall narrow climbable wall
+      ['rect', 612,  30,  800, 6,  'dirt'],           // top bridge x:612-1411
+      ['rect', 1411, 60,  70,  6,  'dirt'],           // step 1 (drop 30)
+      ['rect', 1480, 90,  60,  6,  'dirt'],           // step 2 (drop 30)
+    ]
+  },
+  // L5 — only builders needed. Small gap to bridge.
+  {
+    name: "Build Across",
+    blurb: "The gap is short. The bricks are plenty.",
+    difficulty: 'medium',
+    theme: 'dirt',
+    time: 240,
+    count: 12,
+    target: 8,
+    minRR: 30, maxRR: 99, startRR: 40,
+    skills: { climber: 0, floater: 0, bomber: 0, blocker: 0, builder: 8, basher: 0, miner: 0, digger: 0 },
+    spawn: { x: 80, y: 30 },
+    exit:  { x: 1500, y: 48 },
+    geometry: [
+      ['rect', 0,    50, 512, 6,  'dirt'],            // left platform x:0-511, top y=50
+      ['rect', 0,    56, 12, 144, 'dirt'],            // left support
+      ['rect', 524,  50, 1076, 6, 'dirt'],            // right platform x:524-1599, gap=12px
+      ['rect', 0,    198, 1600, 2, 'steel'],          // catch floor (kills splat)
+    ]
+  },
+  // L6 — mix everything. Multiple skills, multiple obstacles.
+  {
+    name: "Wicked!",
+    blurb: "Floaters, bashers, builders — all hands.",
+    difficulty: 'extreme',
+    theme: 'hell',
+    time: 360,
+    count: 16,
+    target: 12,
+    minRR: 20, maxRR: 60, startRR: 25,
+    skills: { climber: 4, floater: 16, bomber: 0, blocker: 2, builder: 4, basher: 4, miner: 0, digger: 0 },
+    spawn: { x: 80, y: 30 },
+    exit:  { x: 1500, y: 184 },
+    geometry: [
+      ['rect', 0,   188, 1600, 12, 'steel'],          // bottom floor
+      ['rect', 0,   50,  600, 6,  'dirt'],            // top platform x:0-599
+      ['rect', 0,   56,  12, 132, 'dirt'],            // left support
+      ['rect', 1180, 80, 40, 108, 'dirt'],            // wall on bottom path - basher target
+    ]
+  }
+];
+
+// =====================================================================
+// LEVEL GENERATOR — produces L7..L100 using verified-solvable templates,
+// scaled by difficulty band.
+// =====================================================================
+
+(function generateExtraLevels() {
+  const zeros = () => ({ climber: 0, floater: 0, bomber: 0, blocker: 0, builder: 0, basher: 0, miner: 0, digger: 0 });
+  const themes = ['dirt', 'jungle', 'ice', 'hell'];
+
+  function tDig(name, count, diggers, target, theme) {
+    return {
+      name, blurb: '', difficulty: 'easy', theme,
+      time: 180, count, target,
+      minRR: 30, maxRR: 99, startRR: 50,
+      skills: Object.assign(zeros(), { digger: diggers }),
+      spawn: { x: 500, y: 30 }, exit: { x: 500, y: 188 },
+      geometry: [
+        ['rect', 0,   190, 1600, 10, 'steel'],
+        ['rect', 290, 60,  420, 130, 'dirt'],
+        ['rect', 290, 48,  12, 12, 'dirt'],
+        ['rect', 700, 48,  12, 12, 'dirt'],
+      ],
+    };
+  }
+
+  function tFloat(name, count, floaters, target, theme, ledgeW) {
+    const lW = ledgeW || 600;
+    return {
+      name, blurb: '', difficulty: 'easy', theme,
+      time: 180, count, target,
+      minRR: 20, maxRR: 80, startRR: 30,
+      skills: Object.assign(zeros(), { floater: floaters }),
+      spawn: { x: 80, y: 30 }, exit: { x: 1500, y: 184 },
+      geometry: [
+        ['rect', 0, 188, 1600, 12, 'steel'],
+        ['rect', 0,  50,  lW,  6, 'dirt'],
+        ['rect', 0,  56,  12, 132, 'dirt'],
+      ],
+    };
+  }
+
+  function tBash(name, count, bashers, target, theme, walls) {
+    const geom = [['rect', 0, 130, 1600, 70, 'dirt']];
+    for (const w of walls) geom.push(['rect', w.x, 30, w.thick, 100, 'dirt']);
+    return {
+      name, blurb: '', difficulty: 'medium', theme,
+      time: 200, count, target,
+      minRR: 30, maxRR: 99, startRR: 50,
+      skills: Object.assign(zeros(), { basher: bashers }),
+      spawn: { x: 80, y: 110 }, exit: { x: 1500, y: 128 },
+      geometry: geom,
+    };
+  }
+
+  function tClimb(name, count, climbers, target, theme) {
+    return {
+      name, blurb: '', difficulty: 'medium', theme,
+      time: 240, count, target,
+      minRR: 30, maxRR: 99, startRR: 50,
+      skills: Object.assign(zeros(), { climber: climbers }),
+      spawn: { x: 80, y: 110 }, exit: { x: 1500, y: 128 },
+      geometry: [
+        ['rect', 0, 130, 1600, 70, 'dirt'],
+        ['rect', 0, 30,  600, 6,  'dirt'],
+        ['rect', 600, 30, 12,  100, 'dirt'],
+        ['rect', 612, 30, 800, 6,  'dirt'],
+        ['rect', 1411, 60, 70, 6, 'dirt'],
+        ['rect', 1480, 90, 60, 6, 'dirt'],
+      ],
+    };
+  }
+
+  function tBuild(name, count, builders, target, theme) {
+    return {
+      name, blurb: '', difficulty: 'medium', theme,
+      time: 240, count, target,
+      minRR: 30, maxRR: 99, startRR: 40,
+      skills: Object.assign(zeros(), { builder: builders }),
+      spawn: { x: 80, y: 30 }, exit: { x: 1500, y: 48 },
+      geometry: [
+        ['rect', 0,    50, 512, 6,  'dirt'],
+        ['rect', 0,    56, 12, 144, 'dirt'],
+        ['rect', 524,  50, 1076, 6, 'dirt'],
+        ['rect', 0,    198, 1600, 2, 'steel'],
+      ],
+    };
+  }
+
+  function tCombo(name, count, target, theme) {
+    return {
+      name, blurb: '', difficulty: 'extreme', theme,
+      time: 360, count, target,
+      minRR: 20, maxRR: 60, startRR: 25,
+      skills: Object.assign(zeros(), { climber: 4, floater: count, blocker: 2, builder: 4, basher: 4 }),
+      spawn: { x: 80, y: 30 }, exit: { x: 1500, y: 184 },
+      geometry: [
+        ['rect', 0, 188, 1600, 12, 'steel'],
+        ['rect', 0,  50, 600, 6,  'dirt'],
+        ['rect', 0,  56, 12, 132, 'dirt'],
+        ['rect', 1180, 80, 40, 108, 'dirt'],
+      ],
+    };
+  }
+
+  const NAMES = [
+    "Deeper Dig","Quiet Drop","Plain Path","Up & Down","Skip the Gap","Ditch","Soft Falls","Knock Twice","Window Climb","Patch Bridge",
+    "Twice as Far","Slow Snow","Three Walls","Tall Tower","Wider Gap","Dig Twice","Double Drop","Fourfold Bash","Climb Higher","Two-Brick Bridge",
+    "Mound Master","Falls Of Forgetting","Twin Walls","Spire","Long Span","Down To Bedrock","Soft Hover","Knock-Knock-Knock","High Spire","Five Bricks",
+    "Granite Dig","Air Drift","Mortar Wall","Skyrise","Wide Span","Pit","Featherfall","Triple Bash","Zenith","Long Bridge",
+    "Excavate","Updraft","Bashing Dance","Cloudwalk","Span Master","Buried","Lemming Lift","Wall After Wall","Beanstalk","The Long Span",
+    "Underground","Float On","Smash & Cross","Stairway","Bridge of Sighs","Drilling","Updraft II","Brick & Bash","Climber's Pride","Span The Air",
+    "Sink Hole","Float Forever","Triple Tunnel","Roof Run","Five-Brick Span","Below The Floor","Soft Sky","Quad Bash","Vertical","Slim Walk",
+    "Underburrow","Drift Down","Five Walls","Stratosphere","Span Of Spans","Mole Run","Hover Hard","Heavy Bash","Crow's Nest","One Brick Short",
+    "Down We Go","Air Time","The Long Tunnel","Sky High","Span To Glory","Buried Deep","Featherweight","Wall Mash","Skyhook","Final Bridge",
+    "Endgame Dig","Endgame Float","Endgame Bash","Endgame Climb"
+  ];
+
+  function band(i) {
+    if (i < 20) return 'easy';
+    if (i < 50) return 'medium';
+    if (i < 80) return 'hard';
+    return 'extreme';
+  }
+
+  for (let i = 0; i < 94; i++) {
+    const name = NAMES[i] || `Trial ${i + 7}`;
+    const theme = themes[Math.floor(i / 24) % themes.length];
+    const diff = band(i);
+    const count = Math.min(20, 10 + Math.floor(i / 8));
+    const target = Math.max(3, count - 3 - Math.floor(i / 30));
+    const tmplPick = i % 5;
+    let lvl;
+    if (i >= 74) {
+      lvl = tCombo(name, count, target, theme);
+    } else if (tmplPick === 0) {
+      lvl = tDig(name, count, Math.max(3, 6 - Math.floor(i / 25)), target, theme);
+    } else if (tmplPick === 1) {
+      const ledgeW = 500 + (i * 17) % 500;
+      lvl = tFloat(name, count, count, target, theme, ledgeW);
+    } else if (tmplPick === 2) {
+      const numWalls = 1 + (i % 4);
+      const walls = [];
+      for (let w = 0; w < numWalls; w++) {
+        walls.push({ x: 300 + w * 280, thick: 30 + (i % 3) * 10 });
+      }
+      lvl = tBash(name, count, numWalls + 2, target, theme, walls);
+    } else if (tmplPick === 3) {
+      lvl = tClimb(name, count, count, target, theme);
+    } else {
+      lvl = tBuild(name, count, Math.max(3, 8 - Math.floor(i / 20)), target, theme);
+    }
+    lvl.difficulty = diff;
+    LEVELS.push(lvl);
+  }
+})();
+
+// =====================================================================
+// TERRAIN
+// =====================================================================
+
+class Terrain {
+  constructor(w, h, theme) {
+    this.w = w; this.h = h;
+    this.theme = theme;
+    this.mask = new Uint8Array(w * h); // 0/1/2
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = w; this.canvas.height = h;
+    this.ctx = this.canvas.getContext('2d');
+    // Sky background
+    const grad = this.ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, theme.sky2);
+    grad.addColorStop(1, theme.sky);
+    this.ctx.fillStyle = grad;
+    this.ctx.fillRect(0, 0, w, h);
+    // Save sky baseline so we can re-paint cleared cells with sky color
+    this.skyData = this.ctx.getImageData(0, 0, w, h);
+    this.imgData = this.ctx.getImageData(0, 0, w, h);
+    this.dirty = true;
+  }
+
+  inBounds(x, y) { return x >= 0 && x < this.w && y >= 0 && y < this.h; }
+
+  isSolid(x, y) {
+    if (x < 0 || x >= this.w) return true; // walls on sides
+    if (y >= this.h) return false; // bottom = void
+    if (y < 0) return false;       // top = open sky
+    return this.mask[y * this.w + x] !== T_EMPTY;
+  }
+  isSteel(x, y) {
+    if (!this.inBounds(x, y)) return false;
+    return this.mask[y * this.w + x] === T_STEEL;
+  }
+
+  // Add terrain rectangle with optional speckle texture
+  addRect(x, y, w, h, type) {
+    const value = type === 'steel' ? T_STEEL : T_DIRT;
+    const baseColor = type === 'steel' ? this.theme.steel : this.theme.dirt;
+    const altColor = type === 'steel' ? this.theme.steel2 : this.theme.dirt2;
+    for (let yy = y; yy < y + h; yy++) {
+      if (yy < 0 || yy >= this.h) continue;
+      for (let xx = x; xx < x + w; xx++) {
+        if (xx < 0 || xx >= this.w) continue;
+        const idx = yy * this.w + xx;
+        this.mask[idx] = value;
+        const px = (idx) * 4;
+        // Texture: pseudorandom noise
+        const n = ((xx * 13 + yy * 7 + (xx ^ yy)) % 5);
+        const c = (n < 2) ? altColor : baseColor;
+        const r = parseInt(c.substr(1,2),16);
+        const g = parseInt(c.substr(3,2),16);
+        const b = parseInt(c.substr(5,2),16);
+        this.imgData.data[px]   = r;
+        this.imgData.data[px+1] = g;
+        this.imgData.data[px+2] = b;
+        this.imgData.data[px+3] = 255;
+      }
+    }
+    this.dirty = true;
+  }
+
+  // Destroy a single pixel (returns true if dirt was removed)
+  destroyPx(x, y) {
+    if (!this.inBounds(x, y)) return false;
+    const idx = y * this.w + x;
+    if (this.mask[idx] === T_DIRT) {
+      this.mask[idx] = T_EMPTY;
+      const p = idx * 4;
+      this.imgData.data[p]   = this.skyData.data[p];
+      this.imgData.data[p+1] = this.skyData.data[p+1];
+      this.imgData.data[p+2] = this.skyData.data[p+2];
+      this.imgData.data[p+3] = this.skyData.data[p+3];
+      this.dirty = true;
+      return true;
+    }
+    return false;
+  }
+
+  // Add a single pixel of dirt (for builder)
+  addPx(x, y, color) {
+    if (!this.inBounds(x, y)) return;
+    const idx = y * this.w + x;
+    if (this.mask[idx] !== T_EMPTY) return;
+    this.mask[idx] = T_DIRT;
+    const p = idx * 4;
+    const r = parseInt(color.substr(1,2),16);
+    const g = parseInt(color.substr(3,2),16);
+    const b = parseInt(color.substr(5,2),16);
+    this.imgData.data[p]   = r;
+    this.imgData.data[p+1] = g;
+    this.imgData.data[p+2] = b;
+    this.imgData.data[p+3] = 255;
+    this.dirty = true;
+  }
+
+  // Destroy circle (bomber)
+  destroyCircle(cx, cy, r) {
+    let hitSteel = false;
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (dx*dx + dy*dy <= r*r) {
+          const x = cx + dx, y = cy + dy;
+          if (this.inBounds(x, y)) {
+            if (this.mask[y * this.w + x] === T_STEEL) { hitSteel = true; continue; }
+            this.destroyPx(x, y);
+          }
+        }
+      }
+    }
+    return !hitSteel;
+  }
+
+  flush() {
+    if (this.dirty) {
+      this.ctx.putImageData(this.imgData, 0, 0);
+      this.dirty = false;
+    }
+  }
+}
+
+// =====================================================================
+// LEMMING
+// =====================================================================
+
+let nextLemId = 1;
+
+class Lemming {
+  constructor(x, y) {
+    this.id = nextLemId++;
+    this.x = x; this.y = y;
+    this.dir = 1;
+    this.state = ST.FALLER;
+    this.frame = 0;
+    this.fallDist = 0;
+    this.canClimb = false;
+    this.canFloat = false;
+    this.bombFuse = 0;        // 0 = no fuse; >0 = ticks remaining
+    this.bricks = 0;          // builder bricks remaining
+    this.actionFrame = 0;     // action sub-tick counter
+    this.alive = true;
+    this.saved = false;
+  }
+
+  // Check if there's enough room for the lemming body at (x,y)
+  hasHeadroom(terrain, x, y) {
+    for (let yy = y - L_HEIGHT + 1; yy < y; yy++) {
+      if (terrain.isSolid(x, yy)) return false;
+      if (terrain.isSolid(x - 1, yy)) return false;
+      if (terrain.isSolid(x + 1, yy)) return false;
+    }
+    return true;
+  }
+
+  // Pixel beneath feet
+  isOnGround(terrain) {
+    return terrain.isSolid(this.x, this.y + 1) || this.y >= terrain.h - 1;
+  }
+
+  update(game) {
+    const t = game.terrain;
+    if (!this.alive) return;
+    this.frame++;
+
+    // Drowning check — only trigger once; let the drown animation/counter
+    // progress to death instead of zeroing actionFrame every tick.
+    if (this.y >= t.h - 1 && this.state !== ST.DROWNER) {
+      this.state = ST.DROWNER;
+      this.actionFrame = 0;
+    }
+
+    switch (this.state) {
+      case ST.WALKER: this.tickWalker(game); break;
+      case ST.FALLER: this.tickFaller(game); break;
+      case ST.FLOATER: this.tickFloater(game); break;
+      case ST.CLIMBER: this.tickClimber(game); break;
+      case ST.HOISTER: this.tickHoister(game); break;
+      case ST.BLOCKER: this.tickBlocker(game); break;
+      case ST.BUILDER: this.tickBuilder(game); break;
+      case ST.SHRUGGER: this.tickShrugger(game); break;
+      case ST.BASHER: this.tickBasher(game); break;
+      case ST.MINER: this.tickMiner(game); break;
+      case ST.DIGGER: this.tickDigger(game); break;
+      case ST.OHNO: this.tickOhno(game); break;
+      case ST.EXITER: this.tickExiter(game); break;
+      case ST.SPLATTER: this.tickSplatter(game); break;
+      case ST.DROWNER: this.tickDrowner(game); break;
+    }
+
+    // Bomber fuse ticks regardless of state (except dead/exiter/splat/drown)
+    if (this.bombFuse > 0 &&
+        this.state !== ST.OHNO &&
+        this.state !== ST.EXITER &&
+        this.state !== ST.SPLATTER &&
+        this.state !== ST.DROWNER &&
+        this.state !== ST.DEAD) {
+      this.bombFuse--;
+      if (this.bombFuse <= 0) {
+        // Enter OhNo
+        this.state = ST.OHNO;
+        this.actionFrame = 0;
+      }
+    }
+
+    // Exit detection
+    if (this.alive && this.state !== ST.DEAD && this.state !== ST.EXITER &&
+        this.state !== ST.SPLATTER && this.state !== ST.DROWNER &&
+        this.state !== ST.OHNO) {
+      const ex = game.level.exit;
+      const dx = this.x - ex.x;
+      const dy = this.y - ex.y;
+      if (Math.abs(dx) <= EXIT_RADIUS && Math.abs(dy) <= EXIT_RADIUS) {
+        this.state = ST.EXITER;
+        this.actionFrame = 0;
+      }
+    }
+  }
+
+  // --- WALKER ---
+  tickWalker(game) {
+    const t = game.terrain;
+    // Step every tick: 1 px
+    // Check blocker repulsion
+    for (const other of game.lemmings) {
+      if (other === this || !other.alive) continue;
+      if (other.state !== ST.BLOCKER) continue;
+      const dx = (this.x + this.dir) - other.x;
+      const dy = this.y - other.y;
+      if (Math.abs(dx) < BLOCK_RADIUS && Math.abs(dy) < L_HEIGHT) {
+        this.dir = -this.dir;
+        return;
+      }
+    }
+    const nx = this.x + this.dir;
+    // Look for ground at next x: check up to STEP_UP_MAX upward
+    let stepUp = 0;
+    while (stepUp <= STEP_UP_MAX && t.isSolid(nx, this.y - stepUp)) {
+      stepUp++;
+    }
+    if (stepUp > STEP_UP_MAX) {
+      // Tall wall ahead
+      if (this.canClimb) {
+        this.state = ST.CLIMBER;
+        this.actionFrame = 0;
+      } else {
+        this.dir = -this.dir;
+      }
+      return;
+    }
+    // Check head clearance for stepping
+    if (stepUp > 0) {
+      // need clearance above
+      if (!this.hasHeadroom(t, nx, this.y - stepUp)) {
+        this.dir = -this.dir;
+        return;
+      }
+    }
+    // Step
+    this.x = nx;
+    this.y -= stepUp;
+    // Now descend if no ground (up to STEP_DOWN_MAX steps, otherwise FALLER).
+    let dropped = 0;
+    while (dropped <= STEP_DOWN_MAX && !t.isSolid(this.x, this.y + 1) && this.y < t.h - 1) {
+      this.y++;
+      dropped++;
+    }
+    if (!t.isSolid(this.x, this.y + 1) && this.y < t.h - 1) {
+      this.state = ST.FALLER;
+      this.fallDist = 0;
+    }
+  }
+
+  // --- FALLER ---
+  tickFaller(game) {
+    const t = game.terrain;
+    for (let i = 0; i < FALL_SPEED; i++) {
+      if (t.isSolid(this.x, this.y + 1)) {
+        // Landed
+        if (this.fallDist >= SPLAT_DIST && !this.canFloat) {
+          this.state = ST.SPLATTER;
+          this.actionFrame = 0;
+        } else {
+          this.state = ST.WALKER;
+        }
+        return;
+      }
+      this.y++;
+      this.fallDist++;
+      if (this.canFloat && this.fallDist > 16) {
+        this.state = ST.FLOATER;
+        this.fallDist = 0; // reset so a later re-fall doesn't carry stale distance
+        return;
+      }
+      if (this.y >= t.h) return; // drown handled in update()
+    }
+  }
+
+  // --- FLOATER ---
+  tickFloater(game) {
+    const t = game.terrain;
+    if (t.isSolid(this.x, this.y + 1)) {
+      this.state = ST.WALKER;
+      this.fallDist = 0;  // reset so a subsequent fall starts fresh
+      return;
+    }
+    this.y += FLOAT_SPEED;
+  }
+
+  // --- CLIMBER (active climbing) ---
+  tickClimber(game) {
+    const t = game.terrain;
+    // Climb 1 px per tick. Check there's still wall to one side.
+    // Moving up
+    if (this.y <= 0) { this.dir = -this.dir; this.state = ST.FALLER; this.fallDist = 0; return; }
+    // If pixel directly above head is blocked by a ceiling, fall off
+    if (t.isSolid(this.x, this.y - L_HEIGHT)) {
+      // ceiling — pop off, fall
+      this.dir = -this.dir;
+      this.state = ST.FALLER;
+      this.fallDist = 0;
+      return;
+    }
+    // Wall must still be present in dir
+    if (!t.isSolid(this.x + this.dir, this.y - L_HEIGHT + 2)) {
+      // No more wall — hoist up onto ledge
+      this.state = ST.HOISTER;
+      this.actionFrame = 0;
+      return;
+    }
+    this.y--;
+  }
+
+  // --- HOISTER (climbing over ledge) ---
+  tickHoister(game) {
+    this.actionFrame++;
+    // Quick 4-tick hoist animation, then walker
+    if (this.actionFrame >= 3) {
+      // Move forward and up to settle on ledge
+      this.x += this.dir;
+      this.y -= 1;
+      // Settle: descend until on ground
+      const t = game.terrain;
+      let drop = 0;
+      while (drop < 6 && !t.isSolid(this.x, this.y + 1)) {
+        this.y++;
+        drop++;
+      }
+      this.state = ST.WALKER;
+    }
+  }
+
+  // --- BLOCKER ---
+  tickBlocker(game) {
+    const t = game.terrain;
+    // Stay put. If ground vanishes beneath, fall.
+    if (!t.isSolid(this.x, this.y + 1)) {
+      this.state = ST.FALLER;
+      this.fallDist = 0;
+    }
+  }
+
+  // --- BUILDER ---
+  tickBuilder(game) {
+    const t = game.terrain;
+    this.actionFrame++;
+    // Lay 1 brick every BUILDER_TICK frames
+    if (this.actionFrame >= BUILDER_TICK) {
+      this.actionFrame = 0;
+      // Lay a brick: 4 px wide, 1 px tall, going up-forward
+      // Move position up 1 and forward 1 first, then place brick under feet
+      // Standard Lemmings: brick is laid first, then lemming moves up onto it.
+      const brickColor = '#fde68a';
+      let placed = false;
+      for (let i = 0; i < 4; i++) {
+        const bx = this.x + i * this.dir;
+        const by = this.y;
+        if (t.isSolid(bx, by)) continue; // already solid (head into existing terrain)
+        t.addPx(bx, by, brickColor);
+        placed = true;
+      }
+      // Move lemming up and forward
+      this.y -= 1;
+      this.x += this.dir;
+      // Check ceiling: if no headroom, turn around and walker
+      if (!this.hasHeadroom(t, this.x, this.y)) {
+        this.dir = -this.dir;
+        this.x += this.dir; // back off
+        this.state = ST.WALKER;
+        return;
+      }
+      // Check if walking into wall ahead (within next 2 px)
+      if (t.isSolid(this.x + this.dir, this.y - 1)) {
+        this.dir = -this.dir;
+        this.state = ST.WALKER;
+        return;
+      }
+      // Decrement bricks
+      this.bricks--;
+      if (this.bricks <= 0) {
+        this.state = ST.SHRUGGER;
+        this.actionFrame = 0;
+      }
+    }
+  }
+
+  // --- SHRUGGER (3-frame anim then walker) ---
+  tickShrugger(game) {
+    this.actionFrame++;
+    if (this.actionFrame >= 12) {
+      this.state = ST.WALKER;
+    }
+  }
+
+  // --- BASHER ---
+  tickBasher(game) {
+    const t = game.terrain;
+    this.actionFrame++;
+    if (this.actionFrame >= BASHER_TICK) {
+      this.actionFrame = 0;
+      // Dig a column ahead: 1 px wide, height of lemming, in dir direction
+      // Bash 4 columns ahead
+      let hitSteel = false;
+      for (let col = 0; col < 4; col++) {
+        const bx = this.x + (col + 1) * this.dir;
+        for (let dy = 0; dy < L_HEIGHT; dy++) {
+          const by = this.y - dy;
+          if (t.isSteel(bx, by)) { hitSteel = true; continue; }
+          t.destroyPx(bx, by);
+        }
+      }
+      // Move forward 1 px
+      this.x += this.dir;
+      // Check if there's still dirt to bash ahead
+      let dirtAhead = false;
+      for (let col = 1; col <= 3; col++) {
+        const bx = this.x + col * this.dir;
+        for (let dy = 1; dy < L_HEIGHT; dy++) {
+          if (t.isSolid(bx, this.y - dy) && !t.isSteel(bx, this.y - dy)) {
+            dirtAhead = true; break;
+          }
+        }
+        if (dirtAhead) break;
+      }
+      if (hitSteel || !dirtAhead) {
+        this.state = ST.WALKER;
+      }
+      // Floor under us?
+      if (!t.isSolid(this.x, this.y + 1)) {
+        this.state = ST.FALLER;
+        this.fallDist = 0;
+      }
+    }
+  }
+
+  // --- MINER (diagonal down) ---
+  tickMiner(game) {
+    const t = game.terrain;
+    this.actionFrame++;
+    if (this.actionFrame >= MINER_TICK) {
+      this.actionFrame = 0;
+      // Mine a diagonal slot: 4 wide, 4 tall going down-forward
+      let hitSteel = false;
+      for (let dy = 0; dy < L_HEIGHT - 2; dy++) {
+        for (let dx = 0; dx <= 3; dx++) {
+          const bx = this.x + dx * this.dir;
+          const by = this.y - dy;
+          if (t.isSteel(bx, by)) { hitSteel = true; continue; }
+          t.destroyPx(bx, by);
+        }
+      }
+      if (hitSteel) { this.state = ST.WALKER; return; }
+      // Move down 1, forward 1
+      this.x += this.dir;
+      this.y += 1;
+      // No floor? fall
+      if (!t.isSolid(this.x, this.y + 1)) {
+        // continue mining if dirt below ahead
+        let dirtBelow = false;
+        for (let i = 1; i <= 4; i++) {
+          if (t.isSolid(this.x + this.dir, this.y + i) && !t.isSteel(this.x + this.dir, this.y + i)) {
+            dirtBelow = true; break;
+          }
+        }
+        if (!dirtBelow) {
+          this.state = ST.FALLER; this.fallDist = 0;
+        }
+      }
+    }
+  }
+
+  // --- DIGGER (straight down) ---
+  tickDigger(game) {
+    const t = game.terrain;
+    this.actionFrame++;
+    if (this.actionFrame >= DIGGER_TICK) {
+      this.actionFrame = 0;
+      // Dig 9 px wide row below feet
+      let hitSteel = false;
+      for (let dx = -4; dx <= 4; dx++) {
+        const bx = this.x + dx;
+        const by = this.y + 1;
+        if (t.isSteel(bx, by)) { hitSteel = true; continue; }
+        t.destroyPx(bx, by);
+      }
+      if (hitSteel) {
+        // Stay put; sit on steel as walker
+        this.state = ST.WALKER;
+        return;
+      }
+      this.y += 1;
+      // If no dirt below and no steel, stop digging
+      let dirtBelow = false;
+      for (let dx = -4; dx <= 4; dx++) {
+        if (t.isSolid(this.x + dx, this.y + 1) && !t.isSteel(this.x + dx, this.y + 1)) {
+          dirtBelow = true; break;
+        }
+      }
+      if (!dirtBelow) {
+        // Free fall
+        this.state = ST.FALLER;
+        this.fallDist = 0;
+      }
+    }
+  }
+
+  // --- OHNO (1.5s pre-explode) ---
+  tickOhno(game) {
+    this.actionFrame++;
+    // Stand still, no movement
+    if (this.actionFrame >= 1.5 * TICK_HZ) {
+      // EXPLODE
+      game.terrain.destroyCircle(this.x, this.y - L_HEIGHT/2, BOMBER_RADIUS);
+      game.spawnExplosion(this.x, this.y - L_HEIGHT/2);
+      this.alive = false;
+      this.state = ST.DEAD;
+    }
+  }
+
+  tickExiter(game) {
+    this.actionFrame++;
+    if (this.actionFrame >= 24) {
+      this.alive = false;
+      this.saved = true;
+      this.state = ST.DEAD;
+      game.savedCount++;
+    }
+  }
+
+  tickSplatter(game) {
+    this.actionFrame++;
+    if (this.actionFrame >= 16) { this.alive = false; this.state = ST.DEAD; }
+  }
+  tickDrowner(game) {
+    this.actionFrame++;
+    if (this.actionFrame >= 24) { this.alive = false; this.state = ST.DEAD; }
+  }
+
+  // Try to assign a skill — return true if applied
+  applySkill(skill, game) {
+    if (this.state === ST.DEAD || !this.alive) return false;
+    if (this.state === ST.SPLATTER || this.state === ST.DROWNER || this.state === ST.EXITER || this.state === ST.OHNO) return false;
+    switch (skill) {
+      case 'climber':
+        if (this.canClimb) return false;
+        this.canClimb = true;
+        return true;
+      case 'floater':
+        if (this.canFloat) return false;
+        this.canFloat = true;
+        return true;
+      case 'bomber':
+        if (this.bombFuse > 0) return false;
+        this.bombFuse = BOMBER_FUSE;
+        return true;
+      case 'blocker':
+        if (this.state !== ST.WALKER) return false;
+        if (!game.terrain.isSolid(this.x, this.y + 1)) return false; // must be on ground
+        this.state = ST.BLOCKER;
+        return true;
+      case 'builder':
+        if (this.state !== ST.WALKER) return false;
+        if (!game.terrain.isSolid(this.x, this.y + 1)) return false;
+        this.state = ST.BUILDER;
+        this.bricks = BUILDER_BRICKS;
+        this.actionFrame = 0;
+        return true;
+      case 'basher': {
+        if (this.state !== ST.WALKER) return false;
+        // Search for dirt in current dir first, then opposite
+        const t = game.terrain;
+        const findDirtIn = (d) => {
+          for (let col = 1; col <= 3; col++) {
+            for (let dy = 1; dy < L_HEIGHT - 1; dy++) {
+              if (t.isSolid(this.x + col * d, this.y - dy) && !t.isSteel(this.x + col * d, this.y - dy)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+        if (findDirtIn(this.dir)) {
+          // bash forward
+        } else if (findDirtIn(-this.dir)) {
+          this.dir = -this.dir;
+        } else {
+          return false;
+        }
+        this.state = ST.BASHER;
+        this.actionFrame = 0;
+        return true;
+      }
+      case 'miner': {
+        if (this.state !== ST.WALKER) return false;
+        if (!game.terrain.isSolid(this.x, this.y + 1)) return false;
+        // If the wall just turned us around, flip back if dirt is the other way
+        const tm = game.terrain;
+        const dirtIn = (d) => {
+          for (let dx = 1; dx <= 3; dx++) {
+            for (let dy = 0; dy < L_HEIGHT - 2; dy++) {
+              if (tm.isSolid(this.x + dx * d, this.y - dy) && !tm.isSteel(this.x + dx * d, this.y - dy)) return true;
+            }
+          }
+          return false;
+        };
+        if (!dirtIn(this.dir) && dirtIn(-this.dir)) this.dir = -this.dir;
+        this.state = ST.MINER;
+        this.actionFrame = 0;
+        return true;
+      }
+      case 'digger':
+        if (this.state !== ST.WALKER) return false;
+        if (!game.terrain.isSolid(this.x, this.y + 1)) return false;
+        this.state = ST.DIGGER;
+        this.actionFrame = 0;
+        return true;
+    }
+    return false;
+  }
+
+  draw(ctx) {
+    const x = Math.floor(this.x);
+    const y = Math.floor(this.y);
+    if (!this.alive) return;
+    const c = bodyColor(this.state, this.frame);
+
+    if (this.state === ST.SPLATTER) {
+      ctx.fillStyle = '#7f1d1d';
+      ctx.fillRect(x - 3, y - 1, 7, 2);
+      return;
+    }
+    if (this.state === ST.DROWNER) {
+      ctx.fillStyle = '#1e40af';
+      ctx.fillRect(x - 1, y - 4, 3, 4);
+      ctx.fillStyle = '#60a5fa';
+      ctx.fillRect(x - 2, y - 1, 5, 1);
+      return;
+    }
+    if (this.state === ST.EXITER) {
+      const fade = 1 - this.actionFrame / 24;
+      ctx.globalAlpha = fade;
+      ctx.fillStyle = c;
+      ctx.fillRect(x - 1, y - L_HEIGHT + 2, 3, L_HEIGHT - 3);
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(x - 1, y - L_HEIGHT, 2, 2);
+      ctx.globalAlpha = 1;
+      return;
+    }
+
+    // Body
+    ctx.fillStyle = c;
+    ctx.fillRect(x - 1, y - L_HEIGHT + 2, 3, L_HEIGHT - 4); // body
+    // Head (skin tone)
+    ctx.fillStyle = '#fde68a';
+    ctx.fillRect(x - 1, y - L_HEIGHT, 2, 2);
+    // Hair
+    ctx.fillStyle = '#0f766e';
+    ctx.fillRect(x - 1, y - L_HEIGHT, 2, 1);
+    // Legs / feet
+    ctx.fillStyle = c;
+    if (this.state === ST.WALKER && (this.frame & 4)) {
+      ctx.fillRect(x - 1, y - 2, 1, 2);
+      ctx.fillRect(x + 1, y - 1, 1, 1);
+    } else if (this.state === ST.WALKER) {
+      ctx.fillRect(x + 1, y - 2, 1, 2);
+      ctx.fillRect(x - 1, y - 1, 1, 1);
+    } else {
+      ctx.fillRect(x - 1, y - 1, 1, 1);
+      ctx.fillRect(x + 1, y - 1, 1, 1);
+    }
+
+    // State-specific overlays
+    if (this.state === ST.FLOATER) {
+      ctx.fillStyle = '#fb923c';
+      ctx.fillRect(x - 3, y - L_HEIGHT - 2, 7, 1);
+      ctx.fillStyle = '#fb923c';
+      ctx.fillRect(x, y - L_HEIGHT - 1, 1, 2);
+    }
+    if (this.state === ST.BLOCKER) {
+      ctx.fillStyle = c;
+      ctx.fillRect(x - 2, y - L_HEIGHT + 4, 1, 3); // left arm
+      ctx.fillRect(x + 2, y - L_HEIGHT + 4, 1, 3); // right arm
+    }
+    if (this.state === ST.BUILDER) {
+      // brick under feet
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(x, y, this.dir > 0 ? 2 : -2, 1);
+    }
+    if (this.state === ST.CLIMBER || this.state === ST.HOISTER) {
+      // hand reaching up
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(x + this.dir, y - L_HEIGHT - 1, 1, 1);
+    }
+    if (this.state === ST.BASHER) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillRect(x + this.dir * 2, y - 5, 2, 1);
+    }
+    if (this.state === ST.MINER) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillRect(x + this.dir * 2, y - 3, 2, 1);
+    }
+    if (this.state === ST.DIGGER) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillRect(x - 1, y + 1, 3, 1);
+    }
+    if (this.bombFuse > 0 && this.state !== ST.OHNO) {
+      const sec = Math.ceil(this.bombFuse / TICK_HZ);
+      ctx.fillStyle = (this.frame & 4) ? '#ef4444' : '#fef3c7';
+      ctx.font = 'bold 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(sec, x, y - L_HEIGHT - 2);
+    }
+    if (this.state === ST.OHNO) {
+      ctx.fillStyle = (this.frame & 2) ? '#ef4444' : '#fde68a';
+      ctx.fillRect(x - 2, y - L_HEIGHT - 1, 5, 1);
+    }
+  }
+}
+
+// =====================================================================
+// PARTICLES
+// =====================================================================
+
+class Particle {
+  constructor(x, y, vx, vy, color, life) {
+    this.x = x; this.y = y; this.vx = vx; this.vy = vy;
+    this.color = color; this.life = life; this.maxLife = life;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vy += 0.15;
+    this.life--;
+    return this.life > 0;
+  }
+  draw(ctx) {
+    const a = this.life / this.maxLife;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = this.color;
+    ctx.fillRect(Math.floor(this.x), Math.floor(this.y), 1, 1);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// =====================================================================
+// GAME
+// =====================================================================
+
+class Game {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.ctx.imageSmoothingEnabled = false;
+    this.minimap = document.getElementById('minimap');
+    this.miniCtx = this.minimap.getContext('2d');
+    this.miniCtx.imageSmoothingEnabled = false;
+
+    this.level = null;
+    this.terrain = null;
+    this.lemmings = [];
+    this.particles = [];
+    this.savedCount = 0;
+    this.spawnedCount = 0;
+    this.spawnTimer = 0;
+    this.releaseRate = 50;
+    this.timeRemaining = 0;
+    this.tickAccum = 0;
+    this.lastFrameTime = performance.now();
+    this.cameraX = 0;
+    this.activeSkill = null;
+    this.skillsRemaining = {};
+    this.speed = 1; // 0=paused, 1=normal, 3=fast
+    this.mouseX = 0; this.mouseY = 0;
+    this.mouseActive = false; // edge-pan only after a real mousemove
+    this.gameState = 'menu'; // menu, playing, won, lost
+    this.tickCount = 0;
+    this.unlocked = this.loadProgress();
+    this.scrollEdgeSpeed = 6;
+    this.toastEl = null;
+    // Cache DOM nodes touched every tick by updateUI() to avoid getElementById
+    // and querySelectorAll allocations on the hot path.
+    this.ui = {
+      lvlNum: document.getElementById('lvlNum'),
+      lvlName: document.getElementById('lvlName'),
+      timeRemaining: document.getElementById('timeRemaining'),
+      savedCount: document.getElementById('savedCount'),
+      aliveCount: document.getElementById('aliveCount'),
+      targetTxt: document.getElementById('targetTxt'),
+      rrTxt: document.getElementById('rrTxt'),
+      skills: Array.from(document.querySelectorAll('.skill')).map(el => ({
+        el, skill: el.dataset.skill,
+        countEl: el.querySelector('.count'),
+      })),
+      speedBtns: Array.from(document.querySelectorAll('#speedBtns button')),
+    };
+    // Last-shown UI values so we can skip DOM writes when nothing changed.
+    this._uiCache = {
+      lvlIdx: -1, name: '', time: -1, saved: -1, alive: -1,
+      target: '', rr: -1, skills: {}, activeSkill: '_none', speed: -1,
+    };
+  }
+
+  loadProgress() {
+    const DEFAULT = { v: 1, unlocked: 1, best: {} };
+    try {
+      const raw = localStorage.getItem('cliffwalkers_progress');
+      if (!raw) return DEFAULT;
+      const parsed = JSON.parse(raw);
+      // Defensive — if a future build writes a newer schema, fall back to
+      // defaults instead of crashing on missing fields. Also patch up legacy
+      // saves that pre-date the `v` field.
+      if (!parsed || typeof parsed !== 'object') return DEFAULT;
+      if (typeof parsed.unlocked !== 'number') parsed.unlocked = 1;
+      if (!parsed.best || typeof parsed.best !== 'object') parsed.best = {};
+      if (parsed.v && parsed.v > 1) return DEFAULT; // unknown future schema
+      parsed.v = 1;
+      return parsed;
+    } catch (e) { return DEFAULT; }
+  }
+  saveProgress() {
+    try {
+      this.unlocked.v = 1;
+      localStorage.setItem('cliffwalkers_progress', JSON.stringify(this.unlocked));
+    } catch (e) {}
+  }
+
+  loadLevel(idx) {
+    const lvl = LEVELS[idx];
+    this.levelIdx = idx;
+    this.level = lvl;
+    this.terrain = new Terrain(LVL_W, LVL_H, THEMES[lvl.theme]);
+    for (const g of lvl.geometry) {
+      const [type, x, y, w, h, mat] = g;
+      if (type === 'rect') {
+        this.terrain.addRect(x, y, w, h, mat);
+      }
+    }
+    this.terrain.flush();
+    this.lemmings = [];
+    this.particles = [];
+    this.savedCount = 0;
+    this.spawnedCount = 0;
+    this.spawnTimer = 0;
+    this.releaseRate = lvl.startRR;
+    this.timeRemaining = lvl.time * TICK_HZ;
+    this.skillsRemaining = Object.assign({}, lvl.skills);
+    // Pre-select the most-stocked skill so first lemming click does the obvious thing.
+    const stocked = Object.entries(this.skillsRemaining).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+    this.activeSkill = stocked.length ? stocked[0][0] : null;
+    this.cameraX = Math.max(0, lvl.spawn.x - 200);
+    this.tickCount = 0;
+    this.gameState = 'playing';
+    this.speed = 1;
+    // Invalidate UI cache so every field repaints on the first tick of a new
+    // level (skill counts change, name changes, timer resets, etc).
+    this._uiCache = {
+      lvlIdx: -1, name: '', time: -1, saved: -1, alive: -1,
+      target: '', rr: -1, skills: {}, activeSkill: '_none', speed: -1,
+    };
+    this.updateUI();
+  }
+
+  spawnLemming() {
+    if (this.spawnedCount >= this.level.count) return;
+    const lem = new Lemming(this.level.spawn.x, this.level.spawn.y);
+    this.lemmings.push(lem);
+    this.spawnedCount++;
+  }
+
+  spawnExplosion(x, y) {
+    for (let i = 0; i < 24; i++) {
+      const ang = Math.random() * Math.PI * 2;
+      const sp = 0.5 + Math.random() * 2.5;
+      this.particles.push(new Particle(
+        x, y,
+        Math.cos(ang) * sp, Math.sin(ang) * sp - 0.5,
+        ['#fbbf24', '#ef4444', '#fde68a', '#92400e'][Math.floor(Math.random() * 4)],
+        20 + Math.floor(Math.random() * 16)
+      ));
+    }
+  }
+
+  // Spawn rate: at RR=50, ~1 lemming per second.
+  // Original formula: spawn interval = (105 - RR) / RR something... let's use simple interp:
+  // RR=99 → ~10/sec, RR=20 → ~0.4/sec
+  spawnInterval() {
+    return Math.max(2, Math.floor((103 - this.releaseRate) / 2));
+  }
+
+  tick() {
+    if (this.gameState !== 'playing') return;
+    this.tickCount++;
+    if (this.timeRemaining > 0) this.timeRemaining--;
+
+    // Spawn
+    if (this.spawnedCount < this.level.count) {
+      this.spawnTimer++;
+      if (this.spawnTimer >= this.spawnInterval()) {
+        this.spawnTimer = 0;
+        this.spawnLemming();
+      }
+    }
+
+    // Update lemmings
+    for (const lem of this.lemmings) lem.update(this);
+    // Cleanup not needed — we keep dead ones briefly for animation; they stop drawing once alive=false
+
+    // Particles
+    this.particles = this.particles.filter(p => p.update());
+
+    // Win/lose check
+    const allSpawned = this.spawnedCount >= this.level.count;
+    const noneAlive = !this.lemmings.some(l => l.alive);
+    if (this.timeRemaining <= 0 || (allSpawned && noneAlive)) {
+      // Finalize: lemmings already committed to the exit are saved, but
+      // savedCount only increments when the 24-tick exit animation completes.
+      // Count in-progress exiters now so a timeout doesn't drop them.
+      const committed = this.lemmings.filter(l => l.alive && l.state === ST.EXITER).length;
+      this.savedCount += committed;
+      if (this.savedCount >= this.level.target) {
+        this.gameState = 'won';
+        this.unlocked.unlocked = Math.max(this.unlocked.unlocked, this.levelIdx + 2);
+        const prevBest = this.unlocked.best[this.levelIdx] || 0;
+        if (this.savedCount > prevBest) this.unlocked.best[this.levelIdx] = this.savedCount;
+        this.saveProgress();
+        this.showWinScreen();
+      } else {
+        this.gameState = 'lost';
+        this.showLoseScreen();
+      }
+    }
+    this.updateUI();
+  }
+
+  // --- Scrolling ---
+  updateCamera(dt) {
+    if (this.gameState !== 'playing') return;
+    // Edge-scroll based on mouse — but only after a real cursor enters the canvas.
+    // (Touch devices never set mouseActive, so edge-pan is disabled there.)
+    const w = this.canvas.width;
+    const edge = 60;
+    if (this.mouseActive) {
+      if (this.mouseX < edge) this.cameraX -= this.scrollEdgeSpeed * (1 - this.mouseX / edge);
+      else if (this.mouseX > w - edge) this.cameraX += this.scrollEdgeSpeed * (1 - (w - this.mouseX) / edge);
+    }
+    // Keyboard
+    if (this.keyLeft) this.cameraX -= 4;
+    if (this.keyRight) this.cameraX += 4;
+    this.cameraX = Math.max(0, Math.min(LVL_W - this.canvas.width, this.cameraX));
+  }
+
+  // --- Rendering ---
+  render() {
+    const ctx = this.ctx;
+    const cw = this.canvas.width, ch = this.canvas.height;
+    if (!this.terrain) {
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, cw, ch);
+      return;
+    }
+    this.terrain.flush();
+    // Draw terrain offset by camera
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.drawImage(this.terrain.canvas, -this.cameraX, 0);
+
+    // Draw exit marker
+    const ex = this.level.exit;
+    const exX = ex.x - this.cameraX;
+    if (exX > -16 && exX < cw + 16) {
+      ctx.fillStyle = '#22c55e';
+      ctx.fillRect(exX - 6, ex.y - 16, 12, 16);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(exX - 4, ex.y - 14, 8, 12);
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(exX - 1, ex.y - 4, 2, 4);
+      // beacon
+      const t = this.tickCount % 30;
+      if (t < 15) {
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(exX - 1, ex.y - 18, 2, 2);
+      }
+    }
+    // Spawn marker
+    const sp = this.level.spawn;
+    const spX = sp.x - this.cameraX;
+    if (spX > -16 && spX < cw + 16) {
+      ctx.fillStyle = '#7dd3fc';
+      ctx.fillRect(spX - 8, sp.y - 12, 16, 4);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(spX - 4, sp.y - 10, 8, 4);
+    }
+
+    // Lemmings
+    ctx.save();
+    ctx.translate(-this.cameraX, 0);
+    for (const lem of this.lemmings) lem.draw(ctx);
+    for (const p of this.particles) p.draw(ctx);
+    ctx.restore();
+
+    // Cursor highlight: lemming under mouse
+    const worldMx = this.mouseX + this.cameraX;
+    const worldMy = this.mouseY;
+    const hovered = this.findLemmingAt(worldMx, worldMy);
+    if (hovered) {
+      ctx.strokeStyle = this.activeSkill ? '#fbbf24' : '#7dd3fc';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(hovered.x - 3 - this.cameraX, hovered.y - L_HEIGHT - 1, 7, L_HEIGHT + 2);
+    }
+
+    // Minimap
+    this.renderMinimap();
+  }
+
+  renderMinimap() {
+    const m = this.miniCtx;
+    const mw = this.minimap.width, mh = this.minimap.height;
+    m.clearRect(0, 0, mw, mh);
+    m.drawImage(this.terrain.canvas, 0, 0, mw, mh);
+    // Lemming dots
+    m.fillStyle = '#22c55e';
+    for (const lem of this.lemmings) {
+      if (!lem.alive || lem.state === ST.EXITER) continue;
+      const mx = (lem.x / LVL_W) * mw;
+      const my = (lem.y / LVL_H) * mh;
+      m.fillRect(mx, my - 1, 1, 1);
+    }
+    // Camera viewport rect
+    const vx = (this.cameraX / LVL_W) * mw;
+    const vw = (this.canvas.width / LVL_W) * mw;
+    m.strokeStyle = '#fbbf24';
+    m.lineWidth = 1;
+    m.strokeRect(vx, 0, vw, mh - 1);
+  }
+
+  findLemmingAt(wx, wy) {
+    let best = null, bestDist = 999;
+    for (const lem of this.lemmings) {
+      if (!lem.alive) continue;
+      const dx = lem.x - wx;
+      const dy = (lem.y - L_HEIGHT/2) - wy;
+      const d = Math.abs(dx) + Math.abs(dy);
+      if (Math.abs(dx) <= 4 && wy >= lem.y - L_HEIGHT - 2 && wy <= lem.y + 2 && d < bestDist) {
+        best = lem; bestDist = d;
+      }
+    }
+    return best;
+  }
+
+  // --- Click handling ---
+  handleClick(wx, wy) {
+    if (this.gameState !== 'playing') return;
+    const lem = this.findLemmingAt(wx, wy);
+    if (!lem) return;
+    if (!this.activeSkill) return;
+    if ((this.skillsRemaining[this.activeSkill] || 0) <= 0) return;
+    if (lem.applySkill(this.activeSkill, this)) {
+      this.skillsRemaining[this.activeSkill]--;
+      this.updateUI();
+    }
+  }
+
+  nuke() {
+    if (this.gameState !== 'playing') return;
+    let i = 0;
+    for (const lem of this.lemmings) {
+      if (!lem.alive) continue;
+      if (lem.state === ST.EXITER || lem.state === ST.OHNO || lem.state === ST.SPLATTER || lem.state === ST.DROWNER) continue;
+      // stagger fuses
+      lem.bombFuse = TICK_HZ * 2 + i * 2;
+      i++;
+    }
+    // Mark no more spawns
+    this.spawnedCount = this.level.count;
+  }
+
+  // --- UI updates ---
+  // Called every tick — uses a small cache so we only write to the DOM when a
+  // value actually changed. Previously this ran ~7 getElementById + 2
+  // querySelectorAll allocations every tick.
+  updateUI() {
+    const ui = this.ui, c = this._uiCache;
+    if (c.lvlIdx !== this.levelIdx) {
+      c.lvlIdx = this.levelIdx;
+      ui.lvlNum.textContent = (this.levelIdx + 1).toString().padStart(2, '0');
+    }
+    const name = this.level ? this.level.name : '—';
+    if (c.name !== name) { c.name = name; ui.lvlName.textContent = name; }
+
+    const secsTotal = Math.floor(this.timeRemaining / TICK_HZ);
+    if (c.time !== secsTotal) {
+      c.time = secsTotal;
+      const mins = Math.floor(secsTotal / 60);
+      const secs = secsTotal % 60;
+      ui.timeRemaining.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    if (c.saved !== this.savedCount) {
+      c.saved = this.savedCount;
+      ui.savedCount.textContent = `${this.savedCount}/${this.level ? this.level.count : 0}`;
+    }
+
+    // Avoid an O(n) filter every tick — count via the sparse loop.
+    let aliveN = 0;
+    const lems = this.lemmings;
+    for (let i = 0; i < lems.length; i++) if (lems[i].alive) aliveN++;
+    if (c.alive !== aliveN) { c.alive = aliveN; ui.aliveCount.textContent = aliveN; }
+
+    const target = this.level
+      ? `${this.level.target} (${Math.round(this.level.target / this.level.count * 100)}%)`
+      : '—';
+    if (c.target !== target) { c.target = target; ui.targetTxt.textContent = target; }
+
+    if (c.rr !== this.releaseRate) { c.rr = this.releaseRate; ui.rrTxt.textContent = this.releaseRate; }
+
+    // Skills
+    const activeChanged = c.activeSkill !== this.activeSkill;
+    for (let i = 0; i < ui.skills.length; i++) {
+      const s = ui.skills[i];
+      const count = this.skillsRemaining[s.skill] || 0;
+      if (c.skills[s.skill] !== count) {
+        c.skills[s.skill] = count;
+        s.countEl.textContent = count;
+        s.el.classList.toggle('locked', count <= 0);
+        s.el.classList.toggle('danger', s.skill === 'bomber' && count > 0);
+      }
+      if (activeChanged) s.el.classList.toggle('active', this.activeSkill === s.skill);
+    }
+    if (activeChanged) c.activeSkill = this.activeSkill;
+
+    if (c.speed !== this.speed) {
+      c.speed = this.speed;
+      for (let i = 0; i < ui.speedBtns.length; i++) {
+        const b = ui.speedBtns[i];
+        b.classList.toggle('active', parseInt(b.dataset.speed) === this.speed);
+      }
+    }
+  }
+
+  toast(msg) {
+    if (this.toastEl) this.toastEl.remove();
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.getElementById('canvaswrap').appendChild(t);
+    this.toastEl = t;
+    setTimeout(() => { if (t.parentNode) t.remove(); }, 3500);
+  }
+
+  showWinScreen() {
+    const overlay = document.getElementById('overlay');
+    const m = document.getElementById('modalContent');
+    const isPerfect = this.savedCount === this.level.count;
+    const next = this.levelIdx + 1 < LEVELS.length;
+    if (!next) return this.showVictoryScreen();
+    m.innerHTML = `
+      <h1 style="color:var(--ok)">${isPerfect ? '★ Perfect!' : 'Level Complete'}</h1>
+      <p class="tagline">${this.level.name}</p>
+      <p style="font-size:18px;">Saved <b style="color:var(--ok)">${this.savedCount}</b> of ${this.level.count} (target was ${this.level.target}).</p>
+      <div style="display:flex; gap:10px; margin-top:18px;">
+        <button id="btnRetry">Replay Level</button>
+        ${next ? '<button id="btnNext" class="warn">Next Level →</button>' : '<button id="btnAll" class="warn">Level Select</button>'}
+        <button id="btnMenu" class="ghost">Main Menu</button>
+      </div>
+    `;
+    overlay.style.display = 'flex';
+    document.getElementById('btnRetry').onclick = () => { overlay.style.display = 'none'; this.loadLevel(this.levelIdx); };
+    if (next) {
+      document.getElementById('btnNext').onclick = () => { overlay.style.display = 'none'; this.loadLevel(this.levelIdx + 1); };
+    } else {
+      document.getElementById('btnAll').onclick = () => this.showMenu();
+    }
+    document.getElementById('btnMenu').onclick = () => this.showMenu();
+  }
+
+  showVictoryScreen() {
+    const overlay = document.getElementById('overlay');
+    const m = document.getElementById('modalContent');
+    const totalSaved = Object.values(this.unlocked.best || {}).reduce((a, b) => a + b, 0) + this.savedCount;
+    const perfectRuns = Object.entries(this.unlocked.best || {}).filter(([i, n]) => {
+      const lvl = LEVELS[parseInt(i)];
+      return lvl && n >= lvl.count;
+    }).length + (this.savedCount === this.level.count ? 1 : 0);
+    m.innerHTML = `
+      <h1 style="color:var(--ok); font-size:42px; letter-spacing:0.08em;">★ VICTORY ★</h1>
+      <p class="tagline">You saved them all.</p>
+      <p style="font-size:16px; line-height:1.6;">
+        A hundred cliffs scaled. A hundred chasms bridged. A hundred mounds tunneled.
+        The wee folk sing your name from the highest spires to the deepest pits.
+      </p>
+      <div style="display:flex; gap:24px; margin: 24px 0; flex-wrap:wrap;">
+        <div class="stat" style="padding: 10px 16px;"><b style="font-size:22px;">${totalSaved}</b><span>WEE FOLK SAVED</span></div>
+        <div class="stat" style="padding: 10px 16px;"><b style="font-size:22px;">${perfectRuns}</b><span>PERFECT RUNS</span></div>
+        <div class="stat" style="padding: 10px 16px;"><b style="font-size:22px;">${LEVELS.length}</b><span>LEVELS BEATEN</span></div>
+      </div>
+      <p style="color:var(--dim); font-size:13px; font-style:italic;">Thanks for playing.</p>
+      <div style="display:flex; gap:10px; margin-top:18px;">
+        <button id="btnRetry" class="warn">Replay Final Level</button>
+        <button id="btnMenu" class="ghost">Level Select</button>
+      </div>
+    `;
+    overlay.style.display = 'flex';
+    document.getElementById('btnRetry').onclick = () => { overlay.style.display = 'none'; this.loadLevel(this.levelIdx); };
+    document.getElementById('btnMenu').onclick = () => this.showMenu();
+  }
+
+  showLoseScreen() {
+    const overlay = document.getElementById('overlay');
+    const m = document.getElementById('modalContent');
+    const reason = this.timeRemaining <= 0 ? 'Time ran out.' : 'You ran out of wee folk.';
+    m.innerHTML = `
+      <h1 style="color:var(--danger)">Try Again</h1>
+      <p class="tagline">${this.level.name}</p>
+      <p>${reason} You saved ${this.savedCount} of ${this.level.count}, needed ${this.level.target}.</p>
+      <div style="display:flex; gap:10px; margin-top:18px;">
+        <button id="btnRetry" class="warn">Replay Level</button>
+        <button id="btnMenu" class="ghost">Main Menu</button>
+      </div>
+    `;
+    overlay.style.display = 'flex';
+    document.getElementById('btnRetry').onclick = () => { overlay.style.display = 'none'; this.loadLevel(this.levelIdx); };
+    document.getElementById('btnMenu').onclick = () => this.showMenu();
+  }
+
+  showMenu() {
+    const overlay = document.getElementById('overlay');
+    const m = document.getElementById('modalContent');
+    const CHAPTER_NAMES = ['Tutorial', 'Apprentice', 'Journeyman', 'Master', 'Grandmaster'];
+    const CHAPTER_SIZE = 20;
+    let levelsHtml = '';
+    LEVELS.forEach((l, i) => {
+      if (i % CHAPTER_SIZE === 0) {
+        const ch = Math.floor(i / CHAPTER_SIZE);
+        levelsHtml += `<div class="chapter-divider"><span class="ch-label">Chapter ${ch + 1}</span> <span class="ch-name">${CHAPTER_NAMES[ch] || ''}</span> <span class="ch-range">L${i + 1}–L${Math.min(i + CHAPTER_SIZE, LEVELS.length)}</span></div>`;
+      }
+      const locked = i + 1 > this.unlocked.unlocked;
+      const best = this.unlocked.best[i] || 0;
+      const isGold = best === l.count;
+      levelsHtml += `<div class="level-card ${locked ? 'locked' : ''}" data-idx="${i}">
+        <div class="num">LEVEL ${i + 1}</div>
+        <h3>${locked ? '???' : l.name}</h3>
+        <div class="stats-line">
+          <span class="difficulty-pill ${l.difficulty}">${l.difficulty}</span>
+          ${locked ? '' : ` · ${l.count} folk · save ${l.target} · ${l.time}s`}
+        </div>
+        ${locked ? '' : `<div class="blurb">${l.blurb}</div>`}
+        ${best > 0 ? `<div class="best ${isGold ? 'gold' : ''}">${isGold ? '★ ' : ''}Best: saved ${best}/${l.count}</div>` : ''}
+      </div>`;
+    });
+    const continueIdx = Math.min(this.unlocked.unlocked - 1, LEVELS.length - 1);
+    const showContinue = continueIdx > 0;
+    m.innerHTML = `
+      <h1>CLIFFWALKERS</h1>
+      <p class="tagline">Save the wee folk.</p>
+      <p>Click a skill below the playfield, then click on a lemming to assign it. Save the target number to advance.</p>
+      <p class="hotkey-hint" style="font-size:11px; color:var(--dim);">
+        Hotkeys: <span class="key">1-8</span> select skill ·
+        <span class="key">P</span> pause ·
+        <span class="key">F</span> fast-forward ·
+        <span class="key">N</span> nuke ·
+        <span class="key">+ −</span> spawn rate ·
+        <span class="key">← →</span> scroll
+      </p>
+      ${showContinue ? `
+        <button id="btnContinue" class="warn" style="font-size:15px; padding:10px 20px; margin-top: 4px;">
+          Continue → Level ${continueIdx + 1}: ${LEVELS[continueIdx].name}
+        </button>
+      ` : ''}
+      <h2>Choose your level</h2>
+      <div class="levels">${levelsHtml}</div>
+      <div style="margin-top:18px; display:flex; gap:10px;">
+        <button id="resetProgress" class="ghost">Reset Progress</button>
+      </div>
+    `;
+    overlay.style.display = 'flex';
+    m.querySelectorAll('.level-card').forEach(card => {
+      const idx = parseInt(card.dataset.idx);
+      if (card.classList.contains('locked')) return;
+      card.onclick = () => {
+        overlay.style.display = 'none';
+        this.loadLevel(idx);
+      };
+    });
+    if (showContinue) {
+      document.getElementById('btnContinue').onclick = () => {
+        overlay.style.display = 'none';
+        this.loadLevel(continueIdx);
+      };
+    }
+    document.getElementById('resetProgress').onclick = () => {
+      if (confirm('Reset all progress?')) {
+        this.unlocked = { unlocked: 1, best: {} };
+        this.saveProgress();
+        this.showMenu();
+      }
+    };
+  }
+
+  loop(now) {
+    const dt = Math.min(100, now - this.lastFrameTime);
+    this.lastFrameTime = now;
+
+    // Run logic ticks based on speed
+    if (this.gameState === 'playing' && this.speed > 0) {
+      this.tickAccum += dt * this.speed;
+      while (this.tickAccum >= TICK_MS) {
+        this.tick();
+        this.tickAccum -= TICK_MS;
+      }
+    } else {
+      this.tickAccum = 0;
+    }
+
+    this.updateCamera(dt);
+    this.render();
+    requestAnimationFrame(t => this.loop(t));
+  }
+}
+
+// =====================================================================
+// BOOT / INPUT
+// =====================================================================
+
+const canvas = document.getElementById('canvas');
+const game = new Game(canvas);
+
+function resizeCanvas() {
+  const wrap = document.getElementById('canvaswrap');
+  const rect = wrap.getBoundingClientRect();
+  // Keep aspect / pixel scale: use a target internal height of 200, width = LVL_W or scaled
+  // We render at internal resolution that matches viewport: width fits to wrap, scaled up
+  // Cap viewport width to 600 internal units (so terrain shows fully a chunk)
+  let scale = Math.max(1, Math.min(Math.floor(rect.height / VIEW_BASE_H), Math.floor(rect.width / 320)));
+  if (!isFinite(scale) || scale < 1) scale = 1;
+  const internalW = Math.floor(rect.width / scale);
+  const internalH = VIEW_BASE_H;
+  canvas.width = internalW;
+  canvas.height = internalH;
+  canvas.style.width = (internalW * scale) + 'px';
+  canvas.style.height = (internalH * scale) + 'px';
+  game.ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// Mouse position
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  game.mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+  game.mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+  game.mouseActive = true;
+});
+canvas.addEventListener('mouseleave', () => { game.mouseActive = false; });
+canvas.addEventListener('mousedown', e => {
+  if (e.button === 2) { game.activeSkill = null; game.updateUI(); return; }
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+  game.handleClick(mx + game.cameraX, my);
+});
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+// Touch — single-finger tap selects a lemming, drag pans the camera. Without
+// drag-to-pan there is no way to scroll the level on Android (mouse-edge-pan
+// only runs when mouseActive is set by a real mousemove).
+let touchPanState = null; // { startX, startY, lastX, startCamera, dragged }
+const TAP_SLOP_PX = 6;    // movement under this counts as a tap
+
+canvas.addEventListener('touchstart', e => {
+  if (!e.touches[0]) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const sx = (e.touches[0].clientX - rect.left) * (canvas.width / rect.width);
+  const sy = (e.touches[0].clientY - rect.top) * (canvas.height / rect.height);
+  touchPanState = {
+    startX: sx, startY: sy,
+    lastX: e.touches[0].clientX,
+    startCamera: game.cameraX,
+    dragged: false,
+  };
+  game.mouseX = sx; game.mouseY = sy;
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  if (!touchPanState || !e.touches[0]) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.touches[0].clientX;
+  const cy = e.touches[0].clientY;
+  const px = (cx - rect.left) * (canvas.width / rect.width);
+  const py = (cy - rect.top) * (canvas.height / rect.height);
+  const dx = px - touchPanState.startX;
+  const dy = py - touchPanState.startY;
+  if (!touchPanState.dragged && Math.hypot(dx, dy) > TAP_SLOP_PX) {
+    touchPanState.dragged = true;
+  }
+  if (touchPanState.dragged) {
+    // Drag in screen px → world px (canvas internal coords already scale-matched).
+    game.cameraX = Math.max(0, Math.min(LVL_W - canvas.width,
+      touchPanState.startCamera - dx));
+  }
+  game.mouseX = px; game.mouseY = py;
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  if (!touchPanState) return;
+  e.preventDefault();
+  if (!touchPanState.dragged) {
+    // Treat as a tap = lemming select.
+    game.handleClick(touchPanState.startX + game.cameraX, touchPanState.startY);
+  }
+  touchPanState = null;
+}, { passive: false });
+
+canvas.addEventListener('touchcancel', () => { touchPanState = null; });
+
+// Minimap click / tap to scroll
+const mini = document.getElementById('minimap');
+function jumpCameraFromMinimap(clientX) {
+  const rect = mini.getBoundingClientRect();
+  const fx = (clientX - rect.left) / rect.width;
+  game.cameraX = Math.max(0, Math.min(LVL_W - canvas.width, fx * LVL_W - canvas.width / 2));
+}
+mini.addEventListener('mousedown', e => jumpCameraFromMinimap(e.clientX));
+mini.addEventListener('touchstart', e => {
+  if (!e.touches[0]) return;
+  e.preventDefault();
+  jumpCameraFromMinimap(e.touches[0].clientX);
+}, { passive: false });
+
+// Skill bar
+document.querySelectorAll('.skill').forEach(el => {
+  el.addEventListener('click', () => {
+    if (el.classList.contains('locked')) return;
+    const skill = el.dataset.skill;
+    game.activeSkill = (game.activeSkill === skill) ? null : skill;
+    game.updateUI();
+  });
+});
+
+// Speed buttons
+document.querySelectorAll('#speedBtns button').forEach(b => {
+  b.addEventListener('click', () => {
+    game.speed = parseInt(b.dataset.speed);
+    game.updateUI();
+  });
+});
+
+// RR / pause / nuke / menu
+document.getElementById('rrUp').addEventListener('click', () => {
+  if (game.level && game.releaseRate < game.level.maxRR) { game.releaseRate++; game.updateUI(); }
+});
+document.getElementById('rrDn').addEventListener('click', () => {
+  if (game.level && game.releaseRate > game.level.minRR) { game.releaseRate--; game.updateUI(); }
+});
+document.getElementById('pauseBtn').addEventListener('click', () => {
+  game.speed = game.speed === 0 ? 1 : 0;
+  game.updateUI();
+});
+document.getElementById('nukeBtn').addEventListener('click', () => {
+  if (confirm('Nuke all wee folk?')) game.nuke();
+});
+document.getElementById('menuBtn').addEventListener('click', () => game.showMenu());
+
+// Keyboard
+const SKILL_KEYS = ['climber','floater','bomber','blocker','builder','basher','miner','digger'];
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.key >= '1' && e.key <= '8') {
+    const idx = parseInt(e.key) - 1;
+    const skill = SKILL_KEYS[idx];
+    if ((game.skillsRemaining[skill] || 0) > 0) {
+      game.activeSkill = (game.activeSkill === skill) ? null : skill;
+      game.updateUI();
+    }
+  }
+  if (e.key === 'p' || e.key === 'P') { game.speed = game.speed === 0 ? 1 : 0; game.updateUI(); }
+  if (e.key === 'f' || e.key === 'F') { game.speed = game.speed === 3 ? 1 : 3; game.updateUI(); }
+  if (e.key === 'n' || e.key === 'N') { if (confirm('Nuke all wee folk?')) game.nuke(); }
+  if (e.key === '+' || e.key === '=') { if (game.level && game.releaseRate < game.level.maxRR) { game.releaseRate++; game.updateUI(); } }
+  if (e.key === '-' || e.key === '_') { if (game.level && game.releaseRate > game.level.minRR) { game.releaseRate--; game.updateUI(); } }
+  if (e.key === 'ArrowLeft') game.keyLeft = true;
+  if (e.key === 'ArrowRight') game.keyRight = true;
+  if (e.key === 'Escape') { game.activeSkill = null; game.updateUI(); }
+});
+window.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft') game.keyLeft = false;
+  if (e.key === 'ArrowRight') game.keyRight = false;
+});
+
+// Initial menu
+game.showMenu();
+requestAnimationFrame(t => { game.lastFrameTime = t; game.loop(t); });
+</script>
+<section class="seo-content">
+  <h2>About Cliffwalkers</h2>
+  <p>Cliffwalkers is a Lemmings-style puzzle-arcade game. Save the wee folk by carving paths, building bridges, and assigning roles before they walk off cliffs. Every level has an optimal-skill-allocation puzzle inside the timing.</p>
+
+  <h3>How to play</h3>
+  <p>Each level releases a stream of walkers from a spawn point. Click a walker and assign a role (digger, builder, blocker, climber, etc.) to alter their path. Save a target percentage to clear the level. Skill counts per level are fixed — perfect economy matters.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>Is it a Lemmings clone?</summary><p>Cliffwalkers borrows the original Lemmings (1991) gameplay loop but ships original level designs and a more forgiving difficulty curve.</p></details>
+  <details><summary>What's the trick to hard levels?</summary><p>Skill economy — the puzzle is usually "with these exact skill counts, can I save the target percentage?" Solve the resource problem before the timing.</p></details>
+  <details><summary>Can I pause and re-plan?</summary><p>Yes — pausing gives you time to reassign roles and reconsider. Most levels expect a few pauses.</p></details>
+  <details><summary>Is there a level editor?</summary><p>Not yet. On the roadmap.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/tower">Tower</a> — high-rise operations.</li>
+    <li><a href="/floodline">Floodline</a> — California flood defense.</li>
+    <li><a href="/apoapsis">Apoapsis</a> — 3D rocket flight.</li>
+    <li><a href="/bonnevillespillwayoperator">BonnevilleSpillwayOperator</a> — dam operator sim.</li>
+  </ul>
+</section>
+
+<script src="/analytics.js"></script>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

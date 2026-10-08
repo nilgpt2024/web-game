@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+  (function() {
+    var ua = navigator.userAgent;
+    var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+    if (isPhone) {
+      var meta = document.querySelector('meta[name="viewport"]');
+      if (meta) {
+        var targetWidth = 780;
+        var scale = window.innerWidth / targetWidth;
+        meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+      }
+    }
+  })();
+  </script>
+  <meta name="theme-color" content="#0c1016">
+  <title>Agora — Mediterranean Trade Strategy Game | Board Gaming Hub</title>
+  <meta name="description" content="Build a Mediterranean trading empire in Agora — a free in-browser strategy game of routes, harbors, and rival merchants. Single HTML file, no signup, no downloads.">
+  <link rel="canonical" href="https://boardgaminghub.com/agora">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://boardgaminghub.com/agora">
+  <meta property="og:title" content="Agora — Mediterranean Trade Strategy">
+  <meta property="og:description" content="Free in-browser strategy game of Mediterranean trade routes and rival merchants.">
+<meta property="og:image" content="https://boardgaminghub.com/og/agora.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/agora.png">
+  <script type="application/ld+json">
+  { "@context": "https://schema.org", "@type": "VideoGame", "name": "Agora",
+    "description": "Strategy game of Mediterranean trade — race to 30 coins by building trade posts, securing routes to the central Agora, and outmaneuvering a rival merchant.",
+    "url": "https://boardgaminghub.com/agora", "genre": "Strategy",
+    "applicationCategory": "Game", "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+  </script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #1A1A2E;
+      color: #D8D0C0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 1.8em;
+      color: #D4A860;
+      margin-bottom: 2px;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+      letter-spacing: 0.15em;
+    }
+
+    .subtitle {
+      font-size: 0.8em;
+      color: #7A8A9A;
+      margin-bottom: 12px;
+      font-style: italic;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: 0;
+      margin-bottom: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 2px solid #D4A860;
+    }
+
+    .mode-btn {
+      padding: 6px 18px;
+      font-size: 0.95em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      border: none;
+      background: #1E3A5F;
+      color: #7A8A9A;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .mode-btn:not(:last-child) { border-right: 1px solid #D4A860; }
+
+    .mode-btn.active {
+      background: #D4A860;
+      color: #1A1A2E;
+      cursor: default;
+      font-weight: bold;
+    }
+
+    .mode-btn:hover:not(.active) { background: #2A4A6F; color: #D8D0C0; }
+
+    .game-info { text-align: center; margin-bottom: 8px; }
+
+    #turn-indicator { font-size: 1.15em; font-weight: bold; margin-bottom: 4px; }
+
+    .dice-container {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 6px 0;
+      min-height: 36px;
+    }
+
+    .die {
+      width: 36px;
+      height: 36px;
+      background: #2A1A10;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      color: #D4A860;
+      font-weight: bold;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+      border: 2px solid #D4A860;
+    }
+
+    #dice-total { font-size: 1em; margin-bottom: 2px; color: #D4A860; }
+
+    #message {
+      font-size: 0.95em;
+      color: #D4A860;
+      min-height: 1.4em;
+      margin-bottom: 6px;
+      max-width: 600px;
+    }
+
+    .buttons { margin-bottom: 12px; }
+
+    button {
+      padding: 7px 18px;
+      font-size: 0.95em;
+      font-family: 'Georgia', serif;
+      cursor: pointer;
+      margin: 0 4px;
+      border: 2px solid #D4A860;
+      border-radius: 6px;
+      background: #1E3A5F;
+      color: #D8D0C0;
+      transition: background 0.2s;
+    }
+
+    button:hover:not(:disabled) { background: #2A4A6F; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .main-area {
+      display: flex;
+      align-items: flex-start;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ---- Hex Board ---- */
+    .board-wrap {
+      position: relative;
+      width: 460px;
+      height: 420px;
+    }
+
+    .board-svg {
+      width: 460px;
+      height: 420px;
+    }
+
+    /* ---- Market Panel ---- */
+    .market-panel {
+      background: #2A1A10;
+      border: 2px solid #D4A860;
+      border-radius: 8px;
+      padding: 14px;
+      min-width: 260px;
+      max-width: 280px;
+    }
+
+    .market-panel h2 {
+      font-size: 1.1em;
+      color: #D4A860;
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: 0.1em;
+    }
+
+    .market-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 7px;
+      gap: 6px;
+    }
+
+    .market-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .market-name {
+      width: 48px;
+      font-size: 0.8em;
+      flex-shrink: 0;
+    }
+
+    .market-bar-wrap {
+      flex: 1;
+      height: 16px;
+      background: #1A1A2E;
+      border-radius: 3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .market-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+
+    .market-price {
+      width: 22px;
+      text-align: right;
+      font-size: 0.85em;
+      font-weight: bold;
+      color: #D4A860;
+      flex-shrink: 0;
+    }
+
+    .market-btns {
+      display: flex;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .market-btns button {
+      padding: 2px 7px;
+      font-size: 0.7em;
+      margin: 0;
+      min-width: 30px;
+    }
+
+    .player-info {
+      border-top: 1px solid #D4A860;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .player-info h3 {
+      font-size: 0.95em;
+      margin-bottom: 6px;
+      color: #D4A860;
+    }
+
+    .inv-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+      font-size: 0.82em;
+    }
+
+    .inv-icon {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .coins-display {
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #D4A860;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    .build-section {
+      border-top: 1px solid #D4A860;
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+
+    .build-section h3 {
+      font-size: 0.95em;
+      margin-bottom: 6px;
+      color: #D4A860;
+    }
+
+    .build-section button {
+      display: block;
+      width: 100%;
+      margin: 4px 0;
+      font-size: 0.82em;
+      padding: 5px 10px;
+    }
+
+    .build-hint {
+      font-size: 0.72em;
+      color: #7A8A9A;
+      margin-top: 2px;
+    }
+
+    /* ---- Rules ---- */
+    .rules {
+      max-width: 740px;
+      margin-top: 18px;
+      padding: 14px 18px;
+      font-size: 0.82em;
+      background: rgba(30,58,95,0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(212,168,96,0.2);
+      line-height: 1.5;
+    }
+
+    .rules h3 {
+      color: #D4A860;
+      margin-bottom: 6px;
+      font-size: 1em;
+    }
+
+    .rules ul { padding-left: 18px; }
+    .rules li { margin-bottom: 4px; }
+
+    .phase-indicator {
+      font-size: 0.85em;
+      color: #7A8A9A;
+      margin-bottom: 4px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+      font-size: 0.75em;
+      color: #7A8A9A;
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+    /* Mobile game nav */
+  </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Board Games","item":"https://boardgaminghub.com/#board"},{"@type":"ListItem","position":3,"name":"Agora","item":"https://boardgaminghub.com/agora"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How long is a typical game?","acceptedAnswer":{"@type":"Answer","text":"Most games run 15–25 minutes on the single Mediterranean board."}},{"@type":"Question","name":"How do I earn coins?","acceptedAnswer":{"@type":"Answer","text":"Roll 2d6 each turn: hexes matching the total produce their resource for every adjacent trade post you own. Then buy and sell those goods at the central Agora market, where prices move with supply and demand. You must have a trade route connected to the Agora to trade."}},{"@type":"Question","name":"Is Agora based on a real game?","acceptedAnswer":{"@type":"Answer","text":"No — original design. The Mediterranean trade and dice-driven resource production draw on Catan, but the mechanics are independent."}},{"@type":"Question","name":"How do I win?","acceptedAnswer":{"@type":"Answer","text":"Be the first merchant to reach 30 coins. Trade posts and trade routes each count as 2 coins toward your total at game end, so keep building while you trade."}}]}</script>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<h1>AGORA</h1>
+  <div class="subtitle">The Mediterranean Trade</div>
+  <div class="mode-selector">
+    <button class="mode-btn active" id="mode-1p" onclick="setMode(true)">1 Player</button>
+    <button class="mode-btn" id="mode-2p" onclick="setMode(false)">2 Players</button>
+  </div>
+  <div class="game-info">
+    <div id="turn-indicator"></div>
+    <div class="phase-indicator" id="phase-indicator"></div>
+    <div class="dice-container" id="dice-container"></div>
+    <div id="dice-total"></div>
+    <div id="message"></div>
+  </div>
+  <div class="buttons">
+    <button id="roll-btn" onclick="doRoll()">Roll Dice</button>
+    <button id="end-turn-btn" onclick="endTurn()" disabled>End Turn</button>
+    <button onclick="resetGame()">New Game</button>
+  </div>
+  <div class="main-area">
+    <div class="board-wrap">
+      <svg id="board-svg" class="board-svg" viewBox="0 0 460 420"></svg>
+    </div>
+    <div class="market-panel" id="market-panel"></div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="rules">
+    <h3>Rules</h3>
+    <ul>
+      <li>Two merchants compete to accumulate <b>30 coins</b> through trade on the Mediterranean.</li>
+      <li><b>Roll phase:</b> Roll 2d6. Hexes matching the total produce their resource for all adjacent trade posts.</li>
+      <li>A roll of <b>7</b> triggers a market crash &mdash; the most expensive resource drops 3 price levels.</li>
+      <li><b>Trade phase:</b> Buy and sell resources at the Agora (center market). Prices move with supply and demand.</li>
+      <li><b>Build phase:</b> Build trade posts at cities (1 Grain + 1 Marble) or trade routes between cities (1 Oil + 1 Silk).</li>
+      <li>You must have a trade route connected to the <b>Agora</b> (center) to buy or sell.</li>
+      <li>Click a <b>city</b> on the map to build a trade post there. Click a <b>route</b> (edge) to build a trade route.</li>
+      <li>First to <b>30 coins</b> wins! Trade posts and routes count as 2 coins each at game end.</li>
+    </ul>
+  </div>
+
+<script>
+  // =============================================
+  //  Constants & Resources
+  // =============================================
+  var RESOURCES = ['Grain', 'Wine', 'Oil', 'Marble', 'Spice', 'Silk'];
+  var RES_COLORS = {
+    Grain:  '#E8C840',
+    Wine:   '#9050A0',
+    Oil:    '#70A040',
+    Marble: '#A0A0A8',
+    Spice:  '#40B0A0',
+    Silk:   '#C07050'
+  };
+  var TERRAIN_TYPES = [
+    { name: 'Fields',    resource: 'Grain',  fill: '#C8A848', stroke: '#A08030' },
+    { name: 'Vineyards', resource: 'Wine',   fill: '#7A5090', stroke: '#5A3070' },
+    { name: 'Groves',    resource: 'Oil',    fill: '#5A8A40', stroke: '#3A6A20' },
+    { name: 'Quarries',  resource: 'Marble', fill: '#808898', stroke: '#606878' },
+    { name: 'Oasis',     resource: 'Spice',  fill: '#308878', stroke: '#206858' },
+    { name: 'Pastures',  resource: 'Silk',   fill: '#90B870', stroke: '#70A050' }
+  ];
+  var PLAYER_COLORS = ['#E8C840', '#D04030'];
+  var PLAYER_NAMES = ['Gold', 'Red'];
+  var WIN_COINS = 30;
+
+  // Hex layout: 3-4-5-4-3 arrangement (19 hexes)
+  var HEX_ROWS = [3, 4, 5, 4, 3];
+  var HEX_W = 66;
+  var HEX_H = 58;
+  var BOARD_OX = 230;
+  var BOARD_OY = 38;
+
+  // =============================================
+  //  Game State
+  // =============================================
+  var hexes = [];       // {row, col, cx, cy, terrain, number, resource}
+  var cities = [];      // {id, x, y, hexIds[], owner: 0/1/-1}  owner -1 = unclaimed
+  var edges = [];       // {id, cityA, cityB, owner: -1/0/1}
+  var prices = {};      // resource -> 1..8
+  var players = [];     // [{coins, resources:{}, posts:[], routes:[]}]
+  var playerTurn = 0;
+  var phase = 'roll';   // roll, trade, build
+  var gameOver = false;
+  var aiMode = true;
+  var aiTimeout = null;
+  var diceA = 0;
+  var diceB = 0;
+
+  var svgEl = document.getElementById('board-svg');
+  var rollBtn = document.getElementById('roll-btn');
+  var endTurnBtn = document.getElementById('end-turn-btn');
+
+  // =============================================
+  //  Utilities
+  // =============================================
+  function setMessage(msg) {
+    document.getElementById('message').textContent = msg;
+  }
+
+  function shuffleArray(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  function hexCenter(row, col) {
+    var rowLen = HEX_ROWS[row];
+    var maxLen = 5;
+    var offsetX = (maxLen - rowLen) * (HEX_W * 0.75) / 2;
+    var cx = BOARD_OX + offsetX + col * HEX_W * 0.75 - (rowLen - 1) * HEX_W * 0.375;
+    var cy = BOARD_OY + row * HEX_H * 0.88;
+    return { x: cx, y: cy };
+  }
+
+  function hexCorners(cx, cy, r) {
+    var corners = [];
+    for (var i = 0; i < 6; i++) {
+      var angle = Math.PI / 180 * (60 * i - 30);
+      corners.push({
+        x: cx + r * Math.cos(angle),
+        y: cy + r * Math.sin(angle)
+      });
+    }
+    return corners;
+  }
+
+  function dist(a, b) {
+    var dx = a.x - b.x;
+    var dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function pointsEqual(a, b) {
+    return Math.abs(a.x - b.x) < 3 && Math.abs(a.y - b.y) < 3;
+  }
+
+  // =============================================
+  //  Board Generation
+  // =============================================
+  function generateHexLayout() {
+    hexes = [];
+    var id = 0;
+    for (var row = 0; row < HEX_ROWS.length; row++) {
+      for (var col = 0; col < HEX_ROWS[row]; col++) {
+        var c = hexCenter(row, col);
+        hexes.push({
+          id: id,
+          row: row,
+          col: col,
+          cx: c.x,
+          cy: c.y,
+          terrain: null,
+          number: 0,
+          resource: ''
+        });
+        id++;
+      }
+    }
+  }
+
+  function assignTerrain() {
+    // Distribute terrains: 3-4 of each type across 19 hexes
+    var terrainPool = [];
+    for (var i = 0; i < 6; i++) {
+      var count = (i < 5) ? 3 : 4; // 3+3+3+3+3+4 = 19
+      for (var j = 0; j < count; j++) {
+        terrainPool.push(i);
+      }
+    }
+    shuffleArray(terrainPool);
+
+    // Assign center hex as a special type but still a resource hex
+    for (var i = 0; i < hexes.length; i++) {
+      hexes[i].terrain = TERRAIN_TYPES[terrainPool[i]];
+      hexes[i].resource = hexes[i].terrain.resource;
+    }
+  }
+
+  function assignNumbers() {
+    // Numbers 2-12 excluding 7, distributed across hexes
+    // Standard distribution like Catan: 2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12
+    var numPool = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12];
+    // We have 19 hexes, need 19 numbers. Add one more:
+    numPool.push(5);  // extra 5 to make 19
+
+    // Shuffle and assign, but ensure no two 6s or 8s are adjacent
+    var valid = false;
+    var attempts = 0;
+    while (!valid && attempts < 200) {
+      attempts++;
+      shuffleArray(numPool);
+      valid = true;
+      for (var i = 0; i < hexes.length; i++) {
+        hexes[i].number = numPool[i];
+      }
+      // Check adjacency constraint for 6 and 8
+      for (var i = 0; i < hexes.length && valid; i++) {
+        if (hexes[i].number === 6 || hexes[i].number === 8) {
+          var adj = getAdjacentHexes(i);
+          for (var j = 0; j < adj.length; j++) {
+            if (hexes[adj[j]].number === 6 || hexes[adj[j]].number === 8) {
+              valid = false;
+              break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function getAdjacentHexes(hexId) {
+    var h = hexes[hexId];
+    var adj = [];
+    for (var i = 0; i < hexes.length; i++) {
+      if (i === hexId) continue;
+      if (dist(h, { x: hexes[i].cx, y: hexes[i].cy }) < HEX_W * 0.95) {
+        adj.push(i);
+      }
+    }
+    return adj;
+  }
+
+  // =============================================
+  //  Cities & Edges (vertices and edges of hexes)
+  // =============================================
+  function generateCitiesAndEdges() {
+    cities = [];
+    edges = [];
+    var R = HEX_H / 2 + 2;
+    var allCorners = [];
+
+    // Collect all hex corners
+    for (var i = 0; i < hexes.length; i++) {
+      var corners = hexCorners(hexes[i].cx, hexes[i].cy, R);
+      for (var c = 0; c < corners.length; c++) {
+        allCorners.push({ x: corners[c].x, y: corners[c].y, hexId: i, cornerIdx: c });
+      }
+    }
+
+    // Merge nearby corners into unique vertices (cities)
+    var vertices = [];
+    for (var i = 0; i < allCorners.length; i++) {
+      var found = false;
+      for (var j = 0; j < vertices.length; j++) {
+        if (dist(allCorners[i], vertices[j]) < 5) {
+          vertices[j].hexIds.push(allCorners[i].hexId);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        vertices.push({
+          x: allCorners[i].x,
+          y: allCorners[i].y,
+          hexIds: [allCorners[i].hexId]
+        });
+      }
+    }
+
+    // Filter to only vertices at intersection of 2+ hexes (interesting for gameplay)
+    // Also keep some outer vertices for variety
+    // We want exactly 6 cities for the game, placed at strategic positions
+    // Strategy: pick vertices adjacent to 3 hexes first, then 2-hex vertices spread around
+    var threeHex = [];
+    var twoHex = [];
+    for (var i = 0; i < vertices.length; i++) {
+      // Deduplicate hexIds
+      var unique = [];
+      for (var j = 0; j < vertices[i].hexIds.length; j++) {
+        if (unique.indexOf(vertices[i].hexIds[j]) === -1) unique.push(vertices[i].hexIds[j]);
+      }
+      vertices[i].hexIds = unique;
+      if (unique.length >= 3) threeHex.push(vertices[i]);
+      else if (unique.length === 2) twoHex.push(vertices[i]);
+    }
+
+    // Pick 6 cities: prefer 3-hex vertices, spread out
+    var candidates = threeHex.concat(twoHex);
+    var chosen = [];
+
+    // Greedily select spread-out cities
+    shuffleArray(candidates);
+    for (var i = 0; i < candidates.length && chosen.length < 12; i++) {
+      var tooClose = false;
+      for (var j = 0; j < chosen.length; j++) {
+        if (dist(candidates[i], chosen[j]) < HEX_W * 0.7) {
+          tooClose = true;
+          break;
+        }
+      }
+      if (!tooClose) {
+        chosen.push(candidates[i]);
+      }
+    }
+
+    // If we have less than 6, relax constraint
+    if (chosen.length < 6) {
+      for (var i = 0; i < candidates.length && chosen.length < 6; i++) {
+        var already = false;
+        for (var j = 0; j < chosen.length; j++) {
+          if (pointsEqual(candidates[i], chosen[j])) { already = true; break; }
+        }
+        if (!already) chosen.push(candidates[i]);
+      }
+    }
+
+    // Trim to first 10 (or however many we got)
+    chosen = chosen.slice(0, 10);
+
+    var cityNames = ['Carthage', 'Athens', 'Alexandria', 'Rome', 'Tyre', 'Massalia',
+                     'Syracuse', 'Cyrene', 'Byzantium', 'Petra'];
+    for (var i = 0; i < chosen.length; i++) {
+      cities.push({
+        id: i,
+        x: chosen[i].x,
+        y: chosen[i].y,
+        hexIds: chosen[i].hexIds,
+        name: cityNames[i] || ('City ' + i),
+        owner: -1  // -1 = unclaimed
+      });
+    }
+
+    // Generate edges between nearby cities (sharing a hex edge neighborhood)
+    for (var i = 0; i < cities.length; i++) {
+      for (var j = i + 1; j < cities.length; j++) {
+        var d = dist(cities[i], cities[j]);
+        if (d < HEX_W * 1.1 && d > 5) {
+          edges.push({
+            id: edges.length,
+            cityA: i,
+            cityB: j,
+            owner: -1
+          });
+        }
+      }
+    }
+
+    // If too few edges, increase threshold
+    if (edges.length < 8) {
+      edges = [];
+      for (var i = 0; i < cities.length; i++) {
+        for (var j = i + 1; j < cities.length; j++) {
+          var d = dist(cities[i], cities[j]);
+          if (d < HEX_W * 1.5 && d > 5) {
+            edges.push({
+              id: edges.length,
+              cityA: i,
+              cityB: j,
+              owner: -1
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // =============================================
+  //  Check Agora Connection
+  // =============================================
+  function getCenterHexId() {
+    // Center hex is at row 2, col 2 (middle of the 5-wide row)
+    var idx = 0;
+    for (var r = 0; r < HEX_ROWS.length; r++) {
+      for (var c = 0; c < HEX_ROWS[r]; c++) {
+        if (r === 2 && c === 2) return idx;
+        idx++;
+      }
+    }
+    return 9;
+  }
+
+  function cityTouchesCenter(cityId) {
+    var centerId = getCenterHexId();
+    var c = cities[cityId];
+    for (var i = 0; i < c.hexIds.length; i++) {
+      if (c.hexIds[i] === centerId) return true;
+    }
+    return false;
+  }
+
+  function playerConnectedToAgora(p) {
+    // Rules: "You must have a trade route connected to the Agora (center) to
+    // buy or sell." A post alone does NOT connect you — the connection must be
+    // made by a trade route. So seed the BFS only from cities that are
+    // endpoints of the player's routes, then walk the route network; if any
+    // reached city borders the center hex, the player is connected.
+    var visited = {};
+    var queue = [];
+
+    for (var i = 0; i < edges.length; i++) {
+      if (edges[i].owner === p) {
+        if (!visited[edges[i].cityA]) { visited[edges[i].cityA] = true; queue.push(edges[i].cityA); }
+        if (!visited[edges[i].cityB]) { visited[edges[i].cityB] = true; queue.push(edges[i].cityB); }
+      }
+    }
+
+    // BFS via player's routes
+    while (queue.length > 0) {
+      var cur = queue.shift();
+      if (cityTouchesCenter(cur)) return true;
+      for (var i = 0; i < edges.length; i++) {
+        if (edges[i].owner === p) {
+          var other = -1;
+          if (edges[i].cityA === cur) other = edges[i].cityB;
+          else if (edges[i].cityB === cur) other = edges[i].cityA;
+          if (other >= 0 && !visited[other]) {
+            visited[other] = true;
+            queue.push(other);
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  // =============================================
+  //  Mode
+  // =============================================
+  function setMode(isAi) {
+    if (aiMode === isAi) return;
+    aiMode = isAi;
+    document.getElementById('mode-1p').classList.toggle('active', isAi);
+    document.getElementById('mode-2p').classList.toggle('active', !isAi);
+    resetGame();
+  }
+
+  // =============================================
+  //  Price / Market
+  // =============================================
+  function initPrices() {
+    prices = {};
+    for (var i = 0; i < RESOURCES.length; i++) {
+      prices[RESOURCES[i]] = 4;
+    }
+  }
+
+  function adjustPrice(resource, delta) {
+    prices[resource] = Math.max(1, Math.min(8, prices[resource] + delta));
+  }
+
+  function marketCrash() {
+    // Most expensive resource drops by 3
+    var maxP = 0;
+    var maxR = RESOURCES[0];
+    for (var i = 0; i < RESOURCES.length; i++) {
+      if (prices[RESOURCES[i]] > maxP) {
+        maxP = prices[RESOURCES[i]];
+        maxR = RESOURCES[i];
+      }
+    }
+    adjustPrice(maxR, -3);
+    return maxR;
+  }
+
+  // =============================================
+  //  Init / Reset
+  // =============================================
+  function initPlayers() {
+    players = [];
+    for (var i = 0; i < 2; i++) {
+      var res = {};
+      for (var j = 0; j < RESOURCES.length; j++) {
+        res[RESOURCES[j]] = 0;
+      }
+      players.push({
+        coins: 0,
+        resources: res,
+        posts: [],
+        routes: []
+      });
+    }
+    // Give each player starting resources to build their first post + route
+    players[0].resources.Grain = 2;
+    players[0].resources.Marble = 2;
+    players[0].resources.Oil = 1;
+    players[0].resources.Silk = 1;
+    players[1].resources.Grain = 2;
+    players[1].resources.Marble = 2;
+    players[1].resources.Oil = 1;
+    players[1].resources.Silk = 1;
+  }
+
+  function resetGame() {
+    if (aiTimeout) { clearTimeout(aiTimeout); aiTimeout = null; }
+    gameOver = false;
+    playerTurn = 0;
+    phase = 'roll';
+    diceA = 0;
+    diceB = 0;
+
+    generateHexLayout();
+    assignTerrain();
+    assignNumbers();
+    generateCitiesAndEdges();
+    initPrices();
+    initPlayers();
+
+    render();
+    renderMarket();
+    setMessage('Gold player begins. Roll the dice!');
+    updateButtons();
+  }
+
+  // =============================================
+  //  Dice Roll
+  // =============================================
+  function doRoll() {
+    if (phase !== 'roll' || gameOver) return;
+    diceA = Math.floor(Math.random() * 6) + 1;
+    diceB = Math.floor(Math.random() * 6) + 1;
+    var total = diceA + diceB;
+
+    var crashMsg = '';
+    if (total === 7) {
+      var crashed = marketCrash();
+      crashMsg = ' Market crash! ' + crashed + ' price drops!';
+    } else {
+      // Produce resources
+      produceResources(total);
+    }
+
+    phase = 'trade';
+    setMessage('Rolled ' + total + '.' + crashMsg + ' Trade or build, then end turn.');
+    updateButtons();
+    render();
+    renderMarket();
+
+    if (aiMode && playerTurn === 1) {
+      scheduleAi();
+    }
+  }
+
+  function produceResources(total) {
+    for (var h = 0; h < hexes.length; h++) {
+      if (hexes[h].number === total) {
+        // Find all cities adjacent to this hex
+        for (var c = 0; c < cities.length; c++) {
+          if (cities[c].owner >= 0) {
+            for (var k = 0; k < cities[c].hexIds.length; k++) {
+              if (cities[c].hexIds[k] === h) {
+                var p = cities[c].owner;
+                players[p].resources[hexes[h].resource]++;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // =============================================
+  //  Trade Actions
+  // =============================================
+  function sellResource(res) {
+    if (phase !== 'trade' || gameOver) return;
+    var p = players[playerTurn];
+    if (p.resources[res] <= 0) return;
+    if (!playerConnectedToAgora(playerTurn)) {
+      setMessage('You need a route connected to the Agora to trade!');
+      return;
+    }
+    var earned = prices[res];
+    p.resources[res]--;
+    p.coins += earned;
+    adjustPrice(res, -1);
+    setMessage(PLAYER_NAMES[playerTurn] + ' sold ' + res + ' for ' + earned + ' coins.');
+    renderMarket();
+    render();
+    checkWin();
+  }
+
+  function buyResource(res) {
+    if (phase !== 'trade' || gameOver) return;
+    var p = players[playerTurn];
+    if (p.coins < prices[res]) return;
+    if (!playerConnectedToAgora(playerTurn)) {
+      setMessage('You need a route connected to the Agora to trade!');
+      return;
+    }
+    var paid = prices[res];
+    p.coins -= paid;
+    p.resources[res]++;
+    adjustPrice(res, 1);
+    setMessage(PLAYER_NAMES[playerTurn] + ' bought ' + res + ' for ' + paid + ' coins.');
+    renderMarket();
+    render();
+  }
+
+  // =============================================
+  //  Build Actions
+  // =============================================
+  function canBuildPost(p) {
+    return players[p].resources.Grain >= 1 && players[p].resources.Marble >= 1;
+  }
+
+  function canBuildRoute(p) {
+    return players[p].resources.Oil >= 1 && players[p].resources.Silk >= 1;
+  }
+
+  function buildPost(cityId) {
+    if (phase !== 'trade' || gameOver) return;
+    var p = playerTurn;
+    if (!canBuildPost(p)) {
+      setMessage('Need 1 Grain + 1 Marble to build a trade post.');
+      return;
+    }
+    if (cities[cityId].owner >= 0) {
+      setMessage('This city already has a trade post!');
+      return;
+    }
+    players[p].resources.Grain--;
+    players[p].resources.Marble--;
+    cities[cityId].owner = p;
+    players[p].posts.push(cityId);
+    setMessage(PLAYER_NAMES[p] + ' built a trade post at ' + cities[cityId].name + '!');
+    render();
+    renderMarket();
+    checkWin();
+  }
+
+  function buildRoute(edgeId) {
+    if (phase !== 'trade' || gameOver) return;
+    var p = playerTurn;
+    if (!canBuildRoute(p)) {
+      setMessage('Need 1 Oil + 1 Silk to build a trade route.');
+      return;
+    }
+    if (edges[edgeId].owner >= 0) {
+      setMessage('This route is already built!');
+      return;
+    }
+    // Must connect to an existing post or route
+    var cA = edges[edgeId].cityA;
+    var cB = edges[edgeId].cityB;
+    if (players[p].posts.length > 0 || players[p].routes.length > 0) {
+      var connected = false;
+      if (cities[cA].owner === p || cities[cB].owner === p) connected = true;
+      for (var i = 0; i < edges.length; i++) {
+        if (edges[i].owner === p) {
+          if (edges[i].cityA === cA || edges[i].cityB === cA ||
+              edges[i].cityA === cB || edges[i].cityB === cB) {
+            connected = true;
+            break;
+          }
+        }
+      }
+      if (!connected) {
+        setMessage('Route must connect to your existing network!');
+        return;
+      }
+    }
+    players[p].resources.Oil--;
+    players[p].resources.Silk--;
+    edges[edgeId].owner = p;
+    players[p].routes.push(edgeId);
+    setMessage(PLAYER_NAMES[p] + ' built a trade route!');
+    render();
+    renderMarket();
+    checkWin();
+  }
+
+  // =============================================
+  //  Turn Management
+  // =============================================
+  function endTurn() {
+    if (phase === 'roll' || gameOver) return;
+    playerTurn = 1 - playerTurn;
+    phase = 'roll';
+    diceA = 0;
+    diceB = 0;
+    setMessage(PLAYER_NAMES[playerTurn] + "'s turn. Roll the dice!");
+    updateButtons();
+    render();
+    renderMarket();
+
+    if (aiMode && playerTurn === 1) {
+      scheduleAi();
+    }
+  }
+
+  function updateButtons() {
+    rollBtn.disabled = (phase !== 'roll' || gameOver);
+    endTurnBtn.disabled = (phase === 'roll' || gameOver);
+    var phaseText = '';
+    if (!gameOver) {
+      if (phase === 'roll') phaseText = 'Roll Phase';
+      else if (phase === 'trade') phaseText = 'Trade & Build Phase';
+    }
+    document.getElementById('phase-indicator').textContent = phaseText;
+  }
+
+  function checkWin() {
+    for (var i = 0; i < 2; i++) {
+      // Rules: "First to 30 coins wins!" — the win is decided on actual coins.
+      // (Posts/routes worth 2 each are a final-score flavor bonus at game end,
+      // not part of the win trigger, so a player can't win below the target.)
+      var total = players[i].coins;
+      if (total >= WIN_COINS) {
+        gameOver = true;
+        setMessage(PLAYER_NAMES[i] + ' wins with ' + total + ' coins! Glorious merchant!');
+        updateButtons();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // =============================================
+  //  AI
+  // =============================================
+  function scheduleAi() {
+    if (!aiMode || playerTurn !== 1 || gameOver) return;
+    if (aiTimeout) { clearTimeout(aiTimeout); aiTimeout = null; }
+
+    if (phase === 'roll') {
+      aiTimeout = setTimeout(function() { aiTimeout = null; doRoll(); }, 700);
+    } else if (phase === 'trade') {
+      aiTimeout = setTimeout(function() { aiTimeout = null; aiTrade(); }, 700);
+    }
+  }
+
+  function aiTrade() {
+    if (gameOver || playerTurn !== 1) return;
+    var p = players[1];
+    var acted = false;
+
+    // Build phase: try to build posts and routes first if we have resources
+    if (canBuildPost(1)) {
+      var bestCity = aiBestCityToBuild();
+      if (bestCity >= 0) {
+        buildPost(bestCity);
+        acted = true;
+        if (!gameOver) { aiTimeout = setTimeout(function() { aiTimeout = null; aiTrade(); }, 700); }
+        return;
+      }
+    }
+
+    if (canBuildRoute(1)) {
+      var bestEdge = aiBestRouteToBuild();
+      if (bestEdge >= 0) {
+        buildRoute(bestEdge);
+        acted = true;
+        if (!gameOver) { aiTimeout = setTimeout(function() { aiTimeout = null; aiTrade(); }, 700); }
+        return;
+      }
+    }
+
+    // Sell resources when prices are high
+    if (playerConnectedToAgora(1)) {
+      for (var i = 0; i < RESOURCES.length; i++) {
+        var res = RESOURCES[i];
+        if (p.resources[res] > 0 && prices[res] >= 5) {
+          sellResource(res);
+          acted = true;
+          if (!gameOver) { aiTimeout = setTimeout(function() { aiTimeout = null; aiTrade(); }, 700); }
+          return;
+        }
+      }
+
+      // Sell excess resources even at moderate prices
+      for (var i = 0; i < RESOURCES.length; i++) {
+        var res = RESOURCES[i];
+        if (p.resources[res] > 2 && prices[res] >= 3) {
+          sellResource(res);
+          acted = true;
+          if (!gameOver) { aiTimeout = setTimeout(function() { aiTimeout = null; aiTrade(); }, 700); }
+          return;
+        }
+      }
+
+      // Buy cheap resources needed for building
+      if (p.coins >= 3) {
+        var needed = aiBuildNeeds();
+        for (var i = 0; i < needed.length; i++) {
+          if (prices[needed[i]] <= 2 && p.coins >= prices[needed[i]]) {
+            buyResource(needed[i]);
+            acted = true;
+            if (!gameOver) { aiTimeout = setTimeout(function() { aiTimeout = null; aiTrade(); }, 700); }
+            return;
+          }
+        }
+      }
+    }
+
+    // End turn
+    endTurn();
+  }
+
+  function aiBuildNeeds() {
+    var needs = [];
+    var p = players[1];
+    // Check what's needed for post (Grain + Marble) or route (Oil + Silk)
+    if (p.resources.Grain < 1) needs.push('Grain');
+    if (p.resources.Marble < 1) needs.push('Marble');
+    if (p.resources.Oil < 1) needs.push('Oil');
+    if (p.resources.Silk < 1) needs.push('Silk');
+    return needs;
+  }
+
+  function aiBestCityToBuild() {
+    var bestScore = -1;
+    var bestCity = -1;
+    for (var i = 0; i < cities.length; i++) {
+      if (cities[i].owner >= 0) continue;
+      var score = 0;
+
+      // Prefer cities touching center (Agora access)
+      if (cityTouchesCenter(i)) score += 50;
+
+      // Prefer cities with more hex adjacencies
+      score += cities[i].hexIds.length * 10;
+
+      // Prefer hexes with common numbers (6,8)
+      for (var j = 0; j < cities[i].hexIds.length; j++) {
+        var n = hexes[cities[i].hexIds[j]].number;
+        if (n === 6 || n === 8) score += 20;
+        else if (n === 5 || n === 9) score += 10;
+      }
+
+      // Prefer cities connected to existing network
+      for (var e = 0; e < edges.length; e++) {
+        if (edges[e].owner === 1) {
+          if (edges[e].cityA === i || edges[e].cityB === i) score += 15;
+        }
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestCity = i;
+      }
+    }
+    return bestCity;
+  }
+
+  function aiBestRouteToBuild() {
+    var bestScore = -1;
+    var bestEdge = -1;
+    for (var i = 0; i < edges.length; i++) {
+      if (edges[i].owner >= 0) continue;
+      var score = 0;
+      var cA = edges[i].cityA;
+      var cB = edges[i].cityB;
+
+      // Must connect to existing network (or be first build)
+      if (players[1].posts.length > 0 || players[1].routes.length > 0) {
+        var connected = false;
+        if (cities[cA].owner === 1 || cities[cB].owner === 1) connected = true;
+        for (var e = 0; e < edges.length; e++) {
+          if (edges[e].owner === 1) {
+            if (edges[e].cityA === cA || edges[e].cityB === cA ||
+                edges[e].cityA === cB || edges[e].cityB === cB) {
+              connected = true;
+              break;
+            }
+          }
+        }
+        if (!connected) continue;
+      }
+
+      // Routes toward Agora are valuable
+      if (cityTouchesCenter(cA) || cityTouchesCenter(cB)) score += 40;
+
+      // Routes connecting to our posts
+      if (cities[cA].owner === 1) score += 15;
+      if (cities[cB].owner === 1) score += 15;
+
+      // Routes extending network
+      score += 5;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestEdge = i;
+      }
+    }
+    return bestEdge;
+  }
+
+  // =============================================
+  //  Rendering - Board (SVG)
+  // =============================================
+  function render() {
+    var svg = svgEl;
+    svg.innerHTML = '';
+    var R = HEX_H / 2 + 2;
+    var centerHexId = getCenterHexId();
+
+    // Sea background
+    var bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('width', '460');
+    bg.setAttribute('height', '420');
+    bg.setAttribute('fill', '#1E3A5F');
+    bg.setAttribute('rx', '10');
+    svg.appendChild(bg);
+
+    // Wave pattern (subtle)
+    for (var w = 0; w < 8; w++) {
+      var wave = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      var wy = 30 + w * 52;
+      var d = 'M0,' + wy;
+      for (var wx = 0; wx <= 460; wx += 20) {
+        d += ' Q' + (wx + 5) + ',' + (wy - 4) + ' ' + (wx + 10) + ',' + wy;
+        d += ' Q' + (wx + 15) + ',' + (wy + 4) + ' ' + (wx + 20) + ',' + wy;
+      }
+      wave.setAttribute('d', d);
+      wave.setAttribute('stroke', 'rgba(255,255,255,0.04)');
+      wave.setAttribute('fill', 'none');
+      wave.setAttribute('stroke-width', '1');
+      svg.appendChild(wave);
+    }
+
+    // Draw hexes
+    for (var i = 0; i < hexes.length; i++) {
+      var h = hexes[i];
+      var corners = hexCorners(h.cx, h.cy, R);
+      var pts = '';
+      for (var c = 0; c < corners.length; c++) {
+        pts += corners[c].x + ',' + corners[c].y + ' ';
+      }
+
+      var hex = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      hex.setAttribute('points', pts.trim());
+      hex.setAttribute('fill', h.terrain.fill);
+      hex.setAttribute('stroke', h.terrain.stroke);
+      hex.setAttribute('stroke-width', '2');
+      svg.appendChild(hex);
+
+      // Number token
+      var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', h.cx);
+      circle.setAttribute('cy', h.cy);
+      circle.setAttribute('r', '12');
+      circle.setAttribute('fill', '#F5E8D0');
+      circle.setAttribute('stroke', '#8A7A60');
+      circle.setAttribute('stroke-width', '1');
+      svg.appendChild(circle);
+
+      var numText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      numText.setAttribute('x', h.cx);
+      numText.setAttribute('y', h.cy + 4);
+      numText.setAttribute('text-anchor', 'middle');
+      numText.setAttribute('font-size', '11');
+      numText.setAttribute('font-family', 'Georgia, serif');
+      numText.setAttribute('font-weight', 'bold');
+      numText.setAttribute('fill', (h.number === 6 || h.number === 8) ? '#C02020' : '#3A2A10');
+      numText.textContent = h.number;
+      svg.appendChild(numText);
+
+      // Resource name below number
+      var resText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      resText.setAttribute('x', h.cx);
+      resText.setAttribute('y', h.cy + 18);
+      resText.setAttribute('text-anchor', 'middle');
+      resText.setAttribute('font-size', '7');
+      resText.setAttribute('font-family', 'Georgia, serif');
+      resText.setAttribute('fill', '#1A1A2E');
+      resText.setAttribute('opacity', '0.7');
+      resText.textContent = h.resource;
+      svg.appendChild(resText);
+
+      // Agora marker on center hex
+      if (i === centerHexId) {
+        var agoraText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        agoraText.setAttribute('x', h.cx);
+        agoraText.setAttribute('y', h.cy - 18);
+        agoraText.setAttribute('text-anchor', 'middle');
+        agoraText.setAttribute('font-size', '8');
+        agoraText.setAttribute('font-family', 'Georgia, serif');
+        agoraText.setAttribute('font-weight', 'bold');
+        agoraText.setAttribute('fill', '#D4A860');
+        agoraText.textContent = 'AGORA';
+        svg.appendChild(agoraText);
+
+        // Star-like border on center hex
+        var starHex = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        starHex.setAttribute('points', pts.trim());
+        starHex.setAttribute('fill', 'none');
+        starHex.setAttribute('stroke', '#D4A860');
+        starHex.setAttribute('stroke-width', '2.5');
+        starHex.setAttribute('stroke-dasharray', '6,3');
+        svg.appendChild(starHex);
+      }
+
+      // Highlight hex if it just produced (dice match)
+      if (diceA + diceB > 0 && diceA + diceB !== 7 && h.number === diceA + diceB) {
+        var glow = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        glow.setAttribute('points', pts.trim());
+        glow.setAttribute('fill', 'rgba(255,255,200,0.15)');
+        glow.setAttribute('stroke', '#FFD700');
+        glow.setAttribute('stroke-width', '2');
+        svg.appendChild(glow);
+      }
+    }
+
+    // Draw edges (trade routes)
+    for (var i = 0; i < edges.length; i++) {
+      var e = edges[i];
+      var cA = cities[e.cityA];
+      var cB = cities[e.cityB];
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', cA.x);
+      line.setAttribute('y1', cA.y);
+      line.setAttribute('x2', cB.x);
+      line.setAttribute('y2', cB.y);
+
+      if (e.owner >= 0) {
+        line.setAttribute('stroke', PLAYER_COLORS[e.owner]);
+        line.setAttribute('stroke-width', '4');
+        line.setAttribute('opacity', '0.9');
+      } else {
+        line.setAttribute('stroke', 'rgba(255,255,255,0.15)');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke-dasharray', '4,4');
+        // Make clickable for building
+        if (phase === 'trade' && !gameOver && !(aiMode && playerTurn === 1)) {
+          line.setAttribute('cursor', 'pointer');
+          line.setAttribute('stroke-width', '6');
+          line.setAttribute('opacity', '0.3');
+          (function(edgeId) {
+            line.addEventListener('click', function() { buildRoute(edgeId); });
+          })(i);
+        }
+      }
+      svg.appendChild(line);
+    }
+
+    // Draw cities
+    for (var i = 0; i < cities.length; i++) {
+      var c = cities[i];
+
+      // City circle
+      var cc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      cc.setAttribute('cx', c.x);
+      cc.setAttribute('cy', c.y);
+      cc.setAttribute('r', c.owner >= 0 ? '8' : '6');
+      if (c.owner >= 0) {
+        cc.setAttribute('fill', PLAYER_COLORS[c.owner]);
+        cc.setAttribute('stroke', '#1A1A2E');
+        cc.setAttribute('stroke-width', '2');
+      } else {
+        cc.setAttribute('fill', '#D8D0C0');
+        cc.setAttribute('stroke', '#8A7A60');
+        cc.setAttribute('stroke-width', '1.5');
+        // Make clickable for building
+        if (phase === 'trade' && !gameOver && !(aiMode && playerTurn === 1)) {
+          cc.setAttribute('cursor', 'pointer');
+          cc.setAttribute('r', '7');
+          (function(cityId) {
+            cc.addEventListener('click', function() { buildPost(cityId); });
+          })(i);
+        }
+      }
+      svg.appendChild(cc);
+
+      // City name
+      var nameText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      nameText.setAttribute('x', c.x);
+      nameText.setAttribute('y', c.y - 11);
+      nameText.setAttribute('text-anchor', 'middle');
+      nameText.setAttribute('font-size', '7');
+      nameText.setAttribute('font-family', 'Georgia, serif');
+      nameText.setAttribute('fill', '#D8D0C0');
+      nameText.setAttribute('opacity', '0.8');
+      nameText.textContent = c.name;
+      svg.appendChild(nameText);
+    }
+
+    // Dice display
+    var dc = document.getElementById('dice-container');
+    dc.innerHTML = '';
+    if (diceA > 0) {
+      var d1 = document.createElement('div');
+      d1.className = 'die';
+      d1.textContent = diceA;
+      dc.appendChild(d1);
+      var d2 = document.createElement('div');
+      d2.className = 'die';
+      d2.textContent = diceB;
+      dc.appendChild(d2);
+      document.getElementById('dice-total').textContent = 'Total: ' + (diceA + diceB);
+    } else {
+      document.getElementById('dice-total').textContent = '';
+    }
+
+    // Turn indicator
+    var ti = document.getElementById('turn-indicator');
+    if (gameOver) {
+      ti.textContent = 'Game Over';
+      ti.style.color = '#D4A860';
+    } else {
+      ti.textContent = PLAYER_NAMES[playerTurn] + "'s Turn" + (aiMode && playerTurn === 1 ? ' (AI)' : '');
+      ti.style.color = PLAYER_COLORS[playerTurn];
+    }
+
+    // Legend
+    renderLegend();
+  }
+
+  function renderLegend() {
+    var leg = document.getElementById('legend');
+    leg.innerHTML = '';
+    for (var i = 0; i < TERRAIN_TYPES.length; i++) {
+      var sp = document.createElement('span');
+      var sw = document.createElement('span');
+      sw.className = 'legend-swatch';
+      sw.style.background = TERRAIN_TYPES[i].fill;
+      sp.appendChild(sw);
+      sp.appendChild(document.createTextNode(' ' + TERRAIN_TYPES[i].name + ' (' + TERRAIN_TYPES[i].resource + ')'));
+      leg.appendChild(sp);
+    }
+  }
+
+  // =============================================
+  //  Rendering - Market Panel
+  // =============================================
+  function renderMarket() {
+    var panel = document.getElementById('market-panel');
+    var html = '<h2>THE AGORA</h2>';
+
+    // Price chart
+    for (var i = 0; i < RESOURCES.length; i++) {
+      var res = RESOURCES[i];
+      var p = prices[res];
+      var pct = (p / 8 * 100);
+      var color = RES_COLORS[res];
+
+      html += '<div class="market-row">';
+      html += '<span class="market-icon" style="background:' + color + '"></span>';
+      html += '<span class="market-name">' + res + '</span>';
+      html += '<span class="market-bar-wrap"><span class="market-bar" style="width:' + pct + '%;background:' + color + '"></span></span>';
+      html += '<span class="market-price">' + p + '</span>';
+
+      // Buy/Sell buttons (only for human player in trade phase)
+      if (phase === 'trade' && !gameOver && !(aiMode && playerTurn === 1)) {
+        var canSell = players[playerTurn].resources[res] > 0 && playerConnectedToAgora(playerTurn);
+        var canBuy = players[playerTurn].coins >= prices[res] && playerConnectedToAgora(playerTurn);
+        html += '<span class="market-btns">';
+        html += '<button onclick="sellResource(\'' + res + '\')" ' + (canSell ? '' : 'disabled') + '>Sell</button>';
+        html += '<button onclick="buyResource(\'' + res + '\')" ' + (canBuy ? '' : 'disabled') + '>Buy</button>';
+        html += '</span>';
+      }
+      html += '</div>';
+    }
+
+    // Player inventories
+    for (var pi = 0; pi < 2; pi++) {
+      var isCurrent = (pi === playerTurn && !gameOver);
+      html += '<div class="player-info">';
+      html += '<h3 style="color:' + PLAYER_COLORS[pi] + '">' + PLAYER_NAMES[pi];
+      if (aiMode && pi === 1) html += ' (AI)';
+      if (isCurrent) html += ' *';
+      html += '</h3>';
+
+      for (var r = 0; r < RESOURCES.length; r++) {
+        var res = RESOURCES[r];
+        var count = players[pi].resources[res];
+        if (count > 0) {
+          html += '<div class="inv-row">';
+          html += '<span class="inv-icon" style="background:' + RES_COLORS[res] + '"></span>';
+          html += res + ': ' + count;
+          html += '</div>';
+        }
+      }
+
+      var assetValue = players[pi].posts.length * 2 + players[pi].routes.length * 2;
+      html += '<div class="coins-display">';
+      html += 'Coins: ' + players[pi].coins;
+      if (assetValue > 0) html += ' (+ ' + assetValue + ' assets)';
+      html += '</div>';
+
+      // Posts and routes count
+      html += '<div style="font-size:0.75em;color:#7A8A9A;text-align:center;margin-top:2px">';
+      html += players[pi].posts.length + ' posts, ' + players[pi].routes.length + ' routes';
+      html += '</div>';
+      html += '</div>';
+    }
+
+    // Build hints during trade phase
+    if (phase === 'trade' && !gameOver && !(aiMode && playerTurn === 1)) {
+      html += '<div class="build-section">';
+      html += '<h3>Build</h3>';
+      html += '<div class="build-hint">Click a city on the map to build a trade post.</div>';
+      html += '<div class="build-hint">Cost: 1 Grain + 1 Marble' + (canBuildPost(playerTurn) ? '' : ' (need resources)') + '</div>';
+      html += '<div class="build-hint" style="margin-top:6px">Click a dashed line to build a trade route.</div>';
+      html += '<div class="build-hint">Cost: 1 Oil + 1 Silk' + (canBuildRoute(playerTurn) ? '' : ' (need resources)') + '</div>';
+      html += '</div>';
+    }
+
+    panel.innerHTML = html;
+  }
+
+  // =============================================
+  //  Initialize
+  // =============================================
+  resetGame();
+</script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Agora</h2>
+  <p>Agora is an original strategy game set in the ancient Mediterranean. Two rival merchants race to amass 30 coins by producing goods, trading at the central Agora market, and expanding a network of trade posts and routes across a stylized sea map. Designed for short sessions on a single board.</p>
+
+  <h3>How to play</h3>
+  <p>Each turn has three phases. In the <b>roll phase</b>, roll 2d6 — hexes matching the total produce their resource for every adjacent trade post you own. In the <b>trade phase</b>, buy and sell goods at the central Agora, where prices move with supply and demand; you must have a trade route connected to the Agora to trade. In the <b>build phase</b>, build a trade post at a city (1 Grain + 1 Marble) or a trade route between cities (1 Oil + 1 Silk). A roll of 7 triggers a market crash, dropping the most expensive resource three price levels. First merchant to 30 coins wins.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How long is a typical game?</summary><p>Most games run 15–25 minutes on the single Mediterranean board.</p></details>
+  <details><summary>How do I earn coins?</summary><p>Roll 2d6 to produce resources at trade posts next to matching hexes, then buy and sell those goods at the central Agora market. You must have a trade route connected to the Agora to trade, so expand your network as you go.</p></details>
+  <details><summary>Is Agora based on a real game?</summary><p>No — original design. The Mediterranean trade and dice-driven resource production draw on Catan, but the mechanics are independent.</p></details>
+  <details><summary>How do I win?</summary><p>Be the first merchant to reach 30 coins. Trade posts and trade routes each count as 2 coins toward your total at game end, so keep building while you trade.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/tidelands">Tidelands</a> — bronze-age maritime trade.</li>
+    <li><a href="/odyssey">Odyssey</a> — Greek voyaging strategy.</li>
+    <li><a href="/convergence">Convergence</a> — rival civilizations.</li>
+    <li><a href="/bisque">Bisque</a> — battle for the bay.</li>
+  </ul>
+</section>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

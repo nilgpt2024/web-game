@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function() {
+  var ua = navigator.userAgent;
+  var isPhone = /iPhone|iPad|iPod|Android/i.test(ua) || window.innerWidth < 768;
+  if (isPhone) {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      var targetWidth = 900;
+      var scale = window.innerWidth / targetWidth;
+      meta.setAttribute('content', 'width=' + targetWidth + ', initial-scale=' + scale + ', maximum-scale=3.0, user-scalable=yes');
+    }
+  }
+})();
+</script>
+<meta name="theme-color" content="#0c1016">
+<title>Aresia — Mars Colonization Strategy Game | Board Gaming Hub</title>
+<meta name="description" content="Colonize Mars in Aresia — a free hex-based strategy game inspired by Catan. Habitats, domes, pipelines, dust storms. Single HTML file, no signup.">
+<link rel="canonical" href="https://boardgaminghub.com/aresia">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://boardgaminghub.com/aresia">
+<meta property="og:title" content="Aresia — Mars Colonization Strategy">
+<meta property="og:description" content="Free hex-based Mars colonization strategy game. Habitats, domes, pipelines, dust storms.">
+<meta property="og:image" content="https://boardgaminghub.com/og/aresia.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://boardgaminghub.com/og/aresia.png">
+<script type="application/ld+json">
+{ "@context": "https://schema.org", "@type": "VideoGame", "name": "Aresia",
+  "description": "Mars-themed Catan-style strategy game with habitats, domes, pipelines, mission cards, and dust storms.",
+  "url": "https://boardgaminghub.com/aresia", "genre": "Strategy",
+  "applicationCategory": "Game", "operatingSystem": "Any",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔴</text></svg>">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: Georgia, serif;
+  background: #1A0A0A;
+  color: #E0C8B8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  min-height: 100vh;
+  user-select: none;
+}
+h1 { font-size: 1.8em; color: #D04030; margin-bottom: 2px; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); letter-spacing: 0.12em; }
+.subtitle { font-size: 0.8em; color: #8A6050; margin-bottom: 8px; font-style: italic; }
+
+.top-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; margin-bottom: 6px; }
+.mode-selector { display: flex; gap: 0; border-radius: 6px; overflow: hidden; border: 2px solid #8A2020; }
+.mode-btn { padding: 5px 14px; font-size: 0.85em; font-family: Georgia, serif; cursor: pointer; border: none; background: #2A1010; color: #8A6050; transition: background 0.2s, color 0.2s; }
+.mode-btn:not(:last-child) { border-right: 1px solid #8A2020; }
+.mode-btn.active { background: #8A2020; color: #E0C8B8; cursor: default; }
+.mode-btn:hover:not(.active) { background: #3A1818; color: #D04030; }
+.pt-box { display: flex; align-items: center; gap: 2px; border: 1px solid #5A2020; border-radius: 4px; padding: 2px 4px; font-size: 0.7em; }
+.pt-box .pt-label { font-weight: bold; margin-right: 2px; }
+.pt-box button { font-family: Georgia, serif; font-size: 0.9em; padding: 1px 6px; border: 1px solid #5A2020; background: #1A0A0A; color: #8A6050; cursor: pointer; border-radius: 3px; }
+.pt-box button.active { background: #8A2020; color: #E0C8B8; }
+
+.game-area { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; align-items: flex-start; }
+
+svg#board { cursor: default; }
+svg .hex-poly { stroke: #3A1818; stroke-width: 1.5; cursor: default; }
+svg .hex-number { font-family: Georgia, serif; font-size: 14px; fill: #1A0A0A; font-weight: bold; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+svg .hex-number-bg { fill: #E8D8C0; stroke: #8A6050; stroke-width: 1; }
+svg .hex-number.red6 { fill: #C02020; }
+svg .hex-label { font-family: Georgia, serif; font-size: 8px; fill: rgba(255,255,255,0.4); text-anchor: middle; pointer-events: none; }
+svg .vertex-spot { fill: rgba(255,255,255,0.08); stroke: none; cursor: pointer; }
+svg .vertex-spot:hover { fill: rgba(255,200,100,0.3); }
+svg .vertex-spot.disabled { cursor: default; pointer-events: none; }
+svg .edge-spot { stroke: rgba(255,255,255,0.08); stroke-width: 5; stroke-linecap: round; cursor: pointer; }
+svg .edge-spot:hover { stroke: rgba(255,200,100,0.3); }
+svg .edge-spot.disabled { cursor: default; pointer-events: none; }
+svg .building { pointer-events: none; }
+svg .dust-storm { font-size: 28px; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+svg .port-label { font-family: Georgia, serif; font-size: 8px; fill: #C8A888; text-anchor: middle; pointer-events: none; }
+
+.panel { background: #2A1010; border: 1px solid #5A2020; border-radius: 6px; padding: 8px 12px; min-width: 200px; max-width: 260px; }
+.panel h3 { font-size: 0.9em; color: #D04030; margin-bottom: 6px; border-bottom: 1px solid #3A1818; padding-bottom: 4px; }
+.player-tab { display: flex; gap: 0; margin-bottom: 8px; border-radius: 4px; overflow: hidden; border: 1px solid #5A2020; }
+.player-tab-btn { flex: 1; padding: 3px 4px; font-size: 0.7em; font-family: Georgia, serif; cursor: pointer; border: none; background: #1A0A0A; color: #8A6050; text-align: center; }
+.player-tab-btn.active { font-weight: bold; }
+.player-tab-btn:not(:last-child) { border-right: 1px solid #5A2020; }
+
+.res-grid { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 0.8em; margin-bottom: 6px; }
+.res-icon { font-size: 1.1em; }
+.res-count { color: #E0C8B8; font-weight: bold; }
+
+.structures { font-size: 0.75em; color: #8A6050; margin-bottom: 6px; }
+.structures b { color: #E0C8B8; }
+
+.vp-display { font-size: 0.95em; color: #D04030; font-weight: bold; margin-bottom: 4px; }
+
+#message { font-size: 0.85em; color: #D09060; text-align: center; min-height: 1.5em; margin: 4px 0; max-width: 550px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: 4px 0; }
+.act-btn { padding: 5px 12px; font-size: 0.8em; font-family: Georgia, serif; cursor: pointer; border: 1px solid #8A2020; border-radius: 4px; background: #3A1818; color: #E0C8B8; transition: background 0.15s; }
+.act-btn:hover:not(:disabled) { background: #5A2020; }
+.act-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.act-btn.active-action { background: #8A2020; border-color: #D04030; }
+
+.dice-area { display: flex; gap: 8px; align-items: center; justify-content: center; margin: 4px 0; min-height: 40px; }
+.die { width: 36px; height: 36px; background: #E8D8C0; color: #1A0A0A; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.3em; font-weight: bold; box-shadow: 1px 2px 4px rgba(0,0,0,0.4); }
+.dice-total { font-size: 1.1em; color: #D04030; font-weight: bold; }
+
+.trade-panel { display: none; background: #2A1010; border: 1px solid #5A2020; border-radius: 6px; padding: 10px; margin: 6px 0; max-width: 400px; }
+.trade-panel.show { display: block; }
+.trade-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; font-size: 0.8em; }
+.trade-row select, .trade-row input { font-family: Georgia, serif; font-size: 0.85em; background: #1A0A0A; color: #E0C8B8; border: 1px solid #5A2020; border-radius: 3px; padding: 2px 4px; }
+
+.overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10001; align-items: center; justify-content: center; }
+.overlay.show { display: flex; }
+.overlay-box { background: #2A1010; border: 2px solid #8A2020; border-radius: 10px; padding: 24px 32px; text-align: center; max-width: 340px; }
+.overlay-box h2 { color: #D04030; font-size: 1.4em; margin-bottom: 8px; }
+.overlay-box p { color: #C0A890; margin-bottom: 12px; font-size: 0.9em; }
+.overlay-box button { padding: 6px 18px; font-size: 0.9em; font-family: Georgia, serif; cursor: pointer; border: 2px solid #8A2020; border-radius: 6px; background: #3A1818; color: #E0C8B8; }
+.overlay-box button:hover { background: #5A2020; }
+
+.discard-panel { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2A1010; border: 2px solid #8A2020; border-radius: 10px; padding: 16px 24px; z-index: 10002; max-width: 360px; text-align: center; }
+.discard-panel.show { display: block; }
+.discard-panel h3 { color: #D04030; margin-bottom: 8px; }
+.discard-panel .discard-row { display: flex; align-items: center; gap: 6px; margin: 4px 0; font-size: 0.85em; justify-content: center; }
+.discard-panel button { margin-top: 8px; }
+
+.rules-toggle { background: none; border: 1px solid #5A2020; color: #8A6050; padding: 4px 14px; font-size: 0.75em; font-family: Georgia, serif; border-radius: 4px; cursor: pointer; margin: 6px 4px; }
+.rules-toggle:hover { background: #2A1010; color: #D04030; }
+.rules-panel { display: none; max-width: 600px; font-size: 0.78em; color: #C0A890; line-height: 1.5; text-align: left; margin: 6px auto; padding: 10px 14px; border: 1px solid #5A2020; border-radius: 6px; background: #2A1010; }
+.rules-panel.show { display: block; }
+.rules-panel h4 { color: #D04030; margin: 8px 0 3px; }
+.rules-panel h4:first-child { margin-top: 0; }
+.rules-panel ul { margin: 3px 0 5px 16px; }
+.rules-panel li { margin: 2px 0; }
+.rules-panel b { color: #D09060; }
+
+/* Game nav */
+#gameNav { display: block; position: sticky; top: 0; z-index: 9999; background: #1A0A0A; border-bottom: 1px solid #5A2020; font-family: Georgia, serif; width: calc(100% + 20px); margin: -10px -10px 8px -10px; }
+#gameNav .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 8px 18px; max-width: 1200px; margin: 0 auto; position: relative; }
+#gameNav .nav-title { color: #E0C8B8; font-size: 0.9em; letter-spacing: 1px; }
+#gameNav .nav-toggle { background: none; border: 1px solid #5A2020; color: #E0C8B8; font-size: 1.1em; padding: 3px 10px; border-radius: 4px; cursor: pointer; font-family: Georgia, serif; }
+#gameNav .nav-toggle:hover { background: #2A1010; }
+#gameNav .nav-menu { display: none; position: absolute; right: 18px; top: 100%; background: #1A0A0A; border: 1px solid #5A2020; border-top: none; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 10000; }
+#gameNav .nav-menu.open { display: block; }
+#gameNav .nav-menu a { display: block; padding: 10px 18px; color: #8A6050; text-decoration: none; font-size: 0.85em; border-bottom: 1px solid #2A1010; }
+#gameNav .nav-menu a:last-child { border-bottom: none; }
+#gameNav .nav-menu a:hover { background: #2A1010; color: #D04030; }
+#gameNav .nav-menu a.current { color: #E0C8B8; font-weight: bold; }
+@media (max-width: 768px) {
+  #gameNav .nav-bar { padding: 8px 14px; }
+  #gameNav .nav-menu { position: static; right: auto; min-width: 0; border: none; border-top: 1px solid #5A2020; box-shadow: none; }
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Board Games","item":"https://boardgaminghub.com/#board"},{"@type":"ListItem","position":3,"name":"Aresia","item":"https://boardgaminghub.com/aresia"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How do I win Aresia?","acceptedAnswer":{"@type":"Answer","text":"Be the first to reach 10 Victory Points. Points come from Habitats (1 VP each), Domes (2 VP each), Hidden VP mission cards, plus 2 VP each for the Longest Pipeline (5 or more segments) and the Largest Fleet (3 or more rovers)."}},{"@type":"Question","name":"How do I collect resources?","acceptedAnswer":{"@type":"Answer","text":"Roll two dice each turn. Every hex whose number token matches the roll produces its resource for all adjacent habitats and domes — a habitat collects 1, a dome collects 2. Trade surplus resources at the bank (4:1) or at launch-pad ports (3:1 or 2:1) to get what you need."}},{"@type":"Question","name":"What happens when someone rolls a 7?","acceptedAnswer":{"@type":"Answer","text":"A 7 triggers a Dust Storm. Anyone holding more than 7 resources discards half, and the active player moves the storm to any hex, steals a resource from an adjacent player, and shuts down that hex's production until the storm moves again."}},{"@type":"Question","name":"What's the player count?","acceptedAnswer":{"@type":"Answer","text":"Aresia supports 2 to 6 players, and any seat can be filled by the built-in AI so you can play solo or watch a full table."}}]}</script>
+<style>
+/* The legacy per-game nav predates the site-wide header nav.js injects. It sits at
+   z-index 9999 and clips or covers that header, which carries the same game menu
+   plus search. One header is enough. */
+#gameNav { display: none !important; }
+</style>
+<!-- adsense -->
+<meta name="google-adsense-account" content="ca-pub-2835365593874464">
+<script>
+(function () {
+  var h = location.hostname, ua = navigator.userAgent || '';
+  if (h !== 'boardgaminghub.com' && h !== 'www.boardgaminghub.com') return;
+  if (window.Capacitor || / BoardGamingHubTV\//.test(ua) || /; wv\)/.test(ua)) return;
+  var s = document.createElement('script');
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2835365593874464';
+  document.head.appendChild(s);
+})();
+</script>
+<!-- /adsense -->
+</head>
+<body>
+<div id="gameNav">
+  <div class="nav-bar">
+    <span class="nav-title">Aresia</span>
+    <button class="nav-toggle" onclick="document.querySelector('#gameNav .nav-menu').classList.toggle('open')">&#9776;</button>
+  </div>
+  <div class="nav-menu">
+    <a href="/agora">Agora</a>
+    <a href="/apoapsis" class="">Apoapsis</a>
+    <a href="/aresia" class="current">Aresia</a>
+    <a href="/backgammon">Backgammon</a>
+    <a href="/bisque">Bisque</a>
+    <a href="/chess">Chess</a>
+    <a href="/convergence">Convergence</a>
+    <a href="/go">Go</a>
+    <a href="/mancala">Mancala</a>
+    <a href="/odyssey">Odyssey</a>
+    <a href="/othello" class="">Othello</a>
+    <a href="/pentegrammai">Pente Grammai</a>
+    <a href="/senet">Senet</a>
+    <a href="/tidelands">Tidelands</a>
+    <a href="/tower">Tower</a>
+    <a href="/ur">Ur</a>
+  </div>
+</div>
+
+<h1>ARESIA</h1>
+<div class="subtitle">Colonize the Red Frontier</div>
+
+<div class="top-bar">
+  <div class="mode-selector" id="countSelector">
+    <button class="mode-btn active" onclick="setPlayerCount(2)">2</button>
+    <button class="mode-btn" onclick="setPlayerCount(3)">3</button>
+    <button class="mode-btn" onclick="setPlayerCount(4)">4</button>
+    <button class="mode-btn" onclick="setPlayerCount(5)">5</button>
+    <button class="mode-btn" onclick="setPlayerCount(6)">6</button>
+  </div>
+  <div id="playerTypeSelector" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+</div>
+
+<div id="message">Loading...</div>
+
+<div class="dice-area" id="diceArea"></div>
+
+<div class="actions" id="actionBar"></div>
+
+<div class="game-area">
+  <svg id="board" width="560" height="500"></svg>
+  <div class="panel" id="infoPanel"></div>
+</div>
+
+<div class="trade-panel" id="tradePanel">
+  <h3 style="color:#D04030;margin-bottom:6px;">Bank Trade</h3>
+  <div class="trade-row">Give: <select id="tradeGive"></select> <span id="tradeRatio">4:1</span></div>
+  <div class="trade-row">Get: <select id="tradeGet"></select></div>
+  <div style="margin-top:6px;text-align:center;">
+    <button class="act-btn" onclick="executeTrade()">Trade</button>
+    <button class="act-btn" onclick="closeTrade()">Cancel</button>
+  </div>
+</div>
+
+<div class="discard-panel" id="discardPanel">
+  <h3>Dust Storm! Discard half your resources.</h3>
+  <div id="discardRows"></div>
+  <button class="act-btn" onclick="submitDiscard()">Confirm</button>
+</div>
+
+<div>
+  <button class="act-btn" onclick="newGame()" style="margin-top:6px;">New Game</button>
+</div>
+
+<button class="rules-toggle" onclick="document.getElementById('rulesPanel').classList.toggle('show')">Rules</button>
+<div class="rules-panel" id="rulesPanel">
+  <h4>Overview</h4>
+  Aresia is a Mars colonization game for 2&ndash;6 players. Build habitats, domes, and pipelines across the Martian surface. Collect resources, trade at the bank, and use mission cards to gain an edge. First to <b>10 Victory Points</b> wins.
+
+  <h4>The Board</h4>
+  19 hex tiles produce 5 resource types. Each hex has a number token (2&ndash;12). When the dice match a hex's number, all adjacent habitats/domes collect that resource. The Crater produces nothing.
+
+  <h4>Resources</h4>
+  <ul>
+    <li>&#x1F9F1; <b>Iron</b> &mdash; red terrain, used for pipelines and habitats.</li>
+    <li>&#x1F52E; <b>Silicon</b> &mdash; purple terrain, used for domes and mission cards.</li>
+    <li>&#x1F33F; <b>Biomass</b> &mdash; green terrain, used for habitats, domes, and mission cards.</li>
+    <li>&#x1F4A7; <b>Water</b> &mdash; blue terrain, used for habitats and mission cards.</li>
+    <li>&#x2600; <b>Solar</b> &mdash; yellow terrain, used for pipelines and habitats.</li>
+  </ul>
+
+  <h4>Structures</h4>
+  <ul>
+    <li><b>Habitat</b> (1 Iron + 1 Solar + 1 Biomass + 1 Water) &mdash; 1 VP. Placed at intersections. Collects 1 resource from each adjacent hex when its number is rolled.</li>
+    <li><b>Dome</b> (2 Biomass + 3 Silicon) &mdash; 2 VP. Upgrades a habitat. Collects 2 resources instead of 1.</li>
+    <li><b>Pipeline</b> (1 Iron + 1 Solar) &mdash; Placed on edges between intersections. Extends your network.</li>
+  </ul>
+
+  <h4>Mission Cards</h4>
+  Cost: 1 Biomass + 1 Silicon + 1 Water. Draw a random card:
+  <ul>
+    <li><b>Rover</b> &mdash; Move the Dust Storm and steal a resource. 3+ rovers = Largest Fleet (2 VP).</li>
+    <li><b>Supply Drop</b> &mdash; Take any 2 resources from the bank.</li>
+    <li><b>Pipeline Surge</b> &mdash; Build 2 free pipelines immediately.</li>
+    <li><b>Monopoly</b> &mdash; Name a resource; all opponents give you theirs.</li>
+    <li><b>Hidden VP</b> &mdash; Worth 1 VP at game end.</li>
+  </ul>
+
+  <h4>Dust Storm (Rolling 7)</h4>
+  Anyone with more than 7 resources must discard half (rounded down). The active player moves the Dust Storm to any hex and steals 1 resource from an adjacent player. The stormed hex produces nothing until the storm moves.
+
+  <h4>Trading</h4>
+  Trade 4 of one resource for 1 of any other at the bank. Launch pads (ports) on the board edge give better ratios (3:1 any, or 2:1 specific).
+
+  <h4>Victory</h4>
+  First to <b>10 VP</b> wins. VP sources: Habitats (1), Domes (2), Longest Pipeline &ge;5 (2 VP), Largest Fleet &ge;3 rovers (2 VP), Hidden VP cards (1 each).
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <h2 id="overlay-title">Game Over</h2>
+    <p id="overlay-text"></p>
+    <button onclick="document.getElementById('overlay').classList.remove('show'); newGame();">Play Again</button>
+  </div>
+</div>
+
+<script>
+/* ===== CONSTANTS ===== */
+var HEX_R = 46;
+var SQRT3 = Math.sqrt(3);
+var CX = 280, CY = 250;
+var RES_NAMES = ['Iron', 'Silicon', 'Biomass', 'Water', 'Solar'];
+var RES_ICONS = { Iron: '\u{1F9F1}', Silicon: '\u{1F52E}', Biomass: '\u{1F33F}', Water: '\u{1F4A7}', Solar: '\u2600' };
+var TERRAIN_COLORS = { Iron: '#A04028', Silicon: '#7040A0', Biomass: '#2A7A30', Water: '#2868A0', Solar: '#C0A020', Crater: '#484040' };
+var TERRAIN_RES = { Iron: 'Iron', Silicon: 'Silicon', Biomass: 'Biomass', Water: 'Water', Solar: 'Solar', Crater: null };
+var PLAYER_COLORS = ['#E04040', '#4080E0', '#40C040', '#E0A020', '#C060C0', '#E08040'];
+var PLAYER_NAMES = ['Red', 'Blue', 'Green', 'Gold', 'Purple', 'Orange'];
+var TERRAIN_COUNTS = ['Iron','Iron','Iron','Silicon','Silicon','Silicon','Biomass','Biomass','Biomass','Biomass','Water','Water','Water','Water','Solar','Solar','Solar','Solar','Crater'];
+var NUMBER_TOKENS = [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12];
+var DEV_DECK_INIT = [];
+(function() { for (var i = 0; i < 14; i++) DEV_DECK_INIT.push('rover'); for (var i = 0; i < 5; i++) DEV_DECK_INIT.push('vp'); DEV_DECK_INIT.push('supply','supply','surge','surge','monopoly','monopoly'); })();
+
+var AXIAL_HEXES = [
+  {q:0,r:-2},{q:1,r:-2},{q:2,r:-2},
+  {q:-1,r:-1},{q:0,r:-1},{q:1,r:-1},{q:2,r:-1},
+  {q:-2,r:0},{q:-1,r:0},{q:0,r:0},{q:1,r:0},{q:2,r:0},
+  {q:-2,r:1},{q:-1,r:1},{q:0,r:1},{q:1,r:1},
+  {q:-2,r:2},{q:-1,r:2},{q:0,r:2}
+];
+
+var PORT_DEFS = [
+  { edge: [0, 1], type: '3:1' },
+  { edge: [1, 2], type: 'Silicon' },
+  { edge: [3, 4], type: 'Biomass' },
+  { edge: [2, 6], type: '3:1' },
+  { edge: [7, 8], type: '3:1' },
+  { edge: [6, 11], type: 'Water' },
+  { edge: [7, 12], type: 'Iron' },
+  { edge: [11, 15], type: '3:1' },
+  { edge: [12, 16], type: '3:1' },
+  { edge: [15, 18], type: 'Solar' },
+  { edge: [16, 17], type: '3:1' },
+  { edge: [17, 18], type: '3:1' }
+];
+
+/* ===== STATE ===== */
+var numPlayers = 2;
+var playerTypes = ['human', 'ai']; // per-player human/ai
+var hexes = [];       // [{q, r, terrain, number, hasDust}]
+var vertices = [];    // [{x, y, building: null|{player, type:'habitat'|'dome'}, adjHexes:[], adjVertices:[], adjEdges:[], port:null}]
+var edges = [];       // [{v1, v2, x1, y1, x2, y2, pipeline: null|{player}, adjVertices:[]}]
+var players = [];     // [{resources:{}, devCards:[], roversPlayed, habitats, domes, pipelines, longestRoad, hasLongestRoad, hasLargestFleet}]
+var devDeck = [];
+var dustHex = -1;
+var currentPlayer = 0;
+var phase = 'setup1';  // setup1, setup2, roll, main, moveDust, stealFrom, gameOver
+var setupRound = 0;
+var setupOrder = [];
+var setupStep = 'habitat'; // habitat or pipeline during setup
+var diceResult = [0, 0];
+var longestRoadPlayer = -1;
+var largestFleetPlayer = -1;
+var pendingAction = null; // 'habitat', 'pipeline', 'dome', 'moveDust', 'stealFrom'
+var discardQueue = [];
+var devCardPlayedThisTurn = false;
+var gameOver = false;
+
+/* ===== GEOMETRY ===== */
+function hexCenter(q, r) {
+  return { x: CX + HEX_R * 1.5 * q, y: CY + HEX_R * SQRT3 * (r + q / 2) };
+}
+function hexCorner(cx, cy, i) {
+  var angle = Math.PI / 180 * (60 * i);
+  return { x: cx + HEX_R * Math.cos(angle), y: cy + HEX_R * Math.sin(angle) };
+}
+function hexPoints(cx, cy) {
+  var pts = [];
+  for (var i = 0; i < 6; i++) { var c = hexCorner(cx, cy, i); pts.push(c.x.toFixed(1) + ',' + c.y.toFixed(1)); }
+  return pts.join(' ');
+}
+function vKey(x, y) { return Math.round(x * 10) + ',' + Math.round(y * 10); }
+function dist(x1, y1, x2, y2) { return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)); }
+
+/* ===== BOARD GENERATION ===== */
+function shuffle(arr) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+
+function generateBoard() {
+  hexes = [];
+  vertices = [];
+  edges = [];
+
+  var terrains = shuffle(TERRAIN_COUNTS.slice());
+  var numbers = shuffle(NUMBER_TOKENS.slice());
+  var numIdx = 0;
+
+  for (var h = 0; h < AXIAL_HEXES.length; h++) {
+    var ax = AXIAL_HEXES[h];
+    var t = terrains[h];
+    var n = 0;
+    if (t !== 'Crater') { n = numbers[numIdx++]; }
+    hexes.push({ q: ax.q, r: ax.r, terrain: t, number: n, hasDust: t === 'Crater' });
+    if (t === 'Crater') dustHex = h;
+  }
+
+  // Build vertices
+  var vMap = {};
+  for (var h = 0; h < hexes.length; h++) {
+    var c = hexCenter(hexes[h].q, hexes[h].r);
+    for (var i = 0; i < 6; i++) {
+      var corner = hexCorner(c.x, c.y, i);
+      var key = vKey(corner.x, corner.y);
+      if (!vMap[key]) {
+        vMap[key] = vertices.length;
+        vertices.push({ x: corner.x, y: corner.y, building: null, adjHexes: [], adjVertices: [], adjEdges: [], port: null });
+      }
+      var vi = vMap[key];
+      if (vertices[vi].adjHexes.indexOf(h) < 0) vertices[vi].adjHexes.push(h);
+    }
+  }
+
+  // Build edges + adjacency
+  var eMap = {};
+  for (var h = 0; h < hexes.length; h++) {
+    var c = hexCenter(hexes[h].q, hexes[h].r);
+    for (var i = 0; i < 6; i++) {
+      var c1 = hexCorner(c.x, c.y, i);
+      var c2 = hexCorner(c.x, c.y, (i + 1) % 6);
+      var k1 = vKey(c1.x, c1.y), k2 = vKey(c2.x, c2.y);
+      var v1 = vMap[k1], v2 = vMap[k2];
+      var ek = Math.min(v1, v2) + '-' + Math.max(v1, v2);
+      if (!eMap[ek]) {
+        eMap[ek] = edges.length;
+        edges.push({ v1: v1, v2: v2, x1: vertices[v1].x, y1: vertices[v1].y, x2: vertices[v2].x, y2: vertices[v2].y, pipeline: null });
+      }
+      var ei = eMap[ek];
+      if (vertices[v1].adjVertices.indexOf(v2) < 0) vertices[v1].adjVertices.push(v2);
+      if (vertices[v2].adjVertices.indexOf(v1) < 0) vertices[v2].adjVertices.push(v1);
+      if (vertices[v1].adjEdges.indexOf(ei) < 0) vertices[v1].adjEdges.push(ei);
+      if (vertices[v2].adjEdges.indexOf(ei) < 0) vertices[v2].adjEdges.push(ei);
+    }
+  }
+
+  // Assign ports to border vertices
+  for (var p = 0; p < PORT_DEFS.length; p++) {
+    var pd = PORT_DEFS[p];
+    var h1 = pd.edge[0], h2 = pd.edge[1];
+    var c1 = hexCenter(hexes[h1].q, hexes[h1].r);
+    var c2 = hexCenter(hexes[h2].q, hexes[h2].r);
+    var mx = (c1.x + c2.x) / 2, my = (c1.y + c2.y) / 2;
+    // Find the two vertices closest to midpoint that are shared between h1 and h2
+    var shared = [];
+    for (var vi = 0; vi < vertices.length; vi++) {
+      if (vertices[vi].adjHexes.indexOf(h1) >= 0 && vertices[vi].adjHexes.indexOf(h2) >= 0) {
+        shared.push(vi);
+      }
+    }
+    for (var s = 0; s < shared.length; s++) {
+      vertices[shared[s]].port = pd.type;
+    }
+  }
+}
+
+/* ===== PLAYERS ===== */
+function initPlayers() {
+  players = [];
+  for (var i = 0; i < numPlayers; i++) {
+    players.push({
+      resources: { Iron: 0, Silicon: 0, Biomass: 0, Water: 0, Solar: 0 },
+      devCards: [],
+      roversPlayed: 0,
+      habitats: 0, domes: 0, pipelines: 0,
+      hasLongestRoad: false,
+      hasLargestFleet: false
+    });
+  }
+  devDeck = shuffle(DEV_DECK_INIT.slice());
+}
+
+/* ===== RESOURCE HELPERS ===== */
+function totalRes(p) {
+  var t = 0;
+  for (var r = 0; r < RES_NAMES.length; r++) t += players[p].resources[RES_NAMES[r]];
+  return t;
+}
+function canAfford(p, cost) {
+  for (var k in cost) { if ((players[p].resources[k] || 0) < cost[k]) return false; }
+  return true;
+}
+function payCost(p, cost) {
+  for (var k in cost) players[p].resources[k] -= cost[k];
+}
+function giveRes(p, res, n) {
+  players[p].resources[res] = (players[p].resources[res] || 0) + (n || 1);
+}
+var COST_HABITAT = { Iron: 1, Solar: 1, Biomass: 1, Water: 1 };
+var COST_DOME = { Biomass: 2, Silicon: 3 };
+var COST_PIPELINE = { Iron: 1, Solar: 1 };
+var COST_DEV = { Biomass: 1, Silicon: 1, Water: 1 };
+
+/* ===== VALID PLACEMENTS ===== */
+function validHabitatVertices(p, isSetup) {
+  var valid = [];
+  for (var vi = 0; vi < vertices.length; vi++) {
+    if (vertices[vi].building) continue;
+    // Distance rule: no adjacent buildings
+    var tooClose = false;
+    for (var a = 0; a < vertices[vi].adjVertices.length; a++) {
+      if (vertices[vertices[vi].adjVertices[a]].building) { tooClose = true; break; }
+    }
+    if (tooClose) continue;
+    // Must be on land (adjacent to at least one hex)
+    if (vertices[vi].adjHexes.length === 0) continue;
+    if (isSetup) { valid.push(vi); continue; }
+    // Must be connected by own pipeline
+    var connected = false;
+    for (var e = 0; e < vertices[vi].adjEdges.length; e++) {
+      if (edges[vertices[vi].adjEdges[e]].pipeline && edges[vertices[vi].adjEdges[e]].pipeline.player === p) {
+        connected = true; break;
+      }
+    }
+    if (connected) valid.push(vi);
+  }
+  return valid;
+}
+
+function validPipelineEdges(p, isSetup, fromVertex) {
+  var valid = [];
+  for (var ei = 0; ei < edges.length; ei++) {
+    if (edges[ei].pipeline) continue;
+    var v1 = edges[ei].v1, v2 = edges[ei].v2;
+    if (isSetup && fromVertex !== undefined) {
+      if (v1 === fromVertex || v2 === fromVertex) valid.push(ei);
+      continue;
+    }
+    // Must connect to own building or own pipeline
+    var connected = false;
+    for (var end = 0; end < 2; end++) {
+      var vi = end === 0 ? v1 : v2;
+      if (vertices[vi].building && vertices[vi].building.player === p) { connected = true; break; }
+      for (var ae = 0; ae < vertices[vi].adjEdges.length; ae++) {
+        var adjE = edges[vertices[vi].adjEdges[ae]];
+        if (adjE.pipeline && adjE.pipeline.player === p && vertices[vi].adjEdges[ae] !== ei) {
+          // Check opponent building doesn't block
+          if (!vertices[vi].building || vertices[vi].building.player === p) { connected = true; break; }
+        }
+      }
+      if (connected) break;
+    }
+    if (connected) valid.push(ei);
+  }
+  return valid;
+}
+
+function validDomeVertices(p) {
+  var valid = [];
+  for (var vi = 0; vi < vertices.length; vi++) {
+    if (vertices[vi].building && vertices[vi].building.player === p && vertices[vi].building.type === 'habitat') {
+      valid.push(vi);
+    }
+  }
+  return valid;
+}
+
+/* ===== LONGEST ROAD ===== */
+function calcLongestRoad(p) {
+  var myEdges = [];
+  for (var ei = 0; ei < edges.length; ei++) {
+    if (edges[ei].pipeline && edges[ei].pipeline.player === p) myEdges.push(ei);
+  }
+  if (myEdges.length === 0) return 0;
+  var best = 0;
+  function dfs(edge, visited) {
+    if (visited.length > best) best = visited.length;
+    var v1 = edges[edge].v1, v2 = edges[edge].v2;
+    for (var end = 0; end < 2; end++) {
+      var vi = end === 0 ? v2 : v1;
+      // Blocked by opponent building?
+      if (vertices[vi].building && vertices[vi].building.player !== p) continue;
+      for (var ae = 0; ae < vertices[vi].adjEdges.length; ae++) {
+        var nextE = vertices[vi].adjEdges[ae];
+        if (visited.indexOf(nextE) >= 0) continue;
+        if (!edges[nextE].pipeline || edges[nextE].pipeline.player !== p) continue;
+        visited.push(nextE);
+        dfs(nextE, visited);
+        visited.pop();
+      }
+    }
+  }
+  for (var i = 0; i < myEdges.length; i++) {
+    dfs(myEdges[i], [myEdges[i]]);
+  }
+  return best;
+}
+
+function updateLongestRoad() {
+  var best = 4, bestP = -1;
+  for (var p = 0; p < numPlayers; p++) {
+    var len = calcLongestRoad(p);
+    if (len > best) { best = len; bestP = p; }
+    else if (len === best && len >= 5 && longestRoadPlayer === p) bestP = p;
+  }
+  for (var p = 0; p < numPlayers; p++) players[p].hasLongestRoad = false;
+  if (bestP >= 0) { players[bestP].hasLongestRoad = true; longestRoadPlayer = bestP; }
+  else longestRoadPlayer = -1;
+}
+
+function updateLargestFleet() {
+  var best = 2, bestP = -1;
+  for (var p = 0; p < numPlayers; p++) {
+    if (players[p].roversPlayed > best) { best = players[p].roversPlayed; bestP = p; }
+    else if (players[p].roversPlayed === best && largestFleetPlayer === p) bestP = p;
+  }
+  for (var p = 0; p < numPlayers; p++) players[p].hasLargestFleet = false;
+  if (bestP >= 0) { players[bestP].hasLargestFleet = true; largestFleetPlayer = bestP; }
+}
+
+/* ===== VP ===== */
+function calcVP(p) {
+  var vp = players[p].habitats + players[p].domes * 2;
+  if (players[p].hasLongestRoad) vp += 2;
+  if (players[p].hasLargestFleet) vp += 2;
+  for (var i = 0; i < players[p].devCards.length; i++) {
+    if (players[p].devCards[i] === 'vp') vp += 1;
+  }
+  return vp;
+}
+
+/* ===== TRADE RATIOS ===== */
+function tradeRatio(p, res) {
+  var ratio = 4;
+  for (var vi = 0; vi < vertices.length; vi++) {
+    if (!vertices[vi].building || vertices[vi].building.player !== p) continue;
+    if (!vertices[vi].port) continue;
+    if (vertices[vi].port === '3:1' && ratio > 3) ratio = 3;
+    if (vertices[vi].port === res && ratio > 2) ratio = 2;
+  }
+  return ratio;
+}
+
+/* ===== RENDERING ===== */
+function render() {
+  var svg = document.getElementById('board');
+  svg.innerHTML = '';
+
+  // Hexes
+  for (var h = 0; h < hexes.length; h++) {
+    var c = hexCenter(hexes[h].q, hexes[h].r);
+    var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', hexPoints(c.x, c.y));
+    poly.setAttribute('class', 'hex-poly');
+    poly.setAttribute('fill', TERRAIN_COLORS[hexes[h].terrain]);
+    if (pendingAction === 'moveDust') {
+      poly.style.cursor = 'pointer';
+      (function(idx) { poly.onclick = function() { placeDust(idx); }; })(h);
+    }
+    svg.appendChild(poly);
+
+    // Number token
+    if (hexes[h].number > 0 && !hexes[h].hasDust) {
+      var bg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      bg.setAttribute('cx', c.x); bg.setAttribute('cy', c.y); bg.setAttribute('r', 14);
+      bg.setAttribute('class', 'hex-number-bg');
+      svg.appendChild(bg);
+      var txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('x', c.x); txt.setAttribute('y', c.y);
+      txt.setAttribute('class', 'hex-number' + ((hexes[h].number === 6 || hexes[h].number === 8) ? ' red6' : ''));
+      txt.textContent = hexes[h].number;
+      svg.appendChild(txt);
+    }
+
+    // Terrain label
+    var lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    lbl.setAttribute('x', c.x); lbl.setAttribute('y', c.y + 20);
+    lbl.setAttribute('class', 'hex-label');
+    lbl.textContent = hexes[h].terrain;
+    svg.appendChild(lbl);
+
+    // Dust storm
+    if (hexes[h].hasDust && hexes[h].terrain !== 'Crater') {
+      var ds = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      ds.setAttribute('x', c.x); ds.setAttribute('y', c.y);
+      ds.setAttribute('class', 'dust-storm');
+      ds.textContent = '\u{1F32A}';
+      svg.appendChild(ds);
+    }
+  }
+
+  // Port labels
+  for (var p = 0; p < PORT_DEFS.length; p++) {
+    var pd = PORT_DEFS[p];
+    var h1c = hexCenter(hexes[pd.edge[0]].q, hexes[pd.edge[0]].r);
+    var h2c = hexCenter(hexes[pd.edge[1]].q, hexes[pd.edge[1]].r);
+    var mx = (h1c.x + h2c.x) / 2, my = (h1c.y + h2c.y) / 2;
+    // Push outward from board center
+    var dx = mx - CX, dy = my - CY;
+    var d = Math.sqrt(dx * dx + dy * dy);
+    if (d > 0) { mx += dx / d * 28; my += dy / d * 28; }
+    var pl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    pl.setAttribute('x', mx); pl.setAttribute('y', my);
+    pl.setAttribute('class', 'port-label');
+    pl.textContent = pd.type === '3:1' ? '3:1' : '2:1 ' + pd.type;
+    svg.appendChild(pl);
+  }
+
+  // Edges (pipelines and clickable spots)
+  var validEdges = [];
+  if (pendingAction === 'pipeline') {
+    validEdges = (phase === 'setup1' || phase === 'setup2') ?
+      validPipelineEdges(currentPlayer, true, setupLastVertex) :
+      validPipelineEdges(currentPlayer, false);
+  }
+  for (var ei = 0; ei < edges.length; ei++) {
+    var e = edges[ei];
+    if (e.pipeline) {
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', e.x1); line.setAttribute('y1', e.y1);
+      line.setAttribute('x2', e.x2); line.setAttribute('y2', e.y2);
+      line.setAttribute('stroke', PLAYER_COLORS[e.pipeline.player]);
+      line.setAttribute('stroke-width', 5);
+      line.setAttribute('stroke-linecap', 'round');
+      line.setAttribute('class', 'building');
+      svg.appendChild(line);
+    } else if (validEdges.indexOf(ei) >= 0) {
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', e.x1); line.setAttribute('y1', e.y1);
+      line.setAttribute('x2', e.x2); line.setAttribute('y2', e.y2);
+      line.setAttribute('class', 'edge-spot');
+      (function(idx) { line.onclick = function() { clickEdge(idx); }; })(ei);
+      svg.appendChild(line);
+    }
+  }
+
+  // Vertices (buildings and clickable spots)
+  var validVerts = [];
+  if (pendingAction === 'habitat') {
+    validVerts = validHabitatVertices(currentPlayer, phase === 'setup1' || phase === 'setup2');
+  } else if (pendingAction === 'dome') {
+    validVerts = validDomeVertices(currentPlayer);
+  }
+  for (var vi = 0; vi < vertices.length; vi++) {
+    var v = vertices[vi];
+    if (v.building) {
+      if (v.building.type === 'dome') {
+        var r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        r.setAttribute('x', v.x - 10); r.setAttribute('y', v.y - 10);
+        r.setAttribute('width', 20); r.setAttribute('height', 20);
+        r.setAttribute('rx', 3);
+        r.setAttribute('fill', PLAYER_COLORS[v.building.player]);
+        r.setAttribute('stroke', '#000'); r.setAttribute('stroke-width', 1.5);
+        r.setAttribute('class', 'building');
+        svg.appendChild(r);
+      } else {
+        var circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circ.setAttribute('cx', v.x); circ.setAttribute('cy', v.y); circ.setAttribute('r', 8);
+        circ.setAttribute('fill', PLAYER_COLORS[v.building.player]);
+        circ.setAttribute('stroke', '#000'); circ.setAttribute('stroke-width', 1.5);
+        circ.setAttribute('class', 'building');
+        svg.appendChild(circ);
+      }
+    } else if (validVerts.indexOf(vi) >= 0) {
+      var circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circ.setAttribute('cx', v.x); circ.setAttribute('cy', v.y); circ.setAttribute('r', 8);
+      circ.setAttribute('class', 'vertex-spot');
+      (function(idx) { circ.onclick = function() { clickVertex(idx); }; })(vi);
+      svg.appendChild(circ);
+    }
+  }
+
+  // Steal-from indicators
+  if (pendingAction === 'stealFrom') {
+    var targets = getStealTargets();
+    for (var t = 0; t < targets.length; t++) {
+      // Highlight a building of each stealable player near the dust hex
+      for (var vi = 0; vi < vertices.length; vi++) {
+        if (vertices[vi].building && vertices[vi].building.player === targets[t] &&
+            vertices[vi].adjHexes.indexOf(dustHex) >= 0) {
+          var circ = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          circ.setAttribute('cx', vertices[vi].x); circ.setAttribute('cy', vertices[vi].y);
+          circ.setAttribute('r', 14);
+          circ.setAttribute('fill', 'none');
+          circ.setAttribute('stroke', '#FFD700');
+          circ.setAttribute('stroke-width', 2.5);
+          circ.setAttribute('stroke-dasharray', '4,3');
+          circ.style.cursor = 'pointer';
+          (function(p) { circ.onclick = function() { stealFrom(p); }; })(targets[t]);
+          svg.appendChild(circ);
+          break;
+        }
+      }
+    }
+  }
+
+  renderPanel();
+  renderActions();
+}
+
+function renderPanel() {
+  var panel = document.getElementById('infoPanel');
+  var html = '';
+
+  // Player tabs
+  html += '<div class="player-tab">';
+  for (var p = 0; p < numPlayers; p++) {
+    var isActive = p === currentPlayer && !gameOver;
+    html += '<div class="player-tab-btn' + (isActive ? ' active' : '') + '" style="' +
+      (isActive ? 'background:' + PLAYER_COLORS[p] + ';color:#000;' : 'color:' + PLAYER_COLORS[p]) +
+      '">' + PLAYER_NAMES[p] + (isHuman(p) ? '' : ' (AI)') + '</div>';
+  }
+  html += '</div>';
+
+  // Show current player info (prefer first human, or current if all AI)
+  var show = currentPlayer;
+  for (var pp = 0; pp < numPlayers; pp++) { if (isHuman(pp)) { show = pp; break; } }
+  var pl = players[show];
+
+  html += '<div class="vp-display">' + PLAYER_NAMES[show] + ': ' + calcVP(show) + ' VP</div>';
+
+  html += '<div class="res-grid">';
+  for (var r = 0; r < RES_NAMES.length; r++) {
+    html += '<span class="res-icon">' + RES_ICONS[RES_NAMES[r]] + ' ' + RES_NAMES[r] + '</span>';
+    html += '<span class="res-count">' + pl.resources[RES_NAMES[r]] + '</span>';
+  }
+  html += '</div>';
+
+  html += '<div class="structures">';
+  html += 'Habitats: <b>' + pl.habitats + '</b> &middot; Domes: <b>' + pl.domes + '</b> &middot; Pipes: <b>' + pl.pipelines + '</b><br>';
+  html += 'Cards: <b>' + pl.devCards.length + '</b> &middot; Rovers: <b>' + pl.roversPlayed + '</b>';
+  if (pl.hasLongestRoad) html += '<br><b style="color:#D04030">Longest Pipeline!</b>';
+  if (pl.hasLargestFleet) html += '<br><b style="color:#D04030">Largest Fleet!</b>';
+  html += '</div>';
+
+  // All player VP summary
+  html += '<div style="font-size:0.75em;color:#8A6050;margin-top:6px;border-top:1px solid #3A1818;padding-top:4px;">';
+  for (var p = 0; p < numPlayers; p++) {
+    html += '<span style="color:' + PLAYER_COLORS[p] + '">' + PLAYER_NAMES[p] + '</span>: ' + calcVP(p) + ' VP &nbsp;';
+  }
+  html += '</div>';
+
+  panel.innerHTML = html;
+}
+
+function renderActions() {
+  var bar = document.getElementById('actionBar');
+  if (gameOver || !isHuman(currentPlayer)) { bar.innerHTML = ''; return; }
+
+  var html = '';
+  if (phase === 'roll') {
+    html += '<button class="act-btn" onclick="rollDice()">Roll Dice</button>';
+    // Dev cards may only be played after rolling (in the main phase).
+  } else if (phase === 'main') {
+    var cp = currentPlayer;
+    html += '<button class="act-btn' + (pendingAction === 'pipeline' ? ' active-action' : '') + '"' +
+      (canAfford(cp, COST_PIPELINE) ? '' : ' disabled') + ' onclick="startBuild(\'pipeline\')">Pipeline</button>';
+    html += '<button class="act-btn' + (pendingAction === 'habitat' ? ' active-action' : '') + '"' +
+      (canAfford(cp, COST_HABITAT) ? '' : ' disabled') + ' onclick="startBuild(\'habitat\')">Habitat</button>';
+    html += '<button class="act-btn' + (pendingAction === 'dome' ? ' active-action' : '') + '"' +
+      (canAfford(cp, COST_DOME) && validDomeVertices(cp).length > 0 ? '' : ' disabled') + ' onclick="startBuild(\'dome\')">Dome</button>';
+    html += '<button class="act-btn"' + (canAfford(cp, COST_DEV) && devDeck.length > 0 ? '' : ' disabled') + ' onclick="buyDevCard()">Mission Card</button>';
+    html += '<button class="act-btn" onclick="openTrade()">Trade</button>';
+    if (hasPlayableDevCard(cp) && !devCardPlayedThisTurn) {
+      html += '<button class="act-btn" onclick="showDevCards()">Play Card</button>';
+    }
+    html += '<button class="act-btn" onclick="endTurn()">End Turn</button>';
+  }
+  bar.innerHTML = html;
+}
+
+/* ===== HUMAN CHECK ===== */
+function isHuman(p) { return playerTypes[p] === 'human'; }
+function allPlayersAI() { for (var i = 0; i < numPlayers; i++) if (playerTypes[i] === 'human') return false; return true; }
+function aiDelay(slow) { return allPlayersAI() ? 0 : (slow || 600); }
+
+/* ===== GAME FLOW ===== */
+var _aiTimerId = null;
+function scheduleAI(fn, delay) {
+  if (_aiTimerId) clearTimeout(_aiTimerId);
+  _aiTimerId = setTimeout(fn, delay);
+}
+function newGame() {
+  if (_aiTimerId) { clearTimeout(_aiTimerId); _aiTimerId = null; }
+  gameOver = false;
+  longestRoadPlayer = -1;
+  largestFleetPlayer = -1;
+  dustHex = -1;
+  devCardPlayedThisTurn = false;
+  pendingAction = null;
+  discardQueue = [];
+  window._surgeLeft = 0;
+
+  generateBoard();
+  initPlayers();
+
+  // Setup order: 0,1,...,n-1,n-1,...,1,0
+  setupOrder = [];
+  for (var i = 0; i < numPlayers; i++) setupOrder.push(i);
+  for (var i = numPlayers - 1; i >= 0; i--) setupOrder.push(i);
+  setupRound = 0;
+  currentPlayer = setupOrder[0];
+  phase = 'setup1';
+  setupStep = 'habitat';
+
+  document.getElementById('overlay').classList.remove('show');
+  document.getElementById('diceArea').innerHTML = '';
+  document.getElementById('tradePanel').classList.remove('show');
+  document.getElementById('discardPanel').classList.remove('show');
+
+  setMessage(PLAYER_NAMES[currentPlayer] + ': place a habitat.');
+  pendingAction = 'habitat';
+  render();
+
+  if (!isHuman(currentPlayer)) scheduleAI(aiSetup, aiDelay());
+}
+
+var setupLastVertex = -1;
+
+function clickVertex(vi) {
+  if (pendingAction === 'habitat') {
+    placeHabitat(vi);
+  } else if (pendingAction === 'dome') {
+    placeDome(vi);
+  }
+}
+function clickEdge(ei) {
+  if (pendingAction === 'pipeline') {
+    placePipeline(ei);
+  }
+}
+
+function placeHabitat(vi) {
+  vertices[vi].building = { player: currentPlayer, type: 'habitat' };
+  players[currentPlayer].habitats++;
+  if (phase !== 'setup1' && phase !== 'setup2') payCost(currentPlayer, COST_HABITAT);
+
+  // Second setup round: collect starting resources
+  if (phase === 'setup2') {
+    for (var a = 0; a < vertices[vi].adjHexes.length; a++) {
+      var h = hexes[vertices[vi].adjHexes[a]];
+      var res = TERRAIN_RES[h.terrain];
+      if (res) giveRes(currentPlayer, res);
+    }
+  }
+
+  setupLastVertex = vi;
+
+  if (phase === 'setup1' || phase === 'setup2') {
+    setupStep = 'pipeline';
+    pendingAction = 'pipeline';
+    setMessage(PLAYER_NAMES[currentPlayer] + ': place a pipeline.');
+    render();
+    if (!isHuman(currentPlayer)) scheduleAI(aiSetup, aiDelay(400));
+  } else {
+    pendingAction = null;
+    updateLongestRoad();
+    checkWin();
+    render();
+  }
+}
+
+function placePipeline(ei) {
+  edges[ei].pipeline = { player: currentPlayer };
+  players[currentPlayer].pipelines++;
+  if (phase !== 'setup1' && phase !== 'setup2') payCost(currentPlayer, COST_PIPELINE);
+
+  if (phase === 'setup1' || phase === 'setup2') {
+    advanceSetup();
+  } else {
+    pendingAction = null;
+    updateLongestRoad();
+    checkWin();
+    render();
+  }
+}
+
+function placeDome(vi) {
+  vertices[vi].building = { player: currentPlayer, type: 'dome' };
+  players[currentPlayer].habitats--;
+  players[currentPlayer].domes++;
+  payCost(currentPlayer, COST_DOME);
+  pendingAction = null;
+  checkWin();
+  render();
+}
+
+function advanceSetup() {
+  setupRound++;
+  if (setupRound >= setupOrder.length) {
+    // Setup complete, start game
+    currentPlayer = 0;
+    phase = 'roll';
+    pendingAction = null;
+    setMessage(PLAYER_NAMES[currentPlayer] + ': roll the dice.');
+    render();
+    if (!isHuman(currentPlayer)) scheduleAI(aiTurn, aiDelay());
+    return;
+  }
+  currentPlayer = setupOrder[setupRound];
+  var isSecond = setupRound >= numPlayers;
+  phase = isSecond ? 'setup2' : 'setup1';
+  setupStep = 'habitat';
+  pendingAction = 'habitat';
+  setMessage(PLAYER_NAMES[currentPlayer] + ': place a habitat.');
+  render();
+  if (!isHuman(currentPlayer)) scheduleAI(aiSetup, aiDelay());
+}
+
+/* ===== DICE ===== */
+function rollDice() {
+  if (phase !== 'roll') return;
+  var d1 = Math.floor(Math.random() * 6) + 1;
+  var d2 = Math.floor(Math.random() * 6) + 1;
+  diceResult = [d1, d2];
+  var total = d1 + d2;
+
+  document.getElementById('diceArea').innerHTML =
+    '<div class="die">' + d1 + '</div><div class="die">' + d2 + '</div>' +
+    '<span class="dice-total">= ' + total + '</span>';
+
+  if (total === 7) {
+    handleSeven();
+  } else {
+    distributeResources(total);
+    phase = 'main';
+    pendingAction = null;
+    devCardPlayedThisTurn = false;
+    setMessage(PLAYER_NAMES[currentPlayer] + ': build, trade, or end turn.');
+    render();
+    if (!isHuman(currentPlayer)) scheduleAI(aiMainPhase, aiDelay());
+  }
+}
+
+function distributeResources(num) {
+  for (var h = 0; h < hexes.length; h++) {
+    if (hexes[h].number !== num || hexes[h].hasDust) continue;
+    var res = TERRAIN_RES[hexes[h].terrain];
+    if (!res) continue;
+    for (var vi = 0; vi < vertices.length; vi++) {
+      if (!vertices[vi].building) continue;
+      if (vertices[vi].adjHexes.indexOf(h) < 0) continue;
+      var amt = vertices[vi].building.type === 'dome' ? 2 : 1;
+      giveRes(vertices[vi].building.player, res, amt);
+    }
+  }
+}
+
+function handleSeven() {
+  // Check who needs to discard
+  discardQueue = [];
+  for (var p = 0; p < numPlayers; p++) {
+    if (totalRes(p) > 7) discardQueue.push(p);
+  }
+  if (discardQueue.length > 0) {
+    processDiscardQueue();
+  } else {
+    startMoveDust();
+  }
+}
+
+function processDiscardQueue() {
+  if (discardQueue.length === 0) {
+    startMoveDust();
+    return;
+  }
+  var p = discardQueue[0];
+  if (isHuman(p)) {
+    showDiscardPanel(p);
+  } else {
+    aiDiscard(p);
+    discardQueue.shift();
+    processDiscardQueue();
+  }
+}
+
+function showDiscardPanel(p) {
+  var panel = document.getElementById('discardPanel');
+  var half = Math.floor(totalRes(p) / 2);
+  panel.querySelector('h3').textContent = 'Dust Storm! Discard ' + half + ' resources.';
+  var rows = '';
+  for (var r = 0; r < RES_NAMES.length; r++) {
+    var rn = RES_NAMES[r];
+    rows += '<div class="discard-row">' + RES_ICONS[rn] + ' ' + rn + ' (' + players[p].resources[rn] + '): ' +
+      '<input type="number" min="0" max="' + players[p].resources[rn] + '" value="0" id="discard-' + rn + '" style="width:40px;"></div>';
+  }
+  document.getElementById('discardRows').innerHTML = rows;
+  panel.classList.add('show');
+}
+
+function submitDiscard() {
+  var p = discardQueue[0];
+  var half = Math.floor(totalRes(p) / 2);
+  var total = 0;
+  var amounts = {};
+  for (var r = 0; r < RES_NAMES.length; r++) {
+    var rn = RES_NAMES[r];
+    var val = parseInt(document.getElementById('discard-' + rn).value) || 0;
+    val = Math.max(0, Math.min(val, players[p].resources[rn]));
+    amounts[rn] = val;
+    total += val;
+  }
+  if (total !== half) {
+    setMessage('Must discard exactly ' + half + ' resources (selected ' + total + ').');
+    return;
+  }
+  for (var rn in amounts) players[p].resources[rn] -= amounts[rn];
+  document.getElementById('discardPanel').classList.remove('show');
+  discardQueue.shift();
+  processDiscardQueue();
+}
+
+function aiDiscard(p) {
+  var half = Math.floor(totalRes(p) / 2);
+  var removed = 0;
+  while (removed < half) {
+    var best = null, bestCount = -1;
+    for (var r = 0; r < RES_NAMES.length; r++) {
+      if (players[p].resources[RES_NAMES[r]] > bestCount) {
+        bestCount = players[p].resources[RES_NAMES[r]];
+        best = RES_NAMES[r];
+      }
+    }
+    if (!best || bestCount <= 0) break;
+    players[p].resources[best]--;
+    removed++;
+  }
+}
+
+function startMoveDust() {
+  pendingAction = 'moveDust';
+  phase = 'moveDust';
+  if (isHuman(currentPlayer)) {
+    setMessage('Move the Dust Storm to any hex.');
+    render();
+  } else {
+    aiMoveDust();
+  }
+}
+
+function placeDust(hexIdx) {
+  if (hexIdx === dustHex && hexes[hexIdx].terrain === 'Crater') return;
+  if (dustHex >= 0) hexes[dustHex].hasDust = false;
+  hexes[hexIdx].hasDust = true;
+  dustHex = hexIdx;
+  pendingAction = 'stealFrom';
+  phase = 'stealFrom';
+
+  var targets = getStealTargets();
+  if (targets.length === 0) {
+    enterMainPhase();
+  } else if (isHuman(currentPlayer)) {
+    setMessage('Click an opponent\'s building adjacent to the storm to steal.');
+    render();
+  } else {
+    stealFrom(targets[Math.floor(Math.random() * targets.length)]);
+  }
+}
+
+function getStealTargets() {
+  var targets = [];
+  for (var vi = 0; vi < vertices.length; vi++) {
+    if (!vertices[vi].building) continue;
+    if (vertices[vi].building.player === currentPlayer) continue;
+    if (vertices[vi].adjHexes.indexOf(dustHex) >= 0 && totalRes(vertices[vi].building.player) > 0) {
+      if (targets.indexOf(vertices[vi].building.player) < 0) targets.push(vertices[vi].building.player);
+    }
+  }
+  return targets;
+}
+
+function stealFrom(targetPlayer) {
+  var avail = [];
+  for (var r = 0; r < RES_NAMES.length; r++) {
+    for (var n = 0; n < players[targetPlayer].resources[RES_NAMES[r]]; n++) avail.push(RES_NAMES[r]);
+  }
+  if (avail.length > 0) {
+    var stolen = avail[Math.floor(Math.random() * avail.length)];
+    players[targetPlayer].resources[stolen]--;
+    giveRes(currentPlayer, stolen);
+  }
+  enterMainPhase();
+}
+
+function enterMainPhase() {
+  phase = 'main';
+  pendingAction = null;
+  // NOTE: do not reset devCardPlayedThisTurn here — that would defeat the
+  // one-card-per-turn guard when a Rover routes through moveDust. It is reset
+  // only at the start of a player's turn (endTurn / newGame / after roll).
+  setMessage(PLAYER_NAMES[currentPlayer] + ': build, trade, or end turn.');
+  render();
+  if (!isHuman(currentPlayer)) scheduleAI(aiMainPhase, aiDelay());
+}
+
+/* ===== BUILDING ===== */
+function startBuild(type) {
+  if (pendingAction === type) { pendingAction = null; render(); return; }
+  pendingAction = type;
+  if (type === 'habitat') setMessage('Click a valid intersection to build a habitat.');
+  else if (type === 'pipeline') setMessage('Click a valid edge to build a pipeline.');
+  else if (type === 'dome') setMessage('Click one of your habitats to upgrade to a dome.');
+  render();
+}
+
+/* ===== DEV CARDS ===== */
+function buyDevCard() {
+  if (!canAfford(currentPlayer, COST_DEV) || devDeck.length === 0) return;
+  payCost(currentPlayer, COST_DEV);
+  var card = devDeck.pop();
+  players[currentPlayer].devCards.push(card);
+  if (card === 'vp') checkWin();
+  setMessage('Drew a mission card.');
+  render();
+}
+
+function hasPlayableDevCard(p) {
+  for (var i = 0; i < players[p].devCards.length; i++) {
+    if (players[p].devCards[i] !== 'vp') return true;
+  }
+  return false;
+}
+
+function showDevCards() {
+  if (phase !== 'main') return; // must roll before playing dev cards
+  if (devCardPlayedThisTurn) return; // one dev card per turn
+  var cp = currentPlayer;
+  var cards = players[cp].devCards;
+  var playable = [];
+  for (var i = 0; i < cards.length; i++) {
+    if (cards[i] !== 'vp') playable.push(i);
+  }
+  if (playable.length === 0) return;
+  // Simple: play the first playable card
+  // For human, just play in order. Could add selection UI later.
+  var idx = playable[0];
+  playDevCard(cp, idx);
+}
+
+function playDevCard(p, cardIdx) {
+  var card = players[p].devCards[cardIdx];
+  players[p].devCards.splice(cardIdx, 1);
+  devCardPlayedThisTurn = true;
+
+  if (card === 'rover') {
+    players[p].roversPlayed++;
+    updateLargestFleet();
+    if (checkWin()) return;
+    pendingAction = 'moveDust';
+    phase = 'moveDust';
+    if (isHuman(p)) {
+      setMessage('Rover deployed! Move the Dust Storm.');
+      render();
+    } else {
+      aiMoveDust();
+    }
+  } else if (card === 'supply') {
+    // Take 2 resources — AI picks most needed, human gets random for simplicity
+    if (isHuman(p)) {
+      giveRes(p, RES_NAMES[Math.floor(Math.random() * 5)]);
+      giveRes(p, RES_NAMES[Math.floor(Math.random() * 5)]);
+      setMessage('Supply Drop! Received 2 resources.');
+    } else {
+      aiSupplyDrop(p);
+    }
+    render();
+  } else if (card === 'surge') {
+    // Build 2 free pipelines
+    if (isHuman(p)) {
+      setMessage('Pipeline Surge! Place 2 free pipelines.');
+      pendingAction = 'pipeline';
+      window._surgeLeft = 2;
+      render();
+    } else {
+      aiSurge(p);
+    }
+  } else if (card === 'monopoly') {
+    var best = RES_NAMES[0], bestCount = 0;
+    for (var r = 0; r < RES_NAMES.length; r++) {
+      var t = 0;
+      for (var op = 0; op < numPlayers; op++) {
+        if (op !== p) t += players[op].resources[RES_NAMES[r]];
+      }
+      if (t > bestCount) { bestCount = t; best = RES_NAMES[r]; }
+    }
+    for (var op = 0; op < numPlayers; op++) {
+      if (op !== p) {
+        giveRes(p, best, players[op].resources[best]);
+        players[op].resources[best] = 0;
+      }
+    }
+    setMessage('Monopoly on ' + best + '! Took ' + bestCount + '.');
+    render();
+  }
+}
+
+/* ===== TRADE ===== */
+function openTrade() {
+  var panel = document.getElementById('tradePanel');
+  var giveSelect = document.getElementById('tradeGive');
+  var getSelect = document.getElementById('tradeGet');
+  giveSelect.innerHTML = '';
+  getSelect.innerHTML = '';
+  for (var r = 0; r < RES_NAMES.length; r++) {
+    giveSelect.innerHTML += '<option value="' + RES_NAMES[r] + '">' + RES_NAMES[r] + ' (' + players[currentPlayer].resources[RES_NAMES[r]] + ')</option>';
+    getSelect.innerHTML += '<option value="' + RES_NAMES[r] + '">' + RES_NAMES[r] + '</option>';
+  }
+  updateTradeRatio();
+  giveSelect.onchange = updateTradeRatio;
+  panel.classList.add('show');
+}
+function updateTradeRatio() {
+  var res = document.getElementById('tradeGive').value;
+  var ratio = tradeRatio(currentPlayer, res);
+  document.getElementById('tradeRatio').textContent = ratio + ':1';
+}
+function closeTrade() { document.getElementById('tradePanel').classList.remove('show'); }
+function executeTrade() {
+  var giveRes = document.getElementById('tradeGive').value;
+  var getRes = document.getElementById('tradeGet').value;
+  if (giveRes === getRes) { setMessage('Can\'t trade same resource.'); return; }
+  var ratio = tradeRatio(currentPlayer, giveRes);
+  if (players[currentPlayer].resources[giveRes] < ratio) {
+    setMessage('Not enough ' + giveRes + ' (need ' + ratio + ').');
+    return;
+  }
+  players[currentPlayer].resources[giveRes] -= ratio;
+  players[currentPlayer].resources[getRes]++;
+  setMessage('Traded ' + ratio + ' ' + giveRes + ' for 1 ' + getRes + '.');
+  closeTrade();
+  render();
+}
+
+/* ===== END TURN ===== */
+function endTurn() {
+  if (phase !== 'main') return;
+  pendingAction = null;
+  currentPlayer = (currentPlayer + 1) % numPlayers;
+  phase = 'roll';
+  devCardPlayedThisTurn = false;
+  window._surgeLeft = 0;
+  document.getElementById('diceArea').innerHTML = '';
+  setMessage(PLAYER_NAMES[currentPlayer] + ': roll the dice.');
+  render();
+  if (!isHuman(currentPlayer)) scheduleAI(aiTurn, aiDelay());
+}
+
+/* ===== WIN CHECK ===== */
+function checkWin() {
+  for (var p = 0; p < numPlayers; p++) {
+    if (calcVP(p) >= 10) {
+      gameOver = true;
+      phase = 'gameOver';
+      document.getElementById('overlay-title').textContent = PLAYER_NAMES[p] + ' Wins!';
+      document.getElementById('overlay-text').textContent = calcVP(p) + ' Victory Points';
+      document.getElementById('overlay').classList.add('show');
+      render();
+      return true;
+    }
+  }
+  return false;
+}
+
+/* ===== AI ===== */
+function aiSetup() {
+  if (isHuman(currentPlayer)) return;
+  if (setupStep === 'habitat') {
+    var valid = validHabitatVertices(currentPlayer, true);
+    if (valid.length === 0) { advanceSetup(); return; }
+    // Score vertices by resource diversity and number probability
+    var probMap = { 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1 };
+    var best = -1, bestScore = -1;
+    for (var i = 0; i < valid.length; i++) {
+      var score = 0;
+      var types = {};
+      for (var a = 0; a < vertices[valid[i]].adjHexes.length; a++) {
+        var h = hexes[vertices[valid[i]].adjHexes[a]];
+        var res = TERRAIN_RES[h.terrain];
+        if (res) {
+          score += (probMap[h.number] || 0);
+          if (!types[res]) { types[res] = true; score += 2; }
+        }
+      }
+      if (vertices[valid[i]].port) score += 3;
+      if (score > bestScore) { bestScore = score; best = valid[i]; }
+    }
+    if (best >= 0) placeHabitat(best);
+  } else if (setupStep === 'pipeline') {
+    var valid = validPipelineEdges(currentPlayer, true, setupLastVertex);
+    if (valid.length === 0) { advanceSetup(); return; }
+    placePipeline(valid[Math.floor(Math.random() * valid.length)]);
+  }
+}
+
+function aiTurn() {
+  if (isHuman(currentPlayer) || gameOver) return;
+  // Roll
+  rollDice();
+  // After roll, AI main phase is scheduled if needed
+}
+
+function aiMainPhase() {
+  if (isHuman(currentPlayer) || gameOver || phase !== 'main') return;
+  var cp = currentPlayer;
+
+  // Try to build dome
+  if (canAfford(cp, COST_DOME) && validDomeVertices(cp).length > 0) {
+    var verts = validDomeVertices(cp);
+    placeDome(verts[0]);
+    if (gameOver) return;
+    scheduleAI(aiMainPhase, aiDelay(300));
+    return;
+  }
+
+  // Try to build habitat
+  if (canAfford(cp, COST_HABITAT)) {
+    var verts = validHabitatVertices(cp, false);
+    if (verts.length > 0) {
+      var probMap = { 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1 };
+      var best = verts[0], bestScore = -1;
+      for (var i = 0; i < verts.length; i++) {
+        var score = 0;
+        for (var a = 0; a < vertices[verts[i]].adjHexes.length; a++) {
+          score += (probMap[hexes[vertices[verts[i]].adjHexes[a]].number] || 0);
+        }
+        if (score > bestScore) { bestScore = score; best = verts[i]; }
+      }
+      // placeHabitat pays cost for non-setup phases; no pre-pay needed.
+      placeHabitat(best);
+      if (gameOver) return;
+      scheduleAI(aiMainPhase, aiDelay(300));
+      return;
+    }
+  }
+
+  // Try to build pipeline
+  if (canAfford(cp, COST_PIPELINE)) {
+    var edgeList = validPipelineEdges(cp, false);
+    if (edgeList.length > 0) {
+      // placePipeline pays cost for non-setup phases; no pre-pay needed.
+      placePipeline(edgeList[Math.floor(Math.random() * edgeList.length)]);
+      if (gameOver) return;
+      scheduleAI(aiMainPhase, aiDelay(300));
+      return;
+    }
+  }
+
+  // Try to buy dev card
+  if (canAfford(cp, COST_DEV) && devDeck.length > 0) {
+    buyDevCard();
+    if (gameOver) return;
+    // Play rover if we have one
+    for (var i = 0; i < players[cp].devCards.length; i++) {
+      if (players[cp].devCards[i] === 'rover' && !devCardPlayedThisTurn) {
+        playDevCard(cp, i);
+        return; // moveDust flow will continue
+      }
+    }
+  }
+
+  // Try to trade for something useful
+  aiTrade(cp);
+
+  endTurn();
+}
+
+function aiTrade(p) {
+  // Try to complete a habitat build via bank trade
+  var needs = [
+    { res: 'Iron', cost: COST_HABITAT },
+    { res: 'Solar', cost: COST_HABITAT },
+    { res: 'Biomass', cost: COST_HABITAT },
+    { res: 'Water', cost: COST_HABITAT }
+  ];
+  for (var n = 0; n < needs.length; n++) {
+    var needed = needs[n].res;
+    if (players[p].resources[needed] >= 1) continue;
+    // Find a resource we have enough to trade
+    for (var r = 0; r < RES_NAMES.length; r++) {
+      if (RES_NAMES[r] === needed) continue;
+      var ratio = tradeRatio(p, RES_NAMES[r]);
+      if (players[p].resources[RES_NAMES[r]] >= ratio + 1) { // keep 1 extra
+        players[p].resources[RES_NAMES[r]] -= ratio;
+        players[p].resources[needed]++;
+        return;
+      }
+    }
+  }
+}
+
+function aiMoveDust() {
+  // Move dust to hex that hurts opponents most
+  var best = -1, bestScore = -1;
+  for (var h = 0; h < hexes.length; h++) {
+    if (hexes[h].terrain === 'Crater') continue;
+    var score = 0;
+    for (var vi = 0; vi < vertices.length; vi++) {
+      if (!vertices[vi].building) continue;
+      if (vertices[vi].adjHexes.indexOf(h) < 0) continue;
+      if (vertices[vi].building.player !== currentPlayer) score += 3;
+      else score -= 5;
+    }
+    if (score > bestScore) { bestScore = score; best = h; }
+  }
+  if (best >= 0) placeDust(best);
+  else placeDust(dustHex >= 0 ? dustHex : 0);
+}
+
+function aiSupplyDrop(p) {
+  // Pick 2 resources we need most
+  var most = Object.keys(COST_HABITAT);
+  for (var i = 0; i < 2; i++) {
+    var lowest = most[0], lowestAmt = players[p].resources[most[0]];
+    for (var j = 1; j < most.length; j++) {
+      if (players[p].resources[most[j]] < lowestAmt) {
+        lowestAmt = players[p].resources[most[j]];
+        lowest = most[j];
+      }
+    }
+    giveRes(p, lowest);
+  }
+}
+
+function aiSurge(p) {
+  for (var i = 0; i < 2; i++) {
+    var edgeList = validPipelineEdges(p, false);
+    if (edgeList.length === 0) break;
+    edges[edgeList[0]].pipeline = { player: p };
+    players[p].pipelines++;
+  }
+  updateLongestRoad();
+  pendingAction = null;
+  render();
+}
+
+/* ===== SURGE HANDLING FOR HUMAN ===== */
+var _origPlacePipeline = placePipeline;
+placePipeline = function(ei) {
+  if (window._surgeLeft && window._surgeLeft > 0) {
+    edges[ei].pipeline = { player: currentPlayer };
+    players[currentPlayer].pipelines++;
+    window._surgeLeft--;
+    updateLongestRoad();
+    if (window._surgeLeft > 0) {
+      setMessage('Pipeline Surge: place 1 more pipeline.');
+      render();
+    } else {
+      window._surgeLeft = 0;
+      pendingAction = null;
+      setMessage(PLAYER_NAMES[currentPlayer] + ': build, trade, or end turn.');
+      checkWin();
+      render();
+    }
+    return;
+  }
+  _origPlacePipeline(ei);
+};
+
+/* ===== HELPERS ===== */
+function setMessage(msg) { document.getElementById('message').textContent = msg; }
+function setPlayerCount(n) {
+  numPlayers = n;
+  var btns = document.querySelectorAll('#countSelector .mode-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+  btns[n - 2].classList.add('active');
+  while (playerTypes.length < n) playerTypes.push('ai');
+  playerTypes = playerTypes.slice(0, n);
+  renderPlayerTypes();
+  newGame();
+}
+
+function setPlayerType(idx, type) {
+  playerTypes[idx] = type;
+  renderPlayerTypes();
+  newGame();
+}
+
+function renderPlayerTypes() {
+  var sel = document.getElementById('playerTypeSelector');
+  sel.innerHTML = '';
+  for (var i = 0; i < numPlayers; i++) {
+    var box = document.createElement('div');
+    box.className = 'pt-box';
+    box.innerHTML = '<span class="pt-label" style="color:' + PLAYER_COLORS[i] + '">' + PLAYER_NAMES[i] + '</span>';
+    var hBtn = document.createElement('button');
+    hBtn.textContent = 'H';
+    hBtn.className = playerTypes[i] === 'human' ? 'active' : '';
+    hBtn.onclick = (function(idx) { return function() { setPlayerType(idx, 'human'); }; })(i);
+    var aBtn = document.createElement('button');
+    aBtn.textContent = 'AI';
+    aBtn.className = playerTypes[i] === 'ai' ? 'active' : '';
+    aBtn.onclick = (function(idx) { return function() { setPlayerType(idx, 'ai'); }; })(i);
+    box.appendChild(hBtn);
+    box.appendChild(aBtn);
+    sel.appendChild(box);
+  }
+}
+
+renderPlayerTypes();
+newGame();
+</script>
+<script src="/analytics.js"></script>
+<section class="seo-content">
+  <h2>About Aresia</h2>
+  <p>Aresia is an original Mars-themed strategy game in the Catan tradition. Build habitats, domes, and pipelines across a 19-hex Martian surface, collect resources when the dice favor your network, play mission cards, and race to 10 Victory Points. Turn-based for 2 to 6 players, with a built-in AI for any empty seat.</p>
+
+  <h3>How to play</h3>
+  <p>On your turn, roll two dice — every hex matching the roll produces its resource for adjacent habitats (1 each) and domes (2 each). Spend resources to build habitats (1 VP), upgrade them into domes (2 VP), lay pipelines to extend your network, or buy mission cards. Trade surplus at the bank (4:1) or at launch-pad ports (3:1 or 2:1). Roll a 7 to unleash the Dust Storm, forcing over-stocked players to discard and letting you steal from a neighbor. First colonist to 10 Victory Points wins.</p>
+
+  <h3>Frequently asked questions</h3>
+  <details><summary>How do I win Aresia?</summary><p>Be the first to reach 10 Victory Points. Points come from Habitats (1 each), Domes (2 each), Hidden VP mission cards, plus 2 VP each for the Longest Pipeline (5+ segments) and the Largest Fleet (3+ rovers).</p></details>
+  <details><summary>How do I collect resources?</summary><p>Roll two dice each turn; hexes matching the total produce their resource for all adjacent habitats and domes (a dome collects double). Trade what you don't need at the bank or at ports for better ratios.</p></details>
+  <details><summary>What happens when someone rolls a 7?</summary><p>A 7 triggers the Dust Storm. Anyone holding more than 7 resources discards half, and the active player moves the storm to any hex, steals a resource from an adjacent player, and halts that hex's production until the storm moves.</p></details>
+  <details><summary>What's the player count?</summary><p>Aresia supports 2 to 6 players. Any seat can be run by the built-in AI, so you can play solo or fill out a larger table.</p></details>
+
+  <h3>Related games</h3>
+  <ul>
+    <li><a href="/convergence">Convergence</a> — rival civilizations strategy.</li>
+    <li><a href="/doctrine">Doctrine</a> — geopolitical sim.</li>
+    <li><a href="/apoapsis">Apoapsis</a> — 3D rocket flight.</li>
+    <li><a href="/biosphereblue">BiosphereBlue</a> — planet-scale geosim.</li>
+  </ul>
+</section>
+
+<script src="/nav.js" defer></script>
+</body>
+</html>

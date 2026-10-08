@@ -1,5 +1,5 @@
 # WebGameHub - robots.txt
-# https://game.suipce.com
+# https://suipce.com
 
 User-agent: *
 Allow: /
@@ -20,9 +20,8 @@ Disallow: /.git/
 Disallow: /.github/
 Disallow: /docs/
 
-# 站点地图
-Sitemap: https://game.suipce.com/sitemap.xml
-Sitemap: https://game.suipce.com/sitemap-games.xml
+# 站点地图（仅保留一个）
+Sitemap: https://suipce.com/sitemap.xml
 
 # 抓取延迟（秒）
 Crawl-delay: 1

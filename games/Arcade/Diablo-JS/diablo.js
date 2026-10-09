@@ -2075,8 +2075,8 @@ function pickHero(cls){
 function shareVictory(){
     var elapsed=Math.round(performance.now()/1000-gameStartTime);
     var mm=Math.floor(elapsed/60), ss=elapsed%60;
-    var text=(nightmare?'[NIGHTMARE] ':'')+T('shareText')+' '+T('kills')+': '+kills+' | '+T('level')+'.'+hero.heroLevel+' | '+T('time')+': '+mm+'m'+ss+'s | '+T('gold')+': '+hero.coins+' | https://game.suipce.com/games/Arcade/Diablo-JS/';
-    if(navigator.share){ navigator.share({title:T('shareTitle'),text:text,url:'https://game.suipce.com/games/Arcade/Diablo-JS/'}).catch(function(){}); }
+    var text=(nightmare?'[NIGHTMARE] ':'')+T('shareText')+' '+T('kills')+': '+kills+' | '+T('level')+'.'+hero.heroLevel+' | '+T('time')+': '+mm+'m'+ss+'s | '+T('gold')+': '+hero.coins+' | https://suipce.com/games/Arcade/Diablo-JS/';
+    if(navigator.share){ navigator.share({title:T('shareTitle'),text:text,url:'https://suipce.com/games/Arcade/Diablo-JS/'}).catch(function(){}); }
     else if(navigator.clipboard){ navigator.clipboard.writeText(text).then(function(){ alert(T('shareCopied')); }).catch(function(){ prompt(T('shareCopy'),text); }); }
     else { prompt('Copy to share:',text); }
 }

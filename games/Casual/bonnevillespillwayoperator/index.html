@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="theme-color" content="#0c1016">
-<title>Bonneville Spillway Operator — Columbia River Dam Sim | Board Gaming Hub</title>
+<title>Bonneville Spillway Operator — Columbia River Dam Sim | AIGameHub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Operate the Bonneville Dam: balance grid load, wind, salmon runs, TDG limits, and lockages. Free in-browser dam-operator simulation, single HTML file.">
-<link rel="canonical" href="https://boardgaminghub.com/bonnevillespillwayoperator">
+<link rel="canonical" href="https://suipce.com/games/Casual/bonnevillespillwayoperator/">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://boardgaminghub.com/bonnevillespillwayoperator">
+<meta property="og:url" content="https://suipce.com/games/Casual/bonnevillespillwayoperator/">
 <meta property="og:title" content="Bonneville Spillway Operator">
 <meta property="og:description" content="Free Columbia River dam-operator sim — balance grid, wind, salmon, TDG, lockages.">
-<meta property="og:image" content="https://boardgaminghub.com/og/bonneville.png">
+<meta property="og:image" content="https://suipce.com/games/Casual/bonnevillespillwayoperator/preview.webp">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://boardgaminghub.com/og/bonneville.png">
+<meta name="twitter:image" content="https://suipce.com/games/Casual/bonnevillespillwayoperator/preview.webp">
 <script type="application/ld+json">
 { "@context": "https://schema.org", "@type": "VideoGame", "name": "Bonneville Spillway Operator",
   "description": "Columbia River dam-operator simulation balancing electrical grid demand, wind generation, salmon migration, total dissolved gas, and navigation lockages.",
-  "url": "https://boardgaminghub.com/bonnevillespillwayoperator", "genre": "Simulation",
+  "url": "https://suipce.com/games/Casual/bonnevillespillwayoperator/", "genre": "Simulation",
   "applicationCategory": "Game", "operatingSystem": "Any",
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" } }
 </script>
@@ -137,7 +137,7 @@
   #overlay .scorebox .v { color: var(--ink); font-weight: bold; }
   #overlay .final { font-size: 16px; color: var(--accent); margin-top: 14px; padding-top: 10px; border-top: 1px solid #2a3640; }
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Board Gaming Hub","item":"https://boardgaminghub.com/"},{"@type":"ListItem","position":2,"name":"Simulations","item":"https://boardgaminghub.com/#sims"},{"@type":"ListItem","position":3,"name":"Bonneville Spillway Operator","item":"https://boardgaminghub.com/bonnevillespillwayoperator"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"AIGameHub","item":"https://suipce.com/"},{"@type":"ListItem","position": 2, "name": "Casual Games", "item": "https://suipce.com/#directory"},{"@type":"ListItem","position":3,"name":"Bonneville Spillway Operator","item":"https://suipce.com/games/Casual/bonnevillespillwayoperator/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is this based on the real Bonneville Dam?","acceptedAnswer":{"@type":"Answer","text":"Stylized after the real Bonneville Dam on the Columbia River (Cascade Locks, OR). Reservoir geometry, turbine count, and spillway capacity follow public USACE data; tradeoffs between objectives are real-world."}},{"@type":"Question","name":"What's the toughest scenario?","acceptedAnswer":{"@type":"Answer","text":"Spring snowmelt with high salmon-run flow requirements: high inflow forces spill, but the regulatory floor for fish passage limits spillway openings. Dam managers face this every May–June."}},{"@type":"Question","name":"Are there career mode wins?","acceptedAnswer":{"@type":"Answer","text":"Ten-year campaign awards a \"career bronze/silver/gold\" based on aggregate performance. Going golden requires anticipating inflow uncertainty rather than reacting."}},{"@type":"Question","name":"Can I cause a dam failure?","acceptedAnswer":{"@type":"Answer","text":"Soft-fail only — overtopping or spillway overload triggers a critical penalty and ends the campaign. The model does not simulate physical breach."}}]}</script>
 <style>
 /* ===== MOBILE OVERFLOW FIX ===== */
@@ -742,7 +742,7 @@ const PLANT_STATE = {
 // a visual 71-78 range for all dams so the renderer works unchanged; real
 // head / scale is represented via PLANT.headMultiplier and nameplateMW.
 // =========================================================================
-// Demo build flag — public web build at boardgaminghub.com ships with
+// Demo build flag — public web build at suipce.com ships with
 // DEMO_BUILD = true and only the Bonneville preset. Full Tauri build flips
 // this to false to unlock Mill Creek, Grand Coulee, Hoover, and Three Gorges.
 const DEMO_BUILD = true;
@@ -3118,7 +3118,7 @@ requestAnimationFrame(loop);
 
   <p>This is an operations model, not a CFD or fisheries-population model: the pool is treated as a single well-mixed volume, tailwater and TDG use algebraic rating relations rather than routed hydraulics, and salmon are a flow-and-gas response curve rather than individual agents. It is calibrated to give the real tradeoffs — spill for fish attraction versus TDG kill, turbine flow for revenue versus pool drawdown — not certified numbers.</p>
 
-  <p style="margin-top:18px;color:#8098a8;font-size:0.95em;line-height:1.6;">Built by a practicing dam-safety and hydraulics engineer. For the real calculators behind spillway and outlet hydraulics, see the free <a href="https://pe-calc.com/tools/v-notch-weir.html?utm_source=boardgaminghub&amp;utm_medium=sim-model&amp;utm_campaign=bonneville" target="_blank" rel="noopener">weir, orifice &amp; open-channel tools at pe-calc.com</a>, or <a href="https://hydrocomplete.com/?utm_source=boardgaminghub&amp;utm_medium=sim-model&amp;utm_campaign=bonneville" target="_blank" rel="noopener">HydroComplete</a> for stormwater design software. For what happens downstream if a dam fails, <a href="https://floodtruth.com/?utm_source=boardgaminghub&amp;utm_medium=sim-model&amp;utm_campaign=bonneville" target="_blank" rel="noopener">FloodTruth</a> shows the inundation zone on site in augmented reality.</p>
+  <p style="margin-top:18px;color:#8098a8;font-size:0.95em;line-height:1.6;">Built by a practicing dam-safety and hydraulics engineer. For the real calculators behind spillway and outlet hydraulics, see the free <a href="https://pe-calc.com/tools/v-notch-weir.html?utm_source=aigamehub&amp;utm_medium=sim-model&amp;utm_campaign=bonneville" target="_blank" rel="noopener">weir, orifice &amp; open-channel tools at pe-calc.com</a>, or <a href="https://hydrocomplete.com/?utm_source=aigamehub&amp;utm_medium=sim-model&amp;utm_campaign=bonneville" target="_blank" rel="noopener">HydroComplete</a> for stormwater design software. For what happens downstream if a dam fails, <a href="https://floodtruth.com/?utm_source=aigamehub&amp;utm_medium=sim-model&amp;utm_campaign=bonneville" target="_blank" rel="noopener">FloodTruth</a> shows the inundation zone on site in augmented reality.</p>
 
   <h3>Related games</h3>
   <ul>

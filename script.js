@@ -402,7 +402,7 @@ const gamesData ={
         { name: '永恒荒野', path: 'games/Casual/eternal-wilderness/index.html', preview: 'games/Casual/eternal-wilderness/preview.webp', icon: '🎮', desc: '投稿中的《饥荒》复刻网页生存与策略游戏；截图展示了森林探索、物资收集、背包，以及生命、饱食与理智状态。' },
         { name: '潜水员戴夫复刻', path: 'games/Casual/dave-the-diver/index.html', preview: 'games/Casual/dave-the-diver/preview.webp', icon: '🎮', desc: '《潜水员戴夫》的浏览器复刻，将水下鱼叉捕鱼、寿司店经营与海岛种植结合在一起。' },
         { name: 'No Moat', path: 'games/Casual/no-moat/index.html', preview: 'games/Casual/no-moat/preview.webp', icon: '🎮', desc: '创业题材的肉鸽卡牌游戏：招募团队，打出卡牌应对抄袭者、程序错误和云服务账单。' },
-        { name: 'The Free Game', path: 'games/Casual/the-free-game-2/index.html', preview: 'games/Casual/the-free-game-2/preview.webp', icon: '🎮', desc: '修路、培养工人、搭建生产链，在细致的 3D 中世纪村庄里经营建设。' },
+        { name: 'The Free Game', path: 'games/Casual/the-free-game-web/index.html', preview: 'games/Casual/the-free-game-web/preview.webp', icon: '🎮', desc: '修路、培养工人、搭建生产链，在细致的 3D 中世纪村庄里经营建设。' },
         { name: 'AGI of Empires', path: 'games/Casual/agi-of-empires/index.html', preview: 'games/Casual/agi-of-empires/preview.webp', icon: '🎮', desc: '收集资金与 GPU，建造数据中心和军队，抢先完成 ASI 研究或摧毁其他 AI 实验室的总部。' },
         { name: 'Atlas Go', path: 'games/Casual/atlas-go/index.html', preview: 'games/Casual/atlas-go/preview.webp', icon: '🎮', desc: '在城市街道网络和特殊图形棋盘上对弈围棋，支持本地轮流操作并提供好友对局入口。' },
         { name: 'Ironwood', path: 'games/Casual/ironwood/index.html', preview: 'games/Casual/ironwood/preview.webp', icon: '🎮', desc: '采集原料，为机器供能并连接传送带，将林间空地发展成持续运转的工厂。' },

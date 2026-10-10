@@ -34,6 +34,14 @@ const TRANSLATIONS = {
             "subtitle_pre": "全部 ",
             "subtitle_post": " 款游戏均可直接试玩，分类筛选、即时搜索，找到即玩。"
         },
+        "fresh": {
+            "eyebrow": "每日上新",
+            "today_title": "今日精选",
+            "today_subtitle": "每天轮换一批作品，天天都有新发现",
+            "new_eyebrow": "最新收录",
+            "new_title": "最新上架",
+            "new_subtitle": "持续同步开源社区，最近上架的游戏都在这里"
+        },
         "tags": {
             "eyebrow": "标签云",
             "title": "玩法标签云",
@@ -80,6 +88,7 @@ const TRANSLATIONS = {
             "play": "开始试玩",
             "load_more": "加载更多",
             "loading": "加载中...",
+            "shuffle": "换一批",
             "2048": "2048",
             "2048_desc": "经典数字合并益智游戏",
             "Jigsaw Puzzle": "拼图挑战",
@@ -265,6 +274,14 @@ const TRANSLATIONS = {
             "subtitle_pre": "All ",
             "subtitle_post": " games are instantly playable — filter by category, search by keyword, click and play."
         },
+        "fresh": {
+            "eyebrow": "Daily Drops",
+            "today_title": "Picks of the Day",
+            "today_subtitle": "A fresh batch of games rotated every day — something new each visit",
+            "new_eyebrow": "Just Added",
+            "new_title": "New Arrivals",
+            "new_subtitle": "Continuously synced from the open-source community — the latest games land here"
+        },
         "tags": {
             "eyebrow": "Tags",
             "title": "Play-Style Tags",
@@ -311,6 +328,7 @@ const TRANSLATIONS = {
             "play": "Play Now",
             "load_more": "Load More",
             "loading": "Loading...",
+            "shuffle": "Shuffle",
             "2048": "2048",
             "2048_desc": "Classic number merging puzzle game",
             "Jigsaw Puzzle": "Jigsaw Puzzle",

@@ -695,6 +695,7 @@ function initializeApp() {
 
     renderTagCloud();
     fillCounts();
+    renderHeroArt();
     renderTodayPicks();
     renderNewArrivals();
     renderGames();
@@ -833,6 +834,23 @@ function seededShuffle(arr, seed) {
 function todaySeed() {
     const d = new Date();
     return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+// Hero 展示位：与今日精选同一种子，每天轮换展示第一款有封面的作品
+function renderHeroArt() {
+    const art = document.querySelector('.hero-art');
+    if (!art) return;
+    const pick = seededShuffle(allGames, todaySeed()).find(g => g.preview);
+    if (!pick) return;
+    const localizedName = window.i18n?.t(`games.${pick.name}`) || pick.name;
+    const localizedCategory = getCategoryName(pick.category);
+    art.href = pick.path;
+    const img = art.querySelector('.hero-art-img');
+    if (img) { img.src = pick.preview; img.alt = localizedName; }
+    const chipCat = art.querySelector('.chip-cat');
+    if (chipCat) { chipCat.removeAttribute('data-i18n'); chipCat.textContent = localizedCategory; }
+    const chipName = art.querySelector('.chip-name');
+    if (chipName) chipName.textContent = '· ' + localizedName;
 }
 
 // 今日精选：以日期为种子从全部作品轮换 8 款，每天不同、当天稳定

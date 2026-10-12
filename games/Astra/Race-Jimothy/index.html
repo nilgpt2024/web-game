@@ -14,4 +14,35 @@
 <div class="studio"><div class="canvas-top"><span>DRAW ANYTHING</span><span id="stroke-status">A blank canvas. Endless possibilities.</span></div><div class="paper"><canvas id="drawing" width="900" height="460" aria-label="Draw anything here with a mouse, stylus or finger"></canvas><div id="hint"><span class="hint-pencil">✎</span><p>What can beat a raccoon?</p><span>Draw it. Find out.</span></div></div><div class="toolbar"><div id="palette" role="group" aria-label="Pen colors"></div><div class="tools"><button id="undo" class="tool" aria-label="Undo last stroke">↶ <span>Undo</span></button><button id="clear" class="tool" aria-label="Clear drawing">⌫ <span>Clear</span></button></div></div></div>
 <div class="draw-bottom"><div><label for="name">YOUR CHALLENGER</label><input id="name" maxlength="24" placeholder="Untitled masterpiece" value="My masterpiece"></div><div class="ready"><p id="message" role="status">No rules. Just draw something.</p><button id="race-button" class="primary">Challenge Jimothy <span>→</span></button></div></div><button id="sample" class="quiet sample">Need a start? Try a doodle.</button></section>
 <section id="race-screen" hidden aria-labelledby="race-title"><div class="race-nav"><button id="back" class="quiet">← Edit doodle</button><span class="pill">DUEL / 30 M</span></div><div class="race-heading"><p class="eyebrow" id="race-status">READY WHEN YOU ARE</p><h1 id="race-title">A masterpiece.<br>A worthy opponent.</h1></div><div class="scoreboard"><div><span class="player-dot blue"></span><b id="player-name">Your doodle</b><span id="player-progress">0 m</span></div><span class="versus">VS</span><div><span class="player-dot orange"></span><b>Jimothy</b><span id="jim-progress">0 m</span></div></div><div class="race-stage"><div class="camera-label"><span></span> FOLLOW CAM</div><canvas id="track" width="1000" height="700" aria-label="A moving perspective camera following your doodle and Jimothy along a two-lane track"></canvas><div id="countdown" aria-live="assertive"></div></div><div id="race-actions"><button id="start" class="primary">Let’s race <span>→</span></button><p id="race-note">One doodle. One raccoon. One finish line.</p></div><div id="results" hidden aria-live="polite"><h2 id="result-title"></h2><p id="result-copy"></p><ol id="rankings"></ol><div class="result-actions"><button id="again" class="primary">Race again</button><button id="edit" class="secondary">Edit my drawing</button><button id="share" class="secondary">Share on X ↗</button></div></div></section>
-<footer><span>DRAW. DUEL. DO IT AGAIN.</span><span>Fan-made, for fun.</span></footer></main></div><script type="module" src="game.js?v=7"></script></body></html>
+<footer><span>DRAW. DUEL. DO IT AGAIN.</span><span>Fan-made, for fun.</span></footer></main></div><script type="module" src="game.js?v=7"></script>
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>Race Jimothy</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">画画赛车：和浣熊比赛</div>
+<div class="cn-guide-tip">💡 本作品为 AI 生成的交互体验，用鼠标/触屏点击、拖动或滚轮探索画面中的元素。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body></html>

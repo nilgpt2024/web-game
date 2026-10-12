@@ -78,6 +78,11 @@ const TRANSLATIONS = {
                 "casual": "休闲娱乐",
                 "genart": "生成艺术"
             },
+            "lang": {
+                "no_need": "无需英文",
+                "little": "少量英文",
+                "text": "需阅读英文"
+            },
             "empty": {
                 "title": "未找到游戏",
                 "description": "试试其他关键词或分类"
@@ -317,6 +322,11 @@ const TRANSLATIONS = {
                 "typing": "Typing",
                 "casual": "Casual",
                 "genart": "Generative Art"
+            },
+            "lang": {
+                "no_need": "No English needed",
+                "little": "Little English",
+                "text": "English text"
             },
             "empty": {
                 "title": "No games found",

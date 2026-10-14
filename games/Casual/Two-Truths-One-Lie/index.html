@@ -7,7 +7,7 @@
     <meta name="keywords" content="two truths and a lie, party game, online game, AI game, trivia, lie detector, browser game, free game">
     <meta name="author" content="Claude Opus 4.6 prompted by Tobias Müller">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://www.gptgames.dev/games/two_truths_one_lie.html">
+    <link rel="canonical" href="https://suipce.com/games/Casual/Two-Truths-One-Lie/">
     <meta property="og:title" content="Play Two Truths & a Lie Online - Free Casual Game | AIGameHub">
     <meta property="og:description" content="Can you spot the lie? AI generates 2 truths and 1 lie on any topic. Test your instincts across 10 rounds with easy, medium, and hard difficulty.">
     <meta property="og:type" content="website">
@@ -893,87 +893,4 @@
     function fireConfetti() {
         const cv = $('confetti'), ctx = cv.getContext('2d');
         cv.width = window.innerWidth;
-        cv.height = window.innerHeight;
-        const particles = [];
-        const colors = ['#7c5cfc', '#a78bfa', '#22c55e', '#f59e0b', '#ef4444', '#06b6d4'];
-        for (let i = 0; i < 120; i++) particles.push({
-            x: cv.width / 2,
-            y: cv.height / 2,
-            vx: (Math.random() - .5) * 16,
-            vy: Math.random() * -14 - 4,
-            size: Math.random() * 6 + 3,
-            color: colors[Math.floor(Math.random() * colors.length)],
-            life: 1,
-            gravity: .15,
-            drag: .99
-        });
-
-        function draw() {
-            ctx.clearRect(0, 0, cv.width, cv.height);
-            let alive = false;
-            particles.forEach(p => {
-                if (p.life <= 0) return;
-                alive = true;
-                p.vy += p.gravity;
-                p.vx *= p.drag;
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= .008;
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, p.size, p.size);
-                ctx.globalAlpha = 1
-            });
-            if (alive) requestAnimationFrame(draw)
-        }
-
-        draw()
-    }
-
-    $('startBtn').onclick = startGame;
-    $('confirmBtn').onclick = confirm;
-    $('nextBtn').onclick = nextRound;
-    $('playAgainBtn').onclick = () => showScreen('setupScreen');
-    $('topic').onkeydown = e => {
-        if (e.key === 'Enter') startGame()
-    };
-    document.addEventListener('keydown', e => {
-        if (!state.accepting) return;
-        if (e.key >= '1' && e.key <= '3') selectStatement(parseInt(e.key) - 1);
-        if (e.key === 'Enter' && state.selected !== null && !state.revealed) confirm()
-    });
-</script>
-
-
-
-
-
-<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
-<style>
-.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
-.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
-.cn-guide-panel.open{display:block}
-.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
-.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
-.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
-.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
-.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
-.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
-.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
-.cn-guide-close:hover{color:#fff}
-</style>
-<div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
-<h4>两真一假</h4>
-<div class="cn-guide-lang">🟡 仅少量英文（菜单/按钮），基本不影响游玩</div>
-<div class="cn-guide-desc">AI生成·猜谎游戏</div>
-<div class="cn-guide-tip">💡 以点击、拖拽或简单按键为主，跟随画面提示操作即可上手。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
-</div>
-</div>
-<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
-
-</body>
-</html>
+        c

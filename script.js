@@ -627,6 +627,13 @@ let currentPage = 1;
 let filteredGames = [];
 let isLoading = false;
 
+// 游戏卡片链接：统一使用无扩展名带斜杠 URL（games/xxx/），避免 Cloudflare Pages 对
+// games/xxx/index.html 的 308 重定向被 Google 记为"自动重定向失败"
+function gameHref(path) {
+    if (typeof path !== 'string') return path;
+    return path.replace(/\/index\.html$/i, '/');
+}
+
 // 玩法标签云：关键词必须能在真实 desc/name 文本中命中，点击标签即按该关键词搜索
 const TAG_KEYWORDS = [
     { label: 'AI 生成', kw: '生成' },
@@ -844,7 +851,7 @@ function renderHeroArt() {
     if (!pick) return;
     const localizedName = window.i18n?.t(`games.${pick.name}`) || pick.name;
     const localizedCategory = getCategoryName(pick.category);
-    art.href = pick.path;
+    art.href = gameHref(pick.path);
     const img = art.querySelector('.hero-art-img');
     if (img) { img.src = pick.preview; img.alt = localizedName; }
     const chipCat = art.querySelector('.chip-cat');
@@ -1000,7 +1007,7 @@ function loadMoreGames() {
 function createGameCard(game, index) {
     const card = document.createElement('a');
     card.className = 'game-card';
-    card.href = game.path;
+    card.href = gameHref(game.path);
     card.target = '_blank';
     card.rel = 'noopener noreferrer';
     card.dataset.category = game.category;

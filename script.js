@@ -1105,6 +1105,8 @@ function getEnSubtitle(game, localizedName, localizedCategory) {
 
 function bindEvents() {
     document.querySelectorAll('.filter-btn').forEach(btn => {
+        // 跳过"换一批"等非分类按钮（无 data-category）；否则点击会触发 renderGames(undefined) 重置回全部列表
+        if (!btn.dataset.category) return;
         btn.addEventListener('click', () => {
             document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('active');

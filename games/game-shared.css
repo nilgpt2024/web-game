@@ -107,7 +107,9 @@
 /* 游戏页 body 常用 display:flex 居中游戏卡片；允许换行，使内容区能另起一行。 */
 body { flex-wrap: wrap; }
 /* 全屏游戏常设 body overflow:hidden、height:100%，会导致内容区不可见。
-   对含内容区的页面开放滚动，并让全屏容器占一屏，内容区在其下方滚动可见。 */
+   对含内容区的页面开放滚动，并让全屏容器占一屏，内容区在其下方滚动可见。
+   个别引擎页（如 Quake 移植 FPS）把 html 也设为 overflow:hidden，需一并放开。 */
+html:has(.game-info-section),
 body:has(.game-info-section) {
     overflow: visible !important;
     height: auto !important;

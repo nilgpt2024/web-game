@@ -102,3 +102,129 @@
 .back-btn i {
     font-size: 12px;
 }
+
+/* ===== 游戏页 SEO 内容区（介绍/玩法/操作/特色/技巧/FAQ） ===== */
+/* 游戏页 body 常用 display:flex 居中游戏卡片；允许换行，使内容区能另起一行。 */
+body { flex-wrap: wrap; }
+/* 全屏游戏常设 body overflow:hidden、height:100%，会导致内容区不可见。
+   对含内容区的页面开放滚动，并让全屏容器占一屏，内容区在其下方滚动可见。 */
+body:has(.game-info-section) {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 100vh;
+}
+body:has(.game-info-section) #container { height: 100vh; }
+.game-info-section {
+    flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    margin: 48px 0 40px;
+    padding: 0 20px;
+    font-family: "Plus Jakarta Sans", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #2b2b30;
+    line-height: 1.85;
+    box-sizing: border-box;
+}
+.game-info-inner {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #ececf1;
+    border-radius: 18px;
+    padding: 32px 36px;
+    box-shadow: 0 10px 30px rgba(20, 20, 40, 0.05);
+}
+.game-info-section h2 {
+    font-size: 21px;
+    font-weight: 800;
+    margin: 30px 0 12px;
+    color: #15131c;
+    line-height: 1.4;
+    scroll-margin-top: 80px;
+}
+.game-info-section h2:first-child { margin-top: 0; }
+.game-info-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 20px 0 8px;
+    color: #1f1d27;
+}
+.game-info-section p {
+    font-size: 15px;
+    margin: 0 0 12px;
+    color: #3a3844;
+}
+.game-info-section ul,
+.game-info-section ol {
+    margin: 0 0 12px;
+    padding-left: 22px;
+}
+.game-info-section li {
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: #3a3844;
+}
+.game-info-section strong { color: #15131c; font-weight: 700; }
+.game-info-section .gi-toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    list-style: none;
+    padding: 14px 16px;
+    margin: 0 0 8px;
+    background: #f6f7fb;
+    border-radius: 12px;
+}
+.game-info-section .gi-toc a {
+    font-size: 13px;
+    color: #0d9488;
+    text-decoration: none;
+    font-weight: 600;
+}
+.game-info-section .gi-toc a:hover { text-decoration: underline; }
+.game-faq details {
+    border: 1px solid #ececf1;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    background: #fafbfe;
+}
+.game-faq summary {
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f1d27;
+    list-style: none;
+}
+.game-faq summary::-webkit-details-marker { display: none; }
+.game-faq summary::before {
+    content: "Q ";
+    color: #0d9488;
+    font-weight: 800;
+}
+.game-faq details[open] summary { margin-bottom: 8px; }
+.game-faq p { margin: 0; font-size: 14px; }
+.gi-related {
+    margin-top: 28px;
+    padding: 20px;
+    background: #f6f7fb;
+    border-radius: 14px;
+}
+.gi-related h2 { margin-top: 0; font-size: 17px; }
+.gi-related-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.gi-related-links a {
+    font-size: 13px;
+    color: #0d9488;
+    background: #fff;
+    border: 1px solid #dfe5ee;
+    border-radius: 999px;
+    padding: 6px 14px;
+    text-decoration: none;
+    font-weight: 600;
+}
+.gi-related-links a:hover { background: #0d9488; color: #fff; border-color: #0d9488; }
+@media (max-width: 600px) {
+    .game-info-inner { padding: 22px 18px; border-radius: 14px; }
+    .game-info-section h2 { font-size: 18px; }
+    .game-info-section p, .game-info-section li { font-size: 14px; }
+}

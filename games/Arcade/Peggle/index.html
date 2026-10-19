@@ -815,4 +815,1326 @@
             var sp = Math.hypot(ball.vx, ball.vy) || LAUNCH_SPEED;
             var ang = Math.atan2(ball.vy, ball.vx);
             G.balls.push(spawnBall(peg.x, peg.y - 26, Math.cos(ang - 0.6) * sp, Math.sin(ang - 0.6) * sp));
-         
+            G.balls.push(spawnBall(peg.x, peg.y - 26, Math.cos(ang + 0.6) * sp, Math.sin(ang + 0.6) * sp));
+            flash('MULTIBALL');
+        } else {
+            var R = 110;
+            for (var i = 0; i < G.pegs.length; i++) {
+                var p = G.pegs[i];
+                if (!p.alive || p === peg) continue;
+                var dx = p.x - peg.x, dy = p.y - peg.y;
+                if (dx * dx + dy * dy <= R * R) hitPeg(p, ball);
+            }
+            burst(peg.x, peg.y, '#ffe27a', 40);
+            G.shake = 1;
+            noise(0.4, 0.5);
+            flash('SPACE BLAST');
+        }
+    }
+
+    function enterFever() {
+        G.slots = true;
+        G.feverTimer = 2.2;
+        G.shake = 1;
+        odeToJoy();
+        G.popups.push({x: W / 2, y: H / 2 - 40, text: 'EXTREME FEVER!', life: 2.4, big: true});
+    }
+
+    /* ------------------------------------------------------------------ *
+     *  Physics
+     * ------------------------------------------------------------------ */
+    function stepBall(b, dt) {
+        b.vy += GRAVITY * dt;
+
+        var sp = Math.hypot(b.vx, b.vy);
+        if (sp > MAX_SPEED) { b.vx *= MAX_SPEED / sp; b.vy *= MAX_SPEED / sp; }
+
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+
+        /* Walls. The ceiling is solid too, so a steep bank shot comes back down. */
+        if (b.x - b.r < WALL) {
+            b.x = WALL + b.r;
+            b.vx = Math.abs(b.vx) * WALL_RESTITUTION;
+            G.wallSince = b.x;
+            noise(0.05, 0.12);
+        } else if (b.x + b.r > W) {
+            b.x = W - b.r;
+            b.vx = -Math.abs(b.vx) * WALL_RESTITUTION;
+            G.wallSince = b.x;
+            noise(0.05, 0.12);
+        }
+        if (b.y - b.r < 0) {
+            b.y = b.r;
+            b.vy = Math.abs(b.vy) * WALL_RESTITUTION;
+        }
+
+        /* Pegs. Resolved one at a time against the deepest overlap so a ball
+         * landing in the crease between two pegs does not get double-kicked. */
+        var deepest = null, deepAmount = 0;
+        for (var i = 0; i < G.pegs.length; i++) {
+            var p = G.pegs[i];
+            if (!p.alive) continue;
+            var dx = b.x - p.x, dy = b.y - p.y;
+            var rr = b.r + p.r;
+            var d2 = dx * dx + dy * dy;
+            if (d2 >= rr * rr) continue;
+            var d = Math.sqrt(d2) || 0.0001;
+            var overlap = rr - d;
+            if (overlap > deepAmount) { deepAmount = overlap; deepest = {p: p, dx: dx, dy: dy, d: d}; }
+        }
+
+        if (deepest) {
+            var nx = deepest.dx / deepest.d, ny = deepest.dy / deepest.d;
+            b.x = deepest.p.x + nx * (b.r + deepest.p.r);
+            b.y = deepest.p.y + ny * (b.r + deepest.p.r);
+
+            var vn = b.vx * nx + b.vy * ny;
+            if (vn < 0) {
+                var tx = -ny, ty = nx;
+                var vt = b.vx * tx + b.vy * ty;
+                vn = -vn * RESTITUTION;
+                vt *= TANGENT_KEEP;
+                b.vx = nx * vn + tx * vt;
+                b.vy = ny * vn + ty * vt;
+                b.spin = vt * 0.01;
+            }
+            if (deepest.p !== b.lastPeg || !deepest.p.hit) {
+                hitPeg(deepest.p, b);
+                b.lastPeg = deepest.p;
+            }
+        }
+
+        /* Bucket, and the five bonus slots once the fever is on. */
+        if (b.y + b.r > BUCKET_Y && b.y - b.r < BUCKET_Y + BUCKET_H) {
+            var left = G.bucketX - BUCKET_W / 2, right = G.bucketX + BUCKET_W / 2;
+            if (!G.slots && b.x > left && b.x < right && b.vy > 0 && b.y > BUCKET_Y + 6) {
+                b.alive = false;
+                G.ballsLeft++;
+                G.popups.push({x: G.bucketX, y: BUCKET_Y - 20, text: 'FREE BALL', life: 1.6, big: true});
+                tone(24, 0.26, 'triangle', 0.5);
+                tone(28, 0.26, 'triangle', 0.45, 0.08);
+                tone(31, 0.3, 'triangle', 0.45, 0.16);
+                return;
+            }
+            /* the rims of the bucket are solid, and clipping one is a style shot */
+            if (!G.slots && b.vy > 0 && b.y + b.r > BUCKET_Y && b.y - b.r < BUCKET_Y + 10) {
+                var rim = Math.abs(b.x - left) < 7 ? left : (Math.abs(b.x - right) < 7 ? right : null);
+                if (rim !== null) {
+                    b.vx = (b.x < rim ? -1 : 1) * Math.abs(b.vx || 60);
+                    b.vy = -Math.abs(b.vy) * 0.5;
+                    noise(0.06, 0.2);
+                }
+            }
+        }
+
+        if (b.y - b.r > H) {
+            b.alive = false;
+            if (G.slots) {
+                var idx = Math.max(0, Math.min(SLOT_VALUES.length - 1,
+                    Math.floor(b.x / (W / SLOT_VALUES.length))));
+                addScore(SLOT_VALUES[idx], b.x, H - 90,
+                    SLOT_VALUES[idx].toLocaleString('en-US') + '!');
+                tone(24 + idx, 0.4, 'triangle', 0.5);
+            } else {
+                noise(0.18, 0.22);
+            }
+        }
+
+        /* Wedged between two pegs: the original frees the ball by taking a peg
+         * away. Same here — a ball that has barely moved for a second loses
+         * whichever peg it is leaning on and gets a nudge. */
+        var speed = Math.hypot(b.vx, b.vy);
+        if (speed < 46) {
+            b.stillFor += dt;
+            if (b.stillFor > 0.9) {
+                var near = null, nd = 1e9;
+                for (var k = 0; k < G.pegs.length; k++) {
+                    var q = G.pegs[k];
+                    if (!q.alive) continue;
+                    var qx = q.x - b.x, qy = q.y - b.y, q2 = qx * qx + qy * qy;
+                    if (q2 < nd) { nd = q2; near = q; }
+                }
+                if (near && nd < (b.r + near.r + 6) * (b.r + near.r + 6)) {
+                    hitPeg(near, b);
+                    near.alive = false;
+                    near.fade = 1;
+                    burst(near.x, near.y, '#ffffff', 10);
+                }
+                b.vy = Math.abs(b.vy) + 120;
+                b.vx += rnd(-40, 40);
+                b.stillFor = 0;
+            }
+        } else {
+            b.stillFor = 0;
+        }
+    }
+
+    function simulateGuide(angle, maxBounces) {
+        var b = spawnBall(
+            LAUNCH_X + Math.sin(angle) * 34,
+            LAUNCH_Y + Math.cos(angle) * 34,
+            Math.sin(angle) * LAUNCH_SPEED,
+            Math.cos(angle) * LAUNCH_SPEED
+        );
+        var pts = [{x: b.x, y: b.y}], bounces = 0;
+        var dt = SUB_DT * 2;
+        for (var s = 0; s < 3600 && bounces <= maxBounces && b.y < H; s++) {
+            b.vy += GRAVITY * dt;
+            b.x += b.vx * dt;
+            b.y += b.vy * dt;
+            if (b.x - b.r < WALL) { b.x = WALL + b.r; b.vx = Math.abs(b.vx) * WALL_RESTITUTION; bounces++; }
+            else if (b.x + b.r > W) { b.x = W - b.r; b.vx = -Math.abs(b.vx) * WALL_RESTITUTION; bounces++; }
+            var hit = false;
+            for (var i = 0; i < G.pegs.length; i++) {
+                var p = G.pegs[i];
+                if (!p.alive) continue;
+                var dx = b.x - p.x, dy = b.y - p.y, rr = b.r + p.r;
+                if (dx * dx + dy * dy >= rr * rr) continue;
+                var d = Math.hypot(dx, dy) || 0.0001;
+                var nx = dx / d, ny = dy / d;
+                b.x = p.x + nx * rr; b.y = p.y + ny * rr;
+                var vn = b.vx * nx + b.vy * ny;
+                if (vn < 0) {
+                    var tx = -ny, ty = nx, vt = (b.vx * tx + b.vy * ty) * TANGENT_KEEP;
+                    vn = -vn * RESTITUTION;
+                    b.vx = nx * vn + tx * vt;
+                    b.vy = ny * vn + ty * vt;
+                }
+                hit = true;
+                break;
+            }
+            if (hit) bounces++;
+            if (s % 2 === 0) pts.push({x: b.x, y: b.y});
+        }
+        return pts;
+    }
+
+    /* ------------------------------------------------------------------ *
+     *  Update
+     * ------------------------------------------------------------------ */
+    function update(dt) {
+        /* bucket sweeps whether or not a ball is in play */
+        if (!G.slots && G.phase !== 'menu') {
+            G.bucketX += G.bucketDir * BUCKET_SPEED * dt;
+            if (G.bucketX > W - BUCKET_W / 2 - 8) { G.bucketX = W - BUCKET_W / 2 - 8; G.bucketDir = -1; }
+            if (G.bucketX < BUCKET_W / 2 + 8) { G.bucketX = BUCKET_W / 2 + 8; G.bucketDir = 1; }
+        }
+
+        for (var i = 0; i < G.pegs.length; i++) {
+            var p = G.pegs[i];
+            if (p.pulse > 0) p.pulse = Math.max(0, p.pulse - dt * 3.2);
+            if (p.fade > 0) p.fade = Math.max(0, p.fade - dt * 2.4);
+            if (p.hit && p.alive) p.glow = Math.min(1, p.glow + dt * 5);
+        }
+
+        if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 2.2);
+        if (G.styleTimer > 0) G.styleTimer -= dt;
+        if (G.feverTimer > 0) G.feverTimer -= dt;
+
+        for (var q = G.parts.length - 1; q >= 0; q--) {
+            var pt = G.parts[q];
+            pt.life -= dt;
+            pt.vy += 520 * dt;
+            pt.x += pt.vx * dt;
+            pt.y += pt.vy * dt;
+            if (pt.life <= 0) G.parts.splice(q, 1);
+        }
+        for (var u = G.popups.length - 1; u >= 0; u--) {
+            G.popups[u].life -= dt;
+            G.popups[u].y -= dt * 26;
+            if (G.popups[u].life <= 0) G.popups.splice(u, 1);
+        }
+
+        if (G.phase === 'shot') {
+            G.shotClock += dt;
+            var steps = Math.min(8, Math.max(1, Math.round(dt / SUB_DT)));
+            var h = dt / steps;
+            for (var s = 0; s < steps; s++) {
+                for (var b = 0; b < G.balls.length; b++) {
+                    var ball = G.balls[b];
+                    if (!ball.alive) continue;
+                    stepBall(ball, h);
+                }
+            }
+            for (var t = 0; t < G.balls.length; t++) {
+                var bl = G.balls[t];
+                if (!bl.alive) continue;
+                bl.trail.push({x: bl.x, y: bl.y});
+                if (bl.trail.length > 14) bl.trail.shift();
+            }
+            G.balls = G.balls.filter(function (x) { return x.alive; });
+            if (!G.balls.length || G.shotClock > 45) endShot();
+        } else if (G.phase === 'settle') {
+            G.settleTimer -= dt;
+            if (G.settleTimer <= 0) finishSettle();
+        }
+    }
+
+    function endShot() {
+        G.phase = 'settle';
+        G.settleTimer = 0.45;
+        for (var i = 0; i < G.pegs.length; i++) {
+            if (G.pegs[i].hit && G.pegs[i].alive) { G.pegs[i].fade = 1; }
+        }
+    }
+
+    function finishSettle() {
+        for (var i = 0; i < G.pegs.length; i++) {
+            var p = G.pegs[i];
+            if (p.hit && p.alive) { p.alive = false; p.fade = 0.8; }
+        }
+        G.mult = feverMult();
+        G.greenArmed = false;
+        if (G.guideSpent) { G.superGuide = false; G.guideSpent = false; }
+        if (G.slots) { levelOver(true); return; }
+        if (G.ballsLeft <= 0) { levelOver(false); return; }
+        pickPurple();
+        G.phase = 'aim';
+    }
+
+    /* ------------------------------------------------------------------ *
+     *  Presentation
+     * ------------------------------------------------------------------ */
+    var cvs = document.getElementById('board');
+    var ctx = cvs.getContext('2d');
+    var view = {scale: 1, ox: 0, oy: 0, w: W, h: H};
+
+    function resize() {
+        var vw = window.innerWidth, vh = window.innerHeight;
+        var scale = Math.min(vw / W, vh / H);
+        var dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+        view.scale = scale;
+        cvs.style.width = Math.round(W * scale) + 'px';
+        cvs.style.height = Math.round(H * scale) + 'px';
+        cvs.width = Math.round(W * scale * dpr);
+        cvs.height = Math.round(H * scale * dpr);
+        view.dpr = dpr;
+        var r = cvs.getBoundingClientRect();
+        view.ox = r.left;
+        view.oy = r.top;
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', function () { setTimeout(resize, 120); });
+
+    function toBoard(clientX, clientY) {
+        var r = cvs.getBoundingClientRect();
+        return {x: (clientX - r.left) / view.scale, y: (clientY - r.top) / view.scale};
+    }
+
+    var PEG_COLORS = {
+        blue: ['#bfe4ff', '#3d8ee8', '#0c3a7a', '#7cc0ff'],
+        orange: ['#ffdfa6', '#ff8f2e', '#9c3600', '#ffb057'],
+        green: ['#c8ffe4', '#33dd85', '#0a6437', '#7dffbe'],
+        purple: ['#efd6ff', '#a862ff', '#45188a', '#d3a4ff']
+    };
+
+    /* Decorative starfield and drifting nebulae. Purely cosmetic, so it is
+     * seeded off Math.random and never touches the board. */
+    var stars = [];
+
+    function buildStars() {
+        stars = [];
+        for (var i = 0; i < 110; i++) {
+            stars.push({
+                x: Math.random() * W,
+                y: Math.random() * 1200,
+                r: Math.random() * 1.5 + 0.35,
+                tw: Math.random() * 6.28,
+                sp: 0.4 + Math.random() * 1.6,
+                depth: 0.3 + Math.random() * 0.7
+            });
+        }
+    }
+
+    function hueFor(level) { return (level * 43 + 205) % 360; }
+
+    /* Every peg used to build its own gradient each frame — a hundred of them,
+     * sixty times a second. They are baked into eight little sprites instead
+     * (four colours, lit and unlit) and blitted. Same picture, a fraction of
+     * the work, which is what keeps a phone at full frame rate. */
+    var pegSprites = {}, SPRITE_R = 26;
+
+    function bakePegSprite(kind, lit) {
+        var pad = SPRITE_R * 2.2;
+        var cv = document.createElement('canvas');
+        var q = Math.min(window.devicePixelRatio || 1, 2.5);
+        cv.width = cv.height = Math.ceil(pad * 2 * q);
+        var c = cv.getContext('2d');
+        c.scale(q, q);
+        c.translate(pad, pad);
+        var col = PEG_COLORS[kind], r = SPRITE_R;
+
+        c.fillStyle = 'rgba(0,0,0,.35)';
+        c.beginPath();
+        c.ellipse(r * 0.06, r * 0.62, r * 0.92, r * 0.5, 0, 0, Math.PI * 2);
+        c.fill();
+
+        if (lit) { c.shadowColor = col[1]; c.shadowBlur = 24; }
+        else if (kind !== 'blue') { c.shadowColor = col[1]; c.shadowBlur = 11; }
+
+        var g = c.createRadialGradient(-r * 0.38, -r * 0.44, r * 0.1, 0, 0, r * 1.05);
+        if (lit) {
+            g.addColorStop(0, '#ffffff');
+            g.addColorStop(0.4, col[0]);
+            g.addColorStop(1, col[1]);
+        } else {
+            g.addColorStop(0, col[0]);
+            g.addColorStop(0.5, col[1]);
+            g.addColorStop(1, col[2]);
+        }
+        c.fillStyle = g;
+        c.beginPath();
+        c.arc(0, 0, r, 0, Math.PI * 2);
+        c.fill();
+        c.shadowBlur = 0;
+
+        c.strokeStyle = 'rgba(255,255,255,.28)';
+        c.lineWidth = 1.2 * (r / PEG_R);
+        c.beginPath();
+        c.arc(0, 0, r - 1.4, Math.PI * 0.15, Math.PI * 0.85);
+        c.stroke();
+
+        c.fillStyle = 'rgba(255,255,255,' + (lit ? 0.95 : 0.7) + ')';
+        c.beginPath();
+        c.ellipse(-r * 0.3, -r * 0.4, r * 0.3, r * 0.22, -0.7, 0, Math.PI * 2);
+        c.fill();
+
+        return {canvas: cv, pad: pad};
+    }
+
+    function pegSprite(kind, lit) {
+        var key = kind + (lit ? '1' : '0');
+        if (!pegSprites[key]) pegSprites[key] = bakePegSprite(kind, lit);
+        return pegSprites[key];
+    }
+
+    /* The sky behind the board does not change from frame to frame either,
+     * so the gradient, the stars and the playfield panel are baked once per
+     * level and only the drifting nebulae are drawn live. */
+    var skyLayer = null, nebulaLayer = null, skyKey = '';
+
+    function bakeSky() {
+        var hue = hueFor(G.level);
+        var q = Math.min(window.devicePixelRatio || 1, 2);
+        var cv = document.createElement('canvas');
+        cv.width = Math.ceil(W * q);
+        cv.height = Math.ceil(H * q);
+        var c = cv.getContext('2d');
+        c.scale(q, q);
+
+        var bg = c.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, 'hsl(' + hue + ',52%,17%)');
+        bg.addColorStop(0.45, 'hsl(' + ((hue + 24) % 360) + ',46%,10%)');
+        bg.addColorStop(1, '#04050d');
+        c.fillStyle = bg;
+        c.fillRect(0, 0, W, H);
+
+        for (var i = 0; i < stars.length; i++) {
+            var st = stars[i];
+            c.globalAlpha = (0.2 + 0.45 * Math.abs(Math.sin(st.tw))) * st.depth;
+            c.fillStyle = '#eaf3ff';
+            c.beginPath();
+            c.arc(st.x, st.y % H, st.r, 0, Math.PI * 2);
+            c.fill();
+        }
+        c.globalAlpha = 1;
+
+        if (G.pegs.length) {
+            var top = 1e9, bot = -1e9;
+            for (var k = 0; k < G.pegs.length; k++) {
+                if (G.pegs[k].y < top) top = G.pegs[k].y;
+                if (G.pegs[k].y > bot) bot = G.pegs[k].y;
+            }
+            var pad = 46;
+            var panel = c.createLinearGradient(0, top - pad, 0, bot + pad);
+            panel.addColorStop(0, 'rgba(255,255,255,.055)');
+            panel.addColorStop(0.5, 'rgba(255,255,255,.02)');
+            panel.addColorStop(1, 'rgba(255,255,255,.055)');
+            c.fillStyle = panel;
+            c.strokeStyle = 'hsla(' + hue + ',80%,72%,.18)';
+            c.lineWidth = 1.5;
+            var x = 18, y = top - pad, w = W - 36, h = bot - top + pad * 2, r = 26;
+            c.beginPath();
+            c.moveTo(x + r, y);
+            c.arcTo(x + w, y, x + w, y + h, r);
+            c.arcTo(x + w, y + h, x, y + h, r);
+            c.arcTo(x, y + h, x, y, r);
+            c.arcTo(x, y, x + w, y, r);
+            c.closePath();
+            c.fill();
+            c.stroke();
+        }
+
+        /* the vignette never moves either, so it is baked in with the sky */
+        var vg = c.createRadialGradient(W / 2, H * 0.45, H * 0.3, W / 2, H * 0.45, H * 0.78);
+        vg.addColorStop(0, 'rgba(0,0,0,0)');
+        vg.addColorStop(1, 'rgba(0,0,0,.45)');
+        c.fillStyle = vg;
+        c.fillRect(0, 0, W, H);
+        skyLayer = cv;
+
+        /* one nebula puff, blitted twice per frame at different sizes rather
+         * than rebuilt as two gradients */
+        var nr = 340;
+        var nb = document.createElement('canvas');
+        nb.width = nb.height = Math.ceil(nr * 2 * q);
+        var nc = nb.getContext('2d');
+        nc.scale(q, q);
+        var ng = nc.createRadialGradient(nr, nr, 0, nr, nr, nr);
+        ng.addColorStop(0, 'hsla(' + hue + ',70%,55%,.18)');
+        ng.addColorStop(1, 'hsla(' + hue + ',70%,40%,0)');
+        nc.fillStyle = ng;
+        nc.fillRect(0, 0, nr * 2, nr * 2);
+        nebulaLayer = nb;
+    }
+
+
+    function drawBackground() {
+        var key = G.level + ':' + H + ':' + G.pegs.length;
+        if (key !== skyKey) { skyKey = key; bakeSky(); }
+        ctx.drawImage(skyLayer, 0, 0, W, H);
+
+        /* two slow nebulae, drifting out of phase */
+        for (var n = 0; n < 2; n++) {
+            var t = perf / (n ? 17000 : 11000) + n * 2.1;
+            var cx = W / 2 + Math.cos(t) * (n ? 210 : 150);
+            var cy = H * (n ? 0.68 : 0.3) + Math.sin(t * 1.3) * 90;
+            var rad = n ? 340 : 270;
+            ctx.drawImage(nebulaLayer, cx - rad, cy - rad, rad * 2, rad * 2);
+        }
+
+        /* a handful of stars still twinkle live over the baked sky */
+        ctx.fillStyle = '#ffffff';
+        for (var i = 0; i < 26; i++) {
+            var s2 = stars[i];
+            ctx.globalAlpha = 0.5 * (0.5 + 0.5 * Math.sin(perf / 700 * s2.sp + s2.tw)) * s2.depth;
+            ctx.beginPath();
+            ctx.arc(s2.x, s2.y % H, s2.r + 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        if (G.slots) drawFeverRays();
+    }
+
+    function drawFeverRays() {
+        var cx = W / 2, cy = H * 0.42;
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.translate(cx, cy);
+        ctx.rotate(perf / 4200);
+        for (var i = 0; i < 12; i++) {
+            ctx.rotate(Math.PI * 2 / 12);
+            var g = ctx.createLinearGradient(0, 0, 0, -H);
+            g.addColorStop(0, 'rgba(255,205,110,.16)');
+            g.addColorStop(1, 'rgba(255,150,60,0)');
+            ctx.fillStyle = g;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-46, -H);
+            ctx.lineTo(46, -H);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function roundRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    function drawPeg(p) {
+        var alive = p.alive;
+        var a = alive ? 1 : p.fade;
+        if (a <= 0) return;
+        var c = PEG_COLORS[p.kind] || PEG_COLORS.blue;
+
+        /* a peg that has just been cleared blooms outward as it goes */
+        if (!alive) {
+            var t = 1 - p.fade;
+            ctx.save();
+            ctx.globalAlpha = p.fade * 0.6;
+            ctx.strokeStyle = c[3];
+            ctx.lineWidth = 2.5 * p.fade;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r + t * 30, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        /* the ring that snaps out of a peg the instant it is struck */
+        if (p.pulse > 0.02) {
+            ctx.save();
+            ctx.globalAlpha = p.pulse * 0.75;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2 + p.pulse * 2;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r + (1 - p.pulse) * 26, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        var r = p.r * (1 + p.pulse * 0.3) * (alive ? 1 : 0.7 + p.fade * 0.5);
+        var sp = pegSprite(PEG_COLORS[p.kind] ? p.kind : 'blue', p.hit);
+        var size = sp.pad * 2 * (r / SPRITE_R);
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.drawImage(sp.canvas, p.x - size / 2, p.y - size / 2, size, size);
+        if (p.hit && p.pulse > 0.02) {           // a little extra bloom on impact
+            ctx.globalAlpha = a * p.pulse * 0.5;
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.drawImage(sp.canvas, p.x - size * 0.62, p.y - size * 0.62, size * 1.24, size * 1.24);
+        }
+        ctx.restore();
+
+        if (!alive) return;
+
+        if (p.kind === 'green' && !p.hit) {
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(perf / 900);
+            ctx.strokeStyle = 'rgba(140,255,200,' + (0.45 + 0.35 * Math.sin(perf / 240)) + ')';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(0, 0, p.r + 6, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        } else if (p.kind === 'purple' && !p.hit) {
+            ctx.save();
+            ctx.globalAlpha = 0.35 + 0.3 * Math.sin(perf / 300);
+            ctx.strokeStyle = '#e0b6ff';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r + 4.5, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+
+    function drawBucket() {
+        if (G.slots) {
+            var n = SLOT_VALUES.length, sw = W / n;
+            for (var i = 0; i < n; i++) {
+                var v = SLOT_VALUES[i];
+                var hot = v >= 100000, warm = v >= 50000;
+                var col = hot ? [255, 205, 90] : warm ? [255, 140, 70] : [95, 165, 255];
+                var g = ctx.createLinearGradient(0, BUCKET_Y, 0, H);
+                g.addColorStop(0, 'rgba(' + col + ',.42)');
+                g.addColorStop(1, 'rgba(' + col + ',.08)');
+                ctx.fillStyle = g;
+                roundRect(i * sw + 4, BUCKET_Y, sw - 8, H - BUCKET_Y, 12);
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,.3)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(' + col + ',.9)';
+                ctx.shadowBlur = 14 + 8 * Math.sin(perf / 260 + i);
+                ctx.fillStyle = hot ? '#fff0c2' : '#eaf2ff';
+                ctx.font = 'bold 19px "Trebuchet MS", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText((v / 1000) + 'K', i * sw + sw / 2, BUCKET_Y + 36);
+                ctx.restore();
+            }
+            return;
+        }
+
+        var x = G.bucketX, bob = Math.sin(perf / 420) * 2;
+        ctx.save();
+        ctx.translate(x, BUCKET_Y + bob);
+
+        /* glow pooling under the mouth */
+        var gl = ctx.createRadialGradient(0, 10, 4, 0, 10, 90);
+        gl.addColorStop(0, 'rgba(110,220,255,.28)');
+        gl.addColorStop(1, 'rgba(110,220,255,0)');
+        ctx.fillStyle = gl;
+        ctx.fillRect(-90, -70, 180, 160);
+
+        var body = ctx.createLinearGradient(0, 0, 0, BUCKET_H);
+        body.addColorStop(0, '#8df0ff');
+        body.addColorStop(0.5, '#2f8fd8');
+        body.addColorStop(1, '#10406f');
+        ctx.fillStyle = body;
+        ctx.beginPath();
+        ctx.moveTo(-BUCKET_W / 2, 0);
+        ctx.lineTo(BUCKET_W / 2, 0);
+        ctx.lineTo(BUCKET_W / 2 - 13, BUCKET_H);
+        ctx.quadraticCurveTo(0, BUCKET_H + 7, -BUCKET_W / 2 + 13, BUCKET_H);
+        ctx.closePath();
+        ctx.fill();
+
+        /* shimmering surface across the mouth */
+        ctx.save();
+        ctx.clip();
+        ctx.fillStyle = 'rgba(190,245,255,.45)';
+        ctx.beginPath();
+        ctx.moveTo(-BUCKET_W / 2, 7);
+        for (var s = -BUCKET_W / 2; s <= BUCKET_W / 2; s += 6) {
+            ctx.lineTo(s, 7 + Math.sin(s / 11 + perf / 260) * 2.4);
+        }
+        ctx.lineTo(BUCKET_W / 2, 20);
+        ctx.lineTo(-BUCKET_W / 2, 20);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.14)';
+        ctx.fillRect(-BUCKET_W / 2, 22, BUCKET_W * 0.42, BUCKET_H);
+        ctx.restore();
+
+        /* chrome rims — these are solid in play, so they are drawn solid */
+        var rim = ctx.createLinearGradient(0, -7, 0, 7);
+        rim.addColorStop(0, '#ffffff');
+        rim.addColorStop(1, '#9fb6d4');
+        ctx.fillStyle = rim;
+        roundRect(-BUCKET_W / 2 - 5, -7, 11, 15, 3);
+        ctx.fill();
+        roundRect(BUCKET_W / 2 - 6, -7, 11, 15, 3);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawLauncher() {
+        var a = G.aim;
+        /* a short kick back into the barrel as the ball leaves */
+        var recoil = (G.phase === 'shot' && G.shotClock < 0.22)
+            ? -10 * (1 - G.shotClock / 0.22) : 0;
+
+        ctx.save();
+        ctx.translate(LAUNCH_X, LAUNCH_Y);
+        ctx.rotate(-a);
+
+        var glow = ctx.createRadialGradient(0, 0, 4, 0, 0, 54);
+        glow.addColorStop(0, 'rgba(150,200,255,.25)');
+        glow.addColorStop(1, 'rgba(150,200,255,0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(-54, -54, 108, 108);
+
+        var barrel = ctx.createLinearGradient(-17, 0, 17, 0);
+        barrel.addColorStop(0, '#3c4a68');
+        barrel.addColorStop(0.35, '#e8f1ff');
+        barrel.addColorStop(0.6, '#93a6c6');
+        barrel.addColorStop(1, '#2f3b54');
+        ctx.fillStyle = barrel;
+        roundRect(-16, 4 + recoil, 32, 50, 7);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(10,16,34,.9)';
+        roundRect(-11, 44 + recoil, 22, 10, 4);
+        ctx.fill();
+
+        var hub = ctx.createRadialGradient(-7, -8, 3, 0, 0, 24);
+        hub.addColorStop(0, '#ffffff');
+        hub.addColorStop(0.55, '#c3d3ea');
+        hub.addColorStop(1, '#46587a');
+        ctx.fillStyle = hub;
+        ctx.beginPath();
+        ctx.arc(0, 0, 23, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#0a1024';
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(160,215,255,.8)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, 0, Math.PI * 2);
+        ctx.stroke();
+
+        /* the next ball, waiting in the hub */
+        if (G.phase === 'aim' && G.ballsLeft > 0) {
+            var bg2 = ctx.createRadialGradient(-3, -3, 1, 0, 0, 8);
+            bg2.addColorStop(0, '#ffffff');
+            bg2.addColorStop(1, '#8fa8cf');
+            ctx.fillStyle = bg2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function drawGuide() {
+        if (G.phase !== 'aim') return;
+        var a = G.aim;
+        if (G.superGuide) {
+            var pts = simulateGuide(a, 3);
+            ctx.save();
+            ctx.strokeStyle = 'rgba(150,255,205,.8)';
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = 'rgba(80,255,180,.7)';
+            ctx.shadowBlur = 10;
+            ctx.setLineDash([9, 7]);
+            ctx.lineDashOffset = -perf / 45;
+            ctx.beginPath();
+            for (var i = 0; i < pts.length; i++) {
+                if (i === 0) ctx.moveTo(pts[i].x, pts[i].y); else ctx.lineTo(pts[i].x, pts[i].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+            return;
+        }
+        /* the short dotted aim line of the original: ballistics only, no bounces */
+        ctx.save();
+        var vx = Math.sin(a) * LAUNCH_SPEED, vy = Math.cos(a) * LAUNCH_SPEED;
+        var x0 = LAUNCH_X + Math.sin(a) * 34, y0 = LAUNCH_Y + Math.cos(a) * 34;
+        ctx.shadowColor = 'rgba(190,225,255,.6)';
+        ctx.shadowBlur = 8;
+        for (var t = 0.04; t < 0.92; t += 0.055) {
+            var px = x0 + vx * t;
+            var py = y0 + vy * t + 0.5 * GRAVITY * t * t;
+            if (px < 6 || px > W - 6 || py > H) break;
+            ctx.globalAlpha = 0.8 * (1 - t / 0.98);
+            ctx.fillStyle = '#dceaff';
+            ctx.beginPath();
+            ctx.arc(px, py, 3.6 - t * 1.6, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function drawBall(b) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (var i = 1; i < b.trail.length; i++) {
+            var f = i / b.trail.length;
+            ctx.strokeStyle = 'rgba(140,200,255,' + (f * 0.3) + ')';
+            ctx.lineWidth = b.r * 1.5 * f;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(b.trail[i - 1].x, b.trail[i - 1].y);
+            ctx.lineTo(b.trail[i].x, b.trail[i].y);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        ctx.save();
+        var halo = ctx.createRadialGradient(b.x, b.y, b.r * 0.5, b.x, b.y, b.r * 2.6);
+        halo.addColorStop(0, 'rgba(180,220,255,.35)');
+        halo.addColorStop(1, 'rgba(180,220,255,0)');
+        ctx.fillStyle = halo;
+        ctx.fillRect(b.x - b.r * 3, b.y - b.r * 3, b.r * 6, b.r * 6);
+
+        var g = ctx.createRadialGradient(b.x - b.r * 0.4, b.y - b.r * 0.45, b.r * 0.12, b.x, b.y, b.r);
+        g.addColorStop(0, '#ffffff');
+        g.addColorStop(0.42, '#dcebff');
+        g.addColorStop(0.82, '#8ba5cd');
+        g.addColorStop(1, '#546d94');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(255,255,255,.4)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r - 0.7, Math.PI * 0.1, Math.PI * 0.9);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(255,255,255,.95)';
+        ctx.beginPath();
+        ctx.ellipse(b.x - b.r * 0.32, b.y - b.r * 0.38, b.r * 0.28, b.r * 0.19, -0.7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+
+    var SOUND_BTN = {x: 24, y: 22, r: 20};
+
+    function drawSpeaker(x, y) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = muted ? 'rgba(150,170,205,.75)' : '#cfe3ff';
+        ctx.beginPath();
+        ctx.moveTo(-8, -4);
+        ctx.lineTo(-3, -4);
+        ctx.lineTo(3, -9);
+        ctx.lineTo(3, 9);
+        ctx.lineTo(-3, 4);
+        ctx.lineTo(-8, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineWidth = 1.8;
+        ctx.lineCap = 'round';
+        if (muted) {
+            ctx.beginPath();
+            ctx.moveTo(6, -5);
+            ctx.lineTo(12, 5);
+            ctx.moveTo(12, -5);
+            ctx.lineTo(6, 5);
+            ctx.stroke();
+        } else {
+            for (var i = 1; i <= 2; i++) {
+                ctx.beginPath();
+                ctx.arc(4, 0, 3 + i * 3.2, -0.9, 0.9);
+                ctx.stroke();
+            }
+        }
+        ctx.restore();
+    }
+
+    /* What the next drop will do, said out loud — the guide only shows up
+     * after a green peg, and only for one shot, so it says so. */
+    function drawPowerBadge() {
+        if (!G.superGuide || G.phase !== 'aim') return;
+        var text = 'SUPER GUIDE · THIS DROP';
+        ctx.save();
+        ctx.font = 'bold 13px "Trebuchet MS", sans-serif';
+        ctx.textAlign = 'center';
+        var w = ctx.measureText(text).width + 26;
+        /* parked in the gap between the launcher and the peg field, so it
+         * covers neither the cannon nor a peg */
+        var top = 1e9;
+        for (var i = 0; i < G.pegs.length; i++) if (G.pegs[i].y < top) top = G.pegs[i].y;
+        var x = W / 2 - w / 2, y = Math.max(112, top - 92);
+        ctx.fillStyle = 'rgba(12,40,28,.85)';
+        roundRect(x, y, w, 24, 12);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(120,255,190,' + (0.5 + 0.35 * Math.sin(perf / 260)) + ')';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.fillStyle = '#9dffd0';
+        ctx.fillText(text, W / 2, y + 16);
+        ctx.restore();
+    }
+
+    function drawBallIcon(x, y, r) {
+        var g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.1, x, y, r);
+        g.addColorStop(0, '#ffffff');
+        g.addColorStop(0.6, '#cfe1ff');
+        g.addColorStop(1, '#6d86b0');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function drawHud() {
+        var barH = 44;
+        ctx.save();
+        var bar = ctx.createLinearGradient(0, 0, 0, barH);
+        bar.addColorStop(0, 'rgba(6,10,26,.88)');
+        bar.addColorStop(1, 'rgba(6,10,26,.45)');
+        ctx.fillStyle = bar;
+        ctx.fillRect(0, 0, W, barH);
+        ctx.fillStyle = 'rgba(150,200,255,.25)';
+        ctx.fillRect(0, barH - 1, W, 1);
+
+        drawSpeaker(SOUND_BTN.x, SOUND_BTN.y);
+
+        ctx.textAlign = 'left';
+        ctx.font = 'bold 23px "Trebuchet MS", sans-serif';
+        ctx.fillStyle = '#ffd479';
+        ctx.shadowColor = 'rgba(255,160,50,.6)';
+        ctx.shadowBlur = 12;
+        ctx.fillText(G.score.toLocaleString('en-US'), 48, 30);
+        ctx.shadowBlur = 0;
+
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 13px "Trebuchet MS", sans-serif';
+        ctx.fillStyle = 'rgba(190,210,245,.8)';
+        ctx.fillText('LEVEL ' + G.level, W / 2, 26);
+
+        /* laid out from the right edge: the balls left, then the oranges */
+        var shown = Math.min(G.ballsLeft, 5);
+        for (var i = 0; i < shown; i++) drawBallIcon(W - 21 - i * 18, 22, 7.5);
+        var cursor = W - 21 - (shown - 1) * 18 - 12;
+        if (G.ballsLeft > shown) {
+            ctx.textAlign = 'right';
+            ctx.font = 'bold 13px "Trebuchet MS", sans-serif';
+            ctx.fillStyle = '#c3d8ff';
+            ctx.fillText('+' + (G.ballsLeft - shown), cursor, 27);
+            cursor -= 22;
+        }
+
+        var left = Math.max(0, G.orangeTotal - G.orangeHit);
+        ctx.textAlign = 'right';
+        ctx.font = 'bold 20px "Trebuchet MS", sans-serif';
+        ctx.fillStyle = '#ffb057';
+        ctx.fillText(String(left), cursor - 8, 29);
+        var numW = ctx.measureText(String(left)).width;
+        var ox = cursor - 18 - numW;
+        var og = ctx.createRadialGradient(ox - 3, 19, 2, ox, 22, 9);
+        og.addColorStop(0, '#ffdfa6');
+        og.addColorStop(1, '#ff8f2e');
+        ctx.fillStyle = og;
+        ctx.beginPath();
+        ctx.arc(ox, 22, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+
+        drawFeverMeter();
+        drawPowerBadge();
+    }
+
+    function drawFeverMeter() {
+        var mh = 216, mx = W - 15, my = 70, mw = 11;
+        ctx.save();
+        ctx.fillStyle = 'rgba(6,12,30,.7)';
+        roundRect(mx - mw, my, mw + 3, mh, 6);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(160,200,255,.22)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        var frac = Math.min(1, G.orangeHit / Math.max(1, G.orangeTotal));
+        if (frac > 0) {
+            ctx.save();
+            roundRect(mx - mw, my, mw + 3, mh, 6);
+            ctx.clip();
+            var grd = ctx.createLinearGradient(0, my + mh, 0, my);
+            grd.addColorStop(0, '#2f7ede');
+            grd.addColorStop(0.55, '#ff8a2b');
+            grd.addColorStop(1, '#ffe27a');
+            ctx.fillStyle = grd;
+            ctx.fillRect(mx - mw, my + mh * (1 - frac), mw + 3, mh * frac);
+            ctx.globalAlpha = 0.35 + 0.25 * Math.sin(perf / 220);
+            ctx.fillStyle = '#fff3cd';
+            ctx.fillRect(mx - mw, my + mh * (1 - frac), mw + 3, 3);
+            ctx.restore();
+        }
+
+        ctx.font = 'bold 10px "Trebuchet MS", sans-serif';
+        ctx.textAlign = 'right';
+        for (var i = 0; i < FEVER_STEPS.length; i++) {
+            var st = FEVER_STEPS[i];
+            if (st.hit > G.orangeTotal) continue;   // a short board skips the top rungs
+            var y = my + mh * (1 - Math.min(1, st.hit / Math.max(1, G.orangeTotal)));
+            var on = G.orangeHit >= st.hit;
+            ctx.strokeStyle = on ? 'rgba(255,240,200,.9)' : 'rgba(255,255,255,.22)';
+            ctx.lineWidth = on ? 1.6 : 1;
+            ctx.beginPath();
+            ctx.moveTo(mx - mw, y);
+            ctx.lineTo(mx + 3, y);
+            ctx.stroke();
+            ctx.fillStyle = on ? '#ffd479' : 'rgba(150,175,215,.55)';
+            ctx.fillText('x' + st.mult, mx - mw - 3, y + 3.5);
+        }
+
+        var m = feverMult();
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 19px "Trebuchet MS", sans-serif';
+        if (m > 1) {
+            ctx.shadowColor = 'rgba(255,170,60,.9)';
+            ctx.shadowBlur = 14 + 6 * Math.sin(perf / 200);
+            ctx.fillStyle = '#ffd479';
+        } else {
+            ctx.fillStyle = '#8fa7c8';
+        }
+        ctx.fillText('x' + m, mx - mw / 2 + 1, my + mh + 22);
+        ctx.restore();
+    }
+
+    function drawParticles() {
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (var q = 0; q < G.parts.length; q++) {
+            var pt = G.parts[q];
+            var f = Math.max(0, pt.life / pt.max);
+            ctx.globalAlpha = f;
+            ctx.fillStyle = pt.color;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, pt.r * (0.4 + f * 0.9), 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function drawOverlayText() {
+        if (G.styleTimer > 0) {
+            var t = Math.max(0, Math.min(1, (1.6 - G.styleTimer) / 0.25));
+            var scale = 0.6 + 0.4 * (1 - Math.pow(1 - t, 3)) + Math.max(0, G.styleTimer - 1.4) * 0.3;
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, G.styleTimer / 0.45);
+            ctx.translate(W / 2, H * 0.36);
+            ctx.scale(scale, scale);
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 42px "Trebuchet MS", sans-serif';
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = 'rgba(70,30,0,.85)';
+            ctx.strokeText(G.styleText, 0, 0);
+            var g = ctx.createLinearGradient(0, -30, 0, 14);
+            g.addColorStop(0, '#fff3c4');
+            g.addColorStop(1, '#ff9a2e');
+            ctx.fillStyle = g;
+            ctx.shadowColor = 'rgba(255,150,40,.9)';
+            ctx.shadowBlur = 24;
+            ctx.fillText(G.styleText, 0, 0);
+            ctx.restore();
+        }
+        for (var i = 0; i < G.popups.length; i++) {
+            var p = G.popups[i];
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, p.life * (p.big ? 0.8 : 1.4));
+            ctx.textAlign = 'center';
+            ctx.font = 'bold ' + (p.big ? 32 : 18) + 'px "Trebuchet MS", sans-serif';
+            ctx.lineWidth = p.big ? 5 : 3.5;
+            ctx.strokeStyle = 'rgba(4,8,20,.8)';
+            ctx.strokeText(p.text, p.x, p.y);
+            ctx.fillStyle = p.big ? '#ffe27a' : '#ffffff';
+            ctx.fillText(p.text, p.x, p.y);
+            ctx.restore();
+        }
+    }
+
+    var perf = 0;
+
+    function render() {
+        ctx.save();
+        ctx.setTransform(view.scale * view.dpr, 0, 0, view.scale * view.dpr, 0, 0);
+
+        var sx = 0, sy = 0;
+        if (G.shake > 0) {
+            sx = (Math.random() - 0.5) * 16 * G.shake;
+            sy = (Math.random() - 0.5) * 16 * G.shake;
+        }
+        ctx.translate(sx, sy);
+
+        drawBackground();
+
+        for (var i = 0; i < G.pegs.length; i++) if (!G.pegs[i].alive) drawPeg(G.pegs[i]);
+        for (var j = 0; j < G.pegs.length; j++) if (G.pegs[j].alive) drawPeg(G.pegs[j]);
+        drawParticles();
+
+        drawBucket();
+        drawGuide();
+        drawLauncher();
+        for (var b = 0; b < G.balls.length; b++) drawBall(G.balls[b]);
+        drawHud();
+        drawOverlayText();
+        ctx.restore();
+    }
+
+    /* ------------------------------------------------------------------ *
+     *  Loop
+     * ------------------------------------------------------------------ */
+    var last = 0;
+
+    function frame(ts) {
+        if (!last) last = ts;
+        var dt = Math.min(0.05, (ts - last) / 1000);
+        last = ts;
+        perf = ts;
+        if (G.phase !== 'menu' && G.phase !== 'done') update(dt);
+        render();
+        requestAnimationFrame(frame);
+    }
+
+    /* ------------------------------------------------------------------ *
+     *  Input — one gesture on a phone, mouse or keys on a desktop.
+     * ------------------------------------------------------------------ */
+    function aimAt(bx, by) {
+        var dx = bx - LAUNCH_X, dy = by - LAUNCH_Y;
+        if (dy < 12) dy = 12;
+        var a = Math.atan2(dx, dy);
+        G.aim = Math.max(-MAX_AIM, Math.min(MAX_AIM, a));
+    }
+
+    var pointerDown = false, movedFar = false, downAt = null;
+
+    function onSoundButton(p) {
+        return Math.hypot(p.x - SOUND_BTN.x, p.y - SOUND_BTN.y) < SOUND_BTN.r + 12;
+    }
+
+    cvs.addEventListener('pointerdown', function (e) {
+        if (G.phase === 'menu') return;
+        var p = toBoard(e.clientX, e.clientY);
+        if (onSoundButton(p)) {     // the speaker sits in the HUD, not over the board
+            audio();
+            toggleMute();
+            e.preventDefault();
+            return;
+        }
+        cvs.setPointerCapture(e.pointerId);
+        pointerDown = true;
+        movedFar = false;
+        downAt = {x: e.clientX, y: e.clientY};
+        audio();
+        aimAt(p.x, p.y);
+        e.preventDefault();
+    });
+
+    cvs.addEventListener('pointermove', function (e) {
+        var p = toBoard(e.clientX, e.clientY);
+        if (pointerDown) {
+            if (downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 8) movedFar = true;
+            aimAt(p.x, p.y);
+            e.preventDefault();
+        } else if (e.pointerType === 'mouse' && G.phase === 'aim' && !onSoundButton(p)) {
+            aimAt(p.x, p.y);
+        }
+    });
+
+    function release(e) {
+        if (!pointerDown) return;
+        pointerDown = false;
+        if (G.phase === 'aim') fire();
+        if (e) e.preventDefault();
+    }
+
+    cvs.addEventListener('pointerup', release);
+    cvs.addEventListener('pointercancel', function () { pointerDown = false; });
+
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowLeft') { G.aim = Math.max(-MAX_AIM, G.aim - 0.018); e.preventDefault(); }
+        else if (e.key === 'ArrowRight') { G.aim = Math.min(MAX_AIM, G.aim + 0.018); e.preventDefault(); }
+        else if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            if (G.phase === 'aim') fire();
+            else if (!menuEl.hidden) startBtn.click();
+            else if (!overEl.hidden) againBtn.click();
+        } else if (e.key === 'm' || e.key === 'M') toggleMute();
+    });
+
+    /* ------------------------------------------------------------------ *
+     *  Menus
+     * ------------------------------------------------------------------ */
+    var menuEl = document.getElementById('menu');
+    var overEl = document.getElementById('over');
+    var startBtn = document.getElementById('startBtn');
+    var againBtn = document.getElementById('againBtn');
+    var menuBtn = document.getElementById('menuBtn');
+    var seedInput = document.getElementById('seedInput');
+    var charList = document.getElementById('charList');
+    var overTitle = document.getElementById('overTitle');
+    var overTally = document.getElementById('overTally');
+    var overSeed = document.getElementById('overSeed');
+
+    CHARACTERS.forEach(function (c, i) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'char';
+        b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+        b.innerHTML = '<b>' + c.power + '</b>' + c.blurb;
+        b.addEventListener('click', function () {
+            G.character = c;
+            Array.prototype.forEach.call(charList.children, function (n) {
+                n.setAttribute('aria-pressed', 'false');
+            });
+            b.setAttribute('aria-pressed', 'true');
+        });
+        charList.appendChild(b);
+    });
+
+    function toggleMute() {
+        muted = !muted;
+        if (master) master.gain.value = muted ? 0 : 0.32;
+    }
+
+    function urlSeed() {
+        var m = /[?&]seed=(\d+)/.exec(location.search);
+        return m ? parseInt(m[1], 10) : null;
+    }
+
+    function setSeedInUrl(seed) {
+        try {
+            var u = new URL(location.href);
+            u.searchParams.set('seed', String(seed));
+            history.replaceState(null, '', u.toString());
+        } catch (e) {}
+    }
+
+    startBtn.addEventListener('click', function () {
+        var v = parseInt(seedInput.value, 10);
+        G.seed = isFinite(v) && v > 0 ? v : Math.floor(Math.random() * 999999) + 1;
+        seedInput.value = G.seed;
+        setSeedInUrl(G.seed);
+        menuEl.hidden = true;
+        overEl.hidden = true;
+        audio();
+        startLevel(1, false);
+    });
+
+    againBtn.addEventListener('click', function () {
+        overEl.hidden = true;
+        if (G.wonLast) startLevel(G.level + 1, true);
+        else startLevel(G.level, false);
+    });
+
+    menuBtn.addEventListener('click', function () {
+        overEl.hidden = true;
+        menuEl.hidden = false;
+        G.phase = 'menu';
+    });
+
+    function levelOver(won) {
+        G.phase = 'done';
+        G.wonLast = won;
+        var bonus = 0;
+        if (won && G.ballsLeft > 0) {
+            bonus = G.ballsLeft * BALL_BONUS;
+            G.score += bonus;
+            G.levelScore += bonus;
+            if (G.score > G.best) { G.best = G.score; saveBest(); }
+        }
+        overTitle.textContent = won ? 'EXTREME FEVER!' : 'OUT OF BALLS';
+        overTally.innerHTML =
+            'Level ' + G.level + ' score <b>' + G.levelScore.toLocaleString('en-US') + '</b><br>' +
+            (won && bonus ? 'Balls left bonus <b>' + bonus.toLocaleString('en-US') + '</b><br>' : '') +
+            (won ? '' : 'Orange pegs left <b>' + (G.orangeTotal - G.orangeHit) + '</b><br>') +
+            'Total <b>' + G.score.toLocaleString('en-US') + '</b><br>' +
+            'Best <b>' + G.best.toLocaleString('en-US') + '</b>';
+        againBtn.textContent = won ? 'NEXT LEVEL' : 'TRY AGAIN';
+        overSeed.textContent = 'Seed ' + G.seed + ' · level ' + G.level;
+        overEl.hidden = false;
+        if (won) { tone(24, 0.4, 'triangle', 0.5); } else { tone(-5, 0.6, 'sawtooth', 0.3); }
+    }
+
+    /* ------------------------------------------------------------------ *
+     *  Boot
+     * ------------------------------------------------------------------ */
+    loadBest();
+    fitBoardHeight();
+    buildStars();
+    var s = urlSeed();
+    G.seed = s || Math.floor(Math.random() * 999999) + 1;
+    seedInput.value = G.seed;
+    rng = mulberry32(G.seed);
+    G.pegs = buildLevel(G.seed, 1);
+    resize();
+    requestAnimationFrame(frame);
+})();
+</script>
+<script src="../logo.js"></script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>佩格尔弹球</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成的弹球消除游戏</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

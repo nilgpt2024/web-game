@@ -941,4 +941,834 @@
             this.combo = 0;
             this.comboTimer = 0;
             this.comboTimeout = 3000;
-            this.sc
+            this.scoreMultiplier = 1;
+            this.highScore = parseInt(localStorage.getItem('asteroidsHighScore') || '0');
+            this.sensitivity = 0.5;
+            this.justResumed = false;
+            this.setupThreeJS();
+            this.setupEventListeners();
+            this.loadSettings();
+            if (this.highScore > 0) {
+                document.getElementById('high-score-display').style.display = 'block';
+                document.getElementById('high-score').textContent = this.highScore;
+            }
+        }
+
+        setupThreeJS() {
+            this.scene = new THREE.Scene();
+            this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            this.camera.rotation.order = 'YXZ';
+            this.renderer = new THREE.WebGLRenderer({antialias: true});
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+            this.renderer.setClearColor(0x000011);
+            document.getElementById('game-container').appendChild(this.renderer.domElement);
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            this.scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(1, 1, 1);
+            this.scene.add(directionalLight);
+            this.createStarfield();
+            this.scene.add(this.camera);
+            this.radarBlips = [];
+        }
+
+        createStarfield() {
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsVertices = [];
+            for (let i = 0; i < 5000; i++) {
+                starsVertices.push(
+                    Math.random() * 2000 - 1000,
+                    Math.random() * 2000 - 1000,
+                    Math.random() * 2000 - 1000
+                );
+            }
+            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+            const starsMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.15});
+            const stars = new THREE.Points(starsGeometry, starsMaterial);
+            this.scene.add(stars);
+            const nebulaMaterial = new THREE.PointsMaterial({
+                color: 0x4466ff,
+                size: 2,
+                transparent: true,
+                opacity: 0.3
+            });
+            const nebulaGeometry = new THREE.BufferGeometry();
+            const nebulaVertices = [];
+            for (let i = 0; i < 200; i++) {
+                nebulaVertices.push(
+                    Math.random() * 1500 - 750,
+                    Math.random() * 1500 - 750,
+                    Math.random() * 1500 - 750
+                );
+            }
+            nebulaGeometry.setAttribute('position', new THREE.Float32BufferAttribute(nebulaVertices, 3));
+            const nebula = new THREE.Points(nebulaGeometry, nebulaMaterial);
+            this.scene.add(nebula);
+        }
+
+        createAsteroids() {
+            const count = 5 + this.level * 2;
+            for (let i = 0; i < count; i++) {
+                this.createAsteroid('large');
+            }
+        }
+
+        createAsteroid(size, position = null) {
+            let radius, detail, speed, points;
+            switch (size) {
+                case 'large':
+                    radius = 8;
+                    detail = 1;
+                    speed = 0.15;
+                    points = 20;
+                    break;
+                case 'medium':
+                    radius = 4;
+                    detail = 1;
+                    speed = 0.25;
+                    points = 50;
+                    break;
+                case 'small':
+                    radius = 2;
+                    detail = 0;
+                    speed = 0.35;
+                    points = 100;
+                    break;
+            }
+            const geometryTypes = [
+                () => new THREE.IcosahedronGeometry(radius, detail),
+                () => new THREE.OctahedronGeometry(radius, detail),
+                () => new THREE.TetrahedronGeometry(radius, detail + 1)
+            ];
+            const geometry = geometryTypes[Math.floor(Math.random() * 3)]();
+            const materialOptions = [
+                new THREE.MeshStandardMaterial({color: 0x8a8a8a, roughness: 0.9, metalness: 0.1, flatShading: true}),
+                new THREE.MeshStandardMaterial({color: 0x6e5b47, roughness: 0.85, metalness: 0.15, flatShading: true}),
+                new THREE.MeshStandardMaterial({color: 0x576b65, roughness: 0.8, metalness: 0.2, flatShading: true})
+            ];
+            const material = materialOptions[Math.floor(Math.random() * materialOptions.length)];
+            const asteroid = new THREE.Mesh(geometry, material);
+            if (position) {
+                asteroid.position.copy(position);
+            } else {
+                do {
+                    asteroid.position.set(
+                        Math.random() * 200 - 100,
+                        Math.random() * 200 - 100,
+                        Math.random() * 200 - 100
+                    );
+                } while (asteroid.position.length() < 40);
+            }
+            asteroid.rotation.set(
+                Math.random() * Math.PI * 2,
+                Math.random() * Math.PI * 2,
+                Math.random() * Math.PI * 2
+            );
+            const direction = new THREE.Vector3(
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1,
+                Math.random() * 2 - 1
+            ).normalize();
+            const asteroidData = {
+                mesh: asteroid,
+                size: size,
+                direction: direction,
+                speed: speed * (0.8 + Math.random() * 0.4),
+                rotationSpeed: {
+                    x: Math.random() * 0.01 - 0.005,
+                    y: Math.random() * 0.01 - 0.005,
+                    z: Math.random() * 0.01 - 0.005
+                },
+                points: points,
+                radius: radius
+            };
+            this.asteroids.push(asteroidData);
+            this.scene.add(asteroid);
+            this.createRadarBlip(asteroidData);
+            return asteroidData;
+        }
+
+        createRadarBlip(asteroidData) {
+            const blipElement = document.createElement('div');
+            blipElement.className = 'radar-blip';
+            blipElement.style.width = '4px';
+            blipElement.style.height = '4px';
+            document.getElementById('radar').appendChild(blipElement);
+            this.radarBlips.push({element: blipElement, asteroid: asteroidData});
+        }
+
+        shoot() {
+            const now = Date.now();
+            if (this.weaponHeat >= this.maxHeat || now - this.lastShotTime < this.fireRate) return;
+            this.lastShotTime = now;
+            this.weaponHeat = Math.min(this.maxHeat, this.weaponHeat + this.heatPerShot);
+            this.updateHeatBar();
+            const geometry = new THREE.SphereGeometry(0.15, 8, 8);
+            const material = new THREE.MeshBasicMaterial({color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 2});
+            const projectile = new THREE.Mesh(geometry, material);
+            projectile.position.copy(this.camera.position);
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(this.camera.quaternion);
+            const trailGeometry = new THREE.CylinderGeometry(0.05, 0.15, 1, 8);
+            const trailMaterial = new THREE.MeshBasicMaterial({color: 0x00ff88, transparent: true, opacity: 0.6});
+            const trail = new THREE.Mesh(trailGeometry, trailMaterial);
+            trail.rotation.x = Math.PI / 2;
+            projectile.add(trail);
+            const targetPoint = projectile.position.clone().add(direction.multiplyScalar(10));
+            projectile.lookAt(targetPoint);
+            const projectileData = {
+                mesh: projectile,
+                direction: direction.normalize(),
+                speed: 2.0,
+                lifeTime: 1500,
+                created: Date.now()
+            };
+            this.projectiles.push(projectileData);
+            this.scene.add(projectile);
+            const light = new THREE.PointLight(0x00ff88, 3, 15);
+            light.position.copy(this.camera.position);
+            this.scene.add(light);
+            setTimeout(() => this.scene.remove(light), 100);
+            this.audio.playShoot();
+        }
+
+        updatePlayerMovement(deltaTime) {
+            const moveSpeed = this.moveSpeed * deltaTime;
+            const boostMultiplier = (this.keys['ShiftLeft'] || this.keys['ShiftRight']) ? this.boostMultiplier : 1.0;
+            let moveVector = new THREE.Vector3(0, 0, 0);
+            if (this.keys['KeyW'] || this.keys['ArrowUp']) moveVector.z -= moveSpeed * boostMultiplier;
+            if (this.keys['KeyS'] || this.keys['ArrowDown']) moveVector.z += moveSpeed * boostMultiplier;
+            if (this.keys['KeyA'] || this.keys['ArrowLeft']) moveVector.x -= moveSpeed * boostMultiplier;
+            if (this.keys['KeyD'] || this.keys['ArrowRight']) moveVector.x += moveSpeed * boostMultiplier;
+            moveVector.applyQuaternion(this.camera.quaternion);
+            this.camera.position.add(moveVector);
+        }
+
+        updateAsteroids(deltaTime) {
+            for (const asteroid of this.asteroids) {
+                asteroid.mesh.position.addScaledVector(asteroid.direction, asteroid.speed * deltaTime);
+                asteroid.mesh.rotation.x += asteroid.rotationSpeed.x * deltaTime;
+                asteroid.mesh.rotation.y += asteroid.rotationSpeed.y * deltaTime;
+                asteroid.mesh.rotation.z += asteroid.rotationSpeed.z * deltaTime;
+                const limit = 150;
+                if (Math.abs(asteroid.mesh.position.x) > limit)
+                    asteroid.mesh.position.x = -Math.sign(asteroid.mesh.position.x) * (limit - 5);
+                if (Math.abs(asteroid.mesh.position.y) > limit)
+                    asteroid.mesh.position.y = -Math.sign(asteroid.mesh.position.y) * (limit - 5);
+                if (Math.abs(asteroid.mesh.position.z) > limit)
+                    asteroid.mesh.position.z = -Math.sign(asteroid.mesh.position.z) * (limit - 5);
+            }
+        }
+
+        updateProjectiles(deltaTime) {
+            const now = Date.now();
+            for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                const projectile = this.projectiles[i];
+                projectile.mesh.position.addScaledVector(projectile.direction, projectile.speed * deltaTime);
+                if (projectile.mesh.children[0]) {
+                    projectile.mesh.children[0].material.opacity = Math.max(0, 1 - (now - projectile.created) / projectile.lifeTime);
+                }
+                if (now - projectile.created > projectile.lifeTime) {
+                    this.scene.remove(projectile.mesh);
+                    this.projectiles.splice(i, 1);
+                }
+            }
+        }
+
+        updatePowerups(deltaTime) {
+            const now = Date.now();
+            for (let i = this.powerups.length - 1; i >= 0; i--) {
+                const powerup = this.powerups[i];
+                powerup.mesh.rotation.y += 0.02 * deltaTime;
+                powerup.mesh.position.y += Math.sin(now / 300 + i) * 0.01 * deltaTime;
+                if (this.camera.position.distanceTo(powerup.mesh.position) < 5) {
+                    this.collectPowerup(powerup);
+                    this.scene.remove(powerup.mesh);
+                    this.powerups.splice(i, 1);
+                } else if (now - powerup.created > 15000) {
+                    this.scene.remove(powerup.mesh);
+                    this.powerups.splice(i, 1);
+                }
+            }
+        }
+
+        updateRadar() {
+            const radarRadius = 90;
+            const maxDistance = 150;
+            for (let i = 0; i < this.radarBlips.length; i++) {
+                const blip = this.radarBlips[i];
+                if (!this.asteroids.includes(blip.asteroid)) {
+                    document.getElementById('radar').removeChild(blip.element);
+                    this.radarBlips.splice(i, 1);
+                    i--;
+                    continue;
+                }
+                const relativePos = blip.asteroid.mesh.position.clone().sub(this.camera.position);
+                const distance = relativePos.length();
+                const normalizedDistance = Math.min(distance / maxDistance, 1) * radarRadius;
+                const angle = Math.atan2(relativePos.x, relativePos.z);
+                const radarX = Math.sin(angle) * normalizedDistance;
+                const radarY = Math.cos(angle) * normalizedDistance;
+                blip.element.style.left = (radarRadius + radarX) + 'px';
+                blip.element.style.top = (radarRadius + radarY) + 'px';
+                let blipSize = blip.asteroid.size === 'large' ? 6 : blip.asteroid.size === 'medium' ? 4 : 3;
+                blip.element.style.width = blipSize + 'px';
+                blip.element.style.height = blipSize + 'px';
+                blip.element.style.opacity = 1 - (normalizedDistance / radarRadius) * 0.7;
+            }
+        }
+
+        checkCollisions() {
+            for (let i = 0; i < this.asteroids.length; i++) {
+                const asteroid = this.asteroids[i];
+                const distance = this.camera.position.distanceTo(asteroid.mesh.position);
+                let collisionThreshold = asteroid.size === 'large' ? 10 : asteroid.size === 'medium' ? 5 : 3;
+                if (distance < collisionThreshold) {
+                    this.playerHit();
+                    break;
+                }
+            }
+            for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                const projectile = this.projectiles[i];
+                for (let j = this.asteroids.length - 1; j >= 0; j--) {
+                    const asteroid = this.asteroids[j];
+                    const distance = projectile.mesh.position.distanceTo(asteroid.mesh.position);
+                    let collisionThreshold = asteroid.size === 'large' ? 8 : asteroid.size === 'medium' ? 4 : 2;
+                    if (distance < collisionThreshold) {
+                        this.scene.remove(projectile.mesh);
+                        this.projectiles.splice(i, 1);
+                        this.asteroidHit(asteroid, j);
+                        break;
+                    }
+                }
+            }
+            if (this.asteroids.length === 0) {
+                this.levelUp();
+            }
+        }
+
+        asteroidHit(asteroid, index) {
+            this.combo++;
+            this.comboTimer = Date.now();
+            this.scoreMultiplier = 1 + Math.floor(this.combo / 5) * 0.5;
+            const earnedPoints = Math.floor(asteroid.points * this.scoreMultiplier);
+            this.score += earnedPoints;
+            this.updateHUD();
+            this.updateComboDisplay();
+            this.showDamageNumber(asteroid.mesh.position, earnedPoints);
+            this.createExplosion(asteroid.mesh.position, asteroid.size);
+            this.audio.playExplosion(asteroid.size);
+            if (asteroid.size !== 'small') {
+                const newSize = asteroid.size === 'large' ? 'medium' : 'small';
+                const fragmentCount = asteroid.size === 'large' ? 3 : 2;
+                for (let i = 0; i < fragmentCount; i++) {
+                    const newAsteroid = this.createAsteroid(newSize, asteroid.mesh.position.clone());
+                    const spreadDirection = new THREE.Vector3(
+                        Math.random() * 2 - 1,
+                        Math.random() * 2 - 1,
+                        Math.random() * 2 - 1
+                    ).normalize();
+                    newAsteroid.direction.copy(spreadDirection);
+                }
+            } else if (Math.random() < 0.15) {
+                this.spawnPowerup(asteroid.mesh.position);
+            }
+            this.scene.remove(asteroid.mesh);
+            this.asteroids.splice(index, 1);
+        }
+
+        createExplosion(position, size) {
+            const particleCount = size === 'large' ? 60 : size === 'medium' ? 40 : 25;
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const velocities = [];
+            const colors = [];
+            for (let i = 0; i < particleCount; i++) {
+                vertices.push(position.x, position.y, position.z);
+                const direction = new THREE.Vector3(
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1,
+                    Math.random() * 2 - 1
+                ).normalize();
+                const speed = 0.15 + Math.random() * 0.25;
+                velocities.push(direction.x * speed, direction.y * speed, direction.z * speed);
+                const t = Math.random();
+                colors.push(1, t * 0.5, 0);
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            const material = new THREE.PointsMaterial({
+                size: size === 'large' ? 0.8 : size === 'medium' ? 0.5 : 0.3,
+                transparent: true,
+                opacity: 1,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending
+            });
+            const particles = new THREE.Points(geometry, material);
+            this.scene.add(particles);
+            const light = new THREE.PointLight(0xff5500, 3, 30);
+            light.position.copy(position);
+            this.scene.add(light);
+            const startTime = Date.now();
+            const duration = 1000;
+            const animateExplosion = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = elapsed / duration;
+                if (progress >= 1) {
+                    this.scene.remove(particles);
+                    this.scene.remove(light);
+                    return;
+                }
+                const positions = particles.geometry.attributes.position.array;
+                for (let i = 0, j = 0; i < positions.length; i += 3, j += 3) {
+                    positions[i] += velocities[j] * (1 - progress * 0.5);
+                    positions[i + 1] += velocities[j + 1] * (1 - progress * 0.5);
+                    positions[i + 2] += velocities[j + 2] * (1 - progress * 0.5);
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+                material.opacity = 1 - progress;
+                light.intensity = 3 * (1 - progress);
+                requestAnimationFrame(animateExplosion);
+            };
+            animateExplosion();
+        }
+
+        showDamageNumber(position, points) {
+            const div = document.createElement('div');
+            div.className = 'damage-number';
+            div.textContent = '+' + points;
+            const screenPos = position.clone().project(this.camera);
+            div.style.left = (screenPos.x * 0.5 + 0.5) * window.innerWidth + 'px';
+            div.style.top = (-screenPos.y * 0.5 + 0.5) * window.innerHeight + 'px';
+            document.getElementById('game-container').appendChild(div);
+            setTimeout(() => div.remove(), 1000);
+        }
+
+        spawnPowerup(position) {
+            const types = ['shield', 'weapon', 'score'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            const geometry = new THREE.OctahedronGeometry(1.5, 0);
+            const colorMap = {shield: 0x00ff88, weapon: 0xff6600, score: 0xffaa00};
+            const material = new THREE.MeshStandardMaterial({
+                color: colorMap[type],
+                emissive: colorMap[type],
+                emissiveIntensity: 0.5,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.copy(position);
+            const light = new THREE.PointLight(colorMap[type], 2, 20);
+            light.position.copy(position);
+            this.scene.add(light);
+            mesh.add(light);
+            this.scene.add(mesh);
+            this.powerups.push({mesh: mesh, type: type, created: Date.now()});
+        }
+
+        collectPowerup(powerup) {
+            this.audio.playPowerUp();
+            const messages = {
+                shield: 'SHIELD +50',
+                weapon: 'WEAPON COOLED',
+                score: 'SCORE MULTIPLIER +0.5'
+            };
+            this.showPowerupMessage(messages[powerup.type]);
+            switch (powerup.type) {
+                case 'shield':
+                    this.shield = Math.min(100, this.shield + 50);
+                    this.updateHUD();
+                    break;
+                case 'weapon':
+                    this.weaponHeat = 0;
+                    this.updateHeatBar();
+                    break;
+                case 'score':
+                    this.scoreMultiplier += 0.5;
+                    break;
+            }
+        }
+
+        showPowerupMessage(text) {
+            const indicator = document.getElementById('powerup-indicator');
+            const textEl = document.getElementById('powerup-text');
+            textEl.textContent = text;
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 2000);
+        }
+
+        playerHit() {
+            this.shield -= 20 + 10 * this.level;
+            this.shield = Math.max(0, this.shield);
+            this.updateHUD();
+            this.combo = 0;
+            this.comboTimer = 0;
+            this.scoreMultiplier = 1;
+            this.updateComboDisplay();
+            const hitFlash = document.getElementById('hit-flash');
+            hitFlash.style.display = 'block';
+            setTimeout(() => hitFlash.style.display = 'none', 100);
+            this.audio.playHit();
+            const shakeDuration = 300;
+            const startTime = Date.now();
+            const shakeCamera = () => {
+                const elapsed = Date.now() - startTime;
+                if (elapsed < shakeDuration) {
+                    const intensity = 0.2 * (1 - elapsed / shakeDuration);
+                    const shakeOffset = new THREE.Vector3(
+                        (Math.random() - 0.5) * intensity,
+                        (Math.random() - 0.5) * intensity,
+                        (Math.random() - 0.5) * intensity
+                    );
+                    this.camera.position.add(shakeOffset);
+                    requestAnimationFrame(shakeCamera);
+                }
+            };
+            shakeCamera();
+            if (this.shield <= 0) {
+                this.lives--;
+                this.updateHUD();
+                if (this.lives <= 0) {
+                    this.gameOver();
+                } else {
+                    this.shield = 100;
+                    this.updateHUD();
+                    this.showMessage("SHIELD FAILURE!");
+                }
+            }
+        }
+
+        showMessage(text) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.style.display = 'block';
+            setTimeout(() => message.style.display = 'none', 2000);
+        }
+
+        levelUp() {
+            this.level++;
+            this.updateHUD();
+            this.shield = Math.min(100, this.shield + 20);
+            this.updateHUD();
+            this.showMessage(`LEVEL ${this.level}`);
+            this.audio.playLevelUp();
+            setTimeout(() => this.createAsteroids(), 1500);
+        }
+
+        regenShield(deltaTime) {
+            if (this.shield < 100) {
+                this.shield = Math.min(100, this.shield + this.shieldRegenRate * deltaTime);
+                this.updateHUD();
+            }
+        }
+
+        coolWeapon(deltaTime) {
+            if (this.weaponHeat > 0) {
+                this.weaponHeat = Math.max(0, this.weaponHeat - this.heatCooldown * deltaTime);
+                this.updateHeatBar();
+            }
+        }
+
+        updateCombo(deltaTime) {
+            if (this.combo > 0 && Date.now() - this.comboTimer > this.comboTimeout) {
+                this.combo = 0;
+                this.scoreMultiplier = 1;
+                this.updateComboDisplay();
+            }
+        }
+
+        updateComboDisplay() {
+            const comboDisplay = document.getElementById('combo-display');
+            if (this.combo > 2) {
+                comboDisplay.style.display = 'block';
+                document.getElementById('combo-value').textContent = this.combo;
+                document.getElementById('multiplier').textContent = '×' + this.scoreMultiplier.toFixed(1);
+            } else {
+                comboDisplay.style.display = 'none';
+            }
+        }
+
+        updateHUD() {
+            document.getElementById('score').textContent = this.score;
+            document.getElementById('level').textContent = this.level;
+            const livesDisplay = document.getElementById('lives-display');
+            livesDisplay.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const icon = document.createElement('span');
+                icon.className = 'life-icon' + (i >= this.lives ? ' lost' : '');
+                icon.textContent = '❤️';
+                livesDisplay.appendChild(icon);
+            }
+            const shieldFill = document.getElementById('shield-fill');
+            shieldFill.style.width = this.shield + '%';
+            shieldFill.className = 'shield-fill' + (this.shield < 30 ? ' low' : '');
+        }
+
+        updateHeatBar() {
+            const heatFill = document.getElementById('heat-fill');
+            heatFill.style.width = this.weaponHeat + '%';
+            heatFill.className = 'heat-fill' + (this.weaponHeat >= this.maxHeat ? ' critical' : '');
+        }
+
+        update(time) {
+            if (this.gameState !== 'playing' || this.isPaused) return;
+            const deltaTime = Math.min(60, time - this.lastTime) / 16;
+            this.lastTime = time;
+            this.updatePlayerMovement(deltaTime);
+            this.updateAsteroids(deltaTime);
+            this.updateProjectiles(deltaTime);
+            this.updatePowerups(deltaTime);
+            this.updateRadar();
+            this.checkCollisions();
+            this.regenShield(deltaTime);
+            this.coolWeapon(deltaTime);
+            this.updateCombo(deltaTime);
+        }
+
+        render(time) {
+            this.update(time);
+            this.renderer.render(this.scene, this.camera);
+            requestAnimationFrame(t => this.render(t));
+        }
+
+        startGame() {
+            this.audio.init();
+            document.body.classList.add('playing');
+            document.getElementById('menu-screen').style.display = 'none';
+            document.getElementById('hud').style.display = 'block';
+            document.getElementById('crosshair').style.display = 'block';
+            document.getElementById('radar').style.display = 'block';
+            this.gameState = 'playing';
+            this.score = 0;
+            this.lives = 3;
+            this.level = 1;
+            this.shield = 100;
+            this.weaponHeat = 0;
+            this.combo = 0;
+            this.comboTimer = 0;
+            this.scoreMultiplier = 1;
+            this.lastShotTime = 0;
+            this.updateHUD();
+            this.updateHeatBar();
+            this.updateComboDisplay();
+            this.camera.position.set(0, 0, 0);
+            this.pitch = 0;
+            this.yaw = 0;
+            this.camera.rotation.set(0, 0, 0);
+            for (const asteroid of this.asteroids) this.scene.remove(asteroid.mesh);
+            this.asteroids = [];
+            for (const projectile of this.projectiles) this.scene.remove(projectile.mesh);
+            this.projectiles = [];
+            for (const powerup of this.powerups) this.scene.remove(powerup.mesh);
+            this.powerups = [];
+            const radar = document.getElementById('radar');
+            while (radar.childElementCount > 2) radar.removeChild(radar.lastChild);
+            this.radarBlips = [];
+            this.createAsteroids();
+            document.body.requestPointerLock();
+            this.showMessage("START GAME!");
+        }
+
+        pauseGame() {
+            if (this.gameState !== 'playing') return;
+            this.isPaused = true;
+            document.body.classList.remove('playing');
+            document.getElementById('pause-screen').style.display = 'flex';
+            document.exitPointerLock();
+        }
+
+        resumeGame() {
+            this.isPaused = false;
+            this.justResumed = true;
+            document.body.classList.add('playing');
+            document.getElementById('pause-screen').style.display = 'none';
+            document.body.requestPointerLock();
+            setTimeout(() => {
+                this.justResumed = false;
+            }, 200);
+        }
+
+        gameOver() {
+            this.gameState = 'gameOver';
+            document.body.classList.remove('playing');
+            document.getElementById('final-score').textContent = this.score;
+            if (this.score > this.highScore) {
+                this.highScore = this.score;
+                localStorage.setItem('asteroidsHighScore', this.highScore);
+                document.getElementById('new-high-score').style.display = 'block';
+                document.getElementById('high-score').textContent = this.highScore;
+            } else {
+                document.getElementById('new-high-score').style.display = 'none';
+            }
+            document.getElementById('game-over-screen').style.display = 'flex';
+            document.getElementById('radar').style.display = 'none';
+            document.exitPointerLock();
+        }
+
+        loadSettings() {
+            const savedVolume = localStorage.getItem('asteroidsVolume');
+            const savedSensitivity = localStorage.getItem('asteroidsSensitivity');
+            if (savedVolume) {
+                this.audio.volume = parseFloat(savedVolume);
+                document.getElementById('volume-slider').value = this.audio.volume * 100;
+                document.getElementById('volume-value').textContent = Math.round(this.audio.volume * 100) + '%';
+            }
+            if (savedSensitivity) {
+                this.sensitivity = parseFloat(savedSensitivity);
+                document.getElementById('sensitivity-slider').value = this.sensitivity * 100;
+                document.getElementById('sensitivity-value').textContent = Math.round(this.sensitivity * 100) + '%';
+            }
+        }
+
+        setupEventListeners() {
+            document.addEventListener('mousemove', event => {
+                if (this.gameState !== 'playing' || this.isPaused || !this.pointerLocked) return;
+                const movementX = event.movementX || 0;
+                const movementY = event.movementY || 0;
+                this.yaw -= movementX * 0.002 * this.sensitivity;
+                this.pitch -= movementY * 0.002 * this.sensitivity;
+                this.pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.pitch));
+                this.camera.rotation.set(this.pitch, this.yaw, 0);
+            });
+
+            document.addEventListener('pointerlockchange', () => {
+                this.pointerLocked = document.pointerLockElement !== null;
+                if (!this.pointerLocked && this.gameState === 'playing' && !this.isPaused && !this.justResumed) {
+                    this.pauseGame();
+                }
+            });
+
+            document.addEventListener('keydown', event => {
+                this.keys[event.code] = true;
+                if (event.code === 'Space' && this.gameState === 'playing' && !this.isPaused) {
+                    event.preventDefault();
+                    this.shoot();
+                }
+                if (event.code === 'Escape' && this.gameState === 'playing') {
+                    event.preventDefault();
+                    if (this.isPaused) {
+                        this.resumeGame();
+                    } else {
+                        this.pauseGame();
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', event => {
+                this.keys[event.code] = false;
+            });
+
+            document.addEventListener('click', () => {
+                if (this.gameState === 'playing' && !this.isPaused && this.pointerLocked) {
+                    this.shoot();
+                }
+            });
+
+            document.getElementById('start-button').addEventListener('click', () => {
+                this.audio.playClick();
+                this.startGame();
+            });
+
+            document.getElementById('resume-button').addEventListener('click', () => {
+                this.audio.playClick();
+                this.resumeGame();
+            });
+
+            document.getElementById('menu-button').addEventListener('click', () => {
+                this.audio.playClick();
+                this.isPaused = false;
+                this.gameState = 'menu';
+                document.body.classList.remove('playing');
+                document.getElementById('pause-screen').style.display = 'none';
+                document.getElementById('hud').style.display = 'none';
+                document.getElementById('crosshair').style.display = 'none';
+                document.getElementById('radar').style.display = 'none';
+                document.getElementById('menu-screen').style.display = 'flex';
+            });
+
+            document.getElementById('restart-button').addEventListener('click', () => {
+                this.audio.playClick();
+                document.getElementById('game-over-screen').style.display = 'none';
+                this.startGame();
+            });
+
+            document.getElementById('menu-button-end').addEventListener('click', () => {
+                this.audio.playClick();
+                this.gameState = 'menu';
+                document.getElementById('game-over-screen').style.display = 'none';
+                document.getElementById('hud').style.display = 'none';
+                document.getElementById('crosshair').style.display = 'none';
+                document.getElementById('menu-screen').style.display = 'flex';
+            });
+
+            document.getElementById('settings-btn').addEventListener('click', () => {
+                this.audio.playClick();
+                document.getElementById('settings-screen').style.display = 'flex';
+            });
+
+            document.getElementById('close-settings').addEventListener('click', () => {
+                this.audio.playClick();
+                document.getElementById('settings-screen').style.display = 'none';
+            });
+
+            document.getElementById('volume-slider').addEventListener('input', e => {
+                const value = parseInt(e.target.value) / 100;
+                this.audio.setVolume(value);
+                document.getElementById('volume-value').textContent = e.target.value + '%';
+                localStorage.setItem('asteroidsVolume', value);
+            });
+
+            document.getElementById('sensitivity-slider').addEventListener('input', e => {
+                const value = parseInt(e.target.value) / 100;
+                this.sensitivity = value;
+                document.getElementById('sensitivity-value').textContent = e.target.value + '%';
+                localStorage.setItem('asteroidsSensitivity', value);
+            });
+
+            window.addEventListener('resize', () => {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+    }
+
+    const game = new AsteroidsGame();
+    game.render(0);
+</script>
+<script src="../logo.js"></script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>3D 小行星</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成的3D太空射击游戏</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

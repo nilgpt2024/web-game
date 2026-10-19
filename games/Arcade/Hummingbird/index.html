@@ -674,4 +674,802 @@ const Cal = {
     g.beginPath();
     g.moveTo(-42,0); g.quadraticCurveTo(0,-31,42,0); g.quadraticCurveTo(0,31,-42,0);
     g.closePath();
-    g.fillS
+    g.fillStyle='rgba(255,255,255,.7)'; g.fill();
+    g.save(); g.clip();
+    g.fillStyle='#5fb98a'; g.fillRect(-42,31-62*this.held,84,62);
+    g.restore();
+    g.lineWidth=3; g.strokeStyle='#3d8c65'; g.stroke();
+    g.beginPath(); g.moveTo(-42,0); g.lineTo(42,0);
+    g.strokeStyle='rgba(61,140,101,.45)'; g.lineWidth=2; g.stroke();
+    g.restore();
+
+    g.textAlign='center'; g.font='800 12px system-ui'; g.fillStyle='rgba(109,91,114,.8)';
+    g.fillText(this.step===0?'lower':'higher', railX, h-1);
+
+    // if nothing has been heard for a while, say so kindly
+    const quiet = !this.lastHeard || performance.now()-this.lastHeard > 2600;
+    const hint=$('calHint');
+    if (quiet && !this.nudged){
+      this.nudged=true;
+      hint.textContent = 'Nothing yet — a gentle "mmm" is plenty. Check the mic is on?';
+    } else if (!quiet && this.nudged){
+      this.nudged=false;
+      hint.textContent = this.step===0
+        ? 'Somewhere sleepy. Hold it while the leaf fills.'
+        : 'Not a shriek — just the top of easy. Hold it.';
+    }
+  },
+  finish(){
+    cancelAnimationFrame(this.raf);
+    let lo=Math.min(this.lo,this.hi), hi=Math.max(this.lo,this.hi);
+    if (hi-lo < 7){ const mid=(lo+hi)/2; lo=mid-4; hi=mid+4; }   // shy singer
+    if (hi-lo > 20){ const mid=(lo+hi)/2; lo=mid-9; hi=mid+9; }  // showing off
+    G.voiceLo = Math.round(lo)+1; G.voiceHi = Math.round(hi)-1;
+    startMeadow(0);
+  },
+  skip(){
+    cancelAnimationFrame(this.raf);
+    if (this.step===1 && this.lo!=null){ this.hi=this.lo+11; return this.finish(); }
+    G.voiceLo=57; G.voiceHi=71; startMeadow(0);
+  }
+};
+
+/* ===========================================================================
+   A meadow: build the song, schedule the band, fly it
+   =========================================================================== */
+const BIRD_X = 0.30, BEATS_ON_SCREEN = 6.4;
+let pxPerBeat = 100;
+
+/* Remember the best round in each meadow, so there is something to beat.
+   Wrapped because a browser with storage switched off must not take the
+   game down with it. */
+const Best = {
+  key:'hummingbird.best',
+  all(){ try { return JSON.parse(localStorage.getItem(this.key)||'{}'); } catch(e){ return {}; } },
+  get(name){ return this.all()[name]; },
+  put(name, flowers, notes){
+    try {
+      const a=this.all(), prev=a[name];
+      if (!prev || flowers>prev.f || (flowers===prev.f && notes<prev.n)){
+        a[name]={f:flowers,n:notes};
+        localStorage.setItem(this.key, JSON.stringify(a));
+        return true;
+      }
+    } catch(e){}
+    return false;
+  }
+};
+
+function startMeadow(i, seed){
+  G.meadow = Math.min(i, MEADOWS.length-1);
+  G.spec = MEADOWS[G.meadow];
+  G.seed = seed || (Math.floor(Math.random()*90000)+1000);
+  G.song = makeSong(G.seed, G.spec, G.voiceLo, G.voiceHi);
+  G.noteState = G.song.notes.map(()=>({frames:0,hits:0,done:false,bloom:0,scored:false}));
+  const mids = G.song.notes.map(n=>n.midi);
+  const lo = Math.min(...mids), hi = Math.max(...mids), mid=(lo+hi)/2;
+  const span = Math.max(8, (hi-lo)+5);
+  G.viewLo = mid-span/2; G.viewHi = mid+span/2;
+  G.beatDur = 60/G.spec.bpm;
+  Baked.dirty = true;
+  G.flowers = 0; G.combo = 0; G.bestCombo = 0; G.ended=false; G.started=false;
+  G.trail.length = 0; G.rings.length = 0; G.petals.length = 0; G.sparks.length = 0;
+  $('briefTitle').textContent = (i>=MEADOWS.length? 'Nightbloom again — ' : '') + G.spec.name;
+  $('briefText').textContent = G.spec.blurb;
+  const best = Best.get(G.spec.name);
+  $('briefSeed').textContent = 'song ' + G.seed +
+    (best ? '   ·   best here: ' + best.f + ' flowers' : '');
+  show('pBrief'); G.mode='brief';
+}
+
+function launch(){
+  hideAll(); $('hud').hidden=false; $('pauseBtn').hidden=false;
+  $('meadowName').textContent = G.spec.name;
+  G.mode='play'; G.started=true;
+  if (Band.ac.state==='suspended') Band.ac.resume();
+  G.t0 = Band.ac.currentTime + 0.35 + G.countIn*G.beatDur;
+  scheduleBand();
+}
+
+function acapBars(){
+  // which bars the band sits out: spread through the second half
+  const n = G.spec.acap, bars=[];
+  const choices=[3,5,6,2,7,4];
+  for (let i=0;i<n;i++) bars.push(choices[i]);
+  return bars;
+}
+
+function scheduleBand(){
+  const bd = G.beatDur, t0 = G.t0;
+  const prog = PROGS[G.seed % PROGS.length];
+  const quiet = acapBars();
+  // count-in
+  for (let b=0;b<G.countIn;b++) Band.shaker(t0 - (G.countIn-b)*bd, b===0?0.16:0.09);
+  const tonicMidi = G.song.notes[0].midi;
+  const key = tonicMidi - semisOf(0);
+  for (let bar=0; bar<8; bar++){
+    const t = t0 + bar*4*bd;
+    if (quiet.includes(bar)) continue;
+    const root = prog[bar%prog.length];
+    const chord = [root,(root+2)%7,(root+4)%7].map(d=>key + MAJOR[d] - 12);
+    Band.pad(t, chord, 4*bd, 0.075);
+    Band.bass(t, chord[0]-12, 2*bd);
+    Band.bass(t+2*bd, chord[0]-12, 2*bd);
+    for (let b=0;b<4;b++) Band.shaker(t+b*bd, b%2?0.05:0.085);
+  }
+  if (G.spec.guide){
+    for (const n of G.song.notes)
+      Band.guide(t0 + n.beat*bd, n.midi, n.beats*bd, 0.085);
+  }
+}
+
+function currentBeat(){
+  if (!G.started) return -G.countIn;
+  return (Band.ac.currentTime - G.t0)/G.beatDur;
+}
+
+function noteAt(beat){
+  const ns = G.song.notes;
+  for (let i=0;i<ns.length;i++)
+    if (beat >= ns[i].beat && beat < ns[i].beat+ns[i].beats) return i;
+  return -1;
+}
+
+function scoreFrame(dt, beat){
+  const i = noteAt(beat);
+  if (i<0) return -1;
+  const st = G.noteState[i], n = G.song.notes[i];
+  st.frames++;
+  const on = G.sung>0 && Math.abs(G.sung - n.midi) <= G.spec.tol;
+  if (on){ st.hits++; }
+  // settle the note once we are 70% through it
+  if (!st.scored && beat > n.beat + n.beats*0.72){
+    st.scored = true;
+    const ratio = st.hits/Math.max(1,st.frames);
+    if (ratio >= 0.5){
+      st.bloom = 1; G.flowers++; G.combo++;
+      G.rings.push({x:W*BIRD_X, y:midiToY(n.midi), r:6, life:1});
+      G.bestCombo = Math.max(G.bestCombo,G.combo);
+      Band.chime(Band.ac.currentTime, n.midi+12, 0.09);
+      burstPetals(i);
+      if (G.combo>0 && G.combo%6===0) toast(pick(['lovely','that is the one','singing!','look at her go']));
+    } else {
+      if (G.combo>=6) toast('…and breathe');
+      G.combo = 0;
+    }
+  }
+  return on ? i : -1;
+}
+
+function burstPetals(i){
+  const n = G.song.notes[i];
+  const y = midiToY(n.midi), x = W*BIRD_X;
+  for (let k=0;k<10;k++)
+    G.petals.push({x, y, vx:(Math.random()-.3)*70, vy:(Math.random()-.7)*90,
+      life:1, r:3+Math.random()*4, hue:[335,20,48,300][Math.floor(Math.random()*4)]});
+}
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+let toastT=0, toastMsg='';
+function toast(m){ toastMsg=m; toastT=1.6; }
+
+function endMeadow(){
+  G.ended = true; G.mode='end';
+  // a little arpeggio home, keyed to the song you just sang
+  const root = G.song.notes[G.song.notes.length-1].midi;
+  const shape = G.flowers/G.song.notes.length >= 0.6 ? [0,4,7,12] : [0,3,7,10];
+  const t0 = Band.ac.currentTime + 0.05;
+  shape.forEach((iv,i)=> Band.chime(t0+i*0.09, root+iv, 0.11-i*0.012));
+  G.runFlowers += G.flowers; G.totalFlowers += G.flowers;
+  const total = G.song.notes.length;
+  const pct = G.flowers/total;
+  const newBest = Best.put(G.spec.name, G.flowers, total);
+  $('endFlowers').textContent = G.flowers + ' / ' + total;
+  $('endTitle').textContent = pct>=0.9 ? 'The whole vine bloomed!' :
+                              pct>=0.6 ? 'Nicely sung!' :
+                              pct>=0.3 ? 'A few buds opened' : 'She got a bit lost';
+  $('endLine').textContent = pct>=0.9 ? 'Not one dropped. The next meadow is going to try harder.' :
+    pct>=0.6 ? 'Longest run without a stumble: ' + G.bestCombo + ' flowers.' :
+    pct>=0.3 ? 'Try leaning into the first note of each phrase — she follows whatever you land on.' :
+    'Hum quietly and steadily rather than loudly. She hears soft notes perfectly well.';
+  $('endSeed').textContent = (newBest && G.flowers>0 ? 'a new best here · ' : '') +
+                             'song ' + G.seed + ' · ' + G.spec.name +
+                             (G.runFlowers>G.flowers ? ' · ' + G.runFlowers + ' flowers this trip' : '');
+  $('btnNext').textContent = G.meadow >= MEADOWS.length-1 ? 'Another Nightbloom' : 'Next meadow';
+  $('hud').hidden=true; $('pauseBtn').hidden=true;
+  show('pEnd');
+}
+
+/* ===========================================================================
+   Drawing
+   =========================================================================== */
+const SKIES = [
+  ['#ffe9c9','#ffc9a8','#f7a8bb'],   // sunrise
+  ['#fff2d2','#ffe0ac','#ffbfa2'],   // morning
+  ['#d9f0f7','#bfe6ef','#ffe3c0'],   // bright
+  ['#cfe9f5','#a9d8ee','#ffd7b0'],   // windy
+  ['#e6dcf5','#c9c3ee','#ffc9c0'],   // late
+  ['#b9a4d8','#8f7fc0','#f0a08f'],   // dusk
+  ['#2b2350','#4a3a78','#7b5a9a']    // night
+];
+function skyOf(){ return SKIES[Math.min(SKIES.length-1, G.spec?G.spec.sky:0)]; }
+function isNight(){ return !!(G.spec && G.spec.sky>=5); }
+let nightClass=null;
+function syncTheme(){
+  const n = isNight() && G.mode==='play';
+  if (n===nightClass) return;
+  nightClass=n; document.body.classList.toggle('night', n);
+}
+
+/* Sky, sun or moon, stars and hills never change within a meadow, so they are
+   drawn once into an offscreen canvas and blitted.  Painting them per frame
+   was costing 39ms a frame at desktop size -- 25fps -- against 16.7 on a
+   phone, which is what a full-screen gradient plus three filled hill paths
+   costs when nothing about them moved. */
+const Baked = {c:null, x:null, dirty:true, sky:-1, cloud:null};
+function bake(){
+  const sky = G.spec? G.spec.sky : 0;
+  if (!Baked.dirty && Baked.sky===sky) return;
+  Baked.dirty=false; Baked.sky=sky;
+  if (!Baked.c){ Baked.c=document.createElement('canvas'); Baked.x=Baked.c.getContext('2d'); }
+  Baked.c.width=Math.round(W*DPR); Baked.c.height=Math.round(H*DPR);
+  const g=Baked.x; g.setTransform(DPR,0,0,DPR,0,0);
+  const s=SKIES[Math.min(SKIES.length-1,sky)], night=sky>=5;
+  const grad=g.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,s[0]); grad.addColorStop(.55,s[1]); grad.addColorStop(1,s[2]);
+  g.fillStyle=grad; g.fillRect(0,0,W,H);
+  const sx=W*0.80, sy=H*0.20;
+  if (night){
+    g.fillStyle='rgba(255,250,230,.95)'; g.beginPath(); g.arc(sx,sy,26,0,7); g.fill();
+    g.fillStyle=s[0]; g.beginPath(); g.arc(sx-11,sy-6,24,0,7); g.fill();
+    g.fillStyle='rgba(255,255,255,.8)';
+    for (let i=0;i<70;i++){
+      const x=((i*821)%1000)/1000*W, y=((i*463)%700)/1000*H*0.8;
+      g.globalAlpha=0.25+0.6*(((i*37)%100)/100);
+      g.fillRect(x,y,2,2);
+    }
+    g.globalAlpha=1;
+  } else {
+    const gl=g.createRadialGradient(sx,sy,4,sx,sy,90);
+    gl.addColorStop(0,'rgba(255,246,214,.98)'); gl.addColorStop(1,'rgba(255,240,200,0)');
+    g.fillStyle=gl; g.beginPath(); g.arc(sx,sy,90,0,7); g.fill();
+    g.fillStyle='rgba(255,251,225,.95)'; g.beginPath(); g.arc(sx,sy,24,0,7); g.fill();
+  }
+  const layers = night
+    ? [[0.78,'rgba(38,32,66,.75)'],[0.86,'rgba(27,23,52,.88)'],[0.95,'rgba(17,15,38,.97)']]
+    : [[0.78,'rgba(120,170,130,.35)'],[0.86,'rgba(96,152,116,.55)'],[0.95,'rgba(72,124,96,.85)']];
+  layers.forEach(([yf,col],li)=>{
+    g.fillStyle=col; g.beginPath(); g.moveTo(0,H);
+    const off=li*260;
+    for (let x=0;x<=W+20;x+=20)
+      g.lineTo(x, H*yf + Math.sin((x+off)*0.004)*18 + Math.sin((x+off)*0.011+2)*9);
+    g.lineTo(W,H); g.closePath(); g.fill();
+  });
+  // a soft vignette, baked -- filling one per frame cost more than the game did
+  const vig=g.createRadialGradient(W/2,H*0.45,Math.min(W,H)*0.30,W/2,H*0.45,Math.max(W,H)*0.72);
+  vig.addColorStop(0,'rgba(0,0,0,0)');
+  vig.addColorStop(1, night? 'rgba(8,4,26,.45)' : 'rgba(120,70,40,.15)');
+  g.fillStyle=vig; g.fillRect(0,0,W,H);
+
+  // one cloud sprite, blitted rather than rebuilt
+  if (!Baked.cloud){
+    const c=document.createElement('canvas'); c.width=200; c.height=90;
+    const q=c.getContext('2d');
+    q.fillStyle='#fffefa'; q.globalAlpha=0.62;
+    const el=(x,y,rx,ry)=>{q.beginPath();q.ellipse(x,y,rx,ry,0,0,7);q.fill();};
+    el(100,55,55,20); el(130,44,36,20); el(68,50,30,16); el(104,36,25,16);
+    Baked.cloud=c;
+  }
+}
+
+function drawSky(now){
+  bake();
+  cx.drawImage(Baked.c, 0,0, W,H);
+  // clouds, drifting slowly against the song
+  if (!isNight() && !CALM){
+    const b0 = G.song? currentBeat():now*0.6;
+    cx.save();
+    for (let i=0;i<5;i++){
+      const seedx=(i*397)%1000/1000, cy=H*(0.10+0.055*((i*7)%5));
+      let cxx = (seedx*W*1.6 - b0*pxPerBeat*0.035 - i*90) % (W*1.5);
+      if (cxx < -220) cxx += W*1.5;
+      const sc = (0.45+0.4*((i*3)%4)/3) * Math.min(1.15, W/900+0.45);
+      cx.drawImage(Baked.cloud, cxx-100*sc, cy-45*sc, 200*sc, 90*sc);
+    }
+    cx.restore();
+  }
+  // pollen / fireflies
+  if (!CALM){
+    const b0 = G.song? currentBeat():now*0.6;
+    cx.save();
+    for (let i=0;i<22;i++){
+      const px=((i*613)%1000)/1000, py=((i*271)%1000)/1000;
+      let x=(px*W - b0*pxPerBeat*0.16 - i*37) % W; if (x<0) x+=W;
+      const y=H*(0.12+py*0.72) + Math.sin(now*0.9+i)*9;
+      const tw=0.45+0.55*Math.sin(now*1.6+i*1.7);
+      cx.globalAlpha=(isNight()?0.85:0.5)*tw;
+      cx.fillStyle=isNight()?'#ffe9a8':'#fffbe0';
+      cx.beginPath(); cx.arc(x,y,isNight()?2.2:2.6,0,7); cx.fill();
+    }
+    cx.restore();
+  }
+}
+
+function xOfBeat(b, beat){ return W*BIRD_X + (b-beat)*pxPerBeat; }
+
+function drawVine(beat){
+  const ns=G.song.notes;
+  /* The tolerance used to *be* the vine, and at desktop width that drew a
+     green slab across the screen.  Now the vine is a slim stem and the
+     tolerance is the soft glow around it, which narrows meadow by meadow. */
+  const stem = Math.max(8, Math.min(16, semiPx()*0.30));
+  const SWOOP = 0.34;      // beats of each note given over to the curve
+  const quiet = acapBars();
+  const night = isNight();
+
+  // the band the band sits out, as a soft wash rather than a hard rectangle
+  for (const bar of quiet){
+    const x1=xOfBeat(bar*4,beat), x2=xOfBeat(bar*4+4,beat);
+    if (x2<-40||x1>W+40) continue;
+    const g=cx.createLinearGradient(x1,0,x2,0);
+    const c = night? '255,255,255' : '255,255,255';
+    g.addColorStop(0,`rgba(${c},0)`); g.addColorStop(.14,`rgba(${c},${night?.13:.34})`);
+    g.addColorStop(.86,`rgba(${c},${night?.13:.34})`); g.addColorStop(1,`rgba(${c},0)`);
+    cx.fillStyle=g; cx.fillRect(x1,0,x2-x1,H);
+    cx.save(); cx.globalAlpha=.8; cx.font='800 13px system-ui'; cx.textAlign='center';
+    cx.fillStyle = night?'#efe6ff':'#7b6480';
+    cx.fillText('· just you ·', (x1+x2)/2, H*0.80);
+    cx.restore();
+  }
+
+  /* Notes butt up against each other, so a naive join draws the pitch change
+     as a vertical wall and the whole vine reads as plumbing.  Each note gives
+     up its last third of a beat to the swoop into the next one. */
+  const path = ()=>{
+    cx.beginPath();
+    for (let i=0;i<ns.length;i++){
+      const n=ns[i], nx=ns[i+1];
+      const swoop = nx ? Math.min(SWOOP, n.beats*0.45) : 0;
+      const x1=xOfBeat(n.beat,beat), x2=xOfBeat(n.beat+n.beats-swoop,beat);
+      const xEnd = nx? xOfBeat(nx.beat,beat) : x2;
+      if (xEnd < -90 || x1 > W+90) continue;
+      const y=midiToY(n.midi);
+      cx.moveTo(x1,y); cx.lineTo(x2,y);
+      if (nx){
+        const y2=midiToY(nx.midi), dx=(xEnd-x2);
+        cx.bezierCurveTo(x2+dx*0.55,y, xEnd-dx*0.55,y2, xEnd, y2);
+      }
+    }
+  };
+  cx.lineCap='round'; cx.lineJoin='round';
+  /* "How close is close enough" is shown on the note you are singing right
+     now, not as a band down the whole vine -- drawn everywhere it was a green
+     slab across the screen. */
+  const act = noteAt(Math.max(0,beat));
+  if (act>=0){
+    const n=ns[act], y=midiToY(n.midi);
+    const x1=xOfBeat(n.beat,beat), x2=xOfBeat(n.beat+n.beats,beat);
+    const band = Math.max(18, G.spec.tol*2*semiPx());
+    const seg = Math.max(24, x2-x1);
+    const c = night? '190,255,225' : '255,255,255';
+    cx.save();
+    cx.translate((x1+x2)/2, y);
+    cx.scale(1, band/seg);
+    const g = cx.createRadialGradient(0,0,seg*0.12,0,0,seg*0.5);
+    g.addColorStop(0,`rgba(${c},${night?.26:.5})`);
+    g.addColorStop(0.55,`rgba(${c},${night?.18:.34})`);
+    g.addColorStop(1,`rgba(${c},0)`);
+    cx.fillStyle=g;
+    cx.beginPath(); cx.arc(0,0,seg*0.5,0,7); cx.fill();
+    cx.restore();
+  }
+  // 2. a shadow under the stem so it lifts off the sky
+  path(); cx.lineWidth=stem+5;
+  cx.strokeStyle = night? 'rgba(20,35,50,.40)' : 'rgba(58,110,80,.22)';
+  cx.stroke();
+  // 3. the stem
+  path(); cx.lineWidth=stem;
+  cx.strokeStyle = night? '#57a385' : '#5fbb8a';
+  cx.stroke();
+  // 4. a highlight along the top of it
+  cx.save(); cx.translate(0,-stem*0.22);
+  path(); cx.lineWidth=Math.max(1.5,stem*0.24);
+  cx.strokeStyle = night? 'rgba(190,255,225,.30)' : 'rgba(255,255,255,.45)';
+  cx.stroke(); cx.restore();
+
+  // leaves, buds and blooms
+  for (let i=0;i<ns.length;i++){
+    const n=ns[i], st=G.noteState[i];
+    const cxp=xOfBeat(n.beat+n.beats/2,beat), y=midiToY(n.midi);
+    if (cxp<-50||cxp>W+50) continue;
+    // a little leaf on the stem of every note, alternating side
+    cx.save(); cx.translate(xOfBeat(n.beat,beat)+8, y); cx.rotate(i%2?0.7:-0.7);
+    cx.fillStyle = night? 'rgba(86,163,133,.9)' : 'rgba(84,178,124,.95)';
+    cx.beginPath(); cx.ellipse(6,0,9,4,0,0,7); cx.fill();
+    cx.restore();
+    if (st.bloom>0){
+      const pop = Math.min(1, st.bloom*4.5);
+      const s = 0.5 + pop*0.5 + 0.06*Math.sin(st.bloom*3);
+      cx.save(); cx.translate(cxp,y); cx.scale(s,s);
+      const hue=[335,20,48,300,190][i%5];
+      cx.shadowColor=`hsla(${hue},90%,70%,.8)`; cx.shadowBlur=night?16:8;
+      for (let p=0;p<5;p++){
+        cx.rotate(Math.PI*2/5);
+        cx.fillStyle=`hsl(${hue} 88% ${night?72:76}%)`;
+        cx.beginPath(); cx.ellipse(0,-10,5.5,10,0,0,7); cx.fill();
+      }
+      cx.shadowBlur=0;
+      cx.fillStyle='#ffd76a'; cx.beginPath(); cx.arc(0,0,5,0,7); cx.fill();
+      cx.restore();
+    } else {
+      cx.fillStyle = night?'rgba(210,240,225,.85)':'rgba(255,255,255,.9)';
+      cx.beginPath(); cx.arc(cxp,y,4.2,0,7); cx.fill();
+      cx.strokeStyle = night?'rgba(30,60,70,.4)':'rgba(90,150,115,.5)';
+      cx.lineWidth=1.5; cx.stroke();
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   One bird, drawn in one place.
+
+   The first version stacked the wings *behind* the body, which reads as a
+   broken sprite -- a bird with no near wing at all.  A bird needs both: a far
+   wing behind the body and a near wing in front of it, beating together, with
+   a little blur because this is a hummingbird and hers are meant to be a smear.
+   The same routine draws her in the game, on the title screen and on the
+   calibration perch, so she cannot drift apart in three places.
+   --------------------------------------------------------------------------- */
+function wingPath(g, len, wide, ang, col, alpha){
+  g.save();
+  g.translate(-1.5, -6);          // shoulder, high on the back
+  g.rotate(ang);
+  g.globalAlpha = alpha;
+  g.fillStyle = col;
+  g.beginPath();
+  g.moveTo(0,0);
+  g.quadraticCurveTo(-len*0.30, -wide*0.95, -len, -wide*0.10);
+  g.quadraticCurveTo(-len*0.42,  wide*0.62, 0, 0);
+  g.fill();
+  g.restore();
+}
+
+/* flap: -1..1.  Unit body ~13px across. */
+function drawBirdShape(g, o){
+  const flap = o.flap, singing = o.singing, onNote = o.onNote;
+  const bodyCol  = singing ? '#6ec9e6' : '#a3b9c8';
+  const bellyCol = singing ? '#c3ecf7' : '#cfdae2';
+  const headCol  = singing ? '#84d9ef' : '#b6c8d5';
+  const wingCol  = onNote  ? '#ff9ec4' : (singing ? '#cf9de0' : '#b3a8c4');
+  const wingFar  = onNote  ? '#d97399' : (singing ? '#9b73b0' : '#8d8398');
+  /* Wings pivot on the back and stay above the belly line -- swung wide they
+     poked out underneath her and read as fins. */
+  /* Swung symmetrically the downstroke ended up lying across her chest like a
+     leaf, so the whole beat is biased upward and never drops below level. */
+  const sweep = flap*0.55;
+
+  // far wing: slightly longer and further round, so the beat is readable
+  wingPath(g, 13.5, 6.4, -0.80 - flap*0.5, wingFar, 0.92);
+
+  // tail: a small soft fan, not a fish fin
+  g.save(); g.rotate(0.14 + flap*0.05);
+  g.fillStyle = bodyCol;
+  g.beginPath();
+  g.moveTo(-7,0.5);
+  g.quadraticCurveTo(-13,-3.4, -15.5,-2.2);
+  g.quadraticCurveTo(-13.5,0.6, -15.5,3.4);
+  g.quadraticCurveTo(-12.5,3.2, -7,2.6);
+  g.closePath(); g.fill();
+  g.restore();
+
+  // body
+  g.fillStyle = bodyCol;
+  g.beginPath(); g.ellipse(0,0,12,8.4,0.05,0,7); g.fill();
+  g.fillStyle = bellyCol;
+  g.beginPath(); g.ellipse(1.4,3,8.6,4.8,0.05,0,7); g.fill();
+
+  // head
+  g.fillStyle = headCol;
+  g.beginPath(); g.arc(8.2,-4.8,6.6,0,7); g.fill();
+  // gorget, catching the light when she is on the note
+  g.fillStyle = onNote ? 'rgba(255,132,168,.95)' : 'rgba(158,190,206,.5)';
+  g.beginPath(); g.ellipse(9.2,-1.2,3.3,2.5,0.35,0,7); g.fill();
+
+  // beak: long for a bird, short for a straw, and tapered
+  g.fillStyle = '#f0a33c';
+  g.beginPath();
+  g.moveTo(13.2,-6.4); g.lineTo(22.2,-4.9); g.lineTo(13.2,-3.6);
+  g.closePath(); g.fill();
+
+  // eye
+  g.fillStyle='#2f2b3a';
+  g.beginPath(); g.arc(10.2,-6.8,1.8,0,7); g.fill();
+  g.fillStyle='rgba(255,255,255,.92)';
+  g.beginPath(); g.arc(10.8,-7.4,0.66,0,7); g.fill();
+
+  // near wing, in front of the body where it belongs, with a blur behind it
+  wingPath(g, 14, 7.2, -0.50 - sweep*0.86, wingCol, 0.28);
+  wingPath(g, 15, 7.6, -0.50 - sweep,      wingCol, 1);
+}
+
+function drawBird(now, onNote){
+  const singing = G.sung>0;
+  const y = singing ? midiToY(G.sung) : G.birdY;
+  G.birdY = singing ? y : Math.min(H*0.92, G.birdY + (H*0.0009));
+  const x = W*BIRD_X;
+  // she works harder the louder you are, and idles when you stop
+  const effort = singing ? (0.55 + 0.45*Math.min(1,Ear.loud)) : 0.35;
+  G.wing += (16 + 26*effort) * (1/60);
+  const flap = Math.sin(G.wing*2.2);
+
+  // the trail: where your voice has actually been, against where it should be
+  if (G.mode==='play'){
+    if (singing) G.trail.push({x, y:G.birdY, on:onNote, life:1});
+    for (let i=G.trail.length-1;i>=0;i--){
+      const t=G.trail[i];
+      t.x -= pxPerBeat*(1/60); t.life -= 1/60/1.1;
+      if (t.life<=0 || t.x<-40) G.trail.splice(i,1);
+    }
+    if (G.trail.length>1){
+      cx.save(); cx.lineCap='round'; cx.lineJoin='round';
+      for (let pass=0;pass<2;pass++){
+        for (let i=1;i<G.trail.length;i++){
+          const a=G.trail[i-1], b=G.trail[i];
+          if (Math.abs(b.y-a.y) > H*0.25) continue;   // don't join across a jump
+          cx.globalAlpha = (pass? 0.62 : 0.20)*b.life;
+          cx.strokeStyle = b.on ? (pass? '#fff6d2':'#ffe9a0')
+                                : (isNight()? (pass?'#dcc4f2':'#b98fd8')
+                                            : (pass?'#ffc6d6':'#f5a3bb'));
+          cx.lineWidth = (pass? 3.5 : 11) * (0.45+0.55*b.life);
+          cx.beginPath(); cx.moveTo(a.x,a.y); cx.lineTo(b.x,b.y); cx.stroke();
+        }
+      }
+      cx.restore();
+    }
+  }
+
+  cx.save(); cx.translate(x, G.birdY);
+  const tilt = Math.max(-0.4,Math.min(0.4,(G.birdTarget-G.birdY)*0.004));
+  G.birdTarget = G.birdY;
+  cx.rotate(tilt);
+  const bs = 1.4*Math.max(1, Math.min(1.5, W/900));
+  cx.scale(bs,bs);
+  if (onNote){
+    cx.save();
+    const gl=cx.createRadialGradient(0,0,2,0,0,34);
+    gl.addColorStop(0,'rgba(255,236,160,.85)'); gl.addColorStop(1,'rgba(255,225,140,0)');
+    cx.fillStyle=gl; cx.beginPath(); cx.arc(0,0,34,0,7); cx.fill();
+    cx.restore();
+  }
+  drawBirdShape(cx, {flap, singing, onNote, effort});
+  cx.restore();
+
+  if (!singing && G.mode==='play'){
+    cx.save(); cx.globalAlpha=.55; cx.font='600 13px system-ui'; cx.textAlign='center';
+    cx.fillStyle=isNight()?'#fff':'#6d5b72';
+    cx.fillText(G.input==='mic'?'…make a sound…':'…move the mouse…', x, G.birdY+38);
+    cx.restore();
+  }
+}
+
+/* A vine and a bird pottering about behind the menus, so the title screen is
+   the same place as the game rather than a form in front of it. */
+function drawIdleVine(now){
+  const yBase = H*0.72, amp = Math.min(70, H*0.09);
+  const wob = x => yBase + Math.sin(x*0.006 + now*0.25)*amp + Math.sin(x*0.017-now*0.15)*amp*0.28;
+  cx.lineCap='round';
+  cx.beginPath(); cx.moveTo(-20, wob(-20));
+  for (let x=-20;x<=W+20;x+=14) cx.lineTo(x, wob(x));
+  cx.lineWidth=16; cx.strokeStyle='rgba(58,110,80,.20)'; cx.stroke();
+  cx.lineWidth=11; cx.strokeStyle='#5fbb8a'; cx.stroke();
+  for (let i=0;i<9;i++){
+    const x = (i+0.5)*W/9, y=wob(x);
+    cx.save(); cx.translate(x,y); cx.scale(1,1);
+    const hue=[335,20,48,300,190][i%5];
+    for (let pp=0;pp<5;pp++){
+      cx.rotate(Math.PI*2/5);
+      cx.fillStyle=`hsl(${hue} 88% 78%)`;
+      cx.beginPath(); cx.ellipse(0,-9,5,9,0,0,7); cx.fill();
+    }
+    cx.fillStyle='#ffd76a'; cx.beginPath(); cx.arc(0,0,4.4,0,7); cx.fill();
+    cx.restore();
+  }
+  // the bird, wandering
+  const bx = W*0.5 + Math.sin(now*0.32)*W*0.34;
+  const by = H*0.19 + Math.sin(now*0.9)*22;
+  const facing = Math.cos(now*0.32) >= 0 ? 1 : -1;
+  cx.save(); cx.translate(bx,by); cx.scale(facing*1.5,1.5);
+  cx.rotate(Math.sin(now*0.9)*0.12);
+  drawBirdShape(cx, {flap:Math.sin(now*13), singing:true, onNote:false});
+  cx.restore();
+}
+
+function drawParticles(dt){
+  for (let i=G.rings.length-1;i>=0;i--){
+    const r=G.rings[i];
+    r.r += 150*dt; r.life -= dt*1.7; r.x -= pxPerBeat*dt;
+    if (r.life<=0){ G.rings.splice(i,1); continue; }
+    cx.globalAlpha = Math.max(0,r.life)*0.55;
+    cx.strokeStyle = isNight()? '#ffe6a8' : '#fff';
+    cx.lineWidth = 3*r.life;
+    cx.beginPath(); cx.arc(r.x,r.y,r.r,0,7); cx.stroke();
+  }
+  cx.globalAlpha=1;
+  for (let i=G.petals.length-1;i>=0;i--){
+    const p=G.petals[i];
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=140*dt; p.life-=dt*0.85;
+    if (p.life<=0){ G.petals.splice(i,1); continue; }
+    cx.globalAlpha=Math.max(0,p.life);
+    cx.fillStyle=`hsl(${p.hue} 90% ${isNight()?78:70}%)`;
+    cx.beginPath(); cx.ellipse(p.x,p.y,p.r,p.r*0.6,p.life*4,0,7); cx.fill();
+  }
+  cx.globalAlpha=1;
+}
+
+/* ===========================================================================
+   Loop + wiring
+   =========================================================================== */
+let last = performance.now()/1000;
+function frame(){
+  requestAnimationFrame(frame);
+  const now = performance.now()/1000;
+  let dt = now-last; last = now;
+  if (dt>0.1) dt=0.1;
+  if (!W) resize();
+  pxPerBeat = W/BEATS_ON_SCREEN;
+
+  syncTheme();
+  if (G.mode==='play' && !G.paused){
+    readVoice(dt);
+    const beat = currentBeat();
+    let onNote=-1;
+    if (beat>=0) onNote = scoreFrame(dt, beat);
+    drawSky(now); drawVine(beat);
+    if (onNote>=0 && Math.random()<0.4)
+      G.sparks.push({x:W*BIRD_X-6,y:G.birdY,life:1,r:2+Math.random()*3});
+    for (let i=G.sparks.length-1;i>=0;i--){
+      const s=G.sparks[i]; s.x-=pxPerBeat*dt; s.life-=dt*1.6;
+      if (s.life<=0){ G.sparks.splice(i,1); continue; }
+      cx.globalAlpha=s.life*0.8; cx.fillStyle='#fff3c4';
+      cx.beginPath(); cx.arc(s.x,s.y,s.r*s.life,0,7); cx.fill();
+    }
+    cx.globalAlpha=1;
+    drawBird(now, onNote>=0);
+    drawParticles(dt);
+    // count-in
+    if (beat<0){
+      const n = Math.ceil(-beat);
+      cx.save(); cx.textAlign='center';
+      cx.globalAlpha=Math.min(1,(1-(-beat%1))*1.4);
+      cx.font='800 '+Math.round(Math.min(90,Math.max(40,W*0.11)))+'px system-ui';
+      cx.fillStyle=isNight()?'rgba(255,255,255,.92)':'rgba(255,255,255,.9)';
+      cx.shadowColor='rgba(120,70,90,.35)'; cx.shadowBlur=18;
+      cx.fillText(n, W/2, H*0.46);
+      cx.shadowBlur=0;
+      cx.globalAlpha=0.75;
+      cx.font='700 '+Math.round(Math.min(20,Math.max(14,W*0.022)))+'px system-ui';
+      cx.fillStyle=isNight()?'rgba(240,232,255,.9)':'rgba(109,91,114,.9)';
+      cx.fillText(n>2 ? 'take a breath' : 'ready…', W/2, H*0.46+30);
+      cx.restore();
+    }
+    for (let i=0;i<G.noteState.length;i++) if (G.noteState[i].bloom>0) G.noteState[i].bloom += dt;
+    $('flowerCount').textContent = '🌸 ' + G.flowers + (G.combo>=3? '  ×'+G.combo : '');
+    if (toastT>0){
+      toastT-=dt;
+      const el=$('toast'); el.textContent=toastMsg;
+      el.style.opacity = Math.max(0,Math.min(1,toastT*1.4));
+      el.style.transform = `translate(-50%,${-50-(1.6-toastT)*18}%)`;
+    }
+    if (beat > G.song.beats + 1.2 && !G.ended) endMeadow();
+  } else {
+    drawSky(now);
+    drawIdleVine(now);
+    drawParticles(dt);
+  }
+}
+requestAnimationFrame(frame);
+
+/* ---------- panels ---------- */
+const PANELS=['pTitle','pCal','pBrief','pEnd'];
+function hideAll(){ PANELS.forEach(p=>$(p).classList.add('hide')); }
+function show(id){
+  hideAll(); $(id).classList.remove('hide');
+  $('hud').hidden = true; $('pauseBtn').hidden = true;
+  toastT = 0; $('toast').style.opacity = 0;
+}
+
+function ensureAudio(){
+  if (!Band.ac){
+    const ac = Ear.ac || new (window.AudioContext||window.webkitAudioContext)();
+    Band.attach(ac);
+  }
+  if (Band.ac.state==='suspended') Band.ac.resume();
+}
+
+$('btnMic').addEventListener('click', async ()=>{
+  $('btnMic').textContent='listening…';
+  try {
+    await Ear.start();
+    ensureAudio();
+    G.input='mic';
+    Cal.begin();
+  } catch(e){
+    $('btnMic').textContent='🎤 Let me hum';
+    const p=document.createElement('p');
+    p.className='tiny';
+    p.innerHTML='The browser said no to the microphone. You can still fly her with the mouse — '+
+                'or check the little camera/mic icon in the address bar and try again.';
+    $('pTitle').appendChild(p);
+  }
+});
+$('btnMouse').addEventListener('click', ()=>{
+  ensureAudio(); G.input='pointer';
+  G.voiceLo=57; G.voiceHi=71;
+  startMeadow(0);
+});
+$('calSkip').addEventListener('click', ()=>Cal.skip());
+$('btnGo').addEventListener('click', ()=>launch());
+$('btnNext').addEventListener('click', ()=>startMeadow(G.meadow+1));
+$('btnRetry').addEventListener('click', ()=>startMeadow(G.meadow, G.seed));
+$('btnHome').addEventListener('click', ()=>{ G.runFlowers=0; show('pTitle'); G.mode='title'; });
+$('pauseBtn').addEventListener('click', ()=>{
+  G.paused=!G.paused;
+  $('pauseBtn').textContent = G.paused?'▶':'⏸';
+  if (G.paused) Band.ac.suspend(); else Band.ac.resume();
+});
+document.addEventListener('visibilitychange', ()=>{
+  if (document.hidden && G.mode==='play' && !G.paused) $('pauseBtn').click();
+});
+
+/* a song can be shared: #song=1234&meadow=2 */
+(function fromHash(){
+  const m=/song=(\d+)/.exec(location.hash), md=/meadow=(\d+)/.exec(location.hash);
+  if (m) window.__HB_START = {seed:+m[1], meadow: md?+md[1]:0};
+})();
+const _startMeadow = startMeadow;
+startMeadow = function(i,seed){
+  if (window.__HB_START){ const s=window.__HB_START; window.__HB_START=null;
+    return _startMeadow(s.meadow, s.seed); }
+  return _startMeadow(i,seed);
+};
+
+resize();
+/* exported for the offline test harness in util/ — the shipped code is what
+   gets measured, not a copy of it */
+window.drawBirdShape = drawBirdShape;
+window.__HB = {makeSong, growMelody, judge, rng, semisOf, MEADOWS, makeDetector,
+               WINDOW, GATE, G, Ear, midiToY, currentBeat, noteAt,
+               startMeadow:(i,s)=>startMeadow(i,s), launch};
+</script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>蜂鸟飞行</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成·蜂鸟冒险</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

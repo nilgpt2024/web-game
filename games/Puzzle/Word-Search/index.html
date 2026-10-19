@@ -397,4 +397,1244 @@ var SeekCore = (function () {
         {id: 'picnic', name: 'Picnic', hue: 75, msg: 'BRING AN UMBRELLA JUST IN CASE',
             words: 'BASKET BLANKET SANDWICH LEMONADE MEADOW CHEESE GRAPES NAPKIN THERMOS SUNHAT PIE SALAD BERRIES WASP SHADE CIDER PICKLE CRACKERS QUICHE'},
         {id: 'night', name: 'Night', hue: 285, msg: 'COUNT SHEEP UNTIL MORNING',
-            words: 'MOON OWL BAT LANTERN SHADOW GHOST CANDLE MIDNIGHT STARS FIREFLY DREAM PILLOW CRICKET ECHO WHISPER FOG DUSK DAWN ECLIPSE COMET NIGHT
+            words: 'MOON OWL BAT LANTERN SHADOW GHOST CANDLE MIDNIGHT STARS FIREFLY DREAM PILLOW CRICKET ECHO WHISPER FOG DUSK DAWN ECLIPSE COMET NIGHTJAR'}
+    ];
+    THEMES.forEach(function (t) { t.words = t.words.split(' '); });
+    var BY_ID = {};
+    THEMES.forEach(function (t) { BY_ID[t.id] = t; });
+
+    var MAX_WORDS = 15, MIN_WORDS = 5;
+    var MSG_MIN = 0.17, MSG_MAX = 0.36;   // share of the grid the message may take
+
+    // What puzzle n of the book asks: the grid grows, then the directions, backwards last.
+    function level(n) {
+        if (n <= 2) return {size: 8, dirs: [E, S]};
+        if (n <= 5) return {size: 9, dirs: [E, S, SE]};
+        if (n <= 9) return {size: 10, dirs: [E, S, SE, NE]};
+        if (n <= 14) return {size: 10, dirs: [E, S, SE, NE, W, N]};
+        return {size: 10, dirs: [0, 1, 2, 3, 4, 5, 6, 7]};
+    }
+    var DAILY = {size: 10, dirs: [0, 1, 2, 3, 4, 5, 6, 7]};
+
+    function letters(s) { return s.replace(/[^A-Z]/g, ''); }
+
+    function fits(theme, size) {
+        var L = letters(theme.msg).length, cells = size * size;
+        var usable = theme.words.filter(function (w) { return w.length <= size; });
+        // The longest words the list can hold must comfortably cover what the message leaves.
+        var reach = usable.map(function (w) { return w.length; }).sort(function (a, b) { return b - a; })
+            .slice(0, MAX_WORDS).reduce(function (a, b) { return a + b; }, 0);
+        return L >= cells * MSG_MIN && L <= cells * MSG_MAX && usable.length >= 12 && reach * 0.9 >= cells - L;
+    }
+
+    // Seeded PRNG (xmur3 hash into mulberry32): a seed string is a whole puzzle.
+    function rng(seed) {
+        var h = 1779033703 ^ seed.length;
+        for (var i = 0; i < seed.length; i++) { h = Math.imul(h ^ seed.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+        h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909); var a = (h ^= h >>> 16) >>> 0;
+        return function () {
+            a |= 0; a = a + 0x6D2B79F5 | 0;
+            var t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+    }
+    function shuffle(list, r) {
+        for (var i = list.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var x = list[i]; list[i] = list[j]; list[j] = x; }
+        return list;
+    }
+
+    // Book order: the first five are fixed and friendly (short messages for the small grids), the
+    // rest take turns from a fixed shuffle, so no theme comes back within a dozen puzzles.
+    var OPENING = ['breakfast', 'pirates', 'mountains', 'circus', 'city'];
+    var ORDER = OPENING.concat(shuffle(THEMES.map(function (t) { return t.id; })
+        .filter(function (id) { return OPENING.indexOf(id) < 0; }), rng('book-order')));
+    var schedule = [null], cursor = OPENING.length;
+    function themeForBook(n) {
+        while (schedule.length <= n) {
+            var m = schedule.length, lv = level(m), pick = null;
+            if (m <= OPENING.length) pick = BY_ID[OPENING[m - 1]];
+            for (var k = 0; !pick && k < ORDER.length; k++) {
+                var t = BY_ID[ORDER[(cursor + k) % ORDER.length]];
+                if (!fits(t, lv.size) || schedule.slice(-12).indexOf(t) >= 0) continue;
+                pick = t; cursor = (cursor + k + 1) % ORDER.length;
+            }
+            schedule.push(pick || BY_ID[ORDER[m % ORDER.length]]);
+        }
+        return schedule[n];
+    }
+    function dayNumber(key) { return Math.floor(Date.UTC(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10)) / 864e5); }
+    var DAY_ORDER = shuffle(THEMES.filter(function (t) { return fits(t, DAILY.size); }), rng('daily-order'));
+    // Walks a fixed shuffle, so neighbouring days never share a theme.
+    function themeForDay(key) {
+        var d = dayNumber(key), m = DAY_ORDER.length;
+        return DAY_ORDER[((d % m) + m) % m];
+    }
+
+    // Every way the word can lie in the grid, given the letters already there.
+    function placements(grid, size, word, dirs) {
+        var out = [];
+        for (var d = 0; d < dirs.length; d++) {
+            var dr = DIRS[dirs[d]][0], dc = DIRS[dirs[d]][1];
+            for (var r = 0; r < size; r++) for (var c = 0; c < size; c++) {
+                var er = r + dr * (word.length - 1), ec = c + dc * (word.length - 1);
+                if (er < 0 || er >= size || ec < 0 || ec >= size) continue;
+                var cells = [], overlap = 0, ok = true;
+                for (var k = 0; k < word.length; k++) {
+                    var i = (r + dr * k) * size + (c + dc * k), g = grid[i];
+                    if (g) { if (g !== word[k]) { ok = false; break; } overlap++; }
+                    cells.push(i);
+                }
+                if (ok && overlap < word.length) out.push({cells: cells, dir: dirs[d], overlap: overlap});
+            }
+        }
+        return out;
+    }
+
+    // All the places a string reads in a finished grid, any of the eight directions.
+    function occurrences(grid, size, word) {
+        var out = [];
+        for (var d = 0; d < 8; d++) {
+            var dr = DIRS[d][0], dc = DIRS[d][1];
+            for (var r = 0; r < size; r++) for (var c = 0; c < size; c++) {
+                var er = r + dr * (word.length - 1), ec = c + dc * (word.length - 1);
+                if (er < 0 || er >= size || ec < 0 || ec >= size) continue;
+                var k = 0;
+                while (k < word.length && grid[(r + dr * k) * size + (c + dc * k)] === word[k]) k++;
+                if (k === word.length) out.push({r: r, c: c, d: d});
+            }
+        }
+        // A palindrome reads twice over the same cells; count it once.
+        var seen = {}, uniq = [];
+        out.forEach(function (o) {
+            var a = o.r * size + o.c, b = (o.r + DIRS[o.d][0] * (word.length - 1)) * size + (o.c + DIRS[o.d][1] * (word.length - 1));
+            var key = Math.min(a, b) + ':' + Math.max(a, b);
+            if (!seen[key]) { seen[key] = 1; uniq.push(o); }
+        });
+        return uniq;
+    }
+
+    // Finish a grid exactly: one word that covers the gap, or two that do between them.
+    function finish(grid, size, order, used, dirs, gap, room, r, lay) {
+        var rest = order.filter(function (w) { return !used[w]; });
+        var fresh = function (p) { return p.cells.length - p.overlap; };
+        var pick = function (list) { return list[Math.floor(r() * list.length)]; };
+        for (var i = 0; i < rest.length && room >= 1; i++) {
+            var hit = placements(grid, size, rest[i], dirs).filter(function (p) { return fresh(p) === gap; });
+            if (hit.length) { lay(rest[i], pick(hit)); return true; }
+        }
+        if (room < 2) return false;
+        for (var a = 0; a < rest.length; a++) {
+            var firsts = placements(grid, size, rest[a], dirs).filter(function (p) { return fresh(p) <= gap - 2; });
+            for (var f = 0; f < firsts.length && f < 40; f++) {
+                var p1 = firsts[Math.floor(r() * firsts.length)], need = gap - fresh(p1);
+                var saved = p1.cells.map(function (ci) { return grid[ci]; });
+                p1.cells.forEach(function (ci, k) { grid[ci] = rest[a][k]; });
+                for (var b = 0; b < rest.length; b++) {
+                    if (b === a) continue;
+                    var hit2 = placements(grid, size, rest[b], dirs).filter(function (p) { return fresh(p) === need; });
+                    if (hit2.length) {
+                        var p2 = pick(hit2);
+                        p1.cells.forEach(function (ci, k) { grid[ci] = saved[k]; });
+                        lay(rest[a], p1);
+                        lay(rest[b], p2);
+                        return true;
+                    }
+                }
+                p1.cells.forEach(function (ci, k) { grid[ci] = saved[k]; });
+            }
+        }
+        return false;
+    }
+
+    // Build a puzzle: words laid so the cells nobody uses are exactly the message, in reading order.
+    function generate(opts) {
+        var theme = opts.theme, size = opts.size, dirs = opts.dirs, seedStr = String(opts.seed);
+        var msg = letters(theme.msg), cells = size * size, target = cells - msg.length;
+        var pool = theme.words.filter(function (w) { return w.length >= 3 && w.length <= size; });
+        for (var attempt = 0; attempt < 400; attempt++) {
+            var r = rng(seedStr + '#' + attempt);
+            var grid = new Array(cells).fill(''), covered = 0, placed = [], used = {}, dirUse = {};
+            var order = shuffle(pool.slice(), r);
+            // Longer words first lay a frame the short ones can finish exactly.
+            order.sort(function (a, b) { return (b.length - a.length) + (r() - 0.5) * 6; });
+            var lay = function (word, p) {
+                p.cells.forEach(function (ci, k) { grid[ci] = word[k]; });
+                covered += p.cells.length - p.overlap; used[word] = 1; dirUse[p.dir] = (dirUse[p.dir] || 0) + 1;
+                placed.push({word: word, cells: p.cells, dir: p.dir});
+            };
+            var queue = order.slice();
+            while (queue.length && target - covered > 9 && placed.length < MAX_WORDS - 1) {
+                // The next word goes in a direction used least so far, if any word still can, so a
+                // grid is never all one way; failing that, the next word that fits at all.
+                var least = Math.min.apply(null, dirs.map(function (d) { return dirUse[d] || 0; }));
+                var wantFresh = r() < 0.8, pickW = -1, cand = null;
+                for (var q = 0; q < queue.length; q++) {
+                    var all = placements(grid, size, queue[q], dirs).filter(function (p) { return covered + p.cells.length - p.overlap <= target; });
+                    if (!all.length) continue;
+                    var fresh = all.filter(function (p) { return (dirUse[p.dir] || 0) === least; });
+                    if (wantFresh && !fresh.length) { if (pickW < 0) { pickW = q; cand = all; } continue; }
+                    pickW = q; cand = wantFresh ? fresh : all;
+                    break;
+                }
+                if (pickW < 0) break;
+                var word = queue.splice(pickW, 1)[0];
+                // Prefer crossings now and then; they knit the grid and hide words.
+                var best = cand[Math.floor(r() * cand.length)];
+                if (r() < 0.6) {
+                    var crossing = cand.filter(function (p) { return p.overlap > 0; });
+                    if (crossing.length) best = crossing[Math.floor(r() * crossing.length)];
+                }
+                lay(word, best);
+            }
+            if (covered < target) finish(grid, size, order, used, dirs, target - covered, MAX_WORDS - placed.length, r, lay);
+            if (covered !== target || placed.length < MIN_WORDS) continue;
+            var free = [];
+            for (var ci = 0; ci < cells; ci++) if (!grid[ci]) free.push(ci);
+            free.forEach(function (ci, k) { grid[ci] = msg[k]; });
+            // Every word must read in exactly one place, and nowhere by accident.
+            var clean = placed.every(function (p) { return occurrences(grid, size, p.word).length === 1; });
+            if (!clean) continue;
+            placed.sort(function (a, b) { return a.word < b.word ? -1 : 1; });
+            return {
+                theme: theme.id, name: theme.name, hue: theme.hue, size: size, dirs: dirs.slice(),
+                grid: grid, words: placed, message: theme.msg, messageCells: free, seed: seedStr, attempt: attempt
+            };
+        }
+        return null;
+    }
+
+    function bookPuzzle(n) {
+        var lv = level(n), t = themeForBook(n);
+        return generate({theme: t, size: lv.size, dirs: lv.dirs, seed: 'book:' + n});
+    }
+    function dailyPuzzle(key) {
+        return generate({theme: themeForDay(key), size: DAILY.size, dirs: DAILY.dirs, seed: 'day:' + key});
+    }
+
+    // The cells a drag covers: from cell a, along the drag (dr, dc in cells, fractional), snapped to
+    // the nearest of the eight directions and clipped at the edge. `keep` holds a direction while the
+    // drag stays within 30 degrees of it, so a stroke does not flicker between two neighbours.
+    function lineVec(size, a, dr, dc, keep) {
+        var ar = Math.floor(a / size), ac = a % size;
+        if (Math.abs(dr) < 0.5 && Math.abs(dc) < 0.5) return {cells: [a], dir: -1};
+        var ang = Math.atan2(dr, dc), d = ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
+        if (keep != null && keep >= 0) {
+            var diff = Math.abs(((ang - keep * Math.PI / 4) + 3 * Math.PI) % (2 * Math.PI) - Math.PI);
+            if (diff < Math.PI / 6) d = keep;
+        }
+        var sr = DIRS[d][0], sc = DIRS[d][1];
+        var k = Math.max(0, Math.round((dr * sr + dc * sc) / (sr * sr + sc * sc)));
+        var out = [];
+        for (var i = 0; i <= k; i++) {
+            var r = ar + sr * i, c = ac + sc * i;
+            if (r < 0 || r >= size || c < 0 || c >= size) break;
+            out.push(r * size + c);
+        }
+        return {cells: out, dir: d};
+    }
+    // Between two cells (the tap-tap path).
+    function line(size, a, b) {
+        return lineVec(size, a, Math.floor(b / size) - Math.floor(a / size), b % size - a % size).cells;
+    }
+
+    // Which word a run of cells is, read either way: its index, and whether it was found already.
+    function match(puzzle, cells, found) {
+        if (cells.length < 2) return null;
+        for (var k = 0; k < puzzle.words.length; k++) {
+            var w = puzzle.words[k];
+            if (w.cells.length !== cells.length) continue;
+            var fwd = w.cells.every(function (c, i) { return c === cells[i]; });
+            var back = w.cells.every(function (c, i) { return c === cells[cells.length - 1 - i]; });
+            if (fwd || back) return {index: k, word: w.word, already: !!(found && found[w.word])};
+        }
+        return null;
+    }
+
+    // How many message letters the player has been dealt after finding `found` of the words.
+    function dealt(puzzle, found) {
+        var n = puzzle.words.length, L = puzzle.messageCells.length;
+        if (found >= n) return L;
+        return Math.floor(L * found / n);
+    }
+    function messageWords(puzzle) { return puzzle.message.split(' ').map(letters).filter(Boolean); }
+    // Reading the message early: the guess fills the blanks not yet dealt; it is right when the
+    // dealt letters and the guessed ones together are the message.
+    function readsAs(puzzle, dealtCount, guess) {
+        var msg = letters(puzzle.message), g = letters(String(guess).toUpperCase());
+        if (g.length !== msg.length - dealtCount) return false;
+        return msg.slice(dealtCount) === g;
+    }
+
+    // Five pens per theme, in hue order. A new stroke takes the pen furthest (in that order) from
+    // the pens of the strokes it touches, then the one used least, so neighbours never blur together.
+    var PENS = 5;
+    function touches(size, a, b) {
+        for (var i = 0; i < a.length; i++) for (var j = 0; j < b.length; j++) {
+            var ra = Math.floor(a[i] / size), ca = a[i] % size, rb = Math.floor(b[j] / size), cb = b[j] % size;
+            if (Math.abs(ra - rb) <= 1 && Math.abs(ca - cb) <= 1) return true;
+        }
+        return false;
+    }
+    function pickPen(puzzle, pens, cells) {
+        var near = [], used = [0, 0, 0, 0, 0];
+        puzzle.words.forEach(function (w) {
+            if (pens[w.word] == null) return;
+            used[pens[w.word]]++;
+            if (touches(puzzle.size, w.cells, cells)) near.push(pens[w.word]);
+        });
+        var best = 0, bestKey = -Infinity;
+        for (var p = 0; p < PENS; p++) {
+            var gap = near.length ? Math.min.apply(null, near.map(function (q) { return Math.abs(p - q); })) : PENS;
+            var key = gap * 100 - used[p] * 10 - p;
+            if (key > bestKey) { bestKey = key; best = p; }
+        }
+        return best;
+    }
+
+    function dateKey(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function prevDay(key) { return dateKey(new Date(+key.slice(0, 4), +key.slice(5, 7) - 1, +key.slice(8, 10) - 1)); }
+    // Consecutive solved days ending today, or yesterday while today is still open.
+    function streak(solvedDays, today) {
+        var k = solvedDays[today] ? today : prevDay(today), n = 0;
+        while (solvedDays[k]) { n++; k = prevDay(k); }
+        return n;
+    }
+
+    // A save, whatever shape it arrives in, as the shape this page writes. Unknown input gives a fresh one.
+    function cleanSave(raw) {
+        var s = {v: 1, sound: true, next: 1, solved: {}, progress: {}};
+        if (!raw || typeof raw !== 'object') return s;
+        if (typeof raw.sound === 'boolean') s.sound = raw.sound;
+        if (raw.next >= 1 && raw.next === Math.floor(raw.next)) s.next = Math.min(raw.next, 9999);
+        if (raw.solved && typeof raw.solved === 'object') Object.keys(raw.solved).forEach(function (k) {
+            if (!/^(book:\d+|day:\d{4}-\d\d-\d\d)$/.test(k)) return;
+            s.solved[k] = {t: Math.max(0, +(raw.solved[k] && raw.solved[k].t) || 0)};
+            var e = raw.solved[k] && raw.solved[k].early;
+            if (e >= 0 && e === Math.floor(e)) s.solved[k].early = e;
+        });
+        if (raw.progress && typeof raw.progress === 'object') Object.keys(raw.progress).forEach(function (k) {
+            var p = raw.progress[k];
+            if (!/^(book:\d+|day:\d{4}-\d\d-\d\d)$/.test(k) || !p || !Array.isArray(p.found)) return;
+            var pens = {};
+            p.found.forEach(function (w) { var v = p.pens && p.pens[w]; pens[w] = v >= 0 && v < PENS ? v | 0 : 0; });
+            s.progress[k] = {found: p.found.filter(function (w) { return typeof w === 'string'; }), pens: pens, t: Math.max(0, +p.t || 0)};
+            if (p.early >= 0 && p.early === Math.floor(p.early)) s.progress[k].early = p.early;
+        });
+        // The book's next puzzle is never behind one already solved.
+        Object.keys(s.solved).forEach(function (k) {
+            if (k.indexOf('book:') === 0) s.next = Math.max(s.next, +k.slice(5) + 1);
+        });
+        return s;
+    }
+
+    return {
+        DIRS: DIRS, THEMES: THEMES, BY_ID: BY_ID, ORDER: ORDER, DAILY: DAILY, MAX_WORDS: MAX_WORDS, MIN_WORDS: MIN_WORDS,
+        MSG_MIN: MSG_MIN, MSG_MAX: MSG_MAX, PENS: PENS,
+        rng: rng, level: level, fits: fits, letters: letters, themeForBook: themeForBook, themeForDay: themeForDay,
+        generate: generate, bookPuzzle: bookPuzzle, dailyPuzzle: dailyPuzzle, occurrences: occurrences,
+        line: line, lineVec: lineVec, match: match, dealt: dealt, messageWords: messageWords, readsAs: readsAs,
+        touches: touches, pickPen: pickPen, dateKey: dateKey, prevDay: prevDay, streak: streak, cleanSave: cleanSave
+    };
+})();
+</script>
+
+<script>
+(function () {
+    'use strict';
+    var C = SeekCore;
+    var $ = function (id) { return document.getElementById(id); };
+    var NS = 'http://www.w3.org/2000/svg';
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)');
+    var KEY = 'highlight.v1';
+
+    // ---------------------------------------------------------------- save
+    var save = (function () {
+        var raw = null;
+        try { raw = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { raw = null; }
+        var fresh = !raw;
+        // The old page kept only the board in progress, a random grid this book has no place for.
+        try { localStorage.removeItem('wordSearchGameState'); } catch (e) { /* nothing to tidy */ }
+        var s = C.cleanSave(raw);
+        s.fresh = fresh;
+        return s;
+    })();
+    function persist() {
+        // Keep the daily progress of the last two months only.
+        var cut = C.dateKey(new Date(Date.now() - 62 * 864e5));
+        Object.keys(save.progress).forEach(function (k) { if (k.indexOf('day:') === 0 && k.slice(4) < cut) delete save.progress[k]; });
+        var out = {v: 1, sound: save.sound, next: save.next, solved: save.solved, progress: save.progress};
+        try { localStorage.setItem(KEY, JSON.stringify(out)); } catch (e) { /* private mode: play on without saving */ }
+    }
+
+    // ---------------------------------------------------------------- sound
+    // Felt tip on paper: a short filtered scratch, a soft pitched tick per letter, a cap click and two notes on a find.
+    var audio = null, noiseBuf = null;
+    var SCALE = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24, 26];
+    function ac() {
+        if (!save.sound) return null;
+        if (!audio) {
+            var A = window.AudioContext || window.webkitAudioContext;
+            if (!A) return null;
+            audio = new A();
+            noiseBuf = audio.createBuffer(1, audio.sampleRate * 0.4, audio.sampleRate);
+            var d = noiseBuf.getChannelData(0);
+            for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        }
+        if (audio.state === 'suspended') audio.resume();
+        return audio;
+    }
+    function scratch(at, dur, freq, gain) {
+        var a = ac(); if (!a) return;
+        var src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+        src.buffer = noiseBuf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.2;
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(gain, at + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+        src.connect(f); f.connect(g); g.connect(a.destination);
+        src.start(at, Math.random() * 0.3); src.stop(at + dur + 0.02);
+    }
+    function tone(at, freq, dur, gain, type) {
+        var a = ac(); if (!a) return;
+        var o = a.createOscillator(), g = a.createGain();
+        o.type = type || 'sine'; o.frequency.value = freq;
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(gain, at + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+        o.connect(g); g.connect(a.destination); o.start(at); o.stop(at + dur + 0.02);
+    }
+    function note(step) { return 329.63 * Math.pow(2, SCALE[Math.min(step, SCALE.length - 1)] / 12); }
+    var sfx = {
+        cell: function (k) { var a = ac(); if (!a) return; var t = a.currentTime; scratch(t, 0.05, 2600, 0.05); tone(t, note(k), 0.09, 0.035, 'triangle'); },
+        find: function (len) {
+            var a = ac(); if (!a) return; var t = a.currentTime;
+            scratch(t, 0.03, 5200, 0.09);
+            [0, 4, 7].forEach(function (s, i) { tone(t + 0.04 + i * 0.055, note(Math.min(len, 6)) * Math.pow(2, s / 12), 0.5, 0.06); tone(t + 0.04 + i * 0.055, note(Math.min(len, 6)) * Math.pow(2, s / 12) * 2, 0.18, 0.015); });
+        },
+        miss: function () { var a = ac(); if (!a) return; var t = a.currentTime; tone(t, 150, 0.16, 0.06); tone(t + 0.02, 110, 0.2, 0.05); },
+        again: function () { var a = ac(); if (!a) return; tone(a.currentTime, note(4), 0.12, 0.04, 'triangle'); },
+        deal: function (k) { var a = ac(); if (!a) return; var t = a.currentTime; scratch(t, 0.03, 3600, 0.04); tone(t, note(k % 10 + 2) * 2, 0.07, 0.018); },
+        word: function (i) { var a = ac(); if (!a) return; var t = a.currentTime; scratch(t, 0.08, 2200, 0.05); tone(t, note(i + 1), 0.7, 0.055); tone(t, note(i + 1) * 2, 0.25, 0.014); },
+        close: function () {
+            var a = ac(); if (!a) return; var t = a.currentTime;
+            [0, 4, 7, 12].forEach(function (s, i) { tone(t + i * 0.02, note(0) * Math.pow(2, s / 12), 1.4, 0.035); });
+        }
+    };
+
+    // ---------------------------------------------------------------- tween
+    var ease = {
+        out: function (t) { return 1 - Math.pow(1 - t, 3); },
+        inOut: function (t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    };
+    function tween(dur, fn, done, e) {
+        if (reduce.matches) dur = 1;
+        var t0 = performance.now(), ez = e || ease.out;
+        (function frame(now) {
+            var t = Math.max(0, Math.min(1, (now - t0) / dur));
+            fn(ez(t));
+            if (t < 1) requestAnimationFrame(frame); else if (done) done();
+        })(t0);
+    }
+    function el(tag, attrs, parent) {
+        var e = document.createElementNS(NS, tag);
+        for (var k in attrs) e.setAttribute(k, attrs[k]);
+        if (parent) parent.appendChild(e);
+        return e;
+    }
+
+    // ---------------------------------------------------------------- state
+    var P = null;          // the puzzle
+    var missTok = 0;
+    var key = '';          // 'book:7' or 'day:2026-10-01'
+    var found = {}, pens = {}, order = [];
+    var elapsed = 0, tickFrom = 0;
+    var cs = 40;           // cell size in px, measured
+    var spans = [];
+    var drag = null, anchor = -1, kbd = -1;
+    var board = $('board'), under = $('under'), over = $('over'), lettersEl = $('letters');
+
+    function penColor(i, hue) {
+        // Within 40 degrees of the theme hue, lightness alternating so neighbours separate.
+        var spec = [[-34, .80, .07], [-14, .90, .085], [4, .83, .095], [22, .91, .08], [38, .86, .065]][i];
+        return 'oklch(' + spec[1] + ' ' + spec[2] + ' ' + (hue + spec[0]) + ')';
+    }
+    function setTheme(hue) {
+        document.documentElement.style.setProperty('--h', hue);
+        var defs = $('defs');
+        for (var i = 0; i < C.PENS; i++) {
+            var id = 'pen' + i, g = document.getElementById(id);
+            if (g) g.remove();
+            g = el('linearGradient', {id: id, x1: 0, x2: 1, y1: 0, y2: 0}, defs);
+            var base = penColor(i, hue), dark = 'color-mix(in oklch, ' + base + ' 78%, black)';
+            [[0, dark], [0.07, base], [0.93, base], [1, dark]].forEach(function (s) {
+                var st = el('stop', {offset: s[0]}, g); st.style.stopColor = s[1];
+            });
+            document.documentElement.style.setProperty('--pen' + i, base);
+        }
+        var meta = document.querySelector('meta[name=theme-color]');
+        if (meta) meta.content = getComputedStyle(document.body).backgroundColor;
+    }
+
+    // ---------------------------------------------------------------- geometry
+    function center(i) { return [(i % P.size + 0.5) * cs, (Math.floor(i / P.size) + 0.5) * cs]; }
+    // A chisel-tip stroke from cell a to cell b, in board pixels: a path in local coordinates and the
+    // transform that lays it along the line.
+    function strokeShape(a, b, lenFrac) {
+        var A = center(a), B = center(b), dx = B[0] - A[0], dy = B[1] - A[1];
+        var diag = Math.abs(dx) > 1 && Math.abs(dy) > 1;
+        var len = Math.hypot(dx, dy) * (lenFrac == null ? 1 : lenFrac), h = cs * (diag ? 0.64 : 0.78), k = h * 0.16, y = h / 2;
+        var x0 = -h / 2 + 1, x1 = len + h / 2 - 1;
+        var d = 'M' + (x0 + k) + ' ' + (-y) + 'L' + x1 + ' ' + (-y) + 'Q' + (x1 + 2.5) + ' ' + (-y) + ' ' + (x1 + 0.8) + ' ' + (-y + 3.5) +
+            'L' + (x1 - k) + ' ' + y + 'L' + x0 + ' ' + y + 'Q' + (x0 - 2.5) + ' ' + y + ' ' + (x0 - 0.8) + ' ' + (y - 3.5) + 'Z';
+        return {d: d, t: 'translate(' + A[0] + ' ' + A[1] + ') rotate(' + (Math.atan2(dy, dx) * 180 / Math.PI) + ')', len: len, x0: x0, x1: x1, h: h};
+    }
+    function cellAt(x, y, loose) {
+        var r = board.getBoundingClientRect(), s = r.width / P.size;
+        var c = Math.floor((x - r.left) / s), rr = Math.floor((y - r.top) / s);
+        if (loose) { c = Math.max(0, Math.min(P.size - 1, c)); rr = Math.max(0, Math.min(P.size - 1, rr)); }
+        if (c < 0 || c >= P.size || rr < 0 || rr >= P.size) return -1;
+        return rr * P.size + c;
+    }
+
+    // ---------------------------------------------------------------- drawing
+    var strokeEls = {};
+    function drawStroke(w, animate) {
+        var word = P.words[w], sh = strokeShape(word.cells[0], word.cells[word.cells.length - 1]);
+        var g = el('g', {transform: sh.t}, under);
+        var clipId = 'clip' + w + '-' + Date.now();
+        var clip = el('clipPath', {id: clipId}, g);
+        var rect = el('rect', {x: sh.x0 - 4, y: -sh.h, width: animate ? 0 : sh.x1 - sh.x0 + 8, height: sh.h * 2}, clip);
+        var body = el('g', {'clip-path': 'url(#' + clipId + ')'}, g);
+        el('path', {d: sh.d, fill: 'url(#pen' + pens[word.word] + ')', filter: 'url(#streak)', opacity: 0.8}, body);
+        strokeEls[word.word] = g;
+        if (animate) tween(220, function (t) { rect.setAttribute('width', (sh.x1 - sh.x0 + 8) * t); });
+    }
+    function redraw() {
+        cs = board.getBoundingClientRect().width / P.size;
+        under.innerHTML = ''; over.innerHTML = ''; strokeEls = {};
+        order.forEach(function (w) { drawStroke(P.words.findIndex(function (x) { return x.word === w; }), false); });
+        drawCircles(C.dealt(P, order.length));
+        cursorEl = null; drawCursor();
+    }
+    var circleEls = [];
+    function circle(i) {
+        var c = center(i), e = el('ellipse', {cx: c[0], cy: c[1], rx: cs * 0.27, ry: cs * 0.29, fill: 'none', stroke: 'var(--theme)',
+            'stroke-width': 1.6, filter: 'url(#pencil)', transform: 'rotate(-14 ' + c[0] + ' ' + c[1] + ')', 'stroke-linecap': 'round', class: 'ring'}, over);
+        return e;
+    }
+    function drawCircles(n) {
+        circleEls.forEach(function (e) { e.remove(); }); circleEls = [];
+        for (var k = 0; k < n; k++) {
+            var e = circle(P.messageCells[k]);
+            e.classList.add('settled');
+            circleEls.push(e);
+            spans[P.messageCells[k]].classList.add('dealt');
+        }
+    }
+
+    // live (provisional) stroke
+    var liveG = null, livePath = null;
+    function showLive(cells) {
+        if (!liveG) {
+            liveG = el('g', {}, over);
+            livePath = el('path', {fill: 'var(--theme)', 'fill-opacity': 0.07, stroke: 'var(--theme)', 'stroke-width': 2.2, 'stroke-linejoin': 'round', filter: 'url(#pencil)'}, liveG);
+        }
+        var sh = strokeShape(cells[0], cells[cells.length - 1]);
+        liveG.setAttribute('transform', sh.t); livePath.setAttribute('d', sh.d);
+        liveG.style.opacity = 1;
+    }
+    function dropLive(retract, cells) {
+        if (!liveG) return;
+        var g = liveG, p = livePath; liveG = null; livePath = null;
+        letGo(g, p, retract, cells);
+    }
+    function letGo(g, p, retract, cells) {
+        if (!retract || cells.length < 2) { tween(120, function (t) { g.style.opacity = 1 - t; }, function () { g.remove(); }); return; }
+        tween(170, function (t) {
+            var sh = strokeShape(cells[0], cells[cells.length - 1], 1 - t);
+            p.setAttribute('d', sh.d); g.style.opacity = 1 - t * 0.7;
+        }, function () { g.remove(); });
+    }
+
+    // ---------------------------------------------------------------- readout
+    function readout(cells) {
+        if (cells) { var t = cells.map(function (i) { return P.grid[i]; }).join(''); $('readText').textContent = t; $('readTextD').textContent = t; }
+        $('readout').classList.remove('miss'); $('readoutD').classList.remove('miss');
+        $('play').classList.toggle('dragging', !!cells);
+        missTok++;
+    }
+
+    // ---------------------------------------------------------------- input
+    board.addEventListener('pointerdown', function (e) {
+        if (!P || solvedNow()) return;
+        if (e.button > 0) return;
+        var i = cellAt(e.clientX, e.clientY);
+        if (i < 0) return;
+        e.preventDefault();
+        try { board.setPointerCapture(e.pointerId); } catch (err) { /* synthetic pointers */ }
+        kbdOff();
+        ac();
+        if (readIn && document.activeElement === readIn) readIn.blur();
+        drag = {id: e.pointerId, start: anchor >= 0 ? anchor : i, x: e.clientX, y: e.clientY, cells: [i], dir: -1, moved: false, tapStart: i};
+        if (anchor >= 0) {
+            // second tap of a tap-tap: the line from the anchor to here
+            drag.cells = C.line(P.size, anchor, i);
+            drag.fromAnchor = true;
+        }
+        showLive(drag.cells); readout(drag.cells); sfx.cell(drag.cells.length - 1);
+    });
+    board.addEventListener('pointermove', function (e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > cs * 0.35) drag.moved = true;
+        if (!drag.moved && drag.fromAnchor) return;
+        if (drag.moved && drag.fromAnchor) { drag.fromAnchor = false; drag.start = drag.tapStart; clearAnchor(); }
+        var r = board.getBoundingClientRect(), s = r.width / P.size;
+        var sc = Math.floor(drag.start / P.size), cc = drag.start % P.size;
+        var dx = (e.clientX - r.left) / s - (cc + 0.5), dy = (e.clientY - r.top) / s - (sc + 0.5);
+        var res = C.lineVec(P.size, drag.start, dy, dx, drag.dir);
+        drag.dir = res.dir;
+        if (res.cells.length !== drag.cells.length || res.cells[res.cells.length - 1] !== drag.cells[drag.cells.length - 1]) {
+            var grew = res.cells.length > drag.cells.length;
+            drag.cells = res.cells;
+            showLive(drag.cells); readout(drag.cells);
+            if (grew) sfx.cell(drag.cells.length - 1);
+        }
+    });
+    function endDrag(e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        var d = drag; drag = null;
+        if (!d.moved && !d.fromAnchor && d.cells.length === 1) {
+            // a tap: this cell becomes the start of a tap-tap
+            setAnchor(d.cells[0]); readout(null); dropLive(false, d.cells);
+            return;
+        }
+        if (d.fromAnchor && !d.moved && d.tapStart === anchor) { clearAnchor(); readout(null); dropLive(false, d.cells); return; }
+        clearAnchor();
+        resolve(d.cells);
+    }
+    board.addEventListener('pointerup', endDrag);
+    board.addEventListener('pointercancel', function (e) {
+        if (!drag || e.pointerId !== drag.id) return;
+        var d = drag; drag = null; readout(null); dropLive(true, d.cells);
+    });
+
+    var anchorEl = null;
+    function setAnchor(i) {
+        clearAnchor(); anchor = i;
+        var c = center(i);
+        anchorEl = el('ellipse', {cx: c[0], cy: c[1], rx: cs * 0.39, ry: cs * 0.39, fill: 'var(--theme)', 'fill-opacity': 0.07, stroke: 'var(--theme)', 'stroke-width': 2.2, filter: 'url(#pencil)'}, over);
+        sfx.cell(0);
+    }
+    function clearAnchor() { anchor = -1; if (anchorEl) { anchorEl.remove(); anchorEl = null; } }
+
+    // keyboard: arrows move a cursor, Enter or Space marks start then end, Escape lets go
+    var cursorEl = null;
+    function drawCursor() {
+        if (!P) return;
+        if (!cursorEl) cursorEl = el('rect', {class: 'cursor', rx: 6}, over);
+        if (kbd < 0) return;
+        var c = center(kbd);
+        cursorEl.setAttribute('x', c[0] - cs * 0.42); cursorEl.setAttribute('y', c[1] - cs * 0.42);
+        cursorEl.setAttribute('width', cs * 0.84); cursorEl.setAttribute('height', cs * 0.84);
+    }
+    function kbdOff() { $('play').classList.remove('kbd'); }
+    board.addEventListener('keydown', function (e) {
+        if (!P || solvedNow()) return;
+        var mv = {ArrowLeft: [0, -1], ArrowRight: [0, 1], ArrowUp: [-1, 0], ArrowDown: [1, 0]}[e.key];
+        if (kbd < 0) kbd = 0;
+        if (mv) {
+            e.preventDefault();
+            $('play').classList.add('kbd');
+            var r = Math.max(0, Math.min(P.size - 1, Math.floor(kbd / P.size) + mv[0])), c = Math.max(0, Math.min(P.size - 1, kbd % P.size + mv[1]));
+            kbd = r * P.size + c; drawCursor();
+            if (anchor >= 0) { var cells = C.line(P.size, anchor, kbd); showLive(cells); readout(cells); }
+            return;
+        }
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault(); $('play').classList.add('kbd'); drawCursor(); ac();
+            if (anchor < 0) { setAnchor(kbd); showLive([kbd]); readout([kbd]); }
+            else { var cl = C.line(P.size, anchor, kbd); clearAnchor(); resolve(cl); }
+        }
+        if (e.key === 'Escape' && anchor >= 0) { var c1 = [anchor]; clearAnchor(); readout(null); dropLive(false, c1); }
+    });
+    board.addEventListener('blur', kbdOff);
+
+    // ---------------------------------------------------------------- rules in play
+    function solvedNow() { return order.length === P.words.length; }
+    function resolve(cells) {
+        var m = C.match(P, cells, found);
+        if (m && !m.already) {
+            readout(null); dropLive(false, cells);
+            commit(m.index);
+            return;
+        }
+        if (m && m.already) {
+            readout(null); dropLive(false, cells); sfx.again();
+            var g = strokeEls[m.word];
+            if (g) g.animate([{opacity: 1}, {opacity: 0.35}, {opacity: 1}], {duration: 380, easing: 'ease-in-out'});
+            return;
+        }
+        if (cells.length < 2) { readout(null); dropLive(false, cells); return; }
+        sfx.miss();
+        ['readout', 'readoutD'].forEach(function (id) { var r = $(id); r.classList.remove('miss'); void r.offsetWidth; r.classList.add('miss'); });
+        var tok = missTok, g = liveG, p = livePath;
+        liveG = null; livePath = null;   // a new drag may start while this one shakes
+        if (!g) { readout(null); return; }
+        shake(p, function () { if (tok === missTok) readout(null); letGo(g, p, true, cells); });
+    }
+    // A wrong stroke shakes its head along its own line and goes pencil-grey before it lets go.
+    function shake(p, done) {
+        var amp = cs * 0.14;
+        p.setAttribute('stroke', '#9a9184'); p.setAttribute('fill', '#9a9184');
+        if (reduce.matches) return done();
+        tween(280, function (t) {
+            p.setAttribute('transform', 'translate(' + (Math.sin(t * Math.PI * 5) * amp * (1 - t)) + ' 0)');
+        }, function () { p.removeAttribute('transform'); done(); }, function (t) { return t; });
+    }
+
+    function commit(w) {
+        var word = P.words[w];
+        var before = C.dealt(P, order.length);
+        pens[word.word] = C.pickPen(P, pens, word.cells);
+        found[word.word] = 1; order.push(word.word);
+        drawStroke(w, true);
+        sfx.find(word.word.length);
+        $('readout').classList.remove('hit'); void $('readout').offsetWidth;
+        // letters bounce in the order the pen passed them
+        word.cells.forEach(function (ci, k) {
+            var s = spans[ci];
+            s.classList.remove('bump'); void s.offsetWidth;
+            s.style.animationDelay = (k * 35) + 'ms'; s.classList.add('bump');
+        });
+        var li = listItems[word.word];
+        li.style.setProperty('--c', 'var(--pen' + pens[word.word] + ')');
+        li.classList.add('found'); li.setAttribute('aria-label', word.word + ', found');
+        $('live').textContent = word.word + ' found. ' + order.length + ' of ' + P.words.length + '.';
+        var after = C.dealt(P, order.length);
+        dealLetters(before, after, 260);
+        if (early < 0) setTimeout(readUi, 260 + (after - before) * 75 + 560);
+        storeProgress();
+        if (solvedNow()) finishPuzzle(true, after - before);
+    }
+
+    // The next leftover letters are circled in pencil and fly to their blanks.
+    function dealLetters(from, to, delay) {
+        for (var k = from; k < to; k++) (function (k, n) {
+            setTimeout(function () {
+                if (!P) return;
+                var ci = P.messageCells[k];
+                var e = circle(ci); circleEls.push(e);
+                var len = 2 * Math.PI * cs * 0.28;
+                e.style.strokeDasharray = len; e.style.strokeDashoffset = len;
+                tween(200, function (t) { e.style.strokeDashoffset = len * (1 - t); }, function () { e.style.strokeDasharray = ''; e.style.strokeDashoffset = ''; });
+                setTimeout(function () { e.classList.add('settled'); }, 1400);
+                spans[ci].classList.add('dealt');
+                sfx.deal(k);
+                fly(ci, slots[k]);
+            }, reduce.matches ? 0 : delay + n * 75);
+        })(k, k - from);
+    }
+    function fly(ci, slot) {
+        var a = spans[ci].getBoundingClientRect(), b = slot.getBoundingClientRect();
+        if (reduce.matches || !a.width || !b.width) { slot.textContent = P.grid[ci]; slot.classList.remove('typed'); readUi(); return; }
+        var f = document.createElement('div');
+        f.className = 'flyer'; f.textContent = P.grid[ci];
+        document.body.appendChild(f);
+        var fw = f.getBoundingClientRect();
+        var sx = a.left + a.width / 2 - fw.width / 2, sy = a.top + a.height / 2 - fw.height / 2;
+        var ex = b.left + b.width / 2 - fw.width / 2, ey = b.top + b.height / 2 - fw.height / 2;
+        f.style.left = '0px'; f.style.top = '0px';
+        var lift = Math.min(60, Math.abs(ey - sy) * 0.25);
+        var anim = f.animate([
+            {transform: 'translate(' + sx + 'px,' + sy + 'px) scale(1)', opacity: 0},
+            {transform: 'translate(' + (sx + (ex - sx) * 0.3) + 'px,' + (sy + (ey - sy) * 0.3 - lift) + 'px) scale(1.7)', opacity: 1, offset: 0.3},
+            {transform: 'translate(' + ex + 'px,' + ey + 'px) scale(1)', opacity: 1}
+        ], {duration: 520, easing: 'cubic-bezier(.45,.05,.35,1)', fill: 'forwards'});
+        anim.onfinish = function () {
+            f.remove(); slot.textContent = P.grid[ci]; slot.classList.remove('typed');
+            slot.classList.remove('pop'); void slot.offsetWidth; slot.classList.add('pop');
+        };
+    }
+
+    // ---------------------------------------------------------------- reading the message early
+    // Once some of the message is showing, the blanks take a guess: type the rest and, if it is right,
+    // the message is yours before the grid is - a mark beside the time. A wrong guess costs nothing.
+    var readIn = null, hintShown = false;
+    function readable() { return P && early < 0 && !solvedNow() && C.dealt(P, order.length) > 0; }
+    function readUi() {
+        var msg = $('msg');
+        if (!P) return;
+        msg.classList.toggle('open', readable());
+        if (!readable()) {
+            if (readIn) { readIn.remove(); readIn = null; }
+            msg.classList.remove('typing');
+            if (early >= 0 && !solvedNow()) readHint(true, 'Read at ' + early + ' of ' + P.words.length);
+            else readHint(false);
+            return;
+        }
+        if (!readIn) {
+            readIn = document.createElement('input');
+            readIn.type = 'text'; readIn.autocomplete = 'off'; readIn.spellcheck = false;
+            readIn.setAttribute('autocapitalize', 'characters'); readIn.setAttribute('autocorrect', 'off');
+            readIn.setAttribute('aria-label', 'Guess the hidden message: type the missing letters');
+            readIn.addEventListener('focus', function () { msg.classList.add('typing'); readHint(false); paintGuess(); });
+            readIn.setAttribute('enterkeyhint', 'done');
+            readIn.addEventListener('blur', function () { msg.classList.remove('typing'); readIn.value = ''; paintGuess(); });
+            readIn.addEventListener('input', function () { paintGuess(true); });
+            readIn.addEventListener('keydown', function (e) { if (e.key === 'Escape') readIn.blur(); });
+            msg.appendChild(readIn);
+        }
+        paintGuess();
+        // Say it once, the first time a reader could use it.
+        var seen = false; try { seen = localStorage.getItem('highlight.readHint') === '1'; } catch (e) { seen = true; }
+        if (!seen && !hintShown && C.dealt(P, order.length) >= Math.ceil(P.messageCells.length / 3)) {
+            hintShown = true; readHint(true);
+            try { localStorage.setItem('highlight.readHint', '1'); } catch (e) { /* fine */ }
+            setTimeout(function () { readHint(false); }, 6000);
+        }
+    }
+    function readHint(on, text) {
+        var h = $('readHint');
+        if (!h) { h = document.createElement('p'); h.id = 'readHint'; h.className = 'read-hint'; $('msg').appendChild(h); }
+        if (text || !h.textContent) h.textContent = text || 'Know it already? Tap the blanks';
+        h.classList.toggle('show', !!on);
+    }
+    function paintGuess(typed) {
+        if (!P) return;
+        var start = C.dealt(P, order.length), g = readIn ? C.letters(readIn.value.toUpperCase()) : '';
+        var room = P.messageCells.length - start;
+        if (g.length > room) { g = g.slice(0, room); readIn.value = g; }
+        slots.forEach(function (s, k) {
+            s.classList.remove('next');
+            if (k < start) return;
+            var ch = g[k - start] || '';
+            if (s.textContent !== ch) s.textContent = ch;
+            s.classList.toggle('typed', !!ch);
+        });
+        if (slots[start + g.length] && readIn && document.activeElement === readIn) slots[start + g.length].classList.add('next');
+        if (typed && g.length) sfx.deal(start + g.length);
+        if (typed && g.length === room) setTimeout(function () { judge(g, start); }, 120);
+    }
+    function judge(g, start) {
+        if (!P || !readIn || C.letters(readIn.value.toUpperCase()) !== g) return;
+        var msg = $('msg');
+        if (C.readsAs(P, start, g)) {
+            early = order.length;
+            readIn.blur(); readUi();
+            slots.forEach(function (s, k) { s.textContent = P.grid[P.messageCells[k]]; s.classList.remove('typed'); });
+            sfx.find(8);
+            msg.querySelectorAll('.mw').forEach(function (wd, i) {
+                wd.querySelectorAll('i').forEach(function (ch, k) { ch.classList.remove('pop'); void ch.offsetWidth; ch.style.animationDelay = (i * 90 + k * 25) + 'ms'; ch.classList.add('pop'); });
+            });
+            $('live').textContent = 'You read the message at ' + early + ' of ' + P.words.length + ' words. Keep going: the grid still has words to find.';
+            storeProgress();
+        } else {
+            sfx.miss();
+            msg.classList.remove('wrong'); void msg.offsetWidth; msg.classList.add('wrong');
+            setTimeout(function () { msg.classList.remove('wrong'); if (readIn) { readIn.value = ''; paintGuess(); } }, 520);
+        }
+    }
+
+    // ---------------------------------------------------------------- timing and saving
+    function clockOn() { if (!tickFrom && P && !solvedNow() && !document.hidden) tickFrom = performance.now(); }
+    function clockOff() { if (tickFrom) { elapsed += (performance.now() - tickFrom) / 1000; tickFrom = 0; } }
+    function seconds() { return elapsed + (tickFrom ? (performance.now() - tickFrom) / 1000 : 0); }
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) { clockOff(); storeProgress(); } else clockOn();
+    });
+    window.addEventListener('pagehide', function () { clockOff(); storeProgress(); });
+    function storeProgress() {
+        if (!P) return;
+        save.progress[key] = {found: order.slice(), pens: Object.assign({}, pens), t: Math.round(seconds())};
+        if (early >= 0) save.progress[key].early = early;
+        persist();
+    }
+    function fmt(s) { s = Math.round(s); var m = Math.floor(s / 60); return m + ':' + String(s % 60).padStart(2, '0'); }
+
+    // ---------------------------------------------------------------- building a puzzle on the page
+    var listItems = {}, slots = [];
+    var early = -1;        // finds when the message was read early, or -1
+    // On a phone the page is centred only when everything, the way on included, fits the screen;
+    // otherwise it starts at the top, so the way on can arrive below without moving anything.
+    function fitMode() {
+        var play = $('play'), desk = matchMedia('(min-width: 900px) and (min-height: 600px)').matches;
+        play.classList.remove('roomy');
+        if (desk) return;
+        var reserve = $('doneP').hidden ? 112 : 0;
+        var kids = Array.prototype.filter.call(play.children, function (k) { return k.offsetParent; });
+        var need = kids.reduce(function (h, k) { var cs = getComputedStyle(k); return h + k.offsetHeight + parseFloat(cs.marginTop) + parseFloat(cs.marginBottom); }, 0) + reserve + document.querySelector('.run').offsetHeight + 8;
+        play.classList.toggle('roomy', need <= window.innerHeight);
+    }
+    function placeBlocks() {
+        // On a desk the message and the way on sit in the right column, under the list; on a phone, under it all.
+        var desk = matchMedia('(min-width: 900px) and (min-height: 600px)').matches;
+        var home = desk ? document.querySelector('.right') : $('play');
+        if ($('msg').parentNode !== home) { home.appendChild($('msg')); home.appendChild($('doneP')); }
+        if (!desk && $('live').parentNode !== $('play')) $('play').appendChild($('live'));
+    }
+    function buildMessage() {
+        placeBlocks();
+        var msg = $('msg'); msg.innerHTML = ''; slots = []; readIn = null;
+        var words = C.messageWords(P);
+        var avail = msg.clientWidth || $('play').clientWidth || 340;
+        var desk = matchMedia('(min-width: 900px) and (min-height: 600px)').matches;
+        var width = function (ws, s) { return ws.join('').length * s * 1.16 + (ws.length - 1) * s * 1.15; };
+        // The fewest lines that keep the letters readable; on a desk, one more line if it makes them much larger.
+        var fit = function (nl) {
+            var ls = balance(words, nl), widest = Math.max.apply(null, ls.map(function (l) { return width(l, 1); }));
+            return {lines: ls, slot: Math.min(desk ? 42 : 28, Math.floor(avail / widest))};
+        };
+        var best = null;
+        for (var nl = 1; nl <= 4 && nl <= words.length; nl++) {
+            var f = fit(nl);
+            // On a desk the block may not grow past what the column has room for.
+            if (desk && best && nl * (f.slot * 1.4 + 6) > 150) break;
+            if (!best) best = f;
+            else if (best.slot < (desk ? 30 : 17) || (desk && f.slot > best.slot * 1.3)) best = f;
+            if (best.slot >= (desk ? 30 : 17) && !desk) break;
+        }
+        msg.style.setProperty('--slot', best.slot + 'px');
+        best.lines.forEach(function (l) {
+            var row = document.createElement('div'); row.className = 'line';
+            l.forEach(function (w) {
+                var g = document.createElement('span'); g.className = 'mw';
+                for (var i = 0; i < w.length; i++) { var s = document.createElement('i'); g.appendChild(s); slots.push(s); }
+                row.appendChild(g);
+            });
+            msg.appendChild(row);
+        });
+    }
+    // Split words into n lines with letter counts as even as possible.
+    function balance(words, n) {
+        if (n <= 1) return [words];
+        var best = null, bestCost = Infinity;
+        (function rec(i, acc) {
+            if (acc.length === n - 1) {
+                var ls = acc.concat([words.slice(i)]);
+                if (ls.some(function (l) { return !l.length; })) return;
+                var lens = ls.map(function (l) { return l.join(' ').length; });
+                var cost = Math.max.apply(null, lens);
+                if (cost < bestCost) { bestCost = cost; best = ls; }
+                return;
+            }
+            for (var j = i + 1; j < words.length; j++) rec(j, acc.concat([words.slice(i, j)]));
+        })(0, []);
+        return best || [words];
+    }
+
+    function open(k, opts) {
+        opts = opts || {};
+        clockOff(); storeProgress();
+        var p = k.indexOf('book:') === 0 ? C.bookPuzzle(+k.slice(5)) : C.dailyPuzzle(k.slice(4));
+        if (!p) return showContents();
+        P = p; key = k;
+        if (location.hash !== '#' + k) history.replaceState(null, '', '#' + k);
+        found = {}; pens = {}; order = []; elapsed = 0; tickFrom = 0; drag = null; clearAnchor(); kbd = -1; early = -1;
+        var prog = save.progress[k];
+        if (prog) {
+            prog.found.forEach(function (w) { if (P.words.some(function (x) { return x.word === w; }) && !found[w]) { found[w] = 1; order.push(w); pens[w] = prog.pens[w] || 0; } });
+            elapsed = prog.t || 0;
+            if (prog.early >= 0) early = prog.early;
+        }
+        if (save.solved[k] && save.solved[k].early >= 0) early = save.solved[k].early;
+        if (save.solved[k] && order.length < P.words.length) {
+            // Solved before but the strokes were not kept: show it solved.
+            P.words.forEach(function (w) { if (!found[w.word]) { found[w.word] = 1; order.push(w.word); pens[w.word] = C.pickPen(P, pens, w.cells); } });
+            elapsed = save.solved[k].t;
+        }
+        setTheme(P.hue);
+        document.documentElement.style.setProperty('--n', P.size);
+        $('themeP').textContent = P.name; $('themeD').textContent = P.name;
+        var daily = k.indexOf('day:') === 0;
+        $('folio').textContent = daily ? 'Daily · ' + shortDate(k.slice(4)) : (matchMedia('(min-width: 900px)').matches ? 'Word Search · ' : '') + 'No. ' + k.slice(5);
+        document.title = P.name + (daily ? ' · Daily' : ' · No. ' + k.slice(5)) + ' - Highlight';
+        // letters
+        lettersEl.innerHTML = ''; spans = [];
+        P.grid.forEach(function (ch, i) {
+            var s = document.createElement('span'); s.textContent = ch;
+            if (!opts.quiet && !reduce.matches) { s.classList.add('enter'); s.style.animationDelay = (Math.floor(i / P.size) * 28 + (i % P.size) * 8) + 'ms'; }
+            lettersEl.appendChild(s); spans.push(s);
+        });
+        // list
+        var list = $('list'); list.innerHTML = ''; listItems = {};
+        P.words.forEach(function (w) {
+            var li = document.createElement('li'), b = document.createElement('button');
+            b.className = 'w'; b.textContent = w.word; b.type = 'button';
+            b.setAttribute('aria-label', w.word + (found[w.word] ? ', found' : ', show its first letter'));
+            if (found[w.word]) { b.classList.add('found'); b.style.setProperty('--c', 'var(--pen' + pens[w.word] + ')'); }
+            b.addEventListener('click', function () { hint(w); });
+            li.appendChild(b); list.appendChild(li); listItems[w.word] = b;
+        });
+        showScreen('play');
+        buildMessage();
+        var dealtN = early >= 0 ? P.messageCells.length : C.dealt(P, order.length);
+        for (var i = 0; i < dealtN; i++) slots[i].textContent = P.grid[P.messageCells[i]];
+        readUi();
+        requestAnimationFrame(function () {
+            fitMode();
+            redraw();
+            if (solvedNow()) finishPuzzle(false); else { hideDone(); clockOn(); }
+            nudge();
+        });
+    }
+    function shortDate(k) {
+        return new Date(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)).toLocaleDateString(undefined, {day: 'numeric', month: 'short'});
+    }
+
+    // Tapping a word in the list circles its first letter for a moment.
+    function hint(w) {
+        if (found[w.word]) { var g = strokeEls[w.word]; if (g) g.animate([{opacity: 1}, {opacity: .35}, {opacity: 1}], {duration: 380}); return; }
+        var b = listItems[w.word]; b.classList.remove('hinted'); void b.offsetWidth; b.classList.add('hinted');
+        var e = circle(w.cells[0]); e.setAttribute('stroke-width', 2.4);
+        sfx.cell(0);
+        e.animate([{opacity: 0}, {opacity: 1, offset: .15}, {opacity: 1, offset: .7}, {opacity: 0}], {duration: 1500, easing: 'ease-out'}).onfinish = function () { e.remove(); };
+    }
+
+    // On the first puzzle, and on the first puzzle with a new direction, the pencil shows the way once.
+    var nudgeTimer = 0;
+    function nudge() {
+        clearTimeout(nudgeTimer);
+        if (key.indexOf('book:') !== 0 || order.length) return;
+        var n = +key.slice(5), lv = C.level(n), prev = n > 1 ? C.level(n - 1).dirs : [];
+        var fresh = lv.dirs.filter(function (d) { return prev.indexOf(d) < 0; });
+        if (!fresh.length) return;
+        // Three cells along the new direction that are not the start of any word: it shows the
+        // gesture and the way, not the answer.
+        var starts = {}, cells0 = null, n2 = P.size;
+        P.words.forEach(function (w) { starts[w.cells[0]] = 1; starts[w.cells[w.cells.length - 1]] = 1; });
+        var dir = fresh[fresh.length - 1], dr = C.DIRS[dir][0], dc = C.DIRS[dir][1];
+        for (var i = 0; i < n2 * n2 && !cells0; i++) {
+            var at = (i * 7 + n * 13) % (n2 * n2), r0 = Math.floor(at / n2), c0 = at % n2;
+            var run = [0, 1, 2].map(function (k) { return (r0 + dr * k) * n2 + (c0 + dc * k); });
+            var inside = [0, 1, 2].every(function (k) { var r = r0 + dr * k, c = c0 + dc * k; return r >= 0 && r < n2 && c >= 0 && c < n2; });
+            if (inside && !starts[run[0]] && !starts[run[2]]) cells0 = run;
+        }
+        if (!cells0) return;
+        var target = {cells: cells0};
+        var shown = 0;
+        var ghost = function () {
+            if (!P || order.length || drag || key.indexOf('book:') !== 0 || shown >= 2) return;
+            shown++;
+            var cells = target.cells.slice(0, 3), sh0 = strokeShape(cells[0], cells[cells.length - 1]);
+            var g = el('g', {transform: sh0.t}, under), p = el('path', {fill: '#9a9184', opacity: 0.32}, g);
+            tween(750, function (t) { p.setAttribute('d', strokeShape(cells[0], cells[cells.length - 1], t).d); }, function () {
+                g.animate([{opacity: 1}, {opacity: 1, offset: .7}, {opacity: 0}], {duration: 2400, fill: 'forwards'}).onfinish = function () { g.remove(); };
+            }, ease.inOut);
+            nudgeTimer = setTimeout(ghost, 9000);
+        };
+        nudgeTimer = setTimeout(ghost, n === 1 ? 5000 : 1600);
+    }
+
+    // ---------------------------------------------------------------- end of a puzzle
+    function finishPuzzle(fresh, newlyDealt) {
+        clockOff();
+        var t = Math.round(elapsed);
+        if (fresh) {
+            if (!save.solved[key] || save.solved[key].t > t) save.solved[key] = {t: t};
+            if (early >= 0 && !(save.solved[key].early <= early)) save.solved[key].early = early;
+            if (key.indexOf('book:') === 0) save.next = Math.max(save.next, +key.slice(5) + 1);
+            storeProgress();
+        }
+        var wait = fresh && !reduce.matches ? 260 + (newlyDealt || 0) * 75 + 650 : 0;
+        setTimeout(function () { showDone(fresh); }, wait);
+    }
+    // The way on is laid out (invisible) from the start, so nothing moves when it appears.
+    function hideDone() {
+        var d = $('doneP');
+        d.innerHTML = '<p class="stat">Solved in 0:00</p><div class="btns"><button class="btn" tabindex="-1">Next</button><button class="btn ghost" tabindex="-1">All puzzles</button></div>';
+        d.hidden = true;
+        $('msg').querySelectorAll('.swipe').forEach(function (s) { s.remove(); });
+    }
+    function showDone(fresh) {
+        var daily = key.indexOf('day:') === 0, t = save.solved[key] ? save.solved[key].t : Math.round(elapsed);
+        var stat = 'Solved in ' + fmt(t);
+        var ea = save.solved[key] && save.solved[key].early >= 0 ? save.solved[key].early : early;
+        if (ea >= 0) stat += ' · read at ' + ea + ' of ' + P.words.length;
+        if (daily) {
+            var days = {}; Object.keys(save.solved).forEach(function (k) { if (k.indexOf('day:') === 0) days[k.slice(4)] = 1; });
+            var st = C.streak(days, C.dateKey(new Date()));
+            if (st > 1) stat += ' · ' + st + '\u2011day streak';
+        }
+        var nextN = daily ? save.next : +key.slice(5) + 1;
+        var html = '<p class="stat">' + stat + '</p><div class="btns">' +
+            (daily ? '<button class="btn" data-share="1">Share</button><button class="btn ghost" data-go="book:' + nextN + '">Puzzle No. ' + nextN + '</button>'
+                : '<button class="btn" data-go="book:' + nextN + '">Next · No. ' + nextN + '</button><button class="btn ghost" data-go="contents">All puzzles</button>') + '</div>';
+        ['doneP'].forEach(function (id) {
+            var d = $(id); d.innerHTML = html; d.hidden = true;
+            d.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.getAttribute('data-go')); }); });
+            d.querySelectorAll('[data-share]').forEach(function (b) { b.addEventListener('click', function () { share(b, stat); }); });
+        });
+        // the finished message is highlighted word by word, a note for each, then the way on
+        var msg = $('msg'), words = msg.querySelectorAll('.mw'), m = msg.getBoundingClientRect();
+        msg.querySelectorAll('.swipe').forEach(function (s) { s.remove(); });
+        var step = fresh && !reduce.matches ? 190 : 0;
+        words.forEach(function (wd, i) {
+            var r = wd.getBoundingClientRect(), s = document.createElement('div');
+            s.className = 'swipe';
+            s.style.left = (r.left - m.left - 4) + 'px'; s.style.width = (r.width + 8) + 'px';
+            s.style.top = (r.top - m.top + r.height * 0.52) + 'px'; s.style.height = (r.height * 0.4) + 'px';
+            s.style.background = 'var(--pen' + [1, 3, 0, 2, 4][i % 5] + ')';
+            msg.appendChild(s);
+            if (!step) return;
+            s.style.transform = 'scaleX(0)';
+            setTimeout(function () {
+                s.animate([{transform: 'scaleX(0)'}, {transform: 'scaleX(1)'}], {duration: 240, easing: 'cubic-bezier(.3,.7,.3,1)', fill: 'forwards'});
+                sfx.word(i);
+                wd.querySelectorAll('i').forEach(function (ch, k) {
+                    ch.classList.remove('pop'); void ch.offsetWidth; ch.style.animationDelay = (k * 30) + 'ms'; ch.classList.add('pop');
+                });
+            }, i * step);
+        });
+        var reveal = function () {
+            ['doneP'].forEach(function (id) {
+                var d = $(id); d.hidden = false; d.classList.remove('fade-in'); void d.offsetWidth; d.classList.add('fade-in');
+            });
+            if (!fresh) return;
+            sfx.close();
+            $('live').textContent = 'Solved. The hidden message: ' + P.message.toLowerCase() + '.';
+            var d = $('doneP');
+            if (!d.hidden && d.offsetParent) setTimeout(function () { d.scrollIntoView({behavior: reduce.matches ? 'auto' : 'smooth', block: 'nearest'}); }, 200);
+        };
+        if (step) setTimeout(reveal, words.length * step + 250); else reveal();
+    }
+
+    // The daily's result, without the message: the theme, the time, the streak, and the way in.
+    function share(btn, stat) {
+        var day = key.slice(4), url = location.origin + location.pathname + '#day:' + day;
+        var text = 'Highlight · daily word search · ' + shortDate(day) + ' · ' + P.name + '\n' + stat;
+        var said = function (t) { btn.textContent = t; setTimeout(function () { btn.textContent = 'Share'; }, 1600); };
+        if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+            navigator.share({title: 'Highlight', text: text, url: url}).catch(function () {});
+            return;
+        }
+        var all = text + '\n' + url;
+        if (navigator.clipboard) navigator.clipboard.writeText(all).then(function () { said('Copied'); }, function () { said('Not copied'); });
+        else said('Not copied');
+    }
+
+    // ---------------------------------------------------------------- contents
+    function showScreen(id) {
+        ['play', 'contents'].forEach(function (s) {
+            var e = $(s); e.hidden = s !== id;
+            if (s === id) { e.classList.remove('fade-in'); void e.offsetWidth; e.classList.add('fade-in'); }
+        });
+        $('back').style.visibility = id === 'play' ? 'visible' : 'hidden';
+    }
+    function showContents() {
+        clockOff(); storeProgress(); P = null; key = '';
+        if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+        setTheme(60);
+        $('folio').textContent = 'Contents';
+        document.title = 'Highlight - Word Search with a Hidden Message';
+        var today = C.dateKey(new Date()), dk = 'day:' + today, dt = C.themeForDay(today);
+        var days = {}; Object.keys(save.solved).forEach(function (k) { if (k.indexOf('day:') === 0) days[k.slice(4)] = 1; });
+        var st = C.streak(days, today);
+        var dayLabel = new Date().toLocaleDateString(undefined, {weekday: 'long', day: 'numeric', month: 'long'});
+        var dStatus = save.solved[dk] ? 'Solved in ' + fmt(save.solved[dk].t) : progressText(dk) || 'Same puzzle for everyone today';
+        if (st > 1) dStatus += ' · ' + st + '\u2011day streak';
+        var n = save.next, bt = C.themeForBook(n);
+        var bStatus = progressText('book:' + n) || (n === 1 ? 'Start here' : dirsText(C.level(n).dirs));
+        var cards = $('cards');
+        cards.innerHTML = card(dt.hue, 'Daily · ' + dayLabel, dt.name, dStatus, save.solved[dk] ? 'Look again' : (save.progress[dk] ? 'Carry on' : 'Play'), dk, frac(dk)) +
+            card(bt.hue, 'The book · No. ' + n, bt.name, bStatus, save.progress['book:' + n] ? 'Carry on' : 'Play', 'book:' + n, frac('book:' + n));
+        cards.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.getAttribute('data-go')); }); });
+        // the shelf of solved book puzzles, newest first
+        var solved = Object.keys(save.solved).filter(function (k) { return k.indexOf('book:') === 0; }).map(function (k) { return +k.slice(5); }).sort(function (a, b) { return b - a; });
+        var wrap = $('shelfWrap');
+        wrap.innerHTML = solved.length ? '<h2 class="shelf-h">Solved</h2><ul class="shelf">' + solved.map(function (m) {
+            var t = C.themeForBook(m);
+            return '<li><button style="--h:' + t.hue + '" data-go="book:' + m + '" aria-label="No. ' + m + ', ' + t.name + ', solved in ' + fmt(save.solved['book:' + m].t) + '"><span class="no">' + m + '</span><span class="nm">' + t.name + '</span></button></li>';
+        }).join('') + '</ul>' : '';
+        wrap.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { go(b.getAttribute('data-go')); }); });
+        showScreen('contents');
+    }
+    function dirsText(d) {
+        if (d.length >= 8) return 'Every direction, backwards too';
+        if (d.indexOf(4) >= 0) return 'Some words run backwards';
+        if (d.indexOf(7) >= 0) return 'Diagonals both ways';
+        if (d.indexOf(1) >= 0) return 'Across, down and diagonal';
+        return 'Across and down';
+    }
+    function progressText(k) {
+        var p = save.progress[k];
+        if (!p || !p.found.length || save.solved[k]) return '';
+        var total = (k.indexOf('book:') === 0 ? C.bookPuzzle(+k.slice(5)) : C.dailyPuzzle(k.slice(4))).words.length;
+        return p.found.length + ' of ' + total + ' found';
+    }
+    function frac(k) {
+        if (save.solved[k]) return 1;
+        var p = save.progress[k]; if (!p || !p.found.length) return 0;
+        var total = (k.indexOf('book:') === 0 ? C.bookPuzzle(+k.slice(5)) : C.dailyPuzzle(k.slice(4))).words.length;
+        return p.found.length / total;
+    }
+    function card(hue, k, t, s, goLabel, target, f) {
+        return '<button class="card" style="--h:' + hue + '" data-go="' + target + '"><span class="k">' + k + '</span><span class="t">' + t + '</span><span class="s">' + s +
+            '</span><span class="go">' + goLabel + ' →</span><span class="bar"><b style="width:' + Math.round(f * 100) + '%"></b></span></button>';
+    }
+    function go(target) {
+        if (target === 'contents') return showContents();
+        open(target);
+        window.scrollTo({top: 0});
+    }
+
+    // ---------------------------------------------------------------- chrome
+    $('back').addEventListener('click', function () { showContents(); });
+    function soundUi() { document.body.classList.toggle('muted', !save.sound); $('sound').setAttribute('aria-pressed', String(save.sound)); }
+    $('sound').addEventListener('click', function () { save.sound = !save.sound; soundUi(); persist(); if (save.sound) sfx.again(); });
+    soundUi();
+    var rz = 0;
+    window.addEventListener('resize', function () {
+        cancelAnimationFrame(rz);
+        rz = requestAnimationFrame(function () {
+            if (!P) return;
+            fitMode();
+            redraw();
+            var keep = slots.map(function (s) { return s.textContent; });
+            buildMessage(); keep.forEach(function (t, i) { if (slots[i]) slots[i].textContent = t; });
+            if (solvedNow()) showDone(false);
+        });
+    });
+    window.addEventListener('hashchange', route);
+
+    function route() {
+        var h = decodeURIComponent(location.hash.slice(1));
+        if (/^book:\d{1,4}$/.test(h) && +h.slice(5) >= 1) return open(h);
+        if (/^day:\d{4}-\d\d-\d\d$/.test(h) && h.slice(4) <= C.dateKey(new Date())) return open(h);
+        // A first visit goes straight to No. 1; after that the contents page greets you.
+        if (save.fresh) { save.fresh = false; persist(); return open('book:1'); }
+        showContents();
+    }
+    route();
+})();
+</script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>单词搜索</h4>
+<div class="cn-guide-lang">🔴 含较多英文文本，建议理解英文后游玩</div>
+<div class="cn-guide-desc">AI生成·找单词游戏</div>
+<div class="cn-guide-tip">💡 通过点击、拖拽或滑动来移动和组合元素，观察规律，达成关卡目标。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

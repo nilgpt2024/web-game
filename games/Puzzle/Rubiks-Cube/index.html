@@ -511,4 +511,870 @@
             const proj0 = screenDx * s0.x + screenDy * s0.y;
             const proj1 = screenDx * s1.x + screenDy * s1.y;
 
-            let dragTang
+            let dragTangent, rotAxis, dragProjection;
+            if (Math.abs(proj0) > Math.abs(proj1)) {
+                dragTangent = tangents[0];
+                rotAxis = tangents[1];
+                dragProjection = proj0;
+            } else {
+                dragTangent = tangents[1];
+                rotAxis = tangents[0];
+                dragProjection = proj1;
+            }
+
+            const layerVal = cubie.pos[rotAxis];
+            let layerFace = null;
+            for (const f of FACES) {
+                if (AXES[f] === rotAxis && LAYERS[f] === layerVal) { layerFace = f; break; }
+            }
+            if (!layerFace) {
+                for (const f of FACES) {
+                    if (AXES[f] === rotAxis && LAYERS[f] === 1) { layerFace = f; break; }
+                }
+            }
+
+            // --- FIX: compute direction entirely in screen space ---
+            // A small +rotation around rotAxis moves the drag tangent axis.
+            // Project that movement to screen and compare with the drag direction.
+            const epsilon = 0.01;
+            const dragTangentVec = new THREE.Vector3(
+                dragTangent === 'x' ? 1 : 0,
+                dragTangent === 'y' ? 1 : 0,
+                dragTangent === 'z' ? 1 : 0
+            );
+            const rotAxisVec = new THREE.Vector3(
+                rotAxis === 'x' ? 1 : 0,
+                rotAxis === 'y' ? 1 : 0,
+                rotAxis === 'z' ? 1 : 0
+            );
+            // Rotating dragTangentVec by +epsilon around rotAxisVec gives a displaced point
+            const displaced = dragTangentVec.clone().applyAxisAngle(rotAxisVec, epsilon);
+
+            // Project both the original and displaced points to screen
+            const orig2D = dragTangentVec.clone().project(camera);
+            const disp2D = displaced.project(camera);
+            const screenMoveX = (disp2D.x - orig2D.x) * window.innerWidth / 2;
+            const screenMoveY = -(disp2D.y - orig2D.y) * window.innerHeight / 2;
+
+            // Dot this screen-space movement with the drag tangent screen direction
+            const dotWithDrag = screenMoveX * s0.x + screenMoveY * s0.y;
+            // If dragTangent is tangents[1], use s1 instead
+            const tangentScreenDir = (dragTangent === tangents[0]) ? s0 : s1;
+            const correctedDot = screenMoveX * tangentScreenDir.x + screenMoveY * tangentScreenDir.y;
+
+            // If correctedDot > 0, positive rotation moves stickers in the positive
+            // screen-drag direction, so angleSign matches dragProjection sign.
+            // If < 0, they're opposite, so flip.
+            const angleSign = correctedDot > 0
+                ? Math.sign(dragProjection)
+                : -Math.sign(dragProjection);
+
+            return { rotAxis, layerVal, layerFace, angleSign, dragMagnitude: Math.abs(dragProjection) };
+        }
+
+        function getPointerXY(e){
+            if(e.touches)return{x:e.touches[0].clientX,y:e.touches[0].clientY};
+            return{x:e.clientX,y:e.clientY};
+        }
+
+        function onDown(e){
+            if(state.phase==='scrambling')return;
+            const pos=getPointerXY(e);
+            const now=performance.now();
+
+            // Double-click detection for camera reset
+            const isOrbitArea=!castSticker(pos.x,pos.y);
+            if(isOrbitArea&&(e.button===0||e.touches)&&!(e.touches&&e.touches.length>=2)){
+                const dt=now-lastClickTime;
+                const dd=Math.hypot(pos.x-lastClickPos.x,pos.y-lastClickPos.y);
+                if(dt<400&&dd<30){
+                    // Double click - reset camera
+                    state.cameraTransition={startTheta:camTheta,startPhi:camPhi,startDist:camDist,
+                        targetTheta:CAM_DEFAULT_THETA,targetPhi:CAM_DEFAULT_PHI,targetDist:CAM_DEFAULT_DIST,
+                        elapsed:0,duration:0.4};
+                    lastClickTime=0;
+                    return;
+                }
+                lastClickTime=now;lastClickPos={x:pos.x,y:pos.y};
+            }
+
+            const isOrbit=e.button===2||(e.touches&&e.touches.length>=2);
+            if(isOrbit){
+                inputState='orbit';orbitLast={x:pos.x,y:pos.y};orbitVelTheta=0;orbitVelPhi=0;
+                if(e.touches&&e.touches.length>=2){
+                    const t=e.touches;
+                    orbitLast={x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2,
+                        pinchDist:Math.hypot(t[1].clientX-t[0].clientX,t[1].clientY-t[0].clientY)};
+                }
+                return;
+            }
+
+            if(state.phase==='ready'&&state.scramble.sequence.length===0){
+                state.idleRotating=false;startScramble();return;
+            }
+            if(isAnimBusy()||rotationBusy)return;
+
+            const hit=castSticker(pos.x,pos.y);
+            if (hit) {
+                inputState = 'faceDrag';
+                const face = hitToFace(hit);
+                const cubie = hit.object.userData.cubie;
+
+                // Set up a mathematical plane at the hit face for world-space tracking
+                const fn = faceNormal(face);
+                dragPlane.setFromNormalAndCoplanarPoint(fn, hit.point);
+                dragStartWorld.copy(hit.point);
+                dragFaceNormalDir.copy(fn);
+
+                dragInfo = { face, cubie, startX: pos.x, startY: pos.y };
+                hasDragDirection = false;
+                dragAngle = 0;
+            }else{
+                inputState='orbit';orbitLast=pos;orbitVelTheta=0;orbitVelPhi=0;
+            }
+        }
+
+        function onMove(e){
+            const pos=getPointerXY(e);
+            if(inputState==='orbit'){
+                let cx=pos.x,cy=pos.y;
+                if(e.touches&&e.touches.length>=2){
+                    cx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+                    cy=(e.touches[0].clientY+e.touches[1].clientY)/2;
+                    const d=Math.hypot(e.touches[1].clientX-e.touches[0].clientX,e.touches[1].clientY-e.touches[0].clientY);
+                    if(orbitLast.pinchDist){
+                        const scale=d/orbitLast.pinchDist;
+                        camDist=Math.max(CAM_DEFAULT_DIST*0.7,Math.min(CAM_DEFAULT_DIST*1.5,camDist/scale));
+                        orbitLast.pinchDist=d;
+                    }
+                }
+                const dx=cx-orbitLast.x,dy=cy-orbitLast.y;
+                orbitVelTheta=-dx*0.005;orbitVelPhi=dy*0.005;
+                camTheta+=orbitVelTheta;
+                camPhi=Math.max(-75*Math.PI/180,Math.min(75*Math.PI/180,camPhi+orbitVelPhi));
+                updateCamera();orbitLast={x:cx,y:cy,pinchDist:orbitLast.pinchDist};
+                return;
+            }
+            if (inputState === 'faceDrag' && dragInfo) {
+                // Raycast onto the drag plane to get current world-space point
+                raycaster.setFromCamera(screenToNDC(pos.x, pos.y), camera);
+                const worldPoint = new THREE.Vector3();
+                const hit = raycaster.ray.intersectPlane(dragPlane, worldPoint);
+                if (!hit) return;
+
+                // World-space delta from drag start
+                const worldDelta = new THREE.Vector3().subVectors(worldPoint, dragStartWorld);
+
+                if (!hasDragDirection) {
+                    // Need enough world-space movement to determine direction
+                    if (worldDelta.length() < 0.15) return;
+
+                    // Project delta onto the two tangent axes of the face
+                    const tangents = faceTangents(dragInfo.face);
+                    const t0Vec = new THREE.Vector3(
+                        tangents[0] === 'x' ? 1 : 0,
+                        tangents[0] === 'y' ? 1 : 0,
+                        tangents[0] === 'z' ? 1 : 0
+                    );
+                    const t1Vec = new THREE.Vector3(
+                        tangents[1] === 'x' ? 1 : 0,
+                        tangents[1] === 'y' ? 1 : 0,
+                        tangents[1] === 'z' ? 1 : 0
+                    );
+
+                    const proj0 = worldDelta.dot(t0Vec);
+                    const proj1 = worldDelta.dot(t1Vec);
+
+                    // The user is dragging along whichever tangent has larger projection.
+                    // The rotation axis is the OTHER tangent.
+                    if (Math.abs(proj0) > Math.abs(proj1)) {
+                        activeDragAxis = tangents[1]; // rotate around tangent[1]
+                    } else {
+                        activeDragAxis = tangents[0]; // rotate around tangent[0]
+                    }
+
+                    const layerVal = dragInfo.cubie.pos[activeDragAxis];
+                    activeDragLayerFace = null;
+                    for (const f of FACES) {
+                        if (AXES[f] === activeDragAxis && LAYERS[f] === layerVal) {
+                            activeDragLayerFace = f; break;
+                        }
+                    }
+                    if (!activeDragLayerFace) {
+                        for (const f of FACES) {
+                            if (AXES[f] === activeDragAxis && LAYERS[f] === 1) {
+                                activeDragLayerFace = f; break;
+                            }
+                        }
+                    }
+
+                    activeDragCubies = getCubiesForLayer(activeDragAxis, layerVal);
+                    attachToPivot(activeDragCubies);
+                    rotationBusy = true;
+                    hasDragDirection = true;
+                }
+
+                if (hasDragDirection) {
+                    // Determine which tangent axis the user is dragging along
+                    const tangents = faceTangents(dragInfo.face);
+                    const dragTangent = tangents[0] === activeDragAxis ? tangents[1] : tangents[0];
+                    const dragTangentVec = new THREE.Vector3(
+                        dragTangent === 'x' ? 1 : 0,
+                        dragTangent === 'y' ? 1 : 0,
+                        dragTangent === 'z' ? 1 : 0
+                    );
+
+                    // Project world delta onto the drag tangent to get signed distance
+                    const signedDist = worldDelta.dot(dragTangentVec);
+
+                    // Now: which direction should +signedDist rotate the pivot?
+                    // Cross product of face normal × drag tangent gives the rotation axis direction.
+                    // If that matches the pivot axis direction, positive drag = positive rotation.
+                    // If it's opposite, flip.
+                    const cross = new THREE.Vector3().crossVectors(dragFaceNormalDir, dragTangentVec);
+                    const axisVec = new THREE.Vector3(
+                        activeDragAxis === 'x' ? 1 : 0,
+                        activeDragAxis === 'y' ? 1 : 0,
+                        activeDragAxis === 'z' ? 1 : 0
+                    );
+                    const crossDot = cross.dot(axisVec);
+                    const sign = crossDot > 0 ? 1 : -1;
+
+                    // Convert world-space distance to angle (GAP units to radians)
+                    dragAngle = (signedDist / GAP) * (Math.PI / 2) * sign;
+                    dragAngle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, dragAngle));
+                    setPivotAngle(activeDragAxis, dragAngle);
+                }
+            }
+        }
+
+        function onUp(e){
+            if(inputState==='orbit'){inputState='idle';return;}
+            if(inputState==='faceDrag'&&hasDragDirection&&activeDragCubies){
+                const normalized=Math.abs(dragAngle)/(Math.PI/2);
+                if(normalized>SNAP_THRESHOLD){
+                    const targetAngle=Math.sign(dragAngle)*Math.PI/2;
+                    const startAngle=dragAngle;
+                    let dir=1;
+                    if(activeDragLayerFace){
+                        const cwAngle=CW_SIGN[activeDragLayerFace]*Math.PI/2;
+                        dir=Math.sign(targetAngle)===Math.sign(cwAngle)?1:-1;
+                    }
+                    const snapDur=COMMIT_MS/1000;
+                    currentAnim={elapsed:0,duration:snapDur,
+                        update(t){const e=magneticEase(t);setPivotAngle(activeDragAxis,startAngle+(targetAngle-startAngle)*e);},
+                        complete(){
+                            setPivotAngle(activeDragAxis,targetAngle);detachFromPivot(activeDragCubies);
+                            rotationBusy=false;playClick();
+                            // Flash and bounce
+                            if(activeDragLayerFace){flashStickers(activeDragLayerFace,0.3);}
+                            triggerBounce(1.008,40,100);
+                            onMoveComplete(activeDragLayerFace,dir);
+                            activeDragCubies=null;
+                        }
+                    };
+                }else{
+                    const startAngle=dragAngle;
+                    const snapDur=REVERT_MS/1000;
+                    currentAnim={elapsed:0,duration:snapDur,
+                        update(t){const e=1-Math.pow(1-t,3);setPivotAngle(activeDragAxis,startAngle*(1-e));},
+                        complete(){setPivotAngle(activeDragAxis,0);detachFromPivot(activeDragCubies);rotationBusy=false;activeDragCubies=null;}
+                    };
+                }
+            }
+            inputState='idle';dragInfo=null;hasDragDirection=false;
+        }
+
+        function onMoveComplete(face,dir){
+            if(!face)return;
+            const notation=face+(dir===-1?"'":"");
+            if(state.phase==='ready'&&state.scramble.sequence.length>0){
+                state.phase='solving';state.timer.start=performance.now();state.timer.running=true;
+                els.timer.classList.add('visible');els.moves.classList.add('visible');
+            }
+            if(state.phase==='solving'||state.phase==='ready'){
+                state.moveCount++;state.moveHistory.push(notation);
+                state.momentum.value=Math.min(1,state.momentum.value+0.08);
+                state.momentum.lastMoveTime=performance.now();
+                updateMoveCounter();
+                if(state.phase==='solving')checkSolved();
+            }
+        }
+
+        const canvas=renderer.domElement;
+        canvas.addEventListener('pointerdown',onDown);
+        canvas.addEventListener('pointermove',onMove);
+        canvas.addEventListener('pointerup',onUp);
+        canvas.addEventListener('pointercancel',onUp);
+        canvas.addEventListener('pointerleave',onUp);
+        canvas.addEventListener('contextmenu',e=>e.preventDefault());
+        canvas.addEventListener('touchstart',e=>{
+            if(e.touches.length===2){
+                if(inputState==='faceDrag'&&hasDragDirection&&activeDragCubies){
+                    setPivotAngle(activeDragAxis,0);detachFromPivot(activeDragCubies);rotationBusy=false;activeDragCubies=null;
+                }
+                inputState='orbit';
+                const t=e.touches;
+                orbitLast={x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2,
+                    pinchDist:Math.hypot(t[1].clientX-t[0].clientX,t[1].clientY-t[0].clientY)};
+                e.preventDefault();
+            }
+        },{passive:false});
+        canvas.addEventListener('touchmove',e=>{if(e.touches.length>=2)e.preventDefault();},{passive:false});
+        canvas.addEventListener('wheel',e=>{
+            camDist=Math.max(CAM_DEFAULT_DIST*0.7,Math.min(CAM_DEFAULT_DIST*1.5,camDist+e.deltaY*0.008));
+            updateCamera();e.preventDefault();
+        },{passive:false});
+
+// Scramble
+        function startScramble(){
+            const diff=state.settings.difficulty;
+            const seq=genScramble(diff);
+            state.scramble.sequence=seq;state.scramble.difficulty=diff;state.scramble.moveCount=seq.length;
+            state.phase='scrambling';state.moveCount=0;state.moveHistory=[];state.hintsUsed=0;
+            state.timer.elapsed=0;state.timer.running=false;
+            state.momentum.value=0;state.momentum.lastMoveTime=0;
+            try{window.location.hash='scramble='+seq.join('-');}catch(e){}
+            els.prompt.style.display='none';els.diffLabel.classList.remove('visible');
+            hideStats();hideHint();
+            els.scrambleInfo.textContent=`${DIFFICULTY_CFG[diff].label} · ${seq.length} moves`;
+            els.scrambleInfo.classList.add('visible');
+            const moveTime=Math.max(50,Math.min(80,2000/seq.length));
+            seq.forEach((move,i)=>{
+                const isLast=i===seq.length-1;
+                executeMoveAnimated(move,moveTime,isLast?()=>{
+                    state.phase='ready';els.timer.textContent='00:00.00';
+                    els.timer.classList.add('visible');els.moves.textContent='0 moves';els.moves.classList.add('visible');
+                }:null,0.03,1200);
+            });
+        }
+
+// Solve
+        function checkSolved(){
+            if(!isSolved())return;
+            state.phase='solved';state.timer.running=false;
+            state.timer.elapsed=performance.now()-state.timer.start;
+            state.streak++;
+            playSolve();
+            const diff=state.scramble.difficulty;
+            const time=state.timer.elapsed;const moves=state.moveCount;
+            let isPB=false;
+            if(state.hintsUsed===0){
+                if(time<state.pb[diff].time){state.pb[diff].time=time;isPB=true;}
+                if(moves<state.pb[diff].moves){state.pb[diff].moves=moves;isPB=true;}
+            }
+            if(isPB){playPB();saveLS();}
+            setTimeout(()=>showStats(isPB),400);
+            updatePBDisplay();
+        }
+
+// UI
+        const els={
+            timer:document.getElementById('timer-display'),
+            moves:document.getElementById('move-counter'),
+            prompt:document.getElementById('prompt-text'),
+            diffLabel:document.getElementById('difficulty-label'),
+            pbDisplay:document.getElementById('pb-display'),
+            statsPanel:document.getElementById('stats-panel'),
+            scrambleInfo:document.getElementById('scramble-info'),
+            hintOverlay:document.getElementById('hint-overlay'),
+            pauseOverlay:document.getElementById('pause-overlay'),
+        };
+
+        function formatTime(ms){
+            const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000),c=Math.floor((ms%1000)/10);
+            return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(c).padStart(2,'0')}`;
+        }
+        function updateTimer(){if(!state.timer.running)return;els.timer.textContent=formatTime(performance.now()-state.timer.start);}
+        function updateMoveCounter(){els.moves.textContent=state.moveCount+' move'+(state.moveCount!==1?'s':'');}
+
+        function updateTimerColor(now){
+            if(state.phase!=='solving'){els.timer.style.color='#E5E5E5';return;}
+            const elapsed=now-state.timer.start;
+            const diff=state.scramble.difficulty;
+            const pb=state.pb[diff].time;
+            if(pb===Infinity){els.timer.style.color='#E5E5E5';return;}
+            if(elapsed<pb*0.7){els.timer.style.color='#10B981';}
+            else if(elapsed<pb*0.95){els.timer.style.color='#E5E5E5';}
+            else if(elapsed<pb){
+                // Pulse between white and amber
+                const pulse=Math.sin(now*0.00628)*0.5+0.5;// ~1Hz
+                const r=Math.round(229+(245-229)*pulse);
+                const g=Math.round(229+(158-229)*pulse);
+                const b=Math.round(229+(11-229)*pulse);
+                els.timer.style.color=`rgb(${r},${g},${b})`;
+            }else{els.timer.style.color='#EF4444';}
+        }
+
+        function showStats(isPB){
+            const t=state.timer.elapsed,m=state.moveCount;
+            const tps=t>0?(m/(t/1000)).toFixed(2):'0';
+            const eff=state.scramble.moveCount>0?(m/state.scramble.moveCount).toFixed(1):'--';
+            document.getElementById('stat-time').textContent=formatTime(t);
+            document.getElementById('stat-time').className='stat-value'+(isPB?' pb':'');
+            document.getElementById('stat-moves').textContent=m;
+            document.getElementById('stat-tps').textContent=tps;
+            document.getElementById('stat-hints').textContent=state.hintsUsed;
+
+            // Efficiency
+            const effEl=document.getElementById('stat-eff');
+            if(state.scramble.moveCount>0){
+                const ratio=m/state.scramble.moveCount;
+                effEl.textContent='×'+eff;
+                if(ratio<1.5)effEl.style.color='#10B981';
+                else if(ratio<=3)effEl.style.color='#E5E5E5';
+                else effEl.style.color='#737373';
+            }else{effEl.textContent='--';effEl.style.color='#E5E5E5';}
+
+            const td=document.getElementById('stat-time-delta');
+            const diff=state.scramble.difficulty;
+            if(isPB)td.textContent='New PB!';
+            else if(state.pb[diff].time<Infinity){
+                const delta=t-state.pb[diff].time;
+                td.textContent='+'+formatTime(delta);td.className='stat-delta miss';
+            }else td.textContent='';
+
+            document.getElementById('stat-moves-delta').textContent='';
+
+            // Streak
+            const streakEl=document.getElementById('streak-display');
+            if(state.streak>=2)streakEl.textContent='Streak: '+state.streak;
+            else streakEl.textContent='';
+
+            const di=DIFF_ORDER.indexOf(diff);
+            document.getElementById('next-btn').style.display=di<DIFF_ORDER.length-1?'':'none';
+            els.statsPanel.classList.add('visible');
+        }
+        function hideStats(){els.statsPanel.classList.remove('visible');}
+        function hideHint(){els.hintOverlay.classList.remove('visible');clearHighlightPulse();}
+
+        function updatePBDisplay(){
+            let h='';
+            for(const d of DIFF_ORDER){
+                if(state.pb[d].time<Infinity){
+                    h+=`<div style="margin-bottom:2px"><span style="color:#525252">${d} </span>${formatTime(state.pb[d].time)} · ${state.pb[d].moves}m</div>`;
+                }
+            }
+            els.pbDisplay.innerHTML=h;
+        }
+        function updateDifficultyBtn(){document.getElementById('difficulty-btn').textContent=DIFFICULTY_CFG[state.settings.difficulty].label;}
+        function updateMuteBtn(){
+            const btn=document.getElementById('mute-btn');
+            btn.textContent=state.settings.muted?'✕':'♪';btn.style.opacity=state.settings.muted?'0.4':'1';
+        }
+
+        function fullReset(){
+            buildCube();pivot.rotation.set(0,0,0);
+            while(pivot.children.length)pivot.remove(pivot.children[0]);
+            rotationBusy=false;currentAnim=null;animQueue.length=0;activeDragCubies=null;inputState='idle';
+            flashingStickers.length=0;clearHighlightPulse();
+        }
+
+// Buttons
+        document.getElementById('undo-btn').addEventListener('click',()=>{
+            if(state.moveHistory.length===0||isAnimBusy()||rotationBusy)return;
+            if(state.phase!=='solving'&&state.phase!=='ready')return;
+            const last=state.moveHistory.pop();state.moveCount--;
+            state.momentum.value=Math.max(0,state.momentum.value-0.2);
+            const inv=invertNotation(last);
+            const face=inv[0];
+            animateMove(face,inv.includes("'")?-1:1,COMMIT_MS,()=>{
+                playUndo();
+                flashStickers(face,0.15);
+                triggerBounce(0.994,40,100);
+                updateMoveCounter();
+            });
+        });
+
+// Hint system with cubie highlighting
+        let highlightedStickers=[];
+        let highlightPulseActive=false;
+
+        function clearHighlightPulse(){
+            highlightedStickers.forEach(mat=>{mat.emissiveIntensity=0;});
+            highlightedStickers=[];highlightPulseActive=false;
+        }
+        function tickHighlightPulse(now){
+            if(!highlightPulseActive)return;
+            const pulse=Math.sin(now*0.00314)*0.5+0.5;// 0.5Hz
+            highlightedStickers.forEach(mat=>{
+                mat.emissiveIntensity=0.1+pulse*0.25;
+            });
+        }
+
+        function getSimpleHint(){
+            const uCubies=getCubiesForFace('U');
+            let whiteOnU=0;const uNorm=faceNormal('U');
+            for(const c of uCubies){
+                for(const s of c.stickers){
+                    const sn=new THREE.Vector3(0,0,1);
+                    sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                    if(sn.dot(uNorm)>0.9&&s.mesh.material.color.getHex()===0xFFFFFF)whiteOnU++;
+                }
+            }
+            if(whiteOnU<5){
+                // Find a white edge not on U face
+                const targets=[];
+                allCubies.forEach(c=>{
+                    const isEdge=Object.values(c.pos).filter(v=>v===0).length===1;
+                    if(!isEdge)return;
+                    c.stickers.forEach(s=>{
+                        if(s.mesh.material.color.getHex()===0xFFFFFF){
+                            const sn=new THREE.Vector3(0,0,1);
+                            sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                            if(sn.dot(uNorm)<0.9)targets.push(s.mesh.material);
+                        }
+                    });
+                });
+                return{stage:'WHITE CROSS',text:'Find a white edge piece and bring it to the top face.',highlights:targets.slice(0,2)};
+            }
+            if(whiteOnU<9){
+                const targets=[];
+                allCubies.forEach(c=>{
+                    const isCorner=Object.values(c.pos).filter(v=>v===0).length===0;
+                    if(!isCorner)return;
+                    c.stickers.forEach(s=>{
+                        if(s.mesh.material.color.getHex()===0xFFFFFF){
+                            const sn=new THREE.Vector3(0,0,1);
+                            sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                            if(sn.dot(uNorm)<0.9)targets.push(s.mesh.material);
+                        }
+                    });
+                });
+                return{stage:'WHITE CORNERS',text:'Position this white corner below its home, then insert it.',highlights:targets.slice(0,2)};
+            }
+
+            // Check middle layer
+            let midUnsolved=false;
+            for(const face of['F','R','B','L']){
+                const fc=getCubiesForFace(face);const fn=faceNormal(face);
+                let centerColor=null;
+                for(const c of fc){
+                    if(Object.values(c.pos).filter(v=>v===0).length===2){
+                        for(const s of c.stickers){
+                            const sn=new THREE.Vector3(0,0,1);
+                            sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                            if(sn.dot(fn)>0.9)centerColor=s.mesh.material.color.getHex();
+                        }
+                    }
+                }
+                if(!centerColor)continue;
+                for(const c of fc){
+                    if(c.pos.y!==0)continue;
+                    for(const s of c.stickers){
+                        const sn=new THREE.Vector3(0,0,1);
+                        sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                        if(sn.dot(fn)>0.9&&s.mesh.material.color.getHex()!==centerColor)midUnsolved=true;
+                    }
+                }
+            }
+            if(midUnsolved){
+                return{stage:'MIDDLE LAYER',text:'Find an edge on top without yellow and match it to its center.',highlights:[]};
+            }
+
+            const dCubies=getCubiesForFace('D');let yellowOnD=0;const dNorm=faceNormal('D');
+            for(const c of dCubies){
+                for(const s of c.stickers){
+                    const sn=new THREE.Vector3(0,0,1);
+                    sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                    if(sn.dot(dNorm)>0.9&&s.mesh.material.color.getHex()===0xFFD500)yellowOnD++;
+                }
+            }
+            if(yellowOnD<5)return{stage:'YELLOW CROSS',text:'Orient the bottom to form a yellow cross pattern.',highlights:[]};
+            if(yellowOnD<9)return{stage:'ORIENT LAST LAYER',text:'Turn all yellow corners to face downward.',highlights:[]};
+            return{stage:'PERMUTE LAST LAYER',text:'Cycle the last layer pieces into their correct spots.',highlights:[]};
+        }
+
+        document.getElementById('hint-btn').addEventListener('click',()=>{
+            if(state.phase!=='solving'&&state.phase!=='ready')return;
+            if(!state.scramble.sequence.length)return;
+            state.hintsUsed++;playHintSound();
+            clearHighlightPulse();
+            const hint=getSimpleHint();
+            document.getElementById('hint-stage').textContent=hint.stage;
+            document.getElementById('hint-text').textContent=hint.text;
+            els.hintOverlay.classList.add('visible');
+            if(hint.highlights&&hint.highlights.length>0){
+                hint.highlights.forEach(mat=>{
+                    mat.emissive.setHex(mat.color.getHex());
+                    highlightedStickers.push(mat);
+                });
+                highlightPulseActive=true;
+            }
+        });
+        document.getElementById('hint-dismiss-btn').addEventListener('click',hideHint);
+
+// Reset hold
+        let resetHolding=false,resetStart=0;
+        const resetBtn=document.getElementById('reset-btn');
+        resetBtn.addEventListener('pointerdown',()=>{
+            if(state.phase!=='solving'&&state.phase!=='ready')return;
+            if(!state.scramble.sequence.length)return;
+            resetHolding=true;resetStart=performance.now();
+            resetBtn.style.background='rgba(230,57,70,0.15)';
+            function tick(){
+                if(!resetHolding)return;
+                const p=Math.min((performance.now()-resetStart)/1000,1);
+                resetBtn.style.background=`linear-gradient(to top,rgba(230,57,70,0.25) ${p*100}%,rgba(255,255,255,0.06) ${p*100}%)`;
+                if(p>=1){
+                    resetHolding=false;resetBtn.style.background='';
+                    fullReset();
+                    state.scramble.sequence.forEach(m=>executeMoveInstant(m));
+                    state.moveCount=0;state.moveHistory=[];state.hintsUsed=0;
+                    state.timer.running=false;state.timer.elapsed=0;state.phase='ready';
+                    state.momentum.value=0;
+                    els.timer.textContent='00:00.00';updateMoveCounter();hideStats();hideHint();
+                    return;
+                }
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        });
+        resetBtn.addEventListener('pointerup',()=>{resetHolding=false;resetBtn.style.background='';});
+        resetBtn.addEventListener('pointerleave',()=>{resetHolding=false;resetBtn.style.background='';});
+
+        document.getElementById('difficulty-btn').addEventListener('click',()=>{
+            const i=DIFF_ORDER.indexOf(state.settings.difficulty);
+            state.settings.difficulty=DIFF_ORDER[(i+1)%DIFF_ORDER.length];
+            updateDifficultyBtn();
+            els.diffLabel.textContent=DIFFICULTY_CFG[state.settings.difficulty].desc;
+            els.diffLabel.classList.add('visible');
+            setTimeout(()=>els.diffLabel.classList.remove('visible'),1500);
+            saveLS();
+        });
+        document.getElementById('mute-btn').addEventListener('click',()=>{
+            state.settings.muted=!state.settings.muted;updateMuteBtn();saveLS();
+        });
+        document.getElementById('same-btn').addEventListener('click',()=>{fullReset();hideStats();startScramble();});
+        document.getElementById('next-btn').addEventListener('click',()=>{
+            const i=DIFF_ORDER.indexOf(state.scramble.difficulty);
+            if(i<DIFF_ORDER.length-1){state.settings.difficulty=DIFF_ORDER[i+1];updateDifficultyBtn();saveLS();}
+            fullReset();hideStats();startScramble();
+        });
+        document.getElementById('prompt-text').addEventListener('click',()=>{state.idleRotating=false;startScramble();});
+
+// Keyboard
+        document.addEventListener('keydown',e=>{
+            if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+            const key=e.key.toLowerCase();
+            const faceKeys={u:'U',d:'D',l:'L',r:'R',f:'F',b:'B'};
+            if(faceKeys[key]&&(state.phase==='solving'||state.phase==='ready')&&!isAnimBusy()&&!rotationBusy){
+                if(!state.scramble.sequence.length)return;
+                const face=faceKeys[key];const dir=e.shiftKey?-1:1;
+                animateMove(face,dir,COMMIT_MS,()=>{
+                    flashStickers(face,0.3);triggerBounce(1.008,40,100);
+                    onMoveComplete(face,dir);
+                });
+                e.preventDefault();return;
+            }
+            if(key==='z'&&(e.ctrlKey||e.metaKey)){document.getElementById('undo-btn').click();e.preventDefault();}
+            if(key==='h')document.getElementById('hint-btn').click();
+            if(key==='m')document.getElementById('mute-btn').click();
+            if(key==='tab'){document.getElementById('difficulty-btn').click();e.preventDefault();}
+            if(key===' '&&(state.phase==='solved'||state.phase==='ready')){
+                if(state.phase==='ready'&&state.scramble.sequence.length===0){state.idleRotating=false;}
+                fullReset();hideStats();startScramble();e.preventDefault();
+            }
+        });
+
+// Pause
+        document.addEventListener('visibilitychange',()=>{
+            if(document.hidden&&state.timer.running){
+                state.timer.elapsed=performance.now()-state.timer.start;
+                state.timer.running=false;els.pauseOverlay.classList.add('visible');
+            }
+        });
+        els.pauseOverlay.addEventListener('click',()=>{
+            els.pauseOverlay.classList.remove('visible');
+            if(state.phase==='solving'){state.timer.start=performance.now()-state.timer.elapsed;state.timer.running=true;}
+        });
+
+// Resize
+        window.addEventListener('resize',()=>{
+            camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth,window.innerHeight);
+        });
+
+// Load from hash
+        function loadFromHash(){
+            const h=window.location.hash;
+            if(h&&h.startsWith('#scramble=')){
+                const seq=h.substring(9).split('-').filter(s=>s);
+                if(seq.length>0){
+                    state.scramble.sequence=seq;state.scramble.moveCount=seq.length;
+                    state.scramble.difficulty=seq.length<=8?'EASY':seq.length<=15?'MEDIUM':'HARD';
+                    seq.forEach(m=>executeMoveInstant(m));
+                    state.phase='ready';state.idleRotating=false;
+                    els.prompt.style.display='none';
+                    els.timer.textContent='00:00.00';els.timer.classList.add('visible');els.moves.classList.add('visible');
+                    els.scrambleInfo.textContent=`${state.scramble.difficulty} · ${seq.length} moves`;
+                    els.scrambleInfo.classList.add('visible');
+                }
+            }
+        }
+
+// Momentum system
+        let currentAmbientColor={r:0xB0/255,g:0xB0/255,b:0xC0/255};
+        let currentAmbientIntensity=0.5;
+        let currentBgR=0x0F/255,currentBgG=0x0F/255,currentBgB=0x0F/255;
+        const targetAmbientCool={r:0xB0/255,g:0xB0/255,b:0xC0/255};
+        const targetAmbientWarm={r:0xD4/255,g:0xC4/255,b:0xA0/255};
+        const bgCool={r:0x0F/255,g:0x0F/255,b:0x0F/255};
+        const bgWarm={r:0x14/255,g:0x14/255,b:0x18/255};
+
+        function tickMomentum(dt,now){
+            // Decay
+            if(state.momentum.lastMoveTime>0){
+                const inactivity=(now-state.momentum.lastMoveTime)/1000;
+                if(inactivity>0.5){// grace period
+                    state.momentum.value=Math.max(0,state.momentum.value-0.15*dt);
+                }
+            }
+            const m=state.momentum.value;
+            const lerpRate=0.03;
+
+            // Ambient light
+            const tR=targetAmbientCool.r+(targetAmbientWarm.r-targetAmbientCool.r)*m;
+            const tG=targetAmbientCool.g+(targetAmbientWarm.g-targetAmbientCool.g)*m;
+            const tB=targetAmbientCool.b+(targetAmbientWarm.b-targetAmbientCool.b)*m;
+            currentAmbientColor.r+=(tR-currentAmbientColor.r)*lerpRate;
+            currentAmbientColor.g+=(tG-currentAmbientColor.g)*lerpRate;
+            currentAmbientColor.b+=(tB-currentAmbientColor.b)*lerpRate;
+            ambientLight.color.setRGB(currentAmbientColor.r,currentAmbientColor.g,currentAmbientColor.b);
+            const tI=0.5+0.2*m;
+            currentAmbientIntensity+=(tI-currentAmbientIntensity)*lerpRate;
+            ambientLight.intensity=currentAmbientIntensity;
+
+            // Background
+            const tbR=bgCool.r+(bgWarm.r-bgCool.r)*m;
+            const tbG=bgCool.g+(bgWarm.g-bgCool.g)*m;
+            const tbB=bgCool.b+(bgWarm.b-bgCool.b)*m;
+            currentBgR+=(tbR-currentBgR)*lerpRate;
+            currentBgG+=(tbG-currentBgG)*lerpRate;
+            currentBgB+=(tbB-currentBgB)*lerpRate;
+            renderer.setClearColor(new THREE.Color(currentBgR,currentBgG,currentBgB));
+
+            // Sticker emissive baseline (only when not flashing)
+            const baseEmissive=m*0.06;
+            allStickerMaterials.forEach(mat=>{
+                // Don't override if flashing or highlighted
+                if(flashingStickers.some(f=>f.mat===mat))return;
+                if(highlightedStickers.includes(mat))return;
+                if(baseEmissive>0.001){
+                    mat.emissive.setHex(mat.color.getHex());
+                    mat.emissiveIntensity=baseEmissive;
+                }else{
+                    mat.emissiveIntensity=0;
+                }
+            });
+        }
+
+// Camera transition
+        function tickCameraTransition(dt){
+            const ct=state.cameraTransition;
+            if(!ct)return;
+            ct.elapsed+=dt;
+            const t=Math.min(ct.elapsed/ct.duration,1);
+            // ease-in-out
+            const e=t<0.5?2*t*t:(1-Math.pow(-2*t+2,2)/2);
+            camTheta=ct.startTheta+(ct.targetTheta-ct.startTheta)*e;
+            camPhi=ct.startPhi+(ct.targetPhi-ct.startPhi)*e;
+            camDist=ct.startDist+(ct.targetDist-ct.startDist)*e;
+            updateCamera();
+            if(t>=1)state.cameraTransition=null;
+        }
+
+// Main loop
+        let lastFrame=performance.now();
+        function loop(now){
+            const dt=(now-lastFrame)/1000;
+            lastFrame=now;
+
+            // 1. Momentum
+            tickMomentum(dt,now);
+
+            // 2. Animations
+            tickAnimations(dt);
+
+            // 3. Flashes
+            tickFlashes(dt);
+
+            // 4. Cube scale
+            tickCubeScale(dt);
+
+            // 5. Highlight pulse
+            tickHighlightPulse(now);
+
+            // 6. Timer
+            if(state.timer.running)updateTimer();
+            updateTimerColor(now);
+
+            // 7. Camera transition
+            tickCameraTransition(dt);
+
+            // 8. Idle rotation
+            if(state.idleRotating&&state.phase==='ready'&&state.scramble.sequence.length===0){
+                cubeGroup.rotation.y+=0.1*dt;
+                const o=0.4+0.4*Math.sin(now*0.004);
+                els.prompt.style.opacity=o;
+            }else if(state.phase!=='ready'||state.scramble.sequence.length>0){
+                cubeGroup.rotation.y=0;
+            }
+
+            // 9. Orbit momentum
+            if(inputState!=='orbit'&&!state.cameraTransition){
+                if(Math.abs(orbitVelTheta)>0.0001||Math.abs(orbitVelPhi)>0.0001){
+                    camTheta+=orbitVelTheta;
+                    camPhi=Math.max(-75*Math.PI/180,Math.min(75*Math.PI/180,camPhi+orbitVelPhi));
+                    orbitVelTheta*=0.92;orbitVelPhi*=0.92;
+                    updateCamera();
+                }
+            }
+
+            // 10. Render
+            renderer.render(scene,camera);
+            requestAnimationFrame(loop);
+        }
+
+// Init
+        updateDifficultyBtn();updateMuteBtn();updatePBDisplay();
+        state.idleRotating=true;
+        loadFromHash();
+        if(state.phase==='ready'&&state.scramble.sequence.length>0)state.idleRotating=false;
+        requestAnimationFrame(loop);
+
+    })();
+</script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>魔方</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成的3D魔方游戏</div>
+<div class="cn-guide-tip">💡 通过点击、拖拽或滑动来移动和组合元素，观察规律，达成关卡目标。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

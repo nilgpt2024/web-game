@@ -791,4 +791,327 @@
                     ctx.fillStyle = "#d64545";
                     ctx.strokeStyle = "#7c1f1f";
                     ctx.lineWidth = 2;
-                    ct
+                    ctx.beginPath();
+                    ctx.arc(px, py + 4, 10, Math.PI, 0);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.strokeStyle = "#444";
+                    ctx.lineWidth = 3;
+                    const spin = Math.sin(time * 10 + p.wobble) * 12;
+                    ctx.beginPath();
+                    ctx.moveTo(px - spin, py - 8);
+                    ctx.lineTo(px + spin, py - 8);
+                    ctx.moveTo(px, py - 8);
+                    ctx.lineTo(px, py - 4);
+                    ctx.stroke();
+                } else {
+                    // jetpack: gray tank + red nozzle
+                    ctx.fillStyle = "#9aa2ab";
+                    ctx.strokeStyle = "#4a5158";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(px - 9, py - 12, 18, 22, 6);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.fillStyle = "#d64545";
+                    ctx.beginPath();
+                    ctx.roundRect(px - 5, py + 8, 10, 5, 2);
+                    ctx.fill();
+                }
+            }
+
+            // spring
+            if (p.spring) {
+                const ext = p.springT > 0 ? 10 : 0;
+                const sx = p.x + p.springX;
+                ctx.strokeStyle = "#555";
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                const coils = 3;
+                const hgt = 8 + ext;
+                for (let i = 0; i <= coils * 2; i++) {
+                    const yy = sy - (hgt * i / (coils * 2));
+                    const xx = sx + (i % 2 === 0 ? 2 : 18);
+                    i === 0 ? ctx.moveTo(xx, yy) : ctx.lineTo(xx, yy);
+                }
+                ctx.stroke();
+                ctx.fillStyle = "#d64545";
+                ctx.strokeStyle = "#7c1f1f";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(sx - 2, sy - hgt - 8, 26, 8, 3);
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawPlayer() {
+            const sy = player.y - cameraY;
+            const cx = player.x + PLAYER_W / 2;
+            const cy = sy + PLAYER_H / 2;
+            const sqX = 1 + squash * 0.28;   // squash>0: wide+flat, squash<0: tall+thin
+            const sqY = 1 - squash * 0.34;
+
+            const drawAt = (x) => {
+                ctx.save();
+                ctx.translate(x, cy + squash * 7);
+                ctx.scale(player.dir === 1 ? -sqX : sqX, sqY); // 🐇 faces left natively; flip for right
+                ctx.font = "44px serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.shadowColor = "rgba(43,43,51,.6)";
+                ctx.shadowBlur = 1;
+                ctx.fillText("🐇", 0, 0);
+                ctx.restore();
+            };
+
+            drawAt(cx);
+            // draw wrap ghost when crossing the edge
+            if (player.x < 0) drawAt(cx + W);
+            if (player.x + PLAYER_W > W) drawAt(cx - W);
+
+            // active powerup gear
+            if (player.power && player.power.t > 0) {
+                ctx.save();
+                ctx.translate(cx, cy + squash * 7);
+                if (player.power.type === "propeller") {
+                    ctx.fillStyle = "#d64545";
+                    ctx.strokeStyle = "#7c1f1f";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, -24, 11, Math.PI, 0);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.strokeStyle = "#444";
+                    ctx.lineWidth = 3.5;
+                    const spin = Math.sin(time * 26) * 17;
+                    ctx.beginPath();
+                    ctx.moveTo(-spin, -33);
+                    ctx.lineTo(spin, -33);
+                    ctx.moveTo(0, -33);
+                    ctx.lineTo(0, -28);
+                    ctx.stroke();
+                } else {
+                    ctx.fillStyle = "#9aa2ab";
+                    ctx.strokeStyle = "#4a5158";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(-player.dir * 30 - 8, -12, 16, 28, 6);
+                    ctx.fill();
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        function drawParticles() {
+            for (const pt of particles) {
+                ctx.save();
+                ctx.translate(pt.x, pt.y - cameraY);
+                ctx.rotate(pt.rot);
+                ctx.globalAlpha = clamp(pt.life * 2.2, 0, 1);
+                if (pt.kind === "star") {
+                    ctx.fillStyle = "#f2b632";
+                    ctx.font = "14px serif";
+                    ctx.textAlign = "center";
+                    ctx.fillText("✦", 0, 0);
+                } else if (pt.kind === "flame") {
+                    ctx.fillStyle = Math.random() < 0.5 ? "#f2b632" : "#e06a2b";
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillStyle = "#a97346";
+                    ctx.fillRect(-4, -3, 8, 6);
+                }
+                ctx.restore();
+            }
+        }
+
+        function drawMonster(m) {
+            const sy = m.y - cameraY;
+            if (sy < -60 || sy > H + 60) return;
+            const bob = Math.sin(m.t * 3.4) * 4;
+            ctx.save();
+            ctx.translate(m.x + m.w / 2, sy + m.h / 2 + bob);
+            if (m.dead) {
+                ctx.rotate(m.deadT * 5);
+                ctx.globalAlpha = clamp(1 - m.deadT * 1.4, 0, 1);
+            }
+            // wobbly doodle blob
+            ctx.fillStyle = "#a06bd1";
+            ctx.strokeStyle = "#553083";
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            for (let i = 0; i <= 16; i++) {
+                const a = (i / 16) * Math.PI * 2;
+                const rr = (m.w / 2) * (1 + Math.sin(a * 3 + m.t * 2.2) * 0.09);
+                const xx = Math.cos(a) * rr;
+                const yy = Math.sin(a) * rr * (m.h / m.w);
+                i === 0 ? ctx.moveTo(xx, yy) : ctx.lineTo(xx, yy);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            // angry eyes
+            const look = Math.sign(m.vx) * 3;
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.ellipse(-9, -4, 7, 8, 0, 0, Math.PI * 2);
+            ctx.ellipse(9, -4, 7, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#2b2b33";
+            ctx.beginPath();
+            ctx.arc(-9 + look, -3, 3, 0, Math.PI * 2);
+            ctx.arc(9 + look, -3, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "#2b2b33";
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(-15, -13);
+            ctx.lineTo(-4, -9);
+            ctx.moveTo(15, -13);
+            ctx.lineTo(4, -9);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawBullets() {
+            ctx.save();
+            ctx.fillStyle = "#2b2b33";
+            for (const b of bullets) {
+                ctx.beginPath();
+                ctx.arc(b.x, b.y - cameraY, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawHUD() {
+            ctx.save();
+            ctx.fillStyle = "rgba(251,247,236,.75)";
+            ctx.fillRect(0, 0, W, 44);
+            ctx.strokeStyle = "rgba(43,43,51,.5)";
+            ctx.lineWidth = 2;
+            wobblyLine(0, 44, W, 44, time * 0.13);
+
+            ctx.fillStyle = "#2b2b33";
+            ctx.font = "bold 24px 'Comic Sans MS', 'Chalkboard SE', cursive";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "middle";
+            ctx.fillText(`Score: ${score}`, 14, 24);
+            ctx.textAlign = "right";
+            ctx.font = "18px 'Comic Sans MS', 'Chalkboard SE', cursive";
+            ctx.fillStyle = "rgba(43,43,51,.75)";
+            ctx.fillText(`Best: ${Math.max(highScore, score)}`, W - 60, 24);
+            ctx.restore();
+        }
+
+        function draw() {
+            drawBackground();
+            for (const p of platforms) drawPlatform(p);
+            for (const m of monsters) drawMonster(m);
+            drawBullets();
+            drawParticles();
+            if (player) drawPlayer();
+            drawHUD();
+        }
+
+        // ---------- main loop (fixed timestep, decoupled render) ----------
+        let lastTime = 0, accumulator = 0, rafId = null;
+
+        function frame(now) {
+            if (state !== "playing") return;
+            if (!lastTime) lastTime = now;
+            let elapsed = (now - lastTime) / 1000;
+            lastTime = now;
+            if (elapsed > 0.1) elapsed = 0.1;  // tab switch protection
+
+            accumulator += elapsed;
+            while (accumulator >= DT) {
+                physicsStep(DT);
+                accumulator -= DT;
+                if (state !== "playing") break;
+            }
+            draw();
+            rafId = requestAnimationFrame(frame);
+        }
+
+        // ---------- flow ----------
+        function start() {
+            ensureAudio();
+            reset();
+            state = "playing";
+            overlay.classList.add("hidden");
+            lastTime = 0;
+            accumulator = 0;
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(frame);
+        }
+
+        function gameOver() {
+            state = "over";
+            sOver();
+            const isBest = score > highScore;
+            if (isBest) {
+                highScore = score;
+                localStorage.setItem("joodleHighScore", String(highScore));
+            }
+            overlayTitle.textContent = "Game Over!";
+            overlayScore.style.display = "";
+            overlayScore.innerHTML = isBest
+                ? `Score: <b>${score}</b> — <span class="new-best">NEW BEST!</span>`
+                : `Score: <b>${score}</b> &nbsp;·&nbsp; Best: <b>${highScore}</b>`;
+            overlaySub.innerHTML = "Tap or press <b>Space</b> to jump again";
+            startBtn.textContent = "Play Again";
+            overlay.classList.remove("hidden");
+            draw(); // final frame behind the overlay
+        }
+
+        startBtn.addEventListener("click", start);
+        overlay.addEventListener("click", (e) => {
+            if (state === "over" && e.target === overlay) start();
+        });
+
+        // initial scene behind the start overlay
+        reset();
+        draw();
+        player = null; // don't show the bunny frozen mid-air on the menu
+        draw();
+    })();
+</script>
+
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>Jump Game</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">跳跃冒险</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

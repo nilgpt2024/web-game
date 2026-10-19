@@ -921,4 +921,299 @@
                 }
                 p.x += Math.sin(performance.now() * .05) * 1.5
             }
-            if (P.vy >=
+            if (P.vy >= 0 && P.x + P.w > p.x + 4 && P.x < p.x + p.w - 4 && P.y + P.h >= p.y && P.y + P.h <= p.y + p.h + P.vy * rdt + 4) {
+                P.y = p.y - P.h;
+                P.vy = 0;
+                P.onGround = true;
+                P.jumps = 0;
+                if (P.wasInAir) {
+                    P.landSquash = 1;
+                    sfxLand();
+                    emit(P.x + P.w / 2, P.y + P.h, 4, '#ffffff30', 40, 2, .2)
+                }
+                if (p.crumble && !p.crumbling) {
+                    p.crumbling = true;
+                    p.crumbleTimer = .45
+                }
+            }
+        }
+        P.wasInAir = !P.onGround;
+        for (const o of obstacles) {
+            o.x -= scroll;
+            const skip = ((o.type === 'beam' || o.type === 'wall') && P.sliding) || (o.type === 'hurdle' && P.sliding);
+            if (!skip && graceTimer <= 0 && aabb(P, o)) {
+                die();
+                return
+            }
+            if (skip || !aabb(P, o)) checkNearMiss(o)
+        }
+        for (const o of orbs) {
+            o.x -= scroll;
+            o.bob += rdt * 3;
+            if (!o.collected) {
+                const by = o.y + Math.sin(o.bob) * 5;
+                if (aabb({x: P.x - 3, y: P.y - 3, w: P.w + 6, h: P.h + 6}, {
+                    x: o.x - o.sz,
+                    y: by - o.sz,
+                    w: o.sz * 2,
+                    h: o.sz * 2
+                })) {
+                    o.collected = true;
+                    orbsCollected++;
+                    const orbVal = 25 + Math.floor(diffMul * 10);
+                    score += orbVal;
+                    sfxOrb();
+                    emit(o.x, by, 8, '#00e5ff', 100, 2.5, .35);
+                    comboCount++;
+                    comboTimer = 1.5;
+                    if (comboCount >= 3) {
+                        sfxCombo();
+                        const bonus = comboCount * 5;
+                        score += bonus;
+                        comboEl.textContent = 'COMBO x' + comboCount + ' +' + bonus;
+                        comboEl.style.opacity = '1';
+                        addFloat(o.x, by - 15, 'x' + comboCount, '#00e5ff')
+                    } else addFloat(o.x, by - 10, '+' + orbVal, '#00e5ff')
+                }
+            }
+        }
+        if (P.y > H + 120) {
+            die();
+            return
+        }
+        while (nextPlatX < distTraveled + W * 1.5) genPlat(nextPlatX);
+        platforms = platforms.filter(p => p.x + p.w > -100 && p.y < H + 200);
+        obstacles = obstacles.filter(o => o.x + o.w > -100);
+        orbs = orbs.filter(o => o.x > -100);
+        P.trail.unshift({x: P.x + P.w / 2, y: P.y + P.h / 2, a: 1});
+        if (P.trail.length > 12) P.trail.pop();
+        P.trail.forEach(t => t.a *= .8);
+        if (P.onGround && !P.sliding && Math.random() < .25) particles.push(new Particle(P.x + P.w / 2, P.y + P.h, -20 - Math.random() * 30, -5 - Math.random() * 20, 1.5 + Math.random() * 1.5, '#ffffff20', .25 + Math.random() * .15));
+        if (diffMul > .5 && Math.random() < Math.min(diffMul * .12, .35)) {
+            const sy = Math.random() * H;
+            particles.push(new Particle(W + 10, sy, -gameSpeed * 2 - Math.random() * 200, 0, 1, '#ffffff08', .15 + Math.random() * .1))
+        }
+        if (shakeTimer > 0) shakeTimer -= dt
+    }
+
+    // Draw
+    function draw() {
+        X.save();
+        if (shakeTimer > 0) {
+            const s = shakeIntensity * (shakeTimer / .5);
+            X.translate((Math.random() - .5) * s, (Math.random() - .5) * s)
+        }
+        const bgCol = lerpCol('#08080c', '#0c0814', Math.min(diffMul / 2, 1));
+        X.fillStyle = bgCol;
+        X.fillRect(0, 0, W, H);
+// Stars
+        for (const s of stars) {
+            X.globalAlpha = s.br;
+            X.fillStyle = '#fff';
+            X.fillRect(s.x, s.y, s.sz, s.sz);
+            X.globalAlpha = 1
+        }
+// Horizon glow
+        const glowY = H * .6, glowA = .04 + Math.min(diffMul * .02, .06);
+        const grd = X.createRadialGradient(W / 2, glowY, 0, W / 2, glowY, W * .6);
+        const ac = getPhase().c;
+        grd.addColorStop(0, ac + '0a');
+        grd.addColorStop(1, 'transparent');
+        X.fillStyle = grd;
+        X.fillRect(0, 0, W, H);
+// Platforms
+        const platCol = lerpCol('#14142a', '#1a1028', Math.min(diffMul / 3, 1));
+        const platEdge = lerpCol('#22224a', '#2e2048', Math.min(diffMul / 3, 1));
+        for (const p of platforms) {
+            if (p.fallen && p.y > H + 50) continue;
+            let alpha = 1;
+            if (p.crumbling && !p.fallen) alpha = .4 + Math.sin(performance.now() * .03) * .3;
+            X.globalAlpha = alpha;
+            if (p.moving && !p.crumbling) {
+                X.fillStyle = '#1a1a3a';
+                X.fillRect(p.x, p.y, p.w, p.h);
+                X.fillStyle = '#2a2a5a';
+                X.fillRect(p.x, p.y, p.w, 2)
+            } else {
+                X.fillStyle = platCol;
+                X.fillRect(p.x, p.y, p.w, p.h);
+                X.fillStyle = platEdge;
+                X.fillRect(p.x, p.y, p.w, 2)
+            }
+            X.fillStyle = 'rgba(0,0,0,.3)';
+            X.fillRect(p.x + 2, p.y + p.h, p.w - 2, 4);
+            X.globalAlpha = 1
+        }
+// Obstacles
+        for (const o of obstacles) {
+            if (o.type === 'spike') {
+                X.fillStyle = '#ff3d71';
+                X.beginPath();
+                X.moveTo(o.x, o.y + o.h);
+                X.lineTo(o.x + o.w / 2, o.y);
+                X.lineTo(o.x + o.w, o.y + o.h);
+                X.fill();
+                X.fillStyle = '#ff3d7118';
+                X.fillRect(o.x - 3, o.y + o.h - 3, o.w + 6, 6)
+            } else if (o.type === 'wall') {
+                X.fillStyle = '#ff3d71';
+                X.fillRect(o.x, o.y, o.w, o.h);
+                X.fillStyle = '#ff3d7120';
+                X.fillRect(o.x - 2, o.y - 2, o.w + 4, o.h + 4)
+            } else if (o.type === 'beam') {
+                X.fillStyle = '#ff3d71';
+                X.fillRect(o.x, o.y, o.w, o.h);
+                X.fillStyle = '#ff3d7120';
+                X.fillRect(o.x - 2, o.y - 2, o.w + 4, o.h + 4);
+                X.fillStyle = '#ff3d7140';
+                for (let i = 0; i < o.w; i += 12) X.fillRect(o.x + i, o.y, 6, o.h)
+            } else if (o.type === 'hurdle') {
+                X.fillStyle = '#ff8c42';
+                X.fillRect(o.x, o.y, o.w, o.h);
+                X.fillStyle = '#ff8c4230';
+                X.fillRect(o.x - 2, o.y - 2, o.w + 4, o.h + 4)
+            } else if (o.type === 'pylon') {
+                X.fillStyle = '#ff3d71';
+                X.fillRect(o.x, o.y, o.w, o.h);
+                X.fillStyle = '#ff3d7130';
+                for (let i = 0; i < o.h; i += 10) X.fillRect(o.x - 1, o.y + i, o.w + 2, 5)
+            }
+        }
+// Orbs
+        for (const o of orbs) {
+            if (o.collected) continue;
+            const by = o.y + Math.sin(o.bob) * 5;
+            X.fillStyle = '#00e5ff10';
+            X.beginPath();
+            X.arc(o.x, by, o.sz * 2.5, 0, Math.PI * 2);
+            X.fill();
+            X.fillStyle = '#00e5ff';
+            X.save();
+            X.translate(o.x, by);
+            X.rotate(Math.PI / 4);
+            X.fillRect(-o.sz / 2, -o.sz / 2, o.sz, o.sz);
+            X.restore()
+        }
+// Player trail
+        for (let i = P.trail.length - 1; i >= 0; i--) {
+            const t = P.trail[i];
+            X.globalAlpha = t.a * .1;
+            X.fillStyle = '#fff';
+            const s = P.w * (.4 + t.a * .4);
+            X.fillRect(t.x - s / 2, t.y - s / 2, s, s)
+        }
+        X.globalAlpha = 1;
+// Player
+        if (!P.dead) {
+            const sqX = P.landSquash > .0 ? 1 + P.landSquash * .15 : 1,
+                sqY = P.landSquash > .0 ? 1 - P.landSquash * .1 : 1;
+            X.save();
+            X.translate(P.x + P.w / 2, P.y + P.h);
+            X.scale(sqX, sqY);
+            X.translate(-P.w / 2, -P.h);
+            if (P.sliding) {
+                X.fillStyle = '#ddd';
+                X.fillRect(0, 0, P.w, P.h);
+                X.fillStyle = '#ffffff20';
+                for (let i = 0; i < 3; i++) X.fillRect(-8 - i * 10, P.h / 2 - 1 + i * 2, 6, 1.5);
+                X.fillStyle = '#08080c';
+                X.fillRect(P.w - 7, P.h * .3, 4, 3)
+            } else {
+                X.fillStyle = '#fff';
+                X.fillRect(0, 0, P.w, P.h);
+                X.fillStyle = '#08080c';
+                X.fillRect(P.w - 7, P.h * .25, 4, 4);
+                if (P.onGround) {
+                    const f = P.runFrame;
+                    X.fillStyle = '#08080c';
+                    if (f === 0 || f === 2) {
+                        X.fillRect(3, P.h - 3, 5, 3);
+                        X.fillRect(P.w - 8, P.h - 1, 5, 1)
+                    } else {
+                        X.fillRect(3, P.h - 1, 5, 1);
+                        X.fillRect(P.w - 8, P.h - 3, 5, 3)
+                    }
+                }
+                if (!P.onGround && P.vy < 0) {
+                    X.fillStyle = '#ffffff40';
+                    X.fillRect(P.w / 2 - 6, P.h + 1, 12, 2)
+                }
+            }
+            X.restore()
+        }
+// Particles
+        particles.forEach(p => p.draw());
+// Floating texts
+        for (const f of floats) {
+            const a = Math.max(0, f.life);
+            X.globalAlpha = a;
+            X.fillStyle = f.col;
+            X.font = 'bold 13px system-ui';
+            X.textAlign = 'center';
+            X.fillText(f.txt, f.x, f.y);
+            X.globalAlpha = 1
+        }
+// Vignette
+        const vig = X.createRadialGradient(W / 2, H / 2, W * .25, W / 2, H / 2, W * .85);
+        vig.addColorStop(0, 'transparent');
+        vig.addColorStop(1, 'rgba(0,0,0,.4)');
+        X.fillStyle = vig;
+        X.fillRect(0, 0, W, H);
+// Grace indicator
+        if (graceTimer > 0) {
+            X.globalAlpha = graceTimer / 1.2 * .4;
+            X.strokeStyle = '#00e5ff';
+            X.lineWidth = 2;
+            X.strokeRect(P.x - 3, P.y - 3, P.w + 6, P.h + 6);
+            X.globalAlpha = 1
+        }
+        X.restore()
+    }
+
+    function loop(time) {
+        const rawDt = Math.min((time - lastTime) / 1000, .05);
+        lastTime = time;
+        update(rawDt);
+        draw();
+        requestAnimationFrame(loop)
+    }
+
+    requestAnimationFrame(t => {
+        lastTime = t;
+        loop(t)
+    });
+</script>
+
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>虚空奔跑</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成·虚空跑酷</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

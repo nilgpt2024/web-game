@@ -446,4 +446,738 @@ const CE = (() => {
   // Your hand on the page: by suit (black, red, blue, green alternate), low to high, eights last.
   const SORT = {s: 0, h: 1, c: 2, d: 3};
   const sortHand = hand => hand.slice().sort((a, b) =>
-    (rank(a) ===
+    (rank(a) === EIGHT) - (rank(b) === EIGHT) || SORT[suit(a)] - SORT[suit(b)] || rank(a) - rank(b));
+
+  const clone = m => JSON.parse(JSON.stringify(m));
+  function valid(m) {
+    try {
+      if (!m || m.v !== 2 || !m.h || !Array.isArray(m.scores)) return false;
+      const all = [...m.h.stock, ...m.h.discard, ...m.h.hands.flat()].sort((a, b) => a - b);
+      return all.length === 52 && all.every((c, i) => c === i);
+    } catch (e) { return false; }
+  }
+
+  return {SUITS, RANKS, EIGHT, HAND, TARGET, SEATS, rank, suit, name, points, handPoints, rnd, newMatch, deal, nextHand,
+    top, fits, canDraw, playable, actions, legal, apply, choose, bestSuit, sortHand, clone, valid};
+})();
+</script>
+<script id="art">
+// The look: suit pips, card faces, court figures, the opponents' portraits and the card back - all drawn here, no images.
+const P={
+ s:"M50 4C78 28 96 44 96 61c0 14-10 23-22 23-9 0-15-4-19-10 1 9 5 16 12 22H33c7-6 11-13 12-22-4 6-10 10-19 10C14 84 4 75 4 61 4 44 22 28 50 4Z",
+ h:"M50 92C22 70 4 52 4 32 4 17 15 7 29 7c10 0 17 6 21 14 4-8 11-14 21-14 14 0 25 10 25 25 0 20-18 38-46 60Z",
+ d:"M50 3Q66 28 90 50 66 72 50 97 34 72 10 50 34 28 50 3Z",
+ c:"M50 8a20 20 0 0 1 17 30.5A20 20 0 1 1 55 72c1 9 5 16 12 22H33c7-6 11-13 12-22A20 20 0 1 1 33 38.5 20 20 0 0 1 50 8Z"};
+// a four-colour deck: you match by suit, so every suit must read at a glance, not just red against black
+const HEX={s:'#1e1c24',h:'#cf3038',d:'#2b5fc6',c:'#1d8648'};
+const pip=(s,fill=HEX[s])=>`<svg viewBox="0 0 100 100" aria-hidden="true"><path fill="${fill}" d="${P[s]}"/></svg>`;
+// Card faces, 100 x 143: a jumbo index for a fanned hand, pips to the right of it. Eights are printed in reverse.
+const INV={s:"#2c2a35",h:"#9a2833",d:"#284a94",c:"#1e6b43"};
+const PIPS={1:[[66,72,1]],2:[[66,28],[66,116]],3:[[66,28],[66,72],[66,116]],4:[[50,28],[82,28],[50,116],[82,116]],
+ 5:[[50,28],[82,28],[66,72],[50,116],[82,116]],6:[[50,28],[82,28],[50,72],[82,72],[50,116],[82,116]],
+ 7:[[50,28],[82,28],[66,50],[50,72],[82,72],[50,116],[82,116]],8:[[50,28],[82,28],[50,57],[82,57],[50,87],[82,87],[50,116],[82,116]],
+ 9:[[50,28],[82,28],[50,57],[82,57],[66,72],[50,87],[82,87],[50,116],[82,116]],
+ 10:[[50,28],[82,28],[66,43],[50,57],[82,57],[50,87],[82,87],[66,101],[50,116],[82,116]]};
+const RV={A:1,J:11,Q:12,K:13};
+function cardFace(r,s,id){
+ const k=HEX[s], eight=r==='8', k8=INV[s], fg=eight?'#f7f1e3':k, n=RV[r]||+r;
+ const bg=eight?`<rect width="100" height="143" rx="9" fill="${k8}"/><rect x="4" y="4" width="92" height="135" rx="6" fill="none" stroke="#e8c26a" stroke-width="1.4"/>`
+   :`<rect width="100" height="143" rx="9" fill="url(#stockgrad)"/>`;
+ const ix=`<text x="19" y="${r==='10'?33:35}" text-anchor="middle" class="ixr" ${r==='10'?'textLength="30" lengthAdjust="spacingAndGlyphs"':''} fill="${fg}" font-size="${r==='10'?31:36}">${r}</text>
+   <svg x="9" y="41" width="20" height="20" viewBox="0 0 100 100"><path fill="${fg}" d="${P[s]}"/></svg>`;
+ let mid='';
+ if(n<=10){ const big=n===1; for(const [x,y] of PIPS[n]){const w=big?40:17;
+   mid+=`<svg x="${x-w/2}" y="${y-w/2}" width="${w}" height="${w}" viewBox="0 0 100 100" overflow="visible"><path fill="${fg}" d="${P[s]}"/></svg>`;}}
+ else mid=`<clipPath id="fr${id}"><rect x="38" y="7" width="55" height="129" rx="4"/></clipPath>
+   <rect x="38" y="7" width="55" height="129" rx="4" fill="${k}" fill-opacity=".1" stroke="${k}" stroke-width="1.4"/>
+   <g clip-path="url(#fr${id})"><svg x="24" y="34" width="84" height="102" viewBox="10 12 80 108">${court(r,k)}</svg></g>
+   <rect x="40.5" y="9.5" width="50" height="124" rx="3" fill="none" stroke="${k}" stroke-opacity=".35" stroke-width=".8"/>`;
+ return `<svg viewBox="0 0 100 143" class="cface">${bg}${ix}${mid}</svg>`;
+}
+
+// Court figures, same flat style as the opponents. k = suit colour.
+function court(r,k){
+ const skin='#f3d6b6', ink='#1e1c24', gold='#d9a441';
+ const body=`<path d="M8 120c3-26 20-36 42-36s39 10 42 36z" fill="${k}"/><path d="M38 84l12 18 12-18z" fill="#f7f1e3"/><path d="M50 102v18" stroke="#f7f1e3" stroke-width="3"/>`;
+ const head=`<ellipse cx="50" cy="62" rx="18" ry="21" fill="${skin}"/><path d="M43 81h14v6H43z" fill="${skin}"/>`;
+ const eyes=`<circle cx="43" cy="62" r="2.2" fill="${ink}"/><circle cx="57" cy="62" r="2.2" fill="${ink}"/>`;
+ if(r==='K') return body+head+eyes+
+  `<path d="M34 74c2 14 8 20 16 20s14-6 16-20c-4 5-9 7-16 7s-12-2-16-7z" fill="${ink}"/><path d="M42 72q8-4 16 0" stroke="${ink}" stroke-width="3" fill="none"/>
+   <path d="M31 46l-2-24 10 10 11-16 11 16 10-10-2 24z" fill="${gold}" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="38" r="3.4" fill="${k}"/>`;
+ if(r==='Q') return `<path d="M28 60c-4 20 2 34 4 40h36c2-6 8-20 4-40z" fill="${ink}"/>`+body+head+eyes+
+  `<path d="M32 58c0-14 8-22 18-22s18 8 18 22c-5-8-11-11-18-11s-13 3-18 11z" fill="${ink}"/><path d="M44 72q6 4 12 0" stroke="#b2463a" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+   <path d="M34 40q16-16 32 0l-4-14-7 6-5-10-5 10-7-6z" fill="${gold}" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/><circle cx="50" cy="30" r="2.8" fill="${k}"/>`;
+ return body+head+eyes+
+  `<path d="M42 73q8 3 16 0" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+   <path d="M30 54c0-16 10-22 20-22s20 6 21 18l8 2c-12 6-36 6-49 2z" fill="${k}" stroke="${ink}" stroke-width="2"/><path d="M68 40q14-18 22-12-8 2-18 16z" fill="${gold}" stroke="${ink}" stroke-width="1.6"/>`;
+}
+
+// Flat portraits: one per opponent, mood in {calm, happy, sad, think}
+const FACES={
+ mae:{bg:'#d9a441',skin:'#f1c9a5',draw(m){return `
+  <path d="M14 104c4-22 18-30 36-30s32 8 36 30z" fill="#2f4858"/>
+  <path d="M40 74h20v8c-3 4-17 4-20 0z" fill="#e2b48f"/>
+  <circle cx="50" cy="21" r="11" fill="#cfcac0"/>
+  <ellipse cx="50" cy="52" rx="21" ry="24" fill="${this.skin}"/>
+  <path d="M28 52c-2-18 8-28 22-28s24 10 22 28c-4-10-10-15-22-15s-18 5-22 15z" fill="#e4e0d8"/>
+  ${eyes(41,59,54,m)}
+  <g fill="none" stroke="#2a2833" stroke-width="2.4"><circle cx="41" cy="54" r="7"/><circle cx="59" cy="54" r="7"/><path d="M48 54h4"/></g>
+  ${mouth(50,67,m,'#9a4a3a')}`}},
+ otto:{bg:'#3f8f8a',skin:'#c98d6b',draw(m){return `
+  <path d="M14 104c4-22 18-30 36-30s32 8 36 30z" fill="#e9dfc8"/><path d="M44 74l6 12 6-12z" fill="#b5442f"/>
+  <ellipse cx="50" cy="53" rx="21" ry="24" fill="${this.skin}"/>
+  <path d="M27 42c0-14 10-20 23-20s25 5 26 17l6 4c-10 2-30 2-55-1z" fill="#7b3326"/>
+  <path d="M28 40c8 2 30 3 48 0" stroke="#5a2219" stroke-width="2" fill="none"/>
+  ${eyes(42,58,53,m)}
+  <path d="M38 64c5-4 9-4 12-2 3-2 7-2 12 2-4 3-8 3-12 1-4 2-8 2-12-1z" fill="#3b2a20"/>
+  ${mouth(50,71,m,'#5a2a20',7)}`}},
+ june:{bg:'#9c7bb5',skin:'#8a553b',draw(m){return `
+  <g fill="#1e1612"><circle cx="30" cy="40" r="13"/><circle cx="70" cy="40" r="13"/><circle cx="38" cy="26" r="13"/><circle cx="62" cy="26" r="13"/><circle cx="50" cy="22" r="13"/><circle cx="26" cy="56" r="10"/><circle cx="74" cy="56" r="10"/></g>
+  <path d="M14 104c4-22 18-30 36-30s32 8 36 30z" fill="#c4553b"/>
+  <ellipse cx="50" cy="54" rx="20" ry="23" fill="${this.skin}"/>
+  <path d="M31 44c4-9 11-13 19-13s16 4 19 13c-6-4-12-6-19-6s-13 2-19 6z" fill="#1e1612"/>
+  <circle cx="29" cy="64" r="3" fill="#ffc94a"/><circle cx="71" cy="64" r="3" fill="#ffc94a"/>
+  ${eyes(42,58,54,m)}
+  ${mouth(50,67,m,'#4a2018')}`}},
+};
+function eyes(x1,x2,y,m){
+  const e=m==='happy'?`<path d="M${x1-3} ${y+1}q3-4 6 0M${x2-3} ${y+1}q3-4 6 0" stroke="#1e1c24" stroke-width="2.4" fill="none" stroke-linecap="round"/>`
+   :`<circle cx="${x1+(m==='think'?2:0)}" cy="${y}" r="2.6" fill="#1e1c24"/><circle cx="${x2+(m==='think'?2:0)}" cy="${y}" r="2.6" fill="#1e1c24"/>`;
+  const b=m==='sad'?`<path d="M${x1-5} ${y-7}l8 2M${x2+5} ${y-7}l-8 2" stroke="#1e1c24" stroke-width="2.2" stroke-linecap="round"/>`
+   :m==='think'?`<path d="M${x2-4} ${y-9}q4-3 8 0" stroke="#1e1c24" stroke-width="2.2" fill="none" stroke-linecap="round"/>`:'';
+  return e+b;}
+function mouth(x,y,m,c,w=6){
+  if(m==='happy')return `<path d="M${x-w-1} ${y-1}q${w+1} ${w+2} ${2*w+2} 0z" fill="${c}"/>`;
+  if(m==='sad')return `<path d="M${x-w} ${y+3}q${w} -6 ${2*w} 0" stroke="${c}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  if(m==='think')return `<path d="M${x-1} ${y+1}h${w}" stroke="${c}" stroke-width="2.6" stroke-linecap="round"/>`;
+  return `<path d="M${x-w+1} ${y}q${w-1} 3 ${2*w-2} 0" stroke="${c}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;}
+let PC=0;
+function portrait(id,m='calm'){const f=FACES[id],k='cf'+id+(++PC);return `<svg viewBox="0 0 100 100" aria-hidden="true"><clipPath id="${k}"><circle cx="50" cy="50" r="50"/></clipPath><g clip-path="url(#${k})"><rect width="100" height="100" fill="${f.bg}"/>${f.draw(m)}</g></svg>`;}
+
+const BACK=`<svg viewBox="0 0 100 143" aria-hidden="true"><rect width="100" height="143" rx="9" fill="#f7f1e3"/><rect x="5" y="5" width="90" height="133" rx="6" fill="#2a1d26"/>
+ <rect x="5" y="5" width="90" height="133" rx="6" fill="url(#lat)"/>
+ <rect x="10" y="10" width="80" height="123" rx="3" fill="none" stroke="#e8c26a" stroke-opacity=".7" stroke-width="1"/>
+ <rect x="13" y="13" width="74" height="117" rx="2" fill="none" stroke="#e8c26a" stroke-opacity=".35" stroke-width=".6"/>
+ <g fill="none" stroke="#e8c26a" stroke-width="2.4"><circle cx="50" cy="56" r="13"/><circle cx="50" cy="86" r="16"/></g>
+ <g fill="#e8c26a"><circle cx="50" cy="71.5" r="2.4"/><path d="M50 22l3 5-3 5-3-5zM50 111l3 5-3 5-3-5z"/></g></svg>`;
+</script>
+<script>
+// The table: every card is one element on #stage that flies between stock, pile and hands; render() works out where each
+// one belongs from the match state and CSS eases it there. The loop below plays the turns.
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const NAMES = ['You', 'Mae', 'Otto', 'June'], FID = [null, 'mae', 'otto', 'june'];
+const SUITNAME = {s: 'spades', h: 'hearts', d: 'diamonds', c: 'clubs'};
+const RANKNAME = ['ace', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'jack', 'queen', 'king'];
+const FELT = {s: '#3a393e', h: '#5e1b27', d: '#173063', c: '#154a33'};
+const KEY = 'crazy_eights.v2';
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+const cardName = c => `${RANKNAME[CE.rank(c)]} of ${SUITNAME[CE.suit(c)]}`;
+
+let M = null, REC = {played: 0, won: 0, streak: 0, best: 0}, SET = {sound: true};
+function save() { try { localStorage.setItem(KEY, JSON.stringify({m: M, rec: REC, set: SET})); } catch (e) {} }
+function load() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
+  if (d) { Object.assign(REC, d.rec || {}); Object.assign(SET, d.set || {}); }
+  return d && CE.valid(d.m) ? d.m : null;
+}
+
+/* ---------- sound: each suit is a note of one chord, so following suit repeats a note and an eight slides to a new one */
+let AC = null, OUT = null;
+let touched = false; // browsers only allow sound after the first tap or key
+addEventListener('pointerdown', () => { touched = true; }, {capture: true});
+addEventListener('keydown', () => { touched = true; }, {capture: true});
+function audio() {
+  if (!SET.sound || !touched) return null;
+  try {
+    if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); OUT = AC.createGain(); OUT.gain.value = .55; OUT.connect(AC.destination); }
+    if (AC.state === 'suspended') AC.resume();
+  } catch (e) { return null; }
+  return AC;
+}
+const NOTE = {s: 196.0, h: 261.63, d: 329.63, c: 392.0};
+function tone(f, at = 0, dur = .55, vol = .22, type = 'sine') {
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + at, o = a.createOscillator(), o2 = a.createOscillator(), g = a.createGain(), g2 = a.createGain();
+  o.type = type; o.frequency.value = f; o2.type = 'sine'; o2.frequency.value = f * 4.01;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .006); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  g2.gain.setValueAtTime(vol * .35, t); g2.gain.exponentialRampToValueAtTime(.0001, t + .09);
+  o.connect(g).connect(OUT); o2.connect(g2).connect(OUT);
+  o.start(t); o2.start(t); o.stop(t + dur + .05); o2.stop(t + .12);
+}
+let NOISE = null;
+function noise(at = 0, dur = .05, vol = .25, f = 2200, q = .8, sweep = 0) {
+  const a = audio(); if (!a) return;
+  if (!NOISE) { NOISE = a.createBuffer(1, a.sampleRate * .5, a.sampleRate); const d = NOISE.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const t = a.currentTime + at, s = a.createBufferSource(), b = a.createBiquadFilter(), g = a.createGain();
+  s.buffer = NOISE; b.type = 'bandpass'; b.frequency.setValueAtTime(f, t); if (sweep) b.frequency.exponentialRampToValueAtTime(f * sweep, t + dur); b.Q.value = q;
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(b).connect(g).connect(OUT); s.start(t); s.stop(t + dur + .02);
+}
+const SND = {
+  snap: () => { noise(0, .045, .32, 2600, 1.2); noise(.01, .07, .12, 600, .7); },
+  play: s => { SND.snap(); tone(NOTE[s], .015, .7, .2); },
+  eight: (from, to) => { SND.snap(); const a = NOTE[from], b = NOTE[to] * 2; [0, 1, 2, 3, 4].forEach(i => tone(a * Math.pow(b / a, i / 4), .02 + i * .055, .5, .13)); tone(NOTE[to], .3, 1.1, .18); },
+  draw: () => noise(0, .16, .18, 900, .6, 3),
+  deal: i => noise(i * 0, .04, .16, 3000, 1.5),
+  riffle: () => { for (let i = 0; i < 14; i++) noise(i * .028, .03, .12 + Math.random() * .08, 2400 + Math.random() * 1500, 1.4); },
+  nope: () => { tone(110, 0, .18, .25, 'triangle'); },
+  pass: () => tone(146.8, 0, .25, .08, 'triangle'),
+  last: () => { tone(523.25, 0, .18, .12); tone(659.25, .09, .3, .12); },
+  win: () => [261.63, 329.63, 392, 523.25, 659.25].forEach((f, i) => tone(f, i * .09, .9, .16)),
+  lose: () => [392, 329.63, 261.63, 196].forEach((f, i) => tone(f, i * .12, .7, .12, 'triangle')),
+};
+
+/* ---------- confetti of suit pips, for going out and for the match */
+const fx = $('#fx'), fxc = fx.getContext('2d'), BITS = [];
+const PATHS = Object.fromEntries(Object.entries(P).map(([k, d]) => [k, new Path2D(d)]));
+let fxOn = false;
+function burst(x, y, n = 40, spread = 1) {
+  if (reduced.matches) return;
+  const sz = Math.min(innerWidth, 900) / 390;
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.3 * spread, v = (6 + Math.random() * 9) * sz;
+    const s = CE.SUITS[i % 4];
+    BITS.push({x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 6, vr: (Math.random() - .5) * .3, s, w: (10 + Math.random() * 10) * sz,
+      c: i % 5 === 4 ? '#e8c26a' : (s === 's' ? '#f7f1e3' : HEX[s]), life: 1});
+  }
+  if (!fxOn) { fxOn = true; requestAnimationFrame(tick); }
+}
+function rain(n = 90) { for (let i = 0; i < n; i++) setTimeout(() => burst(Math.random() * innerWidth, -20, 1, .2), i * 22); }
+function tick() {
+  const dpr = devicePixelRatio || 1;
+  if (fx.width !== innerWidth * dpr) { fx.width = innerWidth * dpr; fx.height = innerHeight * dpr; }
+  fxc.setTransform(dpr, 0, 0, dpr, 0, 0); fxc.clearRect(0, 0, innerWidth, innerHeight);
+  for (let i = BITS.length - 1; i >= 0; i--) {
+    const q = BITS[i];
+    q.vx *= .985; q.vy = q.vy * .985 + .24; q.x += q.vx; q.y += q.vy; q.r += q.vr;
+    if (q.y > innerHeight + 40) q.life = 0;
+    if (q.life <= 0) { BITS.splice(i, 1); continue; }
+    fxc.save(); fxc.translate(q.x, q.y); fxc.rotate(q.r); fxc.scale(q.w / 100, q.w / 100); fxc.translate(-50, -50);
+    fxc.fillStyle = q.c; fxc.fill(PATHS[q.s]); fxc.restore();
+  }
+  if (BITS.length) requestAnimationFrame(tick); else { fxOn = false; fxc.clearRect(0, 0, innerWidth, innerHeight); }
+}
+
+/* ---------- the cards */
+const stage = $('#stage'), NODES = [];
+for (let c = 0; c < 52; c++) {
+  const el = document.createElement('div');
+  el.className = 'cd down'; el.dataset.c = c;
+  el.innerHTML = `<div class="wb"><div class="fl"><div class="fr">${cardFace(CE.RANKS[CE.rank(c)], CE.suit(c), c)}</div><div class="bk">${BACK}</div></div></div>`;
+  el.addEventListener('animationend', e => { if (e.animationName === 'nope') el.classList.remove('shake'); if (e.animationName === 'hint') el.classList.remove('hint'); });
+  el.setAttribute('aria-label', cardName(c));
+  stage.append(el); NODES[c] = el;
+}
+const seatEl = p => $(`.seat[data-seat="${p}"]`);
+let CW = 80, CH = 114, DUR = 440, zSeq = 0;
+const ZONE = new Array(52).fill('');
+const rot = c => ((c * 7919) % 17) - 8, jit = c => ((c * 104729) % 9) - 4;
+
+// where every card goes; pivot is the point the card swings around (half a card below its foot)
+function put(c, {x, y, a = 0, s = 1, z = 1, down = true, delay = 0, zone = ''}) {
+  const el = NODES[c];
+  el.style.transform = `translate(${(x - CW / 2).toFixed(1)}px,${(y - 1.4 * CH).toFixed(1)}px) rotate(${a.toFixed(2)}deg) scale(${s.toFixed(3)})`;
+  el.style.transitionDelay = delay ? delay + 'ms' : '';
+  el.querySelector('.fl').style.transitionDelay = delay ? delay + 'ms' : '';
+  el.classList.toggle('down', down);
+  if (ZONE[c] !== zone && ZONE[c] !== '' && !stage.classList.contains('instant')) {
+    el.style.zIndex = 900 + (++zSeq % 90);
+    clearTimeout(el._z); el._z = setTimeout(() => { el.style.zIndex = z; }, DUR + delay + 30);
+  } else { clearTimeout(el._z); el.style.zIndex = z; }
+  ZONE[c] = zone;
+}
+const centre = (cx, cy, a, s) => { const d = .9 * CH * s, r = a * Math.PI / 180; return {x: cx - d * Math.sin(r), y: cy + d * Math.cos(r), a, s}; };
+const rect = el => el.getBoundingClientRect();
+
+const UI = {mine: false, pending: null, reveal: false, dealDelay: null, hideSuit: true, peek: null};
+
+function render() {
+  if (!M) return;
+  const h = M.h;
+  CW = NODES[0].offsetWidth; CH = NODES[0].offsetHeight;
+  DUR = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur')) * 1000 || 440;
+  const dd = UI.dealDelay || {};
+  // stock
+  const sr = rect($('#stock')), ss = sr.width / CW;
+  h.stock.forEach((c, i) => {
+    const k = Math.max(0, i - (h.stock.length - 7));
+    put(c, {...centre(sr.left + sr.width / 2 - k * .7, sr.top + sr.height / 2 - k * .7, 0, ss), z: 10 + i, down: true, zone: 'stock', delay: dd[c] || 0});
+    NODES[c].classList.toggle('deep', i < h.stock.length - 3);
+  });
+  // pile
+  const dr = rect($('#discard')), ds = dr.width / CW;
+  h.discard.forEach((c, i) => {
+    if (c === UI.pending) return;
+    const top = i === h.discard.length - 1;
+    put(c, {...centre(dr.left + dr.width / 2 + jit(c), dr.top + dr.height / 2 + jit(c + 3) * .6, top ? rot(c) * .5 : rot(c), ds), z: 100 + i, down: false, zone: 'pile', delay: dd[c] || 0});
+    NODES[c].classList.toggle('deep', i < h.discard.length - 3);
+  });
+  // your hand
+  const hand = CE.sortHand(h.hands[0]), n = hand.length;
+  const ok = new Set(UI.mine && !UI.pending ? CE.playable(M, 0) : []);
+  const hr = rect($('#hand')), W = Math.min(hr.width, 860) - 8;
+  const fit = W / (CW * (1.5 + .3 * Math.max(0, n - 1)));
+  const sc = Math.max(.62, Math.min(1, fit));
+  const step = n > 1 ? Math.min(CW * .62 * sc, (W - CW * sc * 1.5) / (n - 1)) : 0;
+  const desk = innerWidth >= 820;
+  const base = hr.bottom - (desk ? (innerHeight > 560 ? 40 : 12) : 24) - (parseFloat(getComputedStyle($('.app')).paddingBottom) || 0);
+  hand.forEach((c, i) => {
+    const o = i - (n - 1) / 2, el = NODES[c], live = ok.has(c);
+    if (c === UI.pending) {
+      put(c, {...centre(dr.left + dr.width / 2, dr.top + dr.height / 2 - 18, 0, ds * 1.04), z: 800, down: false, zone: 'pend'});
+    } else {
+      const lift = UI.mine ? (live ? -14 : 6) : 0;
+      put(c, {x: hr.left + hr.width / 2 + o * step, y: base + .4 * CH * sc + Math.pow(n > 1 ? o / ((n - 1) / 2) : 0, 2) * Math.min(14, n * 2.4) * sc + lift, a: o * 1.8 * (n > 9 ? 9 / n : 1), s: sc,
+        z: 300 + i, down: false, zone: 'hand', delay: dd[c] || 0});
+    }
+    el.classList.add('mine'); el.classList.remove('deep');
+    el.classList.toggle('ok', UI.mine && live && c !== UI.pending);
+    el.classList.toggle('no', UI.mine && !live && c !== UI.pending);
+    el.tabIndex = UI.mine ? 0 : -1;
+    el.setAttribute('role', 'button');
+  });
+  for (const c of [...h.stock, ...h.discard, ...h.hands[1], ...h.hands[2], ...h.hands[3]]) {
+    const el = NODES[c];
+    if (el.classList.contains('mine') || el.classList.contains('shake') || el.classList.contains('hint')) { el.classList.remove('mine', 'ok', 'no', 'press', 'shake', 'hint'); el.tabIndex = -1; el.removeAttribute('role'); }
+  }
+  // the others
+  const mbw = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--mbw')) || 26;
+  for (let p = 1; p < 4; p++) {
+    const cs = h.hands[p], k = cs.length, fr = rect(seatEl(p).querySelector('.fan'));
+    const open = UI.reveal && h.over;
+    const s = open ? Math.min(.5, (mbw * 1.9) / CW) : mbw / CW;
+    const spread = open ? Math.min(14, 100 / Math.max(1, k - 1)) : Math.min(10, 64 / Math.max(1, k - 1));
+    const px = fr.left + fr.width / 2, py = fr.bottom + .3 * CH * s;
+    cs.forEach(c => NODES[c].classList.remove('deep'));
+    cs.forEach((c, j) => {
+      const up = UI.peek && UI.peek.p === p && UI.peek.i === j ? CH * s * .5 : 0;
+      put(c, {x: px, y: py + (open ? 22 : 0) - up, a: (j - (k - 1) / 2) * spread, s, z: 200 + j, down: !open, zone: 'p' + p, delay: dd[c] || 0});
+    });
+    const cnt = seatEl(p).querySelector('.count');
+    cnt.textContent = k === 1 && !h.over ? 'Last card' : k; cnt.classList.toggle('one', k === 1 && !h.over); cnt.classList.toggle('none', k === 0 || open);
+    const tip = Math.sin(((k - 1) / 2) * spread * Math.PI / 180) * (1.3 * CH * s) + CW * s * .5;
+    cnt.style.left = `calc(50% + ${Math.max(8, tip - 4).toFixed(0)}px)`;
+  }
+  renderTable();
+}
+
+function renderTable() {
+  const h = M.h;
+  document.documentElement.style.setProperty('--felt', UI.hideSuit ? '#191618' : FELT[h.suit]);
+  document.documentElement.style.setProperty('--suit', HEX[h.suit]);
+  const md = $('#medal');
+  md.classList.toggle('hide', UI.hideSuit);
+  if (md.dataset.s !== h.suit) {
+    md.innerHTML = pip(h.suit); md.setAttribute('aria-label', 'Suit in play: ' + SUITNAME[h.suit]);
+    if (md.dataset.s) { md.classList.remove('turn'); void md.offsetWidth; md.classList.add('turn'); }
+    md.dataset.s = h.suit;
+  }
+  for (let p = 1; p < 4; p++) {
+    const box = seatEl(p).querySelector('.tells'), want = h.over ? [] : h.voids[p];
+    const have = [...box.children].map(x => x.dataset.s);
+    if (have.join() !== want.join()) {
+      box.innerHTML = want.map(s => `<span class="tell${have.includes(s) ? '' : ' new'}" data-s="${s}" title="Out of ${SUITNAME[s]}">${pip(s)}<i></i></span>`).join('');
+    }
+    seatEl(p).classList.toggle('turn', h.turn === p && !h.over);
+  }
+  $('#app').classList.toggle('mine', UI.mine);
+  const st = $('#stock');
+  const canDraw = UI.mine && !UI.pending && CE.actions(M, 0).some(a => a.type === 'draw');
+  st.classList.toggle('live', canDraw);
+  st.disabled = !canDraw;
+}
+
+const MOOD = [null, 'calm', 'calm', 'calm'], moodT = [];
+function mood(p, m, ms = 1400) {
+  if (!p) return;
+  MOOD[p] = m;
+  const f = seatEl(p).querySelector('.face');
+  const old = f.querySelector(':scope>svg'); if (old) old.remove();
+  f.insertAdjacentHTML('afterbegin', portrait(FID[p], m));
+  clearTimeout(moodT[p]);
+  if (ms) moodT[p] = setTimeout(() => mood(p, 'calm', 0), ms);
+}
+function bubble(p, text, hot = false, ms = 1300) {
+  const b = seatEl(p).querySelector('.bubble');
+  b.textContent = text; b.classList.toggle('hot', hot); b.classList.add('on');
+  clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('on'), ms);
+}
+function say(t) { $('#say').textContent = t; }
+
+/* ---------- the turn loop; a new match bumps GEN and the old loop drops out at its next wait */
+let GEN = 0;
+const abort = {};
+function wait(ms, gen) {
+  return new Promise((res, rej) => setTimeout(() => (gen === GEN ? res() : rej(abort)), reduced.matches ? Math.min(ms, 260) : ms));
+}
+let ask = null; // resolves the player's choice
+
+async function loop(gen) {
+  try {
+    for (;;) {
+      if (gen !== GEN) return;
+      const h = M.h;
+      if (h.over) { await handOver(gen); continue; }
+      if (h.turn === 0) await yourTurn(gen); else await theirTurn(h.turn, gen);
+    }
+  } catch (e) { if (e !== abort) throw e; }
+}
+
+async function theirTurn(p, gen) {
+  UI.mine = false; render();
+  mood(p, 'think', 0);
+  const k = M.h.hands[p].length;
+  await wait(260, gen);
+  if (k > 1) { UI.peek = {p, i: Math.floor(Math.random() * k)}; render(); }
+  await wait(300 + Math.random() * 300, gen);
+  if (k > 2 && Math.random() < .5) { UI.peek = {p, i: Math.floor(Math.random() * k)}; render(); await wait(260, gen); }
+  UI.peek = null;
+  for (;;) {
+    const a = CE.choose(M, p), ev = CE.apply(M, a);
+    save();
+    await show(ev, gen);
+    if (ev.type !== 'draw') break;
+    await wait(220, gen);
+  }
+}
+
+async function yourTurn(gen) {
+  UI.pending = null; // a suit picked for a drawn eight must never carry into the next turn
+  UI.mine = true; render();
+  const acts = CE.actions(M, 0);
+  if (M.h.drawn !== null) return drawnCard(gen);
+  if (acts[0].type === 'pass') { // stuck with nothing to draw
+    say('Nothing to draw - you pass'); await wait(900, gen);
+    UI.mine = false; const ev = CE.apply(M, {type: 'pass'}); save(); await show(ev, gen); return;
+  }
+  if (acts[0].type === 'draw') say('No card fits - draw one');
+  else say('Your turn');
+  const yt = $('#yt'); yt.textContent = acts[0].type === 'draw' ? 'Nothing fits - draw' : 'Your turn';
+  yt.classList.add('on');
+  const a = await new Promise(res => { ask = res; });
+  ask = null; $('#yt').classList.remove('on');
+  if (gen !== GEN) throw abort;
+  UI.mine = false; UI.pending = null;
+  const ev = CE.apply(M, a); save();
+  await show(ev, gen);
+  if (ev.type === 'draw') await drawnCard(gen);
+}
+
+async function drawnCard(gen) {
+  const c = M.h.drawn;
+  if (CE.fits(M.h, c)) {
+    UI.mine = false; render();
+    await wait(380, gen);
+    let suit;
+    if (CE.rank(c) === CE.EIGHT) { suit = await pickSuit(c, false, gen); }
+    const ev = CE.apply(M, {type: 'play', card: c, suit}); save();
+    await show(ev, gen);
+  } else {
+    UI.mine = false; render();
+    await wait(520, gen);
+    const ev = CE.apply(M, {type: 'pass'}); save();
+    await show(ev, gen);
+  }
+}
+
+// What just happened, animated. Resolves once it has landed.
+async function show(ev, gen) {
+  const p = ev.p, who = NAMES[p];
+  if (ev.type === 'play') {
+    const before = document.documentElement.style.getPropertyValue('--felt');
+    const prevSuit = $('#medal').dataset.s;
+    render();
+    const eight = CE.rank(ev.card) === CE.EIGHT;
+    setTimeout(() => eight ? SND.eight(prevSuit || ev.suit, ev.suit) : SND.play(CE.suit(ev.card)), DUR * .75);
+    say(`${who} ${p ? 'plays' : 'play'} the ${cardName(ev.card)}${eight ? `, ${SUITNAME[ev.suit]} next` : ''}`);
+    if (p) mood(p, eight ? 'happy' : 'calm', 1500);
+    if (eight && p) setTimeout(() => bubble(p, SUITNAME[ev.suit][0].toUpperCase() + SUITNAME[ev.suit].slice(1) + '!'), DUR * .7);
+    if (ev.left === 1 && p) setTimeout(() => { bubble(p, 'Last card!', true, 2200); SND.last(); mood(p, 'happy', 1500); }, DUR + 80);
+    await wait(DUR + 120 + (ev.left === 1 && p ? 500 : 0), gen);
+  } else if (ev.type === 'draw') {
+    if (ev.reshuffled) {
+      say('The pile is shuffled back into the stock');
+      SND.riffle();
+      const keep = M.h.discard, drawn = ev.card;
+      M.h.discard = [...ev.reshuffled.filter(c => c !== drawn), ...keep]; // show them leave the pile first
+      render(); await wait(120, gen);
+      M.h.discard = keep;
+      UI.dealDelay = {}; ev.reshuffled.forEach((c, i) => UI.dealDelay[c] = i * 12);
+      M.h.hands[p] = M.h.hands[p].filter(c => c !== drawn); M.h.stock.push(drawn);
+      render(); UI.dealDelay = null;
+      await wait(DUR + ev.reshuffled.length * 12, gen);
+      M.h.stock.pop(); M.h.hands[p].push(drawn);
+    }
+    render(); SND.draw();
+    if (p) { mood(p, 'sad', 1200); say(`${who} draws`); } else say(ev.fits ? `You draw the ${cardName(ev.card)} - it fits` : `You draw the ${cardName(ev.card)}`);
+    await wait(DUR + 60, gen);
+  } else {
+    render(); SND.pass();
+    if (p) say(`${who} is out of ${SUITNAME[ev.suit]}`);
+    await wait(p ? 420 : 260, gen);
+  }
+}
+
+/* ---------- naming a suit */
+function pickSuit(c, cancellable, gen) {
+  return new Promise((res, rej) => {
+    UI.pending = c; render(); $('#yt').classList.remove('on');
+    const box = $('#pick'), row = box.querySelector('.row');
+    const hand = M.h.hands[0].filter(x => x !== c && CE.rank(x) !== CE.EIGHT);
+    const count = s => hand.filter(x => CE.suit(x) === s).length;
+    const best = CE.SUITS.reduce((b, s) => count(s) > count(b) ? s : b, 'h');
+    row.innerHTML = CE.SUITS.map(s => `<button data-s="${s}" style="--k:${HEX[s]}" class="${s === best && count(s) ? 'best' : ''}" aria-label="${SUITNAME[s]}">${pip(s)}</button>`).join('');
+    const dr = rect($('#discard')), hr = rect($('#hand'));
+    row.style.left = innerWidth / 2 + 'px';
+    row.style.top = Math.min(hr.top - 50, dr.bottom + 70) + 'px';
+    box.classList.add('on'); requestAnimationFrame(() => box.classList.add('open'));
+    const done = v => { UI.pending = null; box.classList.remove('open', 'on'); box.onclick = null; document.removeEventListener('keydown', key); v ? res(v) : res(null); };
+    const key = e => { const i = '1234'.indexOf(e.key); if (i >= 0) done(CE.SUITS[i]); if (e.key === 'Escape' && cancellable) { UI.pending = null; render(); done(null); } };
+    document.addEventListener('keydown', key);
+    box.onclick = e => {
+      const b = e.target.closest('button');
+      if (b) { audio(); done(b.dataset.s); return; }
+      if (cancellable) { UI.pending = null; render(); done(null); }
+    };
+  });
+}
+
+/* ---------- input */
+stage.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.cd.mine'); if (!el) return;
+  audio();
+  el.classList.add('press');
+  const up = () => { el.classList.remove('press'); removeEventListener('pointerup', up); removeEventListener('pointercancel', up); };
+  addEventListener('pointerup', up); addEventListener('pointercancel', up);
+});
+stage.addEventListener('click', e => { const el = e.target.closest('.cd.mine'); if (el) tapCard(+el.dataset.c); });
+async function tapCard(c) {
+  if (!ask || !UI.mine || UI.pending !== null) {
+    const el = NODES[c]; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); return;
+  }
+  if (!CE.playable(M, 0).includes(c)) {
+    const el = NODES[c]; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+    if (navigator.vibrate) try { navigator.vibrate(30); } catch (e) {}
+    CE.playable(M, 0).forEach((x, i) => { const n = NODES[x]; n.classList.remove('hint'); void n.offsetWidth; setTimeout(() => n.classList.add('hint'), 520 + i * 60); setTimeout(() => n.classList.remove('hint'), 1300 + i * 60); });
+    const md = $('#medal'); md.classList.remove('ping'); void md.offsetWidth; md.classList.add('ping');
+    if (CE.actions(M, 0)[0].type === 'draw') { const st = $('#stock'); st.animate([{transform: 'scale(1)'}, {transform: 'scale(1.08)'}, {transform: 'scale(1)'}], {duration: 360, easing: 'ease-out'}); }
+    SND.nope();
+    return;
+  }
+  if (CE.rank(c) === CE.EIGHT) {
+    const gen = GEN, s = await pickSuit(c, true, gen);
+    if (s && ask && gen === GEN) ask({type: 'play', card: c, suit: s});
+    return;
+  }
+  ask({type: 'play', card: c});
+}
+$('#stock').addEventListener('click', () => { audio(); if (ask && UI.mine && !UI.pending && CE.actions(M, 0).some(a => a.type === 'draw')) ask({type: 'draw'}); });
+document.addEventListener('keydown', e => {
+  if ($('#veil').classList.contains('on')) { if (e.key === 'Escape' && sheetClose) sheetClose(); return; }
+  if (e.key === 'Escape') { openMenu(); return; }
+  if (!UI.mine) return;
+  const mine = CE.sortHand(M.h.hands[0]).map(c => NODES[c]);
+  const i = mine.indexOf(document.activeElement);
+  if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    const j = i < 0 ? 0 : (i + (e.key === 'ArrowRight' ? 1 : -1) + mine.length) % mine.length; mine[j].focus();
+  } else if ((e.key === 'Enter' || e.key === ' ') && i >= 0) { e.preventDefault(); audio(); tapCard(+mine[i].dataset.c); }
+  else if (e.key === 'd' || e.key === 'D') $('#stock').click();
+});
+let rz = 0;
+addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { stage.classList.add('instant'); render(); void stage.offsetWidth; stage.classList.remove('instant'); }); });
+
+/* ---------- dealing */
+async function dealIn(gen, mark) {
+  const h = M.h;
+  UI.mine = false; UI.reveal = false; UI.pending = null;
+  // everything gathers in the stock first, face down, without animating
+  stage.classList.add('instant');
+  const all = [...h.stock, ...h.discard, ...h.hands.flat()];
+  const realDiscard = h.discard;
+  UI.hideSuit = true;
+  M.h = {...h, stock: all, discard: [], hands: [[], [], [], []]};
+  render(); void stage.offsetWidth;
+  stage.classList.remove('instant');
+  M.h = h;
+  if (mark) { $('#mark').classList.add('on'); await wait(1100, gen); $('#mark').classList.remove('on'); }
+  SND.riffle();
+  await wait(mark ? 350 : 380, gen);
+  // then round the table one card at a time from the dealer's left, the starter last
+  const step = reduced.matches ? 0 : 90;
+  UI.dealDelay = {};
+  h.order.forEach(([p, c], i) => UI.dealDelay[c] = i * step);
+  realDiscard.forEach(c => UI.dealDelay[c] = h.order.length * step + 260);
+  render();
+  h.order.forEach((_, i) => setTimeout(() => gen === GEN && SND.deal(i), i * step));
+  UI.dealDelay = null;
+  await wait(h.order.length * step + 260 + DUR, gen);
+  UI.hideSuit = false; renderTable();
+  SND.play(h.suit);
+  await wait(300, gen);
+}
+
+/* ---------- end of a hand, end of a match: the score card */
+let sheetClose = null;
+function sheet(html, onClose) {
+  $('#paper').innerHTML = html;
+  $('#veil').classList.add('on');
+  sheetClose = onClose || null;
+}
+function closeSheet() { $('#veil').classList.remove('on'); sheetClose = null; }
+$('#veil').addEventListener('click', e => { if (e.target.id === 'veil' && sheetClose) sheetClose(); });
+
+const avatar = p => p ? `<div class="pf">${portrait(FID[p], M.over ? (M.winners.includes(p) ? 'happy' : 'sad') : 'calm')}</div>` : `<div class="you">You</div>`;
+function scoreRows(adds) {
+  const order = [0, 1, 2, 3];
+  return `<div class="rows">${order.map(p => {
+    const add = adds ? adds[p] : null, tot = M.scores[p], before = adds ? tot - add : tot;
+    const cards = adds && M.h.hands[p].length ? `<div class="left-cards">${M.h.hands[p].map(c => `<span style="color:${HEX[CE.suit(c)]}">${CE.RANKS[CE.rank(c)]}${{s: '♠', h: '♥', d: '♦', c: '♣'}[CE.suit(c)]}</span>`).join('')}</div>` : '';
+    return `<div class="row${M.over && M.winners.includes(p) ? ' win' : ''}">${avatar(p)}<div><div class="who">${NAMES[p]}</div>${cards}<div class="bar${tot >= 75 ? ' hot' : ''}" data-max="${CE.TARGET}"><i data-w="${Math.min(100, tot)}" style="width:${Math.min(100, before)}%"></i></div></div>
+      <div class="add${add === 0 ? ' zero' : ''}">${add === null ? '' : add === 0 ? 'out' : '+' + add}</div><div class="tot" data-to="${tot}" data-from="${before}">${before}</div></div>`;
+  }).join('')}</div>`;
+}
+function countUp() {
+  $$('#paper .tot').forEach(el => {
+    const a = +el.dataset.from, b = +el.dataset.to; if (a === b) return;
+    const t0 = performance.now(), d = reduced.matches ? 1 : 900;
+    const f = t => { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(a + (b - a) * e); if (k < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  });
+  requestAnimationFrame(() => $$('#paper .bar i').forEach(i => i.style.width = i.dataset.w + '%'));
+}
+
+async function handOver(gen) {
+  const h = M.h;
+  UI.mine = false; UI.reveal = true; render();
+  const out = h.out;
+  for (let p = 1; p < 4; p++) mood(p, p === out ? 'happy' : (h.penalties[p] >= 20 ? 'sad' : 'calm'), 0);
+  if (out === 0) { SND.win(); const r = rect($('#discard')); burst(r.left + r.width / 2, r.top + r.height / 2, 90); }
+  else if (out > 0) { SND.lose(); bubble(out, 'Out!', false, 1500); }
+  say(out < 0 ? 'Nobody can play - the hand is blocked' : out === 0 ? 'You go out!' : `${NAMES[out]} goes out`);
+  await wait(1500, gen);
+  if (M.over && !M.recorded) {
+    M.recorded = true; REC.played++;
+    if (M.winners.includes(0)) { REC.won++; REC.streak++; REC.best = Math.max(REC.best, REC.streak); } else REC.streak = 0;
+    save();
+  }
+  let title, sub;
+  if (M.over) {
+    const w = M.winners;
+    title = w.includes(0) ? (w.length > 1 ? 'You share the win' : 'You win the match!') : `${w.map(p => NAMES[p]).join(' & ')} ${w.length > 1 ? 'share' : 'wins'} the match`;
+    sub = `${NAMES[M.scores.indexOf(Math.max(...M.scores))]} went past ${CE.TARGET} · lowest score wins`;
+  } else {
+    title = out < 0 ? 'Blocked' : out === 0 ? 'You go out!' : `${NAMES[out]} goes out`;
+    sub = `Hand ${M.round} · at ${CE.TARGET} the lowest score wins`;
+  }
+  const rec = M.over ? `<div class="rec">Matches won ${REC.won} of ${REC.played}${REC.streak > 1 ? ` · ${REC.streak} in a row` : ''}${REC.best > 1 ? ` · best run ${REC.best}` : ''}</div>` : '';
+  await new Promise(res => {
+    const w0 = M.over ? M.winners[0] : -1;
+    const crown = '<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M18 70 12 32l20 17 18-27 18 27 20-17-6 38z" fill="#1e1c24"/><rect x="18" y="74" width="64" height="9" rx="3" fill="#1e1c24"/></svg>';
+    const seal = !M.over ? '' : w0 === 0 ? `<div class="seal crown">${crown}</div>` : `<div class="seal">${portrait(FID[w0], 'happy')}</div>`;
+    sheet(`${seal}<h2>${title}</h2><div class="sub">${sub}</div>${scoreRows(h.penalties)}<button class="btn" id="next">${M.over ? 'New match' : 'Next hand'}</button>${rec}`);
+    countUp();
+    if (M.over && M.winners.includes(0)) setTimeout(() => rain(160), 300);
+    $('#next').onclick = () => { audio(); res(); };
+    setTimeout(() => $('#next') && $('#next').focus({preventScroll: true}), 400);
+  });
+  if (gen !== GEN) throw abort;
+  closeSheet();
+  for (let p = 1; p < 4; p++) mood(p, 'calm', 0);
+  if (M.over) { M = CE.newMatch(newSeed()); save(); await dealIn(gen, true); }
+  else { CE.nextHand(M); save(); await dealIn(gen, false); }
+}
+
+/* ---------- menu */
+function openMenu() {
+  if ($('#veil').classList.contains('on')) return;
+  const live = M && !M.over && (M.round > 1 || M.h.discard.length > 1 || M.h.hands[0].length !== 5);
+  const draw = () => sheet(`<h2>Crazy Eights</h2><div class="sub">Hand ${M.round} · first to ${CE.TARGET} loses, lowest wins</div>
+    ${scoreRows(null)}
+    <button class="btn" id="resume">Resume</button>
+    <button class="btn ghost" id="new">New match</button>
+    <button class="btn ghost" id="snd">Sound: ${SET.sound ? 'on' : 'off'}</button>
+    <ul class="rules"><li>Match the top card's suit or its rank.</li><li>Eights are wild: play one any time and name the next suit.</li>
+    <li>No card fits? Draw one. If it fits, it goes straight down.</li><li>A crossed-out suit on a portrait: they drew instead of following it, so they hold none.</li>
+    <li>Empty your hand first. The others pay what they hold - an eight costs 50. When anyone passes 100, the lowest score wins.</li></ul>
+    <div class="rec">Matches won ${REC.won} of ${REC.played}${REC.best > 1 ? ` · best run ${REC.best}` : ''}</div>
+    <div class="foot"><a href="https://www.gptgames.dev/" target="_blank" rel="noopener">gptgames.dev</a></div>`, closeSheet);
+  draw();
+  const wire = () => {
+    $('#resume').onclick = closeSheet;
+    $('#snd').onclick = () => { SET.sound = !SET.sound; save(); $('#snd').textContent = 'Sound: ' + (SET.sound ? 'on' : 'off'); if (SET.sound) { audio(); SND.play('h'); } };
+    $('#new').onclick = () => {
+      const b = $('#new');
+      if (live && !b.classList.contains('warn')) { b.classList.add('warn'); b.textContent = 'Tap again to abandon this match'; return; }
+      closeSheet(); startMatch(newSeed(), true);
+    };
+  };
+  wire();
+}
+$('#menuBtn').addEventListener('click', () => { audio(); openMenu(); });
+
+/* ---------- start */
+const newSeed = () => (Math.random() * 4294967296) >>> 0;
+function startMatch(seed, mark) {
+  const gen = ++GEN;
+  $('#mark').classList.remove('on');
+  if (ask) ask = null;
+  $('#pick').classList.remove('on', 'open');
+  M = CE.newMatch(seed); save();
+  for (let p = 1; p < 4; p++) mood(p, 'calm', 0);
+  dealIn(gen, mark).then(() => loop(gen)).catch(e => { if (e !== abort) throw e; });
+}
+function resume() {
+  const gen = ++GEN;
+  UI.hideSuit = false; UI.peek = null;
+  $('#mark').classList.remove('on'); UI.pending = null; ask = null; $('#pick').classList.remove('on', 'open');
+  for (let p = 1; p < 4; p++) mood(p, 'calm', 0);
+  UI.reveal = M.h.over;
+  stage.classList.add('instant'); render(); void stage.offsetWidth; stage.classList.remove('instant');
+  loop(gen);
+}
+(async () => {
+  try { await document.fonts.ready; } catch (e) {}
+  document.documentElement.style.transition = 'none';
+  setTimeout(() => { document.documentElement.style.transition = ''; }, 80);
+  const q = new URLSearchParams(location.search).get('seed');
+  const saved = load();
+  if (q !== null && /^\d+$/.test(q) && !(saved && saved.seed === (+q >>> 0) && saved.round === 1)) startMatch(+q, true);
+  else if (saved) { M = saved; resume(); }
+  else startMatch(newSeed(), true);
+})();
+</script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>疯狂八</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成·疯狂八纸牌</div>
+<div class="cn-guide-tip">💡 点击手中与牌堆顶花色或点数相同的牌打出，无牌可出则点牌堆摸牌。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

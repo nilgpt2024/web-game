@@ -717,4 +717,678 @@
                         text: pts + (combo > 1 ? `  x${combo}` : ''),
                         rare: d.rare
                     });
-                 
+                    for (let i = 0; i < 10; i++) feathers.push({
+                        x: d.x, y: d.y, vx: rnd(-50, 50), vy: rnd(-70, 10), t: 0,
+                        col: i % 3 === 0 ? '#fff' : DUCK_COLORS[d.type].belly, r: rnd(0, Math.PI)
+                    });
+                    if (d.rare) dropPickup(d.x, d.y, ['shell', 'freeze', 'double'][irnd(0, 2)]);
+                    if (!muted) SFX.hit();
+                }
+                break;
+            }
+        }
+        if (!hitAny) {
+            combo = 0;
+            perfectRound = false;
+        }
+        if (ammo === 0) {
+            const flying = ducks.filter(d => d.mode === 'fly');
+            if (flying.length) {
+                flying.forEach(d => d.mode = 'flyaway');
+                if (!muted) SFX.flyoff();
+                dog = {t: 0, mode: 'laugh', x: W / 2, count: 0};
+                if (!muted) setTimeout(() => {
+                    if (!muted) SFX.laugh();
+                }, 500);
+                perfectRound = false;
+            }
+        }
+    }
+
+    /* ---------------- Power-ups ---------------- */
+    const PICKUP_INFO = {
+        shell: {col: '#ffd23f', label: '+1 SHELL'},
+        freeze: {col: '#7fd8ff', label: 'TIME FREEZE'},
+        double: {col: '#ff7fd0', label: 'DOUBLE POINTS'},
+    };
+
+    function dropPickup(x, y, kind) {
+        pickups.push({x, y, vy: 26, kind, t: 0, taken: false});
+    }
+
+    function applyPickup(kind, x, y) {
+        if (!muted) SFX.power();
+        popups.push({x, y: y - 10, t: 0, text: PICKUP_INFO[kind].label, rare: true});
+        if (kind === 'shell') ammo = Math.min(ammo + 1, 6);
+        if (kind === 'freeze') freezeT = 4;
+        if (kind === 'double') doubleT = 8;
+    }
+
+    function updatePickups(dt) {
+        for (const p of pickups) {
+            p.t += dt;
+            if (!p.taken) {
+                p.y += p.vy * dt;
+                p.x += Math.sin(p.t * 3) * 12 * dt;
+            }
+            if (p.y > H - 66) p.taken = true;  // lost in the grass
+        }
+        pickups = pickups.filter(p => !p.taken);
+    }
+
+    function drawPickups() {
+        for (const p of pickups) {
+            const info = PICKUP_INFO[p.kind];
+            cx.save();
+            cx.translate(Math.round(p.x), Math.round(p.y));
+            // tiny parachute
+            cx.fillStyle = '#e8e8ec';
+            cx.fillRect(-7, -14, 14, 4);
+            cx.fillRect(-5, -16, 10, 2);
+            cx.strokeStyle = 'rgba(255,255,255,0.6)';
+            cx.lineWidth = 1;
+            cx.beginPath();
+            cx.moveTo(-6, -10);
+            cx.lineTo(-3, -2);
+            cx.moveTo(6, -10);
+            cx.lineTo(3, -2);
+            cx.stroke();
+            // crate, pulsing
+            const pulse = frame % 30 < 15;
+            cx.fillStyle = pulse ? '#fff' : info.col;
+            cx.fillRect(-5, -2, 10, 10);
+            cx.fillStyle = '#000';
+            cx.font = 'bold 8px monospace';
+            cx.textAlign = 'center';
+            cx.fillText(p.kind === 'shell' ? '+' : (p.kind === 'freeze' ? '❄' : '2×'), 0, 6);
+            cx.restore();
+        }
+    }
+
+    /* ---------------- Wave / round flow ---------------- */
+    function startRound(r) {
+        round = r;
+        wave = 0;
+        hitsThisRound = 0;
+        ducksThisRound = 0;
+        perfectRound = true;
+        cardText = `ROUND ${r}`;
+        cardSub = r === 1 ? 'CLICK TO SHOOT · 3 SHELLS PER WAVE'
+            : r % 3 === 0 ? 'SOMETHING BIG IS COMING...'
+                : (r >= 4 ? 'DUSK FALLS. THEY FLY FASTER.' : 'THEY FLY FASTER NOW');
+        state = ST.ROUNDCARD;
+        cardTimer = 1.8;
+        if (!muted) SFX.round();
+    }
+
+    function nextWave() {
+        wave++;
+        if (wave > wavesPerRound) {
+            // round over: need 60% hits to advance
+            const need = Math.ceil(ducksThisRound * 0.6);
+            if (hitsThisRound >= need) {
+                if (perfectRound) {
+                    score += 1000 * round;
+                    if (!muted) SFX.perfect();
+                    popups.push({x: W / 2, y: H / 2 - 30, t: 0, text: `PERFECT! +${1000 * round}`, rare: true});
+                }
+                startRound(round + 1);
+            } else {
+                state = ST.GAMEOVER;
+                cardTimer = 0;
+                best = Math.max(best, score);
+                store.set('duckhunt26_best', String(best));
+                stopMusic();
+                if (!muted) SFX.over();
+            }
+            return;
+        }
+        spawnDucks();
+    }
+
+    /* ---------------- Input ---------------- */
+    function toGame(e) {
+        const r = cv.getBoundingClientRect();
+        const px = ((e.clientX ?? e.touches?.[0]?.clientX) - r.left) / r.width * W;
+        const py = ((e.clientY ?? e.touches?.[0]?.clientY) - r.top) / r.height * H;
+        return {x: clamp(px, 0, W), y: clamp(py, 0, H)};
+    }
+
+    cv.addEventListener('mousemove', e => {
+        const p = toGame(e);
+        mouse.x = p.x;
+        mouse.y = p.y;
+        mouse.inside = true;
+    });
+    cv.addEventListener('mouseleave', () => mouse.inside = false);
+    cv.addEventListener('mousedown', e => {
+        const p = toGame(e);
+        press(p.x, p.y);
+    });
+    cv.addEventListener('touchstart', e => {
+        e.preventDefault();
+        const p = toGame(e);
+        mouse.x = p.x;
+        mouse.y = p.y;
+        mouse.inside = true;
+        press(p.x, p.y);
+    }, {passive: false});
+    addEventListener('keydown', e => {
+        if (e.key === 'm' || e.key === 'M') muted = !muted;
+        if ((e.key === 'Enter' || e.key === ' ') && (state === ST.TITLE || state === ST.GAMEOVER)) beginGame();
+    });
+
+    function press(x, y) {
+        ac(); // unlock audio
+        if (state === ST.TITLE || state === ST.GAMEOVER) {
+            beginGame();
+            return;
+        }
+        if (state === ST.ROUNDCARD) return;
+        shoot(x, y);
+    }
+
+    function beginGame() {
+        score = 0;
+        combo = 0;
+        ducks = [];
+        feathers = [];
+        popups = [];
+        dog = null;
+        pickups = [];
+        freezeT = 0;
+        doubleT = 0;
+        bossWave = false;
+        startMusic(true);   // full band
+        startRound(1);
+    }
+
+    /* ---------------- Update ---------------- */
+    let last = performance.now();
+
+    function loop(now) {
+        const dt = Math.min(0.05, (now - last) / 1000);
+        last = now;
+        time += dt;
+        frame++;
+        titlePulse += dt;
+
+        shake = Math.max(0, shake - dt * 30);
+        flash = Math.max(0, flash - dt * 3);
+        freezeT = Math.max(0, freezeT - dt);
+        doubleT = Math.max(0, doubleT - dt);
+        if (comboTimer > 0) {
+            comboTimer -= dt;
+            if (comboTimer <= 0) combo = 0;
+        }
+        clouds.forEach(c => {
+            c.x += c.v * dt;
+            if (c.x > W + 60) c.x = -60;
+        });
+        feathers.forEach(f => {
+            f.t += dt;
+            f.x += f.vx * dt;
+            f.y += f.vy * dt;
+            f.vy += 80 * dt;
+            f.r += dt * 4;
+        });
+        feathers = feathers.filter(f => f.t < 1.4);
+        popups.forEach(p => {
+            p.t += dt;
+            p.y -= 20 * dt;
+        });
+        popups = popups.filter(p => p.t < 1.2);
+        updatePickups(dt);
+        // fireflies drift in at dusk
+        const duskAmt = skyT();
+        if (duskAmt > 0.35 && fireflies.length < 14 && Math.random() < dt * 2) {
+            fireflies.push({x: rnd(0, W), y: rnd(H - 140, H - 60), ph: rnd(0, 6), vx: rnd(-8, 8), vy: rnd(-4, 4)});
+        }
+        fireflies.forEach(f => {
+            f.ph += dt * 3;
+            f.x += f.vx * dt;
+            f.y += f.vy * dt;
+            if (Math.random() < dt * 0.4) {
+                f.vx = rnd(-10, 10);
+                f.vy = rnd(-6, 6);
+            }
+            f.x = clamp(f.x, 0, W);
+            f.y = clamp(f.y, H - 150, H - 55);
+        });
+        if (duskAmt < 0.35) fireflies.length = 0;
+        if (flashRing) {
+            flashRing.t += dt;
+            if (flashRing.t > 0.25) flashRing = null;
+        }
+        if (dog) {
+            dog.t += dt;
+            if (dog.t > 1.6) dog = null;
+        }
+
+        if (state === ST.ROUNDCARD) {
+            cardTimer -= dt;
+            if (cardTimer <= 0) {
+                state = ST.PLAY;
+                nextWaveGate = true;
+                spawnDucks();
+                wave = 1;
+            }
+        } else if (state === ST.PLAY) {
+            updateDucks(dt);
+            waveTimer -= dt;
+            const active = ducks.filter(d => d.mode !== 'gone');
+            if (waveTimer <= 0) {
+                const flying = ducks.filter(d => d.mode === 'fly');
+                if (flying.length) {
+                    flying.forEach(d => d.mode = 'flyaway');
+                    if (!muted) SFX.flyoff();
+                    dog = {t: 0, mode: 'laugh', x: W / 2, count: 0};
+                    if (!muted) setTimeout(() => {
+                        if (!muted) SFX.laugh();
+                    }, 400);
+                    perfectRound = false;
+                }
+                waveTimer = 99; // wait for flyaway to clear
+            }
+            if (active.length === 0) nextWave();
+        }
+
+        draw();
+        requestAnimationFrame(loop);
+    }
+
+    let nextWaveGate = false;
+
+    function shakeVal() {
+        return shake > 0;
+    }
+
+    /* ---------------- Drawing ---------------- */
+    function draw() {
+        const t = skyT();
+        cx.save();
+        if (shake > 0) cx.translate(rnd(-shake, shake), rnd(-shake, shake));
+
+        // sky
+        const g = cx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, lerpColor(SKY_TOP[0], SKY_TOP[1], t));
+        g.addColorStop(1, lerpColor(SKY_BOT[0], SKY_BOT[1], t));
+        cx.fillStyle = g;
+        cx.fillRect(0, 0, W, H);
+
+        // sun / moon
+        const sunY = lerp(46, 190, t);
+        cx.fillStyle = t < 0.5 ? '#fff3b0' : '#ffb454';
+        cx.beginPath();
+        cx.arc(W - 80, sunY, 16, 0, 7);
+        cx.fill();
+        if (t > 0.6) {
+            cx.fillStyle = '#e8e8f8';
+            cx.beginPath();
+            cx.arc(70, 50, 10, 0, 7);
+            cx.fill();
+            cx.fillStyle = lerpColor(SKY_TOP[0], SKY_TOP[1], t);
+            cx.beginPath();
+            cx.arc(74, 47, 9, 0, 7);
+            cx.fill();
+        }
+        // stars at dusk
+        if (t > 0.5) {
+            cx.fillStyle = 'rgba(255,255,255,' + ((t - 0.5) * 2 * 0.8) + ')';
+            for (let i = 0; i < 24; i++) {
+                const sx = (i * 97) % W, sy = (i * 53) % 120;
+                if ((frame + i * 7) % 90 < 80) cx.fillRect(sx, sy, 1, 1);
+            }
+        }
+
+        // clouds
+        clouds.forEach(c => {
+            cx.fillStyle = `rgba(255,255,255,${lerp(0.85, 0.25, t)})`;
+            const s = c.s;
+            cx.fillRect(c.x, c.y, 34 * s, 8 * s);
+            cx.fillRect(c.x + 6 * s, c.y - 5 * s, 20 * s, 6 * s);
+        });
+
+        // distant treeline: proper pixel trees (trunk + layered canopy)
+        const treeCol = lerpColor(TREE_COL[0], TREE_COL[1], t);
+        const treeDark = lerpColor([24, 78, 30], [16, 36, 32], t);
+        const trunkCol = lerpColor([92, 62, 34], [44, 34, 30], t);
+        for (const tr of TREES) {
+            const bx = tr.x, base = H - 58, s = tr.s;
+            // trunk
+            cx.fillStyle = trunkCol;
+            cx.fillRect(bx - 2 * s, base - 14 * s, 4 * s, 14 * s);
+            // canopy: three stacked, narrowing blobs
+            cx.fillStyle = treeCol;
+            cx.fillRect(bx - 13 * s, base - 26 * s, 26 * s, 13 * s);
+            cx.fillRect(bx - 10 * s, base - 35 * s, 20 * s, 11 * s);
+            cx.fillRect(bx - 6 * s, base - 42 * s, 12 * s, 9 * s);
+            // shading on the right side + under-canopy
+            cx.fillStyle = treeDark;
+            cx.fillRect(bx + 5 * s, base - 26 * s, 8 * s, 13 * s);
+            cx.fillRect(bx + 3 * s, base - 35 * s, 7 * s, 11 * s);
+            cx.fillRect(bx + 1 * s, base - 42 * s, 5 * s, 9 * s);
+            cx.fillRect(bx - 13 * s, base - 15 * s, 26 * s, 2 * s);
+        }
+
+        // ducks behind grass
+        ducks.forEach(drawDuck);
+
+        // pickups drift down over everything airborne
+        drawPickups();
+
+        // fireflies (dusk ambience)
+        fireflies.forEach(f => {
+            const glow = (Math.sin(f.ph) + 1) / 2;
+            cx.fillStyle = `rgba(220,255,140,${0.25 + glow * 0.65})`;
+            cx.fillRect(Math.round(f.x), Math.round(f.y), 2, 2);
+        });
+
+        // feathers
+        feathers.forEach(f => {
+            cx.save();
+            cx.translate(f.x, f.y);
+            cx.rotate(f.r);
+            cx.fillStyle = f.col;
+            cx.globalAlpha = clamp(1.4 - f.t, 0, 1);
+            cx.fillRect(-2, -1, 4, 2);
+            cx.restore();
+        });
+
+        // grass
+        cx.fillStyle = lerpColor(GRASS_A[0], GRASS_A[1], t);
+        cx.fillRect(0, H - 60, W, 60);
+        cx.fillStyle = lerpColor(GRASS_B[0], GRASS_B[1], t);
+        for (let i = 0; i < W; i += 8) {
+            const h = 6 + ((i * 13) % 9);
+            cx.fillRect(i, H - 60, 4, -h);
+        }
+        // bush left, bush right
+        cx.fillStyle = lerpColor(GRASS_B[0], GRASS_B[1], t);
+        cx.fillRect(10, H - 84, 44, 30);
+        cx.fillRect(20, H - 94, 24, 14);
+        cx.fillRect(W - 60, H - 80, 46, 26);
+
+        // dog
+        if (dog) drawDog(dog);
+
+        // active power-up ambience
+        if (freezeT > 0) {
+            cx.fillStyle = `rgba(127,216,255,${Math.min(0.16, freezeT * 0.1)})`;
+            cx.fillRect(0, 0, W, H);
+        }
+
+        // popups
+        popups.forEach(p => {
+            cx.font = 'bold 10px monospace';
+            cx.textAlign = 'center';
+            cx.fillStyle = p.rare ? '#ffd23f' : '#ffffff';
+            cx.globalAlpha = clamp(1.2 - p.t, 0, 1);
+            cx.fillText(p.text, p.x, p.y);
+            cx.globalAlpha = 1;
+        });
+
+        // muzzle flash ring
+        if (flashRing) {
+            const r = flashRing.t * 90;
+            cx.strokeStyle = `rgba(255,240,180,${1 - flashRing.t * 4})`;
+            cx.lineWidth = 2;
+            cx.beginPath();
+            cx.arc(flashRing.x, flashRing.y, r, 0, 7);
+            cx.stroke();
+        }
+
+        // HUD
+        if (state === ST.PLAY || state === ST.ROUNDCARD) drawHUD(t);
+
+        // screens
+        if (state === ST.TITLE) drawTitle();
+        if (state === ST.ROUNDCARD) drawCard();
+        if (state === ST.GAMEOVER) drawGameOver();
+
+        // crosshair
+        if (mouse.inside) drawCrosshair(mouse.x, mouse.y);
+
+        // white flash on shot
+        if (flash > 0) {
+            cx.fillStyle = `rgba(255,255,255,${flash * 0.5})`;
+            cx.fillRect(0, 0, W, H);
+        }
+
+        cx.restore();
+    }
+
+    function drawHUD(t) {
+        cx.font = 'bold 11px monospace';
+        cx.textAlign = 'left';
+        cx.fillStyle = 'rgba(0,0,0,0.35)';
+        cx.fillRect(0, 0, W, 20);
+        cx.fillStyle = '#fff';
+        cx.fillText('SCORE ' + String(score).padStart(6, '0'), 8, 14);
+        cx.textAlign = 'center';
+        cx.fillText('R' + round + ' · WAVE ' + Math.min(wave, wavesPerRound) + '/' + wavesPerRound, W / 2, 14);
+        // shells (up to 6 with pickups)
+        cx.textAlign = 'right';
+        const maxShells = Math.max(3, ammo);
+        for (let i = 0; i < maxShells; i++) {
+            cx.fillStyle = i < ammo ? '#ffd23f' : 'rgba(255,255,255,0.2)';
+            cx.fillRect(W - 14 - i * 10, 5, 6, 10);
+            cx.fillStyle = i < ammo ? '#e07020' : 'rgba(255,255,255,0.12)';
+            cx.fillRect(W - 14 - i * 10, 5, 6, 3);
+        }
+        // active effect badges under the shell row
+        let bx = W - 8;
+        if (freezeT > 0) {
+            cx.font = 'bold 9px monospace';
+            cx.textAlign = 'right';
+            cx.fillStyle = '#7fd8ff';
+            cx.fillText('❄ ' + freezeT.toFixed(1), bx, 30);
+            bx -= 54;
+        }
+        if (doubleT > 0) {
+            cx.font = 'bold 9px monospace';
+            cx.textAlign = 'right';
+            cx.fillStyle = '#ff7fd0';
+            cx.fillText('2× ' + doubleT.toFixed(1), bx, 30);
+        }
+        // boss banner
+        if (bossWave && ducks.some(d => d.boss && d.mode === 'fly')) {
+            cx.font = 'bold 11px monospace';
+            cx.textAlign = 'center';
+            cx.fillStyle = frame % 40 < 24 ? '#ff5a3c' : '#ffd23f';
+            cx.fillText('!! BOSS GOOSE !!', W / 2, 40);
+        }
+        // hit meter bottom
+        const need = Math.ceil(Math.max(ducksThisRound, wavesPerRound) * 0.6);
+        cx.textAlign = 'left';
+        cx.fillStyle = 'rgba(255,255,255,0.8)';
+        cx.font = '9px monospace';
+        cx.fillText('HITS ' + hitsThisRound, 8, H - 8);
+        if (combo > 1) {
+            cx.textAlign = 'center';
+            cx.font = 'bold 12px monospace';
+            cx.fillStyle = '#ffd23f';
+            cx.fillText('COMBO x' + combo, W / 2, H - 8);
+        }
+        // wave timer bar
+        if (state === ST.PLAY && waveTimer < 90) {
+            const maxT = Math.max(4.5, 8 - round * 0.5);
+            const frac = clamp(waveTimer / maxT, 0, 1);
+            cx.fillStyle = 'rgba(0,0,0,0.3)';
+            cx.fillRect(W / 2 - 40, 24, 80, 4);
+            cx.fillStyle = frac < 0.3 ? '#ff5a3c' : '#ffd23f';
+            cx.fillRect(W / 2 - 40, 24, 80 * frac, 4);
+        }
+        cx.fillStyle = 'rgba(255,255,255,0.4)';
+        cx.font = '8px monospace';
+        cx.textAlign = 'right';
+        cx.fillText(muted ? '[M] UNMUTE' : '[M] MUTE', W - 8, H - 8);
+    }
+
+    function drawCrosshair(x, y) {
+        cx.strokeStyle = '#fff';
+        cx.lineWidth = 1;
+        cx.beginPath();
+        cx.arc(x, y, 7, 0, 7);
+        cx.stroke();
+        cx.beginPath();
+        cx.moveTo(x - 11, y);
+        cx.lineTo(x - 4, y);
+        cx.moveTo(x + 4, y);
+        cx.lineTo(x + 11, y);
+        cx.moveTo(x, y - 11);
+        cx.lineTo(x, y - 4);
+        cx.moveTo(x, y + 4);
+        cx.lineTo(x, y + 11);
+        cx.stroke();
+        cx.fillStyle = '#ff5a3c';
+        cx.fillRect(x - 1, y - 1, 2, 2);
+    }
+
+    function drawDog(d) {
+        // pixel dog rising from grass
+        const rise = d.t < 0.4 ? d.t / 0.4 : (d.t > 1.2 ? 1 - (d.t - 1.2) / 0.4 : 1);
+        const baseY = H - 52 + (1 - clamp(rise, 0, 1)) * 40;
+        const x = d.mode === 'fetch' ? clamp(d.x, 40, W - 40) : W / 2;
+        cx.save();
+        cx.beginPath();
+        cx.rect(0, 0, W, H - 52);
+        cx.clip();
+        const p = (ox, oy, w, h, c) => {
+            cx.fillStyle = c;
+            cx.fillRect(Math.round(x + ox), Math.round(baseY + oy), w, h);
+        };
+        // body
+        p(-12, -16, 24, 16, '#b07830');
+        p(-14, -20, 12, 10, '#b07830');   // head
+        p(-16, -18, 4, 4, '#7a4c18');     // snout
+        p(-6, -24, 4, 6, '#7a4c18');      // ear
+        p(-11, -18, 2, 2, '#000');        // eye
+        if (d.mode === 'laugh') {
+            // bouncing + open mouth
+            const b = Math.abs(Math.sin(d.t * 12)) * 3;
+            cx.translate(0, -b);
+            p(-16, -14, 5, 3, '#802020');   // laughing mouth
+            if (Math.floor(d.t * 8) % 2 === 0) {
+                cx.font = 'bold 9px monospace';
+                cx.fillStyle = '#fff';
+                cx.textAlign = 'center';
+                cx.fillText('HA HA!', x, baseY - 30);
+            }
+        } else {
+            // holds duck up
+            p(-2, -30, 14, 10, '#7a4a1e');
+            p(8, -34, 7, 6, '#1e6b2e');
+            cx.font = '8px monospace';
+            cx.fillStyle = '#fff';
+            cx.textAlign = 'center';
+            cx.fillText('GOT IT!', x, baseY - 38);
+        }
+        cx.restore();
+    }
+
+    function drawTitle() {
+        cx.fillStyle = 'rgba(6,8,24,0.55)';
+        cx.fillRect(0, 0, W, H);
+        const bob = Math.sin(titlePulse * 2) * 3;
+        cx.textAlign = 'center';
+        cx.font = 'bold 34px monospace';
+        cx.fillStyle = '#000';
+        cx.fillText('DUCK HUNT', W / 2 + 2, 96 + bob + 2);
+        cx.fillStyle = '#ffd23f';
+        cx.fillText('DUCK HUNT', W / 2, 96 + bob);
+        cx.font = 'bold 14px monospace';
+        cx.fillStyle = '#ff5a3c';
+        cx.fillText("'26", W / 2 + 92, 78 + bob);
+        // demo duck flying across
+        const dx = (titlePulse * 60) % (W + 80) - 40;
+        cx.save();
+        cx.translate(dx, 140 + Math.sin(titlePulse * 3) * 10);
+        drawDuck({x: 0, y: 0, vx: 1, vy: 0, flap: titlePulse * 10, mode: 'fly', type: 0, rare: false, stateT: 0});
+        cx.restore();
+        cx.font = '11px monospace';
+        cx.fillStyle = '#fff';
+        cx.fillText('3 shells per wave · hit 60% to advance', W / 2, 186);
+        cx.fillText('blue ducks drop power-ups · click crates to grab them', W / 2, 202);
+        cx.fillText('every 3rd round: the BOSS GOOSE', W / 2, 218);
+        if (Math.floor(titlePulse * 2) % 2 === 0) {
+            cx.font = 'bold 13px monospace';
+            cx.fillStyle = '#ffd23f';
+            cx.fillText('CLICK TO START', W / 2, 240);
+        }
+        if (best > 0) {
+            cx.font = '10px monospace';
+            cx.fillStyle = 'rgba(255,255,255,.7)';
+            cx.fillText('BEST ' + best, W / 2, 262);
+        }
+    }
+
+    function drawCard() {
+        cx.fillStyle = 'rgba(0,0,0,0.45)';
+        cx.fillRect(0, H / 2 - 36, W, 72);
+        cx.textAlign = 'center';
+        cx.font = 'bold 22px monospace';
+        cx.fillStyle = '#ffd23f';
+        cx.fillText(cardText, W / 2, H / 2 - 4);
+        cx.font = '10px monospace';
+        cx.fillStyle = '#fff';
+        cx.fillText(cardSub, W / 2, H / 2 + 18);
+    }
+
+    function drawGameOver() {
+        cx.fillStyle = 'rgba(6,8,24,0.6)';
+        cx.fillRect(0, 0, W, H);
+        cx.textAlign = 'center';
+        cx.font = 'bold 26px monospace';
+        cx.fillStyle = '#ff5a3c';
+        cx.fillText('THE DUCKS WON', W / 2, 110);
+        cx.font = 'bold 14px monospace';
+        cx.fillStyle = '#fff';
+        cx.fillText('SCORE  ' + score, W / 2, 150);
+        cx.fillStyle = score >= best && score > 0 ? '#ffd23f' : 'rgba(255,255,255,.7)';
+        cx.font = '11px monospace';
+        cx.fillText((score >= best && score > 0 ? '★ NEW BEST ★' : 'BEST  ' + best), W / 2, 172);
+        cx.fillText('you reached round ' + round, W / 2, 194);
+        if (Math.floor(time * 2) % 2 === 0) {
+            cx.font = 'bold 12px monospace';
+            cx.fillStyle = '#ffd23f';
+            cx.fillText('CLICK TO HUNT AGAIN', W / 2, 232);
+        }
+    }
+
+    requestAnimationFrame(loop);
+</script>
+<script src="../logo.js"></script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>打鸭子</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成的经典打鸭子游戏</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

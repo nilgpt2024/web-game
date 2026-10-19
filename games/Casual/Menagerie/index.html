@@ -586,4 +586,1254 @@ function nameOf(plan){
   let len=0; for(const seg of plan.spine) len+=seg.len;
   const h=Math.round((len*13+plan.height*29+plan.bodyR*97+plan.freq*11+S*7+legs*23)*61)>>>0;
   const genus=BY_LEGS[legs]||'Multipes';
-  const build=len>1.7?'longa':plan.height>0.85?'procera':plan.bodyR>0.24?'crassa':BY_BUILD[h%BY
+  const build=len>1.7?'longa':plan.height>0.85?'procera':plan.bodyR>0.24?'crassa':BY_BUILD[h%BY_BUILD.length];
+  return genus+' '+build.replace(/a$/, legs===1?'':'a')+' '+SPECIES[(h>>3)%SPECIES.length];
+}
+/* a plain-English reading of the plan, for the corner of the screen */
+function planLine(plan){
+  if(!plan) return '';
+  if(plan.plan) plan=plan.plan;
+  const l=limbCount(plan), S=plan.spine.length;
+  let pairs=0; for(const L of plan.legs) if(L.pair) pairs++;
+  return (l===0?'no legs':l===1?'one leg':l+' legs')+
+         (pairs?' ('+pairs+(pairs>1?' pairs)':' pair)'):'')+' · '+
+         (S===1?'1 segment':S+' segments');
+}
+
+/* ---------- species ----------
+   The old run had one population and one winner, and by generation ten every
+   animal on screen was a copy of it: a new body plan is worse than a refined one
+   on the day it appears, so it was always bred out before it could get good. That
+   is the whole reason a run looked like eighty of the same creature.
+
+   So the population is now cut into species — one per (limb count, segment count),
+   the same two numbers the name is read off — and each species is scored on its
+   own mean and breeds into its own quota. A three-limbed newcomer competes with
+   other three-limbed things, not with the reigning quadruped, and gets a floor of
+   places while it learns. Six fresh strangers arrive every generation regardless,
+   so there is always something new trying; a species that has not improved in
+   thirty generations is retired to make room. */
+const MAX_SPECIES=6, IMMIGRANTS=6, SPECIES_FLOOR=6, STAGNATE=30;
+function speciesKey(p){ if(p&&p.plan)p=p.plan; return limbCount(p)+':'+p.spine.length; }
+/* Nine colours, one per limb count, picked to be told apart at the size of a
+   census stripe rather than to sit on a smooth ramp. Two hue sweeps were tried
+   first and both failed the same way: whatever the endpoints, a run's species all
+   land within two or three limbs of each other, so a sweep hands them adjacent
+   hues and the bar comes out one colour. Distinctness has to be built in per
+   value, not interpolated. Amber is left out of the set — it means "the leader" —
+   and a longer back pales the colour, which is the one axis that can be a gradient
+   because it is the second one. */
+const LIMBCOL=['#4aa8d8','#9d7ee6','#57c08a','#e2749f','#6e93e8',
+               '#cf6f6f','#45bfb8','#c07ddd','#a8c455'];
+function hex2rgb(h){ return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)); }
+const speciesBook=new Map();
+function speciesOf(key){
+  let sp=speciesBook.get(key);
+  if(!sp){
+    const [limbs,segs]=key.split(':').map(Number);
+    /* A short back darkens the colour and a long one washes it out. At a gentler
+       step the three commonest species of a run — same limbs, one, three and four
+       segments — came out as three stripes of the same teal. */
+    const t=Math.max(-0.30,Math.min(0.50,(segs-2)*0.17));
+    const rgb=hex2rgb(LIMBCOL[Math.min(8,limbs)])
+      .map(v=>Math.round(t>=0 ? v+(255-v)*t : v*(1+t)));
+    sp={key,limbs,segs,rgb,css:'rgb('+rgb.join(',')+')',trio:rgb.join(','),
+        best:0, since:state.gen, label:(BY_LEGS[limbs]||'Multipes')};
+    speciesBook.set(key,sp);
+  }
+  return sp;
+}
+
+/* ---------- the population ---------- */
+/* Eighty, not thirty-four. The flatlining was never a selection problem: at 34 the
+   population cannot afford more than one lineage, so within a few generations
+   everything is a copy of the champion and a new body plan has nowhere to live.
+   Measured over 250 generations on flat ground — 34: 7.31m and the leading animal
+   changed shape 1.5 times; 48: 8.39m, 3.5 times; 64: 9.44m, 6 times; 96: 10.62m,
+   7 times. Novelty search with local competition, the published fix for exactly
+   this symptom, was tried first and came out worse (6.37m, 251 generations flat),
+   because splitting 34 creatures across behavioural niches leaves about five in
+   each — too few to optimise anything. The cheap answer was the right one. */
+const POP=80;
+let nudged=false;
+const state={gen:1, pop:[], live:[], stepN:0, playing:true, speed:2, history:[], stale:0,
+  best:0, bestGen:null, champIx:0, rnd:mulberry32(1), seed:1, guest:null, census:[], solved:false};
+
+function seedPopulation(seed){
+  state.seed=seed; state.rnd=mulberry32(seed);
+  state.pop=[]; for(let i=0;i<POP;i++) state.pop.push(randomPlan(state.rnd));
+  state.gen=1; state.best=0; state.bestGen=null; state.guest=null; state.history=[]; state.stale=0;
+  state.census=[]; state.solved=false; speciesBook.clear();
+  restart();                       /* before the census is drawn, or it shows the field just discarded */
+  drawSpark(); drawMix();
+}
+function restart(){
+  state.live=state.pop.map(spawn);
+  if(state.guest) state.live.push(spawn(state.guest));
+  state.stepN=0; state.champIx=0;
+}
+function scoreAndBreed(){
+  const rnd=state.rnd;
+  const scored=state.live.map((c,i)=>({c,i,fit:c.dead?-999:c.fit}))
+                         .filter(s=>!state.guest || s.i<POP)   /* a visiting animal does not breed */
+                         .sort((a,b)=>b.fit-a.fit);
+  const champ=scored[0];
+  if(champ.fit>state.best){
+    if(state.best>0.6) sChime();
+    state.best=champ.fit; state.bestGen=clone(champ.c.plan); offerKeep(champ.c);
+    state.stale=0;
+    checkPar(champ.c);
+  } else { sGen(); state.stale++; }
+  /* When a line stops improving, let it start trying new shapes. A settled body
+     plan refines quietly for a long time, which is right, but there is nothing to
+     watch in it — this puts the structural experiments back exactly where a run
+     would otherwise go quiet. */
+  const wild = state.stale>12 ? Math.min(6, 1+(state.stale-12)*0.35) : 1;
+
+  /* --- sort the field into species --- */
+  const groups=new Map();
+  for(const s of scored){
+    const k=speciesKey(s.c.plan);
+    let g=groups.get(k); if(!g) groups.set(k,g=[]);
+    g.push(s);
+  }
+  /* A species is judged on the mean of its better half. The plain mean punishes a
+     species for the tail of duds every large group has, which handed the run
+     straight back to whichever species happened to be smallest. */
+  let specs=[...groups.entries()].map(([k,mem])=>{
+    const top=mem.slice(0,Math.max(1,Math.ceil(mem.length/2)));
+    let m=0; for(const s of top) m+=Math.max(0,s.fit);
+    return {k,mem,mean:m/top.length,best:Math.max(0,mem[0].fit),info:speciesOf(k)};
+  });
+  for(const sp of specs){
+    if(sp.best>sp.info.best+0.05){ sp.info.best=sp.best; sp.info.since=state.gen; }
+  }
+  specs.sort((a,b)=>b.mean-a.mean);
+  /* Retire the settled ones, but never the last two: a run with one species left
+     and nothing to replace it is worse than a stale run. */
+  if(specs.length>2){
+    const live=specs.filter(sp=>state.gen-sp.info.since<STAGNATE);
+    if(live.length>=2) specs=live;
+  }
+  if(specs.length>MAX_SPECIES) specs=specs.slice(0,MAX_SPECIES);
+
+  /* --- share the places out --- */
+  let slots=POP-IMMIGRANTS;
+  while(specs.length*SPECIES_FLOOR>slots && specs.length>1) specs.pop();
+  const floor=Math.min(SPECIES_FLOOR,Math.floor(slots/specs.length));
+  let pool=slots-floor*specs.length, tot=0;
+  for(const sp of specs) tot+=sp.mean;
+  const quota=specs.map(sp=>floor+(tot>0?Math.floor(pool*sp.mean/tot):Math.floor(pool/specs.length)));
+  let used=0; for(const q of quota) used+=q;
+  quota[0]+=slots-used;                      /* the rounding remainder to the best */
+
+  const next=[];
+  specs.forEach((sp,si)=>{
+    const mem=sp.mem, n=quota[si];
+    if(n<=0) return;
+    next.push(clone(mem[0].c.plan));         /* every species keeps its champion intact */
+    const pick=()=>{ const a=mem[(rnd()*mem.length)|0], b=mem[(rnd()*mem.length)|0];
+                     return (a.fit>b.fit?a:b).c.plan; };
+    for(let k=1;k<n;k++){
+      const child = (mem.length>1 && rnd()<0.3) ? crossover(pick(),pick(),rnd) : clone(pick());
+      next.push(mutate(child,rnd,0.28,wild));
+    }
+  });
+  while(next.length<POP) next.push(randomPlan(rnd));   /* the strangers */
+
+  state.census=specs.map((sp,si)=>({key:sp.k,n:quota[si],info:sp.info,mean:sp.mean}));
+  state.pop=next; state.gen++;
+  if(state.gen===5 && state.best<1.2 && !nudged){
+    nudged=true;
+    $('hint').innerHTML='The first generations are all flailing — that is the point. '+
+      '<b>Skip 25 gens</b> to get to the part where something walks.';
+  }
+  if(state.stale===14) $('hint').innerHTML='The line has stopped improving. It will start trying <b>new shapes</b> now — watch the legs.';
+  state.history.push(Math.max(0,champ.fit));
+  if(state.history.length>400) state.history.shift();
+  drawSpark(); drawMix();
+  restart();
+}
+
+/* The moment a record goes past the marker. */
+function checkPar(c){
+  if(!worldPar || state.solved || state.best<worldPar) return;
+  state.solved=true;
+  beaten[worldName]=Math.max(beaten[worldName]||0, +state.best.toFixed(1));
+  try{ localStorage.setItem('menagerie.beaten',JSON.stringify(beaten)); }catch(e){}
+  sFanfare();
+  $('hint').innerHTML='<b>'+worldName+' is crossed.</b> '+nameOf(c.plan)+' reached the marker in '+
+    state.gen+' generations. <b>New world</b> for the next one — or keep pushing.';
+  banner(worldName+' crossed', nameOf(c.plan)+' · '+state.best.toFixed(1)+'m · generation '+state.gen);
+}
+
+/* ---------- drawing ---------- */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let VW=0,VH=0,DPR=1,PPM=44,HZ=0.74,camX=START_X,camY=0;
+
+function resize(){
+  const r=cv.getBoundingClientRect();
+  DPR=Math.min(2,window.devicePixelRatio||1);
+  VW=r.width; VH=r.height;
+  cv.width=Math.round(VW*DPR); cv.height=Math.round(VH*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  PPM=Math.max(34,Math.min(74, VW/15));
+  HZ = VH>VW ? 0.66 : 0.76;   /* a tall screen should not be four-fifths empty sky */
+  bake();
+}
+addEventListener('resize',resize);
+
+const sx=x=>(x-camX)*PPM+VW*0.32;
+const sy=y=>VH*HZ-(y-camY)*PPM;
+const wx=px=>(px-VW*0.32)/PPM+camX;
+const wy=py=>(VH*HZ-py)/PPM+camY;
+
+/* ---------- scenery ---------- */
+let CLK0=performance.now();
+const clock=()=>(performance.now()-CLK0)/1000;
+
+/* Ridges drifting behind the action at a fraction of the camera's speed, each
+   hazed toward the sky colour so distance reads as distance. */
+function ridge(par,amp,lift,fill,haze){
+  /* Vertical parallax has to match horizontal parallax: a ridge drawn at a tenth
+     of the camera's horizontal speed must move at a tenth of its vertical speed
+     too. Anchored to the ground under the camera instead, the distant hills rose
+     and fell exactly in step with the animal, which is the one thing distance is
+     supposed to prevent. */
+  const y0=VH*HZ + camY*PPM*par - lift;
+  ctx.beginPath(); ctx.moveTo(0,VH);
+  for(let px=0;px<=VW;px+=5){
+    const w=(px+camX*par*PPM)/165;
+    const h=Math.sin(w)*amp + Math.sin(w*2.31+1.7)*amp*0.4 + Math.sin(w*0.43-0.6)*amp*0.8;
+    ctx.lineTo(px, y0-h);
+  }
+  ctx.lineTo(VW,VH); ctx.closePath();
+  ctx.fillStyle=fill; ctx.fill();
+  if(haze){ ctx.fillStyle=haze; ctx.fill(); }
+}
+
+/* Specks of dust hanging in the light. Cheap, and they stop the sky being dead. */
+const MOTES=[];
+for(let i=0;i<38;i++) MOTES.push({x:Math.random(),y:Math.random(),r:0.6+Math.random()*1.5,
+  s:0.1+Math.random()*0.3, ph:Math.random()*7});
+function drawMotes(){
+  const t=clock();
+  ctx.fillStyle='rgba(226,196,150,.16)';
+  for(const m of MOTES){
+    const X=((m.x*VW - camX*PPM*m.s*0.06)%VW+VW)%VW;
+    const Y=m.y*VH*0.85 + Math.sin(t*0.23+m.ph)*9;
+    ctx.beginPath(); ctx.arc(X,Y,m.r,0,7); ctx.fill();
+  }
+}
+
+/* Sky, sun and vignette never change between frames, so they are baked once per
+   resize and blitted. Rebuilding three full-screen gradients every frame was a
+   third of the frame budget. */
+let skyC=null, vigC=null;
+function bake(){
+  const mk=()=>{ const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(VW*DPR)); c.height=Math.max(1,Math.round(VH*DPR));
+    const x=c.getContext('2d'); x.setTransform(DPR,0,0,DPR,0,0); return [c,x]; };
+  let x;
+  [skyC,x]=mk();
+  const g=x.createLinearGradient(0,0,0,VH);
+  g.addColorStop(0,'#090d16'); g.addColorStop(.34,'#141d2b'); g.addColorStop(.68,'#243549');
+  g.addColorStop(.9,'#3a4a5e'); g.addColorStop(1,'#4d5768');
+  x.fillStyle=g; x.fillRect(0,0,VW,VH);
+  const sunX=VW*0.72, sunY=VH*(HZ-0.30);
+  const glow=x.createRadialGradient(sunX,sunY,0,sunX,sunY,VH*0.62);
+  glow.addColorStop(0,'rgba(252,203,138,.34)'); glow.addColorStop(.3,'rgba(226,152,94,.13)');
+  glow.addColorStop(1,'rgba(224,150,92,0)');
+  x.fillStyle=glow; x.fillRect(0,0,VW,VH);
+  x.beginPath(); x.arc(sunX,sunY,VH*0.026,0,7);
+  x.fillStyle='rgba(255,228,182,.62)'; x.fill();
+  /* a warm band lying along the horizon, under the ridges */
+  const hb=x.createLinearGradient(0,VH*(HZ-0.16),0,VH*HZ);
+  hb.addColorStop(0,'rgba(232,164,104,0)'); hb.addColorStop(1,'rgba(238,172,110,.17)');
+  x.fillStyle=hb; x.fillRect(0,VH*(HZ-0.16),VW,VH*0.16);
+
+  [vigC,x]=mk();
+  const v=x.createRadialGradient(VW*0.5,VH*0.48,VH*0.36,VW*0.5,VH*0.48,VH*0.95);
+  v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(4,7,12,.5)');
+  x.fillStyle=v; x.fillRect(0,0,VW,VH);
+}
+function drawSky(){
+  if(skyC) ctx.drawImage(skyC,0,0,VW,VH);
+  drawMotes();
+  ridge(0.07, VH*0.062, VH*0.40, '#141d29', 'rgba(58,76,98,.26)');
+  ridge(0.16, VH*0.048, VH*0.26, '#121a25', 'rgba(46,62,84,.15)');
+  ridge(0.34, VH*0.032, VH*0.125,'#101720', 'rgba(36,50,70,.07)');
+}
+
+/* ---------- particles: dust at the feet, spray at the water ---------- */
+const PARTS=[];
+function puff(x,y,vx,vy,r,life,kind){
+  if(PARTS.length>240) return;
+  PARTS.push({x,y,vx,vy,r,t:0,life,kind});
+}
+function stepParts(dt){
+  for(let i=PARTS.length-1;i>=0;i--){
+    const q=PARTS[i]; q.t+=dt;
+    if(q.t>=q.life){ PARTS.splice(i,1); continue; }
+    q.x+=q.vx*dt; q.y+=q.vy*dt;
+    if(q.kind==='spray'){ q.vy-=9.8*dt; q.vx*=0.99; }
+    else { q.vy+=0.35*dt; q.vx*=0.965; q.vy*=0.965; }   /* dust drifts up and hangs */
+  }
+}
+function drawParts(){
+  for(const q of PARTS){
+    const k=1-q.t/q.life;
+    if(q.kind==='spray'){
+      ctx.fillStyle='rgba(178,224,247,'+(k*0.75)+')';
+      ctx.beginPath(); ctx.arc(sx(q.x),sy(q.y),Math.max(0.8,q.r*PPM*(0.5+k*0.5)),0,7); ctx.fill();
+    } else {
+      ctx.fillStyle='rgba(198,180,152,'+(k*0.2)+')';
+      ctx.beginPath(); ctx.arc(sx(q.x),sy(q.y),Math.max(1,q.r*PPM*(1.15-k*0.45)),0,7); ctx.fill();
+    }
+  }
+}
+
+/* ---------- the world ---------- */
+function groundPath(){
+  ctx.moveTo(sx(0)-4000,VH); ctx.lineTo(sx(0)-4000,sy(world.h[0]));
+  for(let i=0;i<HN;i++) ctx.lineTo(sx(i*CELL),sy(world.h[i]));
+  ctx.lineTo(sx(WORLD_W)+4000,sy(world.h[HN-1])); ctx.lineTo(sx(WORLD_W)+4000,VH);
+  ctx.closePath();
+}
+function drawGround(){
+  const path=()=>{ ctx.beginPath(); groundPath(); };
+  path();
+  /* Darkens with depth, anchored to the highest ground actually on screen — a
+     world position, so the bands stay glued to the terrain. Anchored to the ground
+     under the camera they slid up and down the hillsides as the animal climbed. */
+  let topH=-1e9;
+  {
+    const a=Math.max(0,Math.floor(wx(-40)/CELL)), b=Math.min(HN-1,Math.ceil(wx(VW+40)/CELL));
+    for(let i=a;i<=b;i++) if(world.h[i]>topH) topH=world.h[i];
+    if(topH<-1e8) topH=0;
+  }
+  const gy0=sy(topH);
+  /* Spread wide on purpose: with a short ramp a valley floor two metres below the
+     ridge line came out almost black, because depth from the highest point is not
+     the same thing as depth below your own feet. The topsoil band and the strata
+     carry the near-surface reading; this only has to make the deep ground recede. */
+  const gg=ctx.createLinearGradient(0,gy0-PPM*0.3,0,gy0+VH*0.95);
+  gg.addColorStop(0,'#5e4c3a'); gg.addColorStop(.10,'#463a2c'); gg.addColorStop(.34,'#2d2419');
+  gg.addColorStop(.66,'#191309'); gg.addColorStop(1,'#0b0806');
+  ctx.fillStyle=gg; ctx.fill();
+
+  ctx.save(); path(); ctx.clip();
+  /* topsoil: a darker band hugging the surface */
+  ctx.beginPath();
+  ctx.moveTo(sx(0)-4000,sy(world.h[0]));
+  for(let i=0;i<HN;i++) ctx.lineTo(sx(i*CELL),sy(world.h[i]));
+  ctx.lineTo(sx(WORLD_W)+4000,sy(world.h[HN-1]));
+  for(let i=HN-1;i>=0;i--) ctx.lineTo(sx(i*CELL),sy(world.h[i]-0.42));
+  ctx.closePath();
+  ctx.fillStyle='rgba(104,84,58,.42)'; ctx.fill();
+  /* strata, sagging slightly so they do not look ruled */
+  ctx.lineWidth=1;
+  for(let d=0.9;d<9;d+=1.15){
+    ctx.strokeStyle='rgba(0,0,0,'+(0.19-d*0.01)+')';
+    ctx.beginPath();
+    ctx.moveTo(sx(0)-4000, sy(world.h[0]-d));
+    for(let i=0;i<HN;i+=4) ctx.lineTo(sx(i*CELL), sy(world.h[i]-d-Math.sin(i*0.19+d)*0.09));
+    ctx.lineTo(sx(WORLD_W)+4000, sy(world.h[HN-1]-d));
+    ctx.stroke();
+  }
+  /* a few stones */
+  ctx.fillStyle='rgba(0,0,0,.2)';
+  for(let i=2;i<HN;i+=17){
+    const x=i*CELL, X=sx(x); if(X<-60||X>VW+60) continue;
+    const d=0.9+((i*37)%23)/14, w=(4+((i*13)%9))*PPM/44;
+    ctx.beginPath(); ctx.ellipse(X, sy(world.h[i]-d), w, w*0.55, ((i*7)%10)/10, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+
+  /* the living crust: grass where there is grip, frost where there is not.
+     Batched into one path per material — stroking each cell separately was most
+     of a frame. */
+  const i0=Math.max(0,Math.floor(wx(-40)/CELL)), i1=Math.min(HN-1,Math.ceil(wx(VW+40)/CELL));
+  ctx.lineCap='round'; ctx.lineJoin='round'; ctx.lineWidth=3;
+  for(const ice of [false,true]){
+    ctx.strokeStyle = ice ? 'rgba(158,220,238,.82)' : '#6d8a4d';
+    ctx.beginPath(); let pen=false;
+    for(let i=i0;i<=i1;i++){
+      const isIce=world.grip[i]<0.5;
+      if(isIce!==ice){ pen=false; continue; }
+      const X=sx(i*CELL), Y=sy(world.h[i]);
+      if(!pen){ ctx.moveTo(X,Y); pen=true; } else ctx.lineTo(X,Y);
+    }
+    ctx.stroke();
+  }
+  if(PPM>34){
+    ctx.lineWidth=1.5; ctx.strokeStyle='rgba(132,166,94,.62)';
+    ctx.beginPath();
+    for(let i=i0;i<=i1;i++){
+      if(world.grip[i]<0.5) continue;
+      const n=(i*2654435761)>>>0;                  /* stable per-cell jitter */
+      if((n>>>5)%5>1) continue;                    /* irregular spacing */
+      const X=sx(i*CELL)+((n>>>9)%7-3)*PPM/44, Y=sy(world.h[i]);
+      const sl=slopeAt(i*CELL), lean=Math.max(-0.7,Math.min(0.7,-sl*0.4))+(((n>>>13)%9)-4)/16;
+      const hgt=(2.4+((n>>>17)%6))*PPM/44;
+      ctx.moveTo(X,Y); ctx.quadraticCurveTo(X+lean*hgt*0.4,Y-hgt*0.7,X+lean*hgt,Y-hgt);
+    }
+    ctx.stroke();
+  }
+  ctx.strokeStyle='rgba(255,226,170,.13)'; ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(sx(0)-4000,sy(world.h[0])-2.5);
+  for(let i=0;i<HN;i++) ctx.lineTo(sx(i*CELL),sy(world.h[i])-2.5);
+  ctx.lineTo(sx(WORLD_W)+4000,sy(world.h[HN-1])-2.5);
+  ctx.stroke();
+}
+
+/* A shallow band of mist lying on the ground. It costs one gradient and it does
+   more than anything else to stop the animals looking pasted onto the terrain. */
+function groundMist(){
+  /* Lies along the ground rather than floating at one height: as a flat band it
+     tracked the camera and sat well above or below the hills either side of it. */
+  const h=Math.max(20,PPM*0.75);
+  const i0=Math.max(0,Math.floor(wx(-40)/CELL)), i1=Math.min(HN-1,Math.ceil(wx(VW+40)/CELL));
+  for(const [lift,alpha] of [[h,0.055],[h*0.5,0.055]]){
+    ctx.beginPath();
+    ctx.moveTo(sx(i0*CELL), sy(world.h[i0]));
+    for(let i=i0;i<=i1;i++) ctx.lineTo(sx(i*CELL), sy(world.h[i]));
+    for(let i=i1;i>=i0;i--) ctx.lineTo(sx(i*CELL), sy(world.h[i])-lift);
+    ctx.closePath();
+    ctx.fillStyle='rgba(150,176,206,'+alpha+')'; ctx.fill();
+  }
+}
+
+function waterY(x,t){
+  return world.water + Math.sin(x*0.9+t*1.5)*0.035 + Math.sin(x*2.3-t*2.1)*0.018;
+}
+/* Open water is exactly the stretches where the ground lies below the water line,
+   from the surface down to the ground. Building that region directly is both
+   correct and cheap; clipping a full-screen fill against the ground is neither —
+   an even-odd subtraction leaves the dry land tinted as though it were flooded. */
+function waterRegion(t){
+  const L=sx(0)-4000, R=sx(WORLD_W)+4000;
+  const P2=new Path2D(); const ctx={beginPath(){},moveTo:(a,b)=>P2.moveTo(a,b),
+    lineTo:(a,b)=>P2.lineTo(a,b), closePath:()=>P2.closePath()};
+  let i=0, any=false;
+  while(i<HN){
+    if(world.h[i]>=world.water){ i++; continue; }
+    let j=i; while(j<HN && world.h[j]<world.water) j++;
+    const x0=(i===0)?L:sx(i*CELL), x1=(j===HN)?R:sx((j-1)*CELL);
+    if(x1>=-60 && x0<=VW+60){
+      any=true;
+      ctx.moveTo(x0, sy(waterY(i*CELL,t)));
+      for(let k=i;k<j;k++) ctx.lineTo(sx(k*CELL), sy(waterY(k*CELL,t)));
+      ctx.lineTo(x1, sy(waterY((j-1)*CELL,t)));
+      for(let k=j-1;k>=i;k--) ctx.lineTo(sx(k*CELL), sy(world.h[k]));
+      ctx.lineTo(x0, sy(world.h[i]));
+      ctx.closePath();
+    }
+    i=j;
+  }
+  return any?P2:null;
+}
+let WPATH=null;
+function waterBody(){
+  if(world.water<=-90) return;
+  WPATH=waterRegion(clock());
+  if(!WPATH) return;
+  const wg=ctx.createLinearGradient(0,sy(world.water),0,sy(world.water)+VH*0.5);
+  wg.addColorStop(0,'#2c6a91'); wg.addColorStop(1,'#0f3047');
+  ctx.fillStyle=wg; ctx.fill(WPATH);
+}
+function waterOver(){
+  if(world.water<=-90 || !WPATH) return;
+  const t=clock();
+  ctx.save(); ctx.clip(WPATH);
+  ctx.fillStyle='rgba(44,112,152,.32)'; ctx.fill(WPATH);
+  /* light raking down through the surface, barely there */
+  ctx.globalAlpha=.05; ctx.strokeStyle='#dff4ff'; ctx.lineWidth=Math.max(4,PPM*0.13);
+  for(let k=-1;k<6;k++){
+    const X=((k*PPM*2.6 - camX*PPM*0.25 + t*7)%(VW+500))-250;
+    ctx.beginPath(); ctx.moveTo(X,sy(world.water)-VH); ctx.lineTo(X-VH*0.9,VH); ctx.stroke();
+  }
+  ctx.globalAlpha=1; ctx.restore();
+  /* the surface itself, drawn only across open water */
+  ctx.save(); ctx.clip(WPATH);
+  ctx.beginPath();
+  for(let px=0;px<=VW;px+=4){ const wxp=wx(px); ctx.lineTo(px, sy(waterY(wxp,t))); }
+  ctx.strokeStyle='rgba(196,236,255,.7)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath();
+  for(let px=0;px<=VW;px+=4){ const wxp=wx(px); ctx.lineTo(px, sy(waterY(wxp,t))+3.5); }
+  ctx.strokeStyle='rgba(255,255,255,.12)'; ctx.lineWidth=3; ctx.stroke();
+  ctx.restore();
+}
+
+function drawRoof(){
+  let i=0;
+  while(i<HN){
+    if(world.roof[i]>=NO_ROOF-0.01){ i++; continue; }
+    let j=i; while(j<HN && world.roof[j]<NO_ROOF-0.01) j++;
+    const thick=1.8;
+    ctx.beginPath();
+    for(let k=i;k<j;k++) ctx.lineTo(sx(k*CELL), sy(world.roof[k]));
+    for(let k=j-1;k>=i;k--) ctx.lineTo(sx(k*CELL), Math.max(-40,sy(world.roof[k]+thick)));
+    ctx.closePath();
+    let top=1e9,bot=-1e9;
+    for(let k=i;k<j;k++){ top=Math.min(top,sy(world.roof[k]+thick)); bot=Math.max(bot,sy(world.roof[k])); }
+    const rg=ctx.createLinearGradient(0,top,0,bot);
+    /* lit along the top where the sky reaches it, in shadow on the underside */
+    rg.addColorStop(0,'#4a4030'); rg.addColorStop(.35,'#332a1f'); rg.addColorStop(1,'#15110b');
+    ctx.fillStyle=rg; ctx.fill();
+    ctx.save(); ctx.clip();
+    ctx.strokeStyle='rgba(0,0,0,.14)'; ctx.lineWidth=1;
+    for(let d=0.5;d<thick;d+=0.72){
+      ctx.beginPath();
+      for(let k=i;k<j;k+=2) ctx.lineTo(sx(k*CELL), sy(world.roof[k]+d+Math.sin(k*0.3)*0.05));
+      ctx.stroke();
+    }
+    ctx.restore();
+    /* stalactite teeth, so the underside is not a ruled line */
+    ctx.fillStyle='#241d13';
+    for(let k=i;k<j;k+=6){
+      const X=sx(k*CELL); if(X<-30||X>VW+30) continue;
+      const dp=(0.10+((k*17)%7)/34)*PPM;
+      ctx.beginPath(); ctx.moveTo(X-PPM*0.07,sy(world.roof[k]));
+      ctx.lineTo(X, sy(world.roof[k])+dp); ctx.lineTo(X+PPM*0.07,sy(world.roof[k])); ctx.closePath(); ctx.fill();
+    }
+    ctx.beginPath();
+    for(let k=i;k<j;k++) ctx.lineTo(sx(k*CELL), sy(world.roof[k]));
+    ctx.strokeStyle='rgba(255,220,160,.2)'; ctx.lineWidth=2; ctx.stroke();
+    i=j;
+  }
+}
+
+/* The record, standing in the world. Without it a run has no visible stakes —
+   the number in the corner is not something you can watch an animal approach. */
+function recordLine(){
+  if(state.best<=0.6) return;
+  const X=sx(START_X+state.best);
+  if(X<-60||X>VW+60) return;
+  const gy=sy(groundAt(START_X+state.best));
+  ctx.save();
+  ctx.setLineDash([5,7]); ctx.lineWidth=1.5;
+  ctx.strokeStyle='rgba(232,163,61,.42)';
+  ctx.beginPath(); ctx.moveTo(X,gy); ctx.lineTo(X,gy-VH*0.30); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle='rgba(232,163,61,.75)';
+  ctx.font='italic 11px "Iowan Old Style",Georgia,serif'; ctx.textAlign='left';
+  ctx.fillText('furthest yet', X+6, gy-VH*0.30+11);
+  ctx.beginPath(); ctx.arc(X,gy,3,0,7); ctx.fill();
+  ctx.restore();
+}
+
+/* The marker itself: a post at the distance this world asks for. */
+function parLine(){
+  if(!worldPar) return;
+  const X=sx(START_X+worldPar);
+  if(X<-90||X>VW+90) return;
+  const gy=sy(groundAt(START_X+worldPar)), h=VH*0.38;
+  ctx.save();
+  const done=state.solved;
+  ctx.strokeStyle=done?'rgba(126,195,122,.8)':'rgba(214,232,248,.5)';
+  ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(X,gy); ctx.lineTo(X,gy-h); ctx.stroke();
+  ctx.fillStyle=done?'rgba(126,195,122,.9)':'rgba(214,232,248,.66)';
+  const f=Math.sin(clock()*1.6)*0.14;
+  ctx.beginPath(); ctx.moveTo(X,gy-h);
+  ctx.quadraticCurveTo(X+PPM*0.5,gy-h+PPM*(0.1+f),X+PPM*0.95,gy-h+PPM*0.06);
+  ctx.lineTo(X+PPM*0.95,gy-h+PPM*0.42);
+  ctx.quadraticCurveTo(X+PPM*0.5,gy-h+PPM*(0.36-f),X,gy-h+PPM*0.44);
+  ctx.closePath(); ctx.fill();
+  ctx.font='italic 11px "Iowan Old Style",Georgia,serif'; ctx.textAlign='center';
+  ctx.fillText(done?'crossed':'get here — '+worldPar+'m', X, gy-h-7);
+  ctx.restore();
+}
+
+function drawWorld(){
+  drawSky();
+  ctx.strokeStyle='rgba(255,255,255,.045)'; ctx.lineWidth=1;
+  ctx.fillStyle='rgba(255,255,255,.13)'; ctx.font='10px system-ui'; ctx.textAlign='center';
+  for(let m=0;m<=WORLD_W;m+=5){
+    const X=sx(m); if(X<-40||X>VW+40) continue;
+    ctx.beginPath(); ctx.moveTo(X,0); ctx.lineTo(X,VH); ctx.stroke();
+    ctx.fillText(m+'m', X, 16);
+  }
+  waterBody();
+  drawGround();
+  groundMist();
+  drawRoof();
+  parLine();
+  recordLine();
+}
+
+/* ---------- the animals ---------- */
+/* Drawn as one body rather than a diagram: every limb and joint is laid down in
+   a single colour, first fat and dark for an outline, then filled. Circles and
+   sticks read as a physics debug view; a silhouette with an eye reads as an
+   animal, and that is most of what this page is for. */
+/* Now that a creature has a spine, legs and feet, they can be drawn as such: a
+   thick back, thinner limbs, and feet you can see land. Everything still goes down
+   in one pass per colour so the silhouette stays whole. */
+/* Limbs and trunk are drawn separately so the legs can go down first and the body
+   over them: legs then emerge from under the animal instead of being painted on
+   top of it, which is what made a four-legged thing read as a wedge. */
+/* far===true draws only the off-side limbs of a paired site, which go down before
+   the body; far===false only the near ones, which go over it. Split like this a
+   trotting quadruped reads as a quadruped instead of as a bundle of sticks. */
+function limbPath(c,grow,far){
+  const P=c.P;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  for(const m of c.g.muscles){
+    if(m.kind!=='thigh' && m.kind!=='shank') continue;
+    if(far!==undefined && !!m.far!==far) continue;
+    const a=P[m.i], b=P[m.j];
+    ctx.lineWidth=Math.max(1.5, Math.min(a.r,b.r)*PPM*(m.kind==='thigh'?1.45:1.1)+grow*2);
+    ctx.beginPath(); ctx.moveTo(sx(a.x),sy(a.y)); ctx.lineTo(sx(b.x),sy(b.y)); ctx.stroke();
+  }
+  for(const p of P){
+    if(p.kind!=='foot' && p.kind!=='knee') continue;
+    if(far!==undefined && !!p.far!==far) continue;
+    const r=(p.kind==='knee'?p.r*0.8:p.r);
+    ctx.beginPath(); ctx.arc(sx(p.x),sy(p.y),Math.max(1.4,r*PPM+grow),0,7); ctx.fill();
+  }
+}
+function trunkPath(c,grow){
+  const P=c.P;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  for(const m of c.g.muscles){
+    if(m.kind!=='spine') continue;
+    const a=P[m.i], b=P[m.j];
+    ctx.lineWidth=Math.max(1.5, Math.min(a.r,b.r)*PPM*1.95+grow*2);
+    ctx.beginPath(); ctx.moveTo(sx(a.x),sy(a.y)); ctx.lineTo(sx(b.x),sy(b.y)); ctx.stroke();
+  }
+  for(const p of P){
+    if(p.kind!=='body') continue;
+    ctx.beginPath(); ctx.arc(sx(p.x),sy(p.y),Math.max(1.5,p.r*PPM+grow),0,7); ctx.fill();
+  }
+}
+function bodyPath(c,grow){ limbPath(c,grow); trunkPath(c,grow); }
+function drawCreature(c,champ,guest,leadX){
+  const P=c.P, lead=champ||guest;
+
+  if(lead){
+    for(const p of P){
+      if(p.kind==='knee') continue;
+      const gy=groundAt(p.x), gap=Math.max(0,p.y-p.r-gy);
+      if(gap<1.2){
+        const a=(1-gap/1.2)*(p.kind==='foot'?0.42:0.3), w=p.r*PPM*(1.6+gap*0.8);
+        ctx.beginPath(); ctx.ellipse(sx(p.x),sy(gy),w,Math.max(1.5,w*0.2),0,0,7);
+        ctx.fillStyle='rgba(0,0,0,'+a+')'; ctx.fill();
+      }
+    }
+  }
+
+  if(!lead){
+    /* The pack is tinted by how many legs each one has, using the same ramp as the
+       census bar. Drawn in one grey it read as a single crowd; several species are
+       usually running at once and there was no way to see it. The ramp stays cool
+       on purpose — warm belongs to the leader, and a tan pack muddies into it. */
+    const behind=Math.max(0,(leadX===undefined?0:leadX)-centroid(P).x);
+    const f=0.30+0.70*Math.max(0,1-behind/5.5);
+    const col=speciesOf(speciesKey(c.plan)).trio;
+    ctx.strokeStyle='rgba('+col+','+(0.17*f).toFixed(3)+')';
+    ctx.fillStyle='rgba('+col+','+(0.18*f).toFixed(3)+')';
+    bodyPath(c,0);
+    return;
+  }
+
+  const skin  = guest ? '#7fc47a' : '#eba648';
+  const shade = guest ? '#26512a' : '#5a2f0c';
+  const limb  = guest ? '#4d8f4c' : '#a86a1d';
+  const dark  = guest ? '#316032' : '#71460f';
+  /* off-side limbs, then the body over them, then the near-side limbs over that */
+  ctx.strokeStyle=shade; ctx.fillStyle=shade; limbPath(c,2.2,true);
+  ctx.strokeStyle=dark;  ctx.fillStyle=dark;  limbPath(c,0,true);
+  ctx.strokeStyle=shade; ctx.fillStyle=shade; trunkPath(c,2.2);
+  ctx.strokeStyle=skin;  ctx.fillStyle=skin;  trunkPath(c,0);
+  ctx.strokeStyle=shade; ctx.fillStyle=shade; limbPath(c,2.2,false);
+  ctx.strokeStyle=limb;  ctx.fillStyle=limb;  limbPath(c,0,false);
+
+  /* a warm rim along the back where the sun would catch it */
+  for(const p of P){
+    if(p.kind!=='body') continue;
+    const R=Math.max(1.5,p.r*PPM);
+    if(R<4) continue;
+    ctx.beginPath(); ctx.arc(sx(p.x)+R*0.16,sy(p.y)-R*0.22,R*0.6,0,7);
+    ctx.fillStyle= guest?'rgba(196,238,190,.3)':'rgba(255,222,158,.32)'; ctx.fill();
+  }
+
+  /* the eye goes on the front of the spine — the head end, not whichever bit
+     happens to be furthest forward this instant */
+  let head=null;
+  for(const p of P) if(p.kind==='body' && (!head || p.x>head.x)) head=p;
+  if(head){
+    const R=Math.max(2,head.r*PPM);
+    if(R>4.5){
+      const ex=sx(head.x)+R*0.36, ey=sy(head.y)-R*0.18;
+      ctx.beginPath(); ctx.arc(ex,ey,R*0.29,0,7); ctx.fillStyle='#fdf6e6'; ctx.fill();
+      ctx.beginPath(); ctx.arc(ex+R*0.10,ey+R*0.03,R*0.15,0,7); ctx.fillStyle='#141018'; ctx.fill();
+    }
+  }
+}
+
+/* Dust and spray, raised only by the animal you are actually watching. */
+function wake(c){
+  const t=clock(), hasWater=world.water>-90;
+  for(const p of c.P){
+    if(p.kind==='knee') continue;
+    const gy=groundAt(p.x);
+    if(p._py!==undefined){
+      const drop=p._py-p.y;
+      if(drop>0.045 && p.y-p.r<=gy+0.03 && p._air && p.kind!=='body'){
+        const n=Math.min(2,1+Math.floor(drop*14));
+        sFoot(drop);
+        for(let k=0;k<n;k++)
+          puff(p.x+(Math.random()-0.5)*p.r, gy+p.r*0.3,
+               (Math.random()-0.5)*0.9, 0.15+Math.random()*0.4,
+               p.r*0.3, 0.4+Math.random()*0.35, 'dust');
+      }
+      if(hasWater){
+        const s=world.water;
+        if((p._py-p.r>s)!==(p.y-p.r>s) && Math.abs(p._py-p.y)>0.006){
+          sSplash();
+          for(let k=0;k<4;k++)
+            puff(p.x+(Math.random()-0.5)*p.r*1.4, s+0.05,
+                 (Math.random()-0.5)*1.6, 0.7+Math.random()*1.5,
+                 p.r*0.28, 0.4+Math.random()*0.4, 'spray');
+        }
+      }
+    }
+    p._air = p.y-p.r > gy+0.05;
+    p._py=p.y;
+  }
+}
+
+function vignette(){ if(vigC) ctx.drawImage(vigC,0,0,VW,VH); }
+
+/* Whoever is fractionally ahead this frame is not "the leader" — recomputing it
+   every frame made the amber body hop between creatures a few times a second, and
+   you cannot follow an animal that keeps changing which animal it is. A challenger
+   has to be clearly ahead before it takes over. */
+function leader(){
+  let held=state.live[state.champIx];
+  if(state.guest && state.champIx===state.live.length-1) held=null;
+  if(held && held.dead) held=null;
+  let best=null, bf=-1e9, bi=0;
+  state.live.forEach((c,i)=>{
+    if(state.guest && i===state.live.length-1) return;
+    if(!c.dead && c.fit>bf){ bf=c.fit; best=c; bi=i; }
+  });
+  if(!best) return null;
+  if(!held || bf > held.fit + 0.35){ state.champIx=bi; return best; }
+  return held;
+}
+
+let lastLeadKey=null;
+function draw(){
+  drawWorld();
+  const guest = state.guest ? state.live[state.live.length-1] : null;
+  const champ = leader();
+  const leadX = champ?centroid(champ.P).x:START_X;
+  /* Only the front of the field is drawn. Eighty translucent bodies overlapping in
+     the same few metres stack into a solid block however faint each one is, and the
+     ones at the back carry no information the census bar does not already carry.
+     Thinning the alpha does not fix it; drawing fewer of them does. */
+  {
+    const pack=[];
+    for(const c of state.live){ if(c===champ||c===guest) continue; pack.push(c); }
+    pack.sort((a,b)=>b.fit-a.fit);
+    const shown=Math.min(22,pack.length);
+    for(let i=0;i<shown;i++) drawCreature(pack[i],false,false,leadX);
+  }
+  drawParts();
+  if(guest){ wake(guest); drawCreature(guest,false,true); }
+  if(champ){ wake(champ); drawCreature(champ,true,false); }
+  waterOver();
+  vignette();
+
+  const tgt = champ?centroid(champ.P):{x:START_X,y:0};
+  camX+=(tgt.x-camX)*0.055;
+  camY+=(Math.max(-2,Math.min(6,tgt.y))-camY)*0.04;
+
+  document.getElementById('genN').textContent=state.gen;
+  document.getElementById('popN').textContent=worldName ? '· '+worldName : '';
+  document.getElementById('best').textContent=state.best.toFixed(1)+'m';
+  document.getElementById('species').textContent = champ ? nameOf(champ.plan)+' — '+champ.fit.toFixed(1)+'m' : ' ';
+  document.getElementById('planline').textContent = champ ? planLine(champ.plan) : ' ';
+  /* The census is redrawn once per generation, but the lead changes hands within
+     one — so the mark saying which species is in front went stale for whole runs
+     until it was repainted the moment the lead crosses a species boundary. */
+  if(champ){
+    const k=speciesKey(champ.plan);
+    if(k!==lastLeadKey){ lastLeadKey=k; drawMix(); }
+  }
+  document.getElementById('prog').style.width=(100*state.stepN/STEPS)+'%';
+}
+
+/* ---------- main loop ---------- */
+let acc=0;
+let lastFrame=performance.now();
+let skipFrame=0;
+function frame(){
+  requestAnimationFrame(frame);
+  const nowT=performance.now();
+  stepParts(Math.min(0.05,(nowT-lastFrame)/1000)); lastFrame=nowT;
+  if(skipping>0){
+    /* Nothing on screen is being watched during a skip, and repainting eighty
+       creatures sixty times a second was costing more than the generations were. */
+    if((skipFrame++ % 6)===0) draw();
+    return;
+  }
+  if(state.playing){
+    const n=state.speed;
+    for(let k=0;k<n && state.stepN<STEPS;k++){
+      for(const c of state.live) step(c);
+      state.stepN++;
+    }
+    if(state.stepN>=STEPS) scoreAndBreed();
+  }
+  draw();
+}
+
+/* Skipping generations runs them with nothing drawn, in slices, so the page
+   stays responsive rather than freezing for a second and a half. */
+let skipping=0;
+function skipSlice(){
+  if(skipping<=0) return;
+  const until=performance.now()+34;
+  while(skipping>0 && performance.now()<until){
+    while(state.stepN<STEPS){
+      for(const c of state.live) step(c);
+      state.stepN++;
+      if(performance.now()>until) break;
+    }
+    if(state.stepN>=STEPS){ scoreAndBreed(); skipping--; }
+  }
+  document.getElementById('skipBtn').textContent = skipping>0 ? 'Skipping… '+skipping : 'Skip 25 gens';
+  if(skipping>0) requestAnimationFrame(skipSlice);
+  else document.getElementById('hint').innerHTML='<b>Drag on the world to sculpt it.</b> The animals are bred against whatever you leave behind.';
+}
+
+/* Every generation's best, drawn as a curve. The single number in the corner says
+   how far something once got; the curve says the population is getting better,
+   which is the thing this page is actually about and was otherwise invisible. */
+function drawSpark(){
+  const cvs=document.getElementById('spark'); if(!cvs) return;
+  const c=cvs.getContext('2d'), W=cvs.width, H=cvs.height;
+  c.clearRect(0,0,W,H);
+  const h=state.history;
+  if(h.length<2){
+    c.fillStyle='rgba(255,255,255,.22)';
+    c.font='italic 15px "Iowan Old Style",Georgia,serif'; c.textAlign='left'; c.textBaseline='middle';
+    c.fillText('watching…', 2, H/2);
+    return;
+  }
+  const n=h.length, top=Math.max(0.6,...h);
+  const X=i=>2+(W-4)*(n===1?0:i/(n-1)), Y=v=>H-3-(H-9)*(v/top);
+  c.strokeStyle='rgba(255,255,255,.10)'; c.lineWidth=1;
+  c.beginPath(); c.moveTo(0,H-2.5); c.lineTo(W,H-2.5); c.stroke();
+  /* the area under it, so a thin line still reads at this size */
+  c.beginPath(); c.moveTo(X(0),H-3);
+  for(let i=0;i<n;i++) c.lineTo(X(i),Y(h[i]));
+  c.lineTo(X(n-1),H-3); c.closePath();
+  const g=c.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'rgba(232,163,61,.28)'); g.addColorStop(1,'rgba(232,163,61,0)');
+  c.fillStyle=g; c.fill();
+  c.beginPath();
+  for(let i=0;i<n;i++){ const x=X(i),y=Y(h[i]); i?c.lineTo(x,y):c.moveTo(x,y); }
+  c.strokeStyle='rgba(240,182,86,.95)'; c.lineWidth=2; c.lineJoin='round'; c.stroke();
+  c.beginPath(); c.arc(X(n-1),Y(h[n-1]),3,0,7);
+  c.fillStyle='#f4c268'; c.fill();
+}
+
+/* ---------- sound ----------
+   No files: a little wind, a thud when something lands, a splash when it goes in,
+   and a chime when a record falls. Everything is built from oscillators and one
+   noise buffer, and none of it starts until the Begin button is pressed, so the
+   page never makes a sound before someone has asked it to. */
+const SND={ctx:null,master:null,noise:null,on:true,lastFoot:0,lastSplash:0};
+try{ SND.on = localStorage.getItem('menagerie.sound')!=='0'; }catch(e){}
+
+function audioStart(){
+  if(SND.ctx || !SND.on) return;
+  const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return;
+  const ctx=new AC(); SND.ctx=ctx;
+  const m=ctx.createGain(); m.gain.value=0.0; m.connect(ctx.destination); SND.master=m;
+  m.gain.linearRampToValueAtTime(0.5, ctx.currentTime+2.5);
+
+  const n=ctx.createBuffer(1, ctx.sampleRate*2, ctx.sampleRate);
+  const d=n.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  SND.noise=n;
+
+  /* wind: noise through a slow-breathing lowpass */
+  const src=ctx.createBufferSource(); src.buffer=n; src.loop=true;
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=340; lp.Q.value=0.6;
+  const g=ctx.createGain(); g.gain.value=0.05;
+  const lfo=ctx.createOscillator(); lfo.frequency.value=0.06;
+  const lfoG=ctx.createGain(); lfoG.gain.value=140;
+  lfo.connect(lfoG); lfoG.connect(lp.frequency);
+  src.connect(lp); lp.connect(g); g.connect(m); src.start(); lfo.start();
+
+  /* a low drone under it, two voices a fifth apart and slightly detuned */
+  [55, 82.5].forEach((f,i)=>{
+    const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=f*(1+(i?0.002:-0.002));
+    const og=ctx.createGain(); og.gain.value=i?0.014:0.022;
+    const of=ctx.createBiquadFilter(); of.type='lowpass'; of.frequency.value=420;
+    o.connect(of); of.connect(og); og.connect(m); o.start();
+  });
+}
+function burst(freq,type,dur,vol,sweep){
+  if(!SND.ctx||!SND.on) return;
+  const c=SND.ctx, t=c.currentTime;
+  const src=c.createBufferSource(); src.buffer=SND.noise;
+  src.loop=true; src.playbackRate.value=0.7+Math.random()*0.6;
+  const f=c.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=type==='bandpass'?1.6:0.8;
+  if(sweep) f.frequency.exponentialRampToValueAtTime(Math.max(60,freq*sweep), t+dur);
+  const g=c.createGain();
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  src.connect(f); f.connect(g); g.connect(SND.master);
+  src.start(t); src.stop(t+dur+0.02);
+}
+/* The gains below look enormous and are not: a lowpass at 200Hz throws away most
+   of a noise burst's energy, so the number before the filter has little to do with
+   what comes out of it. These are set from the rendered peak, not by eye. */
+function sFoot(v){
+  const now=performance.now(); if(now-SND.lastFoot<55) return; SND.lastFoot=now;
+  burst(200+Math.random()*90,'lowpass',0.13,Math.min(1.7,0.55+v*5),0.5);
+}
+function sSplash(){
+  const now=performance.now(); if(now-SND.lastSplash<70) return; SND.lastSplash=now;
+  burst(1500+Math.random()*700,'bandpass',0.26,0.62,2.2);
+}
+function sChime(){
+  if(!SND.ctx||!SND.on) return;
+  const c=SND.ctx, t=c.currentTime;
+  [[587.33,0],[880,0.11]].forEach(([f,dt])=>{
+    const o=c.createOscillator(); o.type='triangle'; o.frequency.value=f;
+    const g=c.createGain();
+    g.gain.setValueAtTime(0,t+dt); g.gain.linearRampToValueAtTime(0.26,t+dt+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dt+0.9);
+    o.connect(g); g.connect(SND.master); o.start(t+dt); o.stop(t+dt+0.95);
+  });
+}
+function sFanfare(){
+  if(!SND.ctx||!SND.on) return;
+  const c=SND.ctx, t=c.currentTime;
+  [[440,0],[554.37,0.12],[659.25,0.24],[880,0.36]].forEach(([f,dt])=>{
+    const o=c.createOscillator(); o.type='triangle'; o.frequency.value=f;
+    const g=c.createGain();
+    g.gain.setValueAtTime(0,t+dt); g.gain.linearRampToValueAtTime(0.24,t+dt+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dt+1.3);
+    o.connect(g); g.connect(SND.master); o.start(t+dt); o.stop(t+dt+1.35);
+  });
+}
+function sGen(){
+  if(!SND.ctx||!SND.on) return;
+  const c=SND.ctx, t=c.currentTime;
+  const o=c.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(320,t);
+  o.frequency.exponentialRampToValueAtTime(180,t+0.07);
+  const g=c.createGain(); g.gain.setValueAtTime(0.10,t);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.09);
+  o.connect(g); g.connect(SND.master); o.start(t); o.stop(t+0.1);
+}
+
+/* Which body plans are actually in play. The champion is one animal; behind it the
+   population is often arguing between two shapes — a run can sit at seventeen
+   three-legged against seventeen four-legged for a dozen generations — and none of
+   that was visible while only the leader was drawn. */
+/* Which body plans are actually in play, and how many places each holds. The
+   population is usually arguing between three or four species at once — a run can
+   sit at twenty four-limbed trotters against fourteen legless swimmers for a dozen
+   generations — and while only the leader was drawn none of that was visible. */
+function drawMix(){
+  const cvs=document.getElementById('mix'); if(!cvs) return;
+  const c=cvs.getContext('2d'), W=cvs.width, H=cvs.height;
+  c.clearRect(0,0,W,H);
+  const lbl=document.getElementById('mixlbl');
+  /* Before the first breeding there is no census yet, so count the field itself. */
+  let rows=state.census;
+  if(!rows.length){
+    const t=new Map();
+    state.live.forEach((c2,i)=>{ if(state.guest&&i===state.live.length-1) return;
+      const k=speciesKey(c2.plan); t.set(k,(t.get(k)||0)+1); });
+    rows=[...t.entries()].sort((a,b)=>b[1]-a[1]).slice(0,MAX_SPECIES)
+         .map(([k,n])=>({key:k,n,info:speciesOf(k)}));
+  }
+  let tot=0; for(const r of rows) tot+=r.n;
+  if(!tot){ if(lbl) lbl.textContent=' '; return; }
+  const champ=state.live[state.champIx];
+  const ck=champ?speciesKey(champ.plan):null;
+  let x=0;
+  for(const r of rows){
+    const w=W*r.n/tot;
+    c.fillStyle=r.info.css;
+    c.fillRect(x,0,Math.max(1,w-1.5),H);
+    if(r.key===ck){
+      c.fillStyle='#fff'; c.fillRect(x,0,Math.max(2,w-1.5),3);      /* a tab on top */
+      c.strokeStyle='rgba(255,255,255,.95)'; c.lineWidth=2;
+      c.strokeRect(x+1,1,Math.max(2,w-3.5),H-2);
+    }
+    x+=w;
+  }
+  if(lbl) lbl.textContent = rows.length===1
+    ? 'one species · '+rows[0].info.limbs+' limbs'
+    : rows.length+' species · '+rows.slice(0,3)
+        .map(r=>(r.key===ck?'▸':'')+r.info.limbs+'-limb ×'+r.n).join('  ·  ');
+}
+
+let bannerTimer=null;
+function banner(title,sub){
+  $('bannerT').textContent=title; $('bannerS').textContent=sub;
+  $('banner').classList.add('up');
+  clearTimeout(bannerTimer); bannerTimer=setTimeout(()=>$('banner').classList.remove('up'),3400);
+}
+
+/* ---------- sculpting ---------- */
+let tool='raise', painting=false, lastPaint=null, lastPaintT=0;
+document.querySelectorAll('.tool[data-tool]').forEach(b=>{
+  b.onclick=()=>{ document.querySelectorAll('.tool[data-tool]').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); tool=b.dataset.tool; };
+});
+/* The brush is applied on a clock rather than per pointer event: otherwise the
+   rate depends on how fast the mouse is moving and how often the browser fires
+   moves, and one flick builds a cliff. */
+function paintAt(px,py,force){
+  const now=performance.now();
+  if(!force && now-lastPaintT<22) return;
+  lastPaintT=now;
+  const X=wx(px), R=1.45;
+  const i0=Math.max(0,Math.floor((X-R)/CELL)), i1=Math.min(HN-1,Math.ceil((X+R)/CELL));
+  for(let i=i0;i<=i1;i++){
+    const d=Math.abs(i*CELL-X); if(d>R) continue;
+    const w=Math.cos(d/R*Math.PI/2)**2;
+    if(tool==='raise') world.h[i]+=w*0.055;
+    else if(tool==='lower') world.h[i]-=w*0.055;
+    else if(tool==='roof'){
+      const t=Math.max(0.45,wy(py));
+      world.roof[i]= world.roof[i]>=NO_ROOF-0.01 ? t : world.roof[i]*(1-w*0.25)+t*w*0.25;
+    }
+    else if(tool==='slick') world.grip[i]=Math.max(0.03,world.grip[i]-w*0.12);
+    if(tool==='raise'||tool==='lower') world.h[i]=Math.max(-5.5,Math.min(5.5,world.h[i]));
+  }
+  if(worldName){ worldName=''; worldPar=0; state.solved=false; }
+}
+function pt(e){const r=cv.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e; return [t.clientX-r.left,t.clientY-r.top]}
+cv.addEventListener('pointerdown',e=>{painting=true; cv.setPointerCapture(e.pointerId);
+  const p=pt(e); paintAt(p[0],p[1],true); lastPaint=p;});
+cv.addEventListener('pointermove',e=>{
+  if(!painting) return;
+  const p=pt(e);
+  if(lastPaint){                        /* fill in the gap a fast drag leaves behind */
+    const d=Math.hypot(p[0]-lastPaint[0],p[1]-lastPaint[1]), n=Math.min(8,Math.floor(d/14));
+    for(let k=1;k<n;k++) paintAt(lastPaint[0]+(p[0]-lastPaint[0])*k/n, lastPaint[1]+(p[1]-lastPaint[1])*k/n, true);
+  }
+  paintAt(p[0],p[1]); lastPaint=p;});
+cv.addEventListener('pointerup',()=>{painting=false; lastPaint=null});
+cv.addEventListener('pointercancel',()=>{painting=false; lastPaint=null});
+
+/* ---------- controls ---------- */
+const $=id=>document.getElementById(id);
+$('playBtn').onclick=()=>{ state.playing=!state.playing; $('playBtn').textContent=state.playing?'Pause':'Play'; };
+const SPEEDS=[1,2,4,8,16];
+$('spdBtn').onclick=()=>{ const i=(SPEEDS.indexOf(state.speed)+1)%SPEEDS.length;
+  state.speed=SPEEDS[i]; $('spdBtn').textContent=state.speed+'×'; };
+$('skipBtn').onclick=()=>{ if(skipping>0) return; skipping=25;
+  $('hint').textContent='Running twenty-five generations without drawing them…'; skipSlice(); };
+/* Start over lives in the More sheet, so it has to shut the sheet behind it —
+   left open it covered the whole screen and nothing else could be pressed. */
+$('reseedBtn').onclick=()=>{ $('more').classList.add('off'); seedPopulation((Math.random()*1e9)|0);
+  $('hint').innerHTML='<b>A fresh eighty, from nothing.</b> The ground you drew is still here.'; };
+/* The first press has to do something you can see: start the water just above the
+   lowest ground there is, so it fills whatever you dug — or floods the flats. */
+function lowestGround(){ let lo=1e9; for(let i=0;i<HN;i++) lo=Math.min(lo,world.h[i]); return lo; }
+function waterNote(){
+  $('hint').innerHTML = world.water<-90 ? 'The water is gone.'
+    : 'Water at <b>'+world.water.toFixed(1)+'m</b>. Anything that cannot swim stops at the edge.';
+}
+$('waterUp').onclick=()=>{
+  if(world.water<-90){
+    const lo=lowestGround();
+    world.water = lo + Math.max(0.35, -lo*0.6);   /* fill a dug pit most of the way, or flood the flats */
+  } else world.water = Math.min(6, world.water+0.4);
+  worldName=''; worldPar=0; waterNote();
+};
+$('waterDn').onclick=()=>{
+  if(world.water<-90) return;
+  world.water-=0.4;
+  if(world.water<lowestGround()-0.3) world.water=-99;
+  worldName=''; worldPar=0; waterNote();
+};
+function enterWorld(W){
+  blankWorld(); W.make(); worldName=W.name; worldPar=W.par||0;
+  colonise();
+  state.best=0; state.bestGen=null; state.history=[]; state.stale=0; state.solved=false;
+  drawSpark(); drawMix(); restart();
+  $('hint').innerHTML='<b>'+W.name+'.</b> '+W.blurb+' <span style="color:var(--dim)">Get something '+
+    worldPar+'m to cross it'+(beaten[W.name]?' — best so far '+beaten[W.name].toFixed(1)+'m':'')+'.</span>';
+}
+/* Two thirds of the population carries over; the rest arrive from nowhere. Without
+   the newcomers a lineage that has converged on walking never finds swimming. */
+function colonise(){
+  const keep=Math.round(POP*0.6);
+  for(let i=keep;i<POP;i++) state.pop[i]=randomPlan(state.rnd);
+}
+$('worldBtn').onclick=()=>{ worldIx=(worldIx+1)%WORLDS.length; enterWorld(WORLDS[worldIx]); };
+$('begin').onclick=()=>{ $('intro').classList.add('off'); audioStart(); };
+/* The intro is the only place the rules are stated, so it has to be reachable
+   again — the first read of it happens before you have seen anything move. */
+$('howBtn').onclick=()=>{ $('more').classList.add('off'); $('intro').classList.remove('off'); };
+function crossedLine(){
+  const names=WORLDS.map(w=>w.name).filter(n=>beaten[n]);
+  $('crossed').innerHTML = names.length
+    ? 'Crossed: '+names.map(n=>'<b>'+n+'</b> '+beaten[n].toFixed(1)+'m').join(' · ')+
+      ' — '+names.length+' of '+WORLDS.length+'.'
+    : 'No world crossed yet. Each one asks for a distance; get an animal past the marker and it counts.';
+}
+$('moreBtn').onclick=()=>{ crossedLine(); $('more').classList.remove('off'); };
+$('moreClose').onclick=()=>$('more').classList.add('off');
+$('more').addEventListener('click',e=>{ if(e.target.id==='more') $('more').classList.add('off'); });
+function soundLabel(){
+  $('sndBtn').textContent = SND.on?'Sound on':'Sound off';
+  $('sndBtn').style.color = SND.on?'var(--ink)':'var(--faint)';
+}
+$('sndBtn').onclick=()=>{
+  SND.on=!SND.on;
+  try{ localStorage.setItem('menagerie.sound', SND.on?'1':'0'); }catch(e){}
+  if(SND.on){ audioStart(); if(SND.ctx){ SND.ctx.resume(); SND.master.gain.linearRampToValueAtTime(0.5,SND.ctx.currentTime+0.4); } }
+  else if(SND.ctx) SND.master.gain.linearRampToValueAtTime(0,SND.ctx.currentTime+0.25);
+  soundLabel();
+};
+soundLabel();
+
+/* ---------- the shelf ---------- */
+let shelf=[];
+try{ shelf=JSON.parse(localStorage.getItem('menagerie.shelf')||'[]'); }catch(e){ shelf=[]; }
+function saveShelf(){ try{ localStorage.setItem('menagerie.shelf',JSON.stringify(shelf.slice(0,40))); }catch(e){} }
+function shelfCount(){ $('shelfN').textContent = shelf.length?('('+shelf.length+')'):''; }
+shelfCount();
+
+let pendingKeep=null, toastTimer=null;
+function offerKeep(c){
+  if(state.gen<4) return;                 /* the first few champions are just noise */
+  pendingKeep={g:clone(c.plan), name:nameOf(c.plan), dist:c.fit, world:worldName||'a world of your own'};
+  $('toastName').textContent=pendingKeep.name;
+  $('toastSub').textContent=planLine(pendingKeep.g)+' · '+pendingKeep.dist.toFixed(1)+'m';
+  $('toast').classList.add('up');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>$('toast').classList.remove('up'),5200);
+}
+function keep(plan,dist){
+  const rec={g:clone(plan.plan?plan.plan:plan), name:nameOf(plan), dist:dist,
+             world:worldName||'a world of your own', gen:state.gen};
+  shelf.unshift(rec); saveShelf(); shelfCount();
+  $('toast').classList.remove('up');
+  $('hint').innerHTML='<b>'+rec.name+'</b> is on the shelf. Open the <b>Shelf</b> and release it into '+
+    'another world to see how it copes.';
+  return rec;
+}
+$('toastKeep').onclick=()=>{ if(pendingKeep) keep(pendingKeep.g,pendingKeep.dist); };
+/* Waiting for a record to fall was the only way onto the shelf, and the prompt for
+   it slid away again after five seconds — so on a phone the shelf was a door with
+   no handle. Whatever is in the lead can be kept at any moment instead. */
+function keepLeader(){
+  const c=state.live[state.champIx];
+  if(!c){ $('hint').textContent='Nothing is running to keep.'; return; }
+  keep(c.plan, c.fit);
+  $('shelf').classList.contains('off') || renderShelf();
+}
+$('keepBtn').onclick=keepLeader;
+$('keepBtn2').onclick=()=>{ keepLeader(); renderShelf(); };
+
+function thumb(cvs,plan){
+  const g=build(plan.plan?plan.plan:plan);
+  const c=cvs.getContext('2d'), W=cvs.width=160, H=cvs.height=116;
+  c.fillStyle='#0e141d'; c.fillRect(0,0,W,H);
+  c.strokeStyle='#2c3a2a'; c.lineWidth=2;
+  c.beginPath(); c.moveTo(0,H-7); c.lineTo(W,H-7); c.stroke();
+  let minx=1e9,maxx=-1e9,miny=1e9,maxy=-1e9;
+  for(const n of g.nodes){minx=Math.min(minx,n.x-n.r);maxx=Math.max(maxx,n.x+n.r);
+    miny=Math.min(miny,n.y-n.r);maxy=Math.max(maxy,n.y+n.r);}
+  const s=Math.min((W-16)/Math.max(0.6,maxx-minx),(H-16)/Math.max(0.6,maxy-miny));
+  const ox=(W-(maxx-minx)*s)/2-minx*s, oy=H-9+miny*s;
+  const X=n=>ox+n.x*s, Y=n=>oy-n.y*s;
+  c.lineCap='round'; c.lineJoin='round';
+  for(const m of g.muscles){
+    if(m.kind==='extensor'||m.kind==='protractor'||m.kind==='brace') continue;
+    c.strokeStyle = m.kind==='spine' ? 'rgba(232,163,61,.9)'
+                  : m.far ? 'rgba(140,92,30,.9)' : 'rgba(201,134,44,.9)';
+    c.lineWidth = m.kind==='spine' ? 4.4 : 2.6;
+    c.beginPath(); c.moveTo(X(g.nodes[m.i]),Y(g.nodes[m.i]));
+    c.lineTo(X(g.nodes[m.j]),Y(g.nodes[m.j])); c.stroke();
+  }
+  for(const n of g.nodes){
+    c.fillStyle = n.kind==='foot' ? (n.far?'#8d5f21':'#c9862c')
+                : n.kind==='knee' ? (n.far?'#78511a':'#a9721f') : '#eab86e';
+    c.beginPath(); c.arc(X(n),Y(n),Math.max(1.6,n.r*s*(n.kind==='knee'?0.8:1)),0,7); c.fill();
+  }
+}
+function renderShelf(){
+  const box=$('beasts'); box.innerHTML='';
+  if(!shelf.length){ box.innerHTML='<div class="empty">Nothing kept yet.<br>When a generation beats its record, a card slides in at the bottom of the screen — press <b>Keep</b>.</div>'; return; }
+  shelf.forEach((b,ix)=>{
+    const row=document.createElement('div'); row.className='beast';
+    const cvs=document.createElement('canvas'); row.appendChild(cvs);
+    const meta=document.createElement('div'); meta.className='bmeta';
+    meta.innerHTML='<div class="bname">'+b.name+'</div><div class="bsub">'+
+      planLine(b.g)+' · '+b.dist.toFixed(1)+'m · '+b.world+'</div>';
+    row.appendChild(meta);
+    const btns=document.createElement('div'); btns.className='bbtn';
+    const rel=document.createElement('button'); rel.className='mini'; rel.textContent='Release';
+    rel.onclick=()=>{ state.guest=b.g; restart(); $('shelf').classList.add('off');
+      $('hint').innerHTML='<b>'+b.name+'</b> is loose in this world, in green. It does not breed — it is only visiting.'; };
+    const del=document.createElement('button'); del.className='mini'; del.textContent='✕';
+    del.onclick=()=>{ shelf.splice(ix,1); saveShelf(); shelfCount(); renderShelf(); };
+    btns.appendChild(rel); btns.appendChild(del); row.appendChild(btns);
+    box.appendChild(row);
+    thumb(cvs,b.g);
+  });
+}
+$('shelfBtn').onclick=()=>{ renderShelf(); $('shelf').classList.remove('off'); };
+$('shelfClose').onclick=()=>$('shelf').classList.add('off');
+$('shelf').addEventListener('click',e=>{ if(e.target.id==='shelf') $('shelf').classList.add('off'); });
+
+/* ---------- go ---------- */
+const params=new URLSearchParams(location.search);
+const seed0=parseInt(params.get('seed')||'',10);
+blankWorld();
+seedPopulation(isFinite(seed0)?seed0:((Math.random()*1e9)|0));
+resize(); frame();
+</script>
+
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>动物园</h4>
+<div class="cn-guide-lang">🟡 仅少量英文（菜单/按钮），基本不影响游玩</div>
+<div class="cn-guide-desc">AI生成·动物观赏</div>
+<div class="cn-guide-tip">💡 以点击、拖拽或简单按键为主，跟随画面提示操作即可上手。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

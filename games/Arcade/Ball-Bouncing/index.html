@@ -924,4 +924,1051 @@
                 new THREE.PlaneGeometry(S * 2, S * 2),
                 new THREE.MeshBasicMaterial({
                     color,
-                    tr
+                    transparent: true,
+                    opacity: 0.04,
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                })
+            );
+            m.position.set(nx * S, ny * S, nz * S);
+            if (nz !== 0) {
+            } // facing camera already
+            if (nx !== 0) m.rotation.y = Math.PI / 2;
+            cubeGroup.add(m);
+        }
+
+        tintWall(0, 0, -1, 0x36e0ff);   // far wall
+        tintWall(-1, 0, 0, 0xb18bff);   // left wall
+        tintWall(1, 0, 0, 0xff4d6d);    // right wall
+
+        // ---- The ball ----
+        const ballR = 0.7;
+        const ballMat = new THREE.MeshStandardMaterial({
+            color: 0xff4d6d, emissive: 0xff1f43, emissiveIntensity: 0.6,
+            metalness: 0.2, roughness: 0.35
+        });
+        const ball = new THREE.Mesh(new THREE.SphereGeometry(ballR, 32, 24), ballMat);
+        scene.add(ball);
+
+        // ball glow sprite
+        const glowTex = makeGlowTexture();
+        const ballGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: glowTex, color: 0xff4d6d, transparent: true, opacity: 0.8,
+            blending: THREE.AdditiveBlending, depthWrite: false
+        }));
+        ballGlow.scale.set(4, 4, 1);
+        scene.add(ballGlow);
+
+        // ---- Shadow / depth markers ----
+        // floor shadow (tells you X/Z position)
+        const shadow = new THREE.Mesh(
+            new THREE.CircleGeometry(ballR * 1.3, 24),
+            new THREE.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: 0.45})
+        );
+        shadow.rotation.x = -Math.PI / 2;
+        scene.add(shadow);
+
+        // vertical drop line from ball to its floor shadow (huge depth aid)
+        const dropMat = new THREE.LineDashedMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.25,
+            dashSize: 0.4,
+            gapSize: 0.3
+        });
+        const dropGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+        const dropLine = new THREE.Line(dropGeo, dropMat);
+        scene.add(dropLine);
+
+        // floor reticle ring under the ball
+        const reticle = new THREE.Mesh(
+            new THREE.RingGeometry(ballR * 1.5, ballR * 1.7, 28),
+            new THREE.MeshBasicMaterial({color: 0xff4d6d, transparent: true, opacity: 0.4, side: THREE.DoubleSide})
+        );
+        reticle.rotation.x = -Math.PI / 2;
+        scene.add(reticle);
+
+        // ---- The pad (paddle) ----
+        // Built as a group so it reads clearly as a 3D solid from the top-down camera:
+        // a darker base block, a bright raised top "cap", and glowing edges. The extra
+        // height + the inset cap give strong silhouette and parallax cues.
+        let padW = 4.2, padBase = 4.2, padD = 4.2, padBaseD = 4.2;
+        const PAD_H = 1.1;        // total height of the pad body
+        const pad = new THREE.Group();
+        pad.position.set(0, FLOOR_Y + PAD_H / 2 + 0.05, 0);
+        scene.add(pad);
+
+        const padBodyMat = new THREE.MeshStandardMaterial({
+            color: 0x14628a, emissive: 0x0a3a55, emissiveIntensity: 0.5,
+            metalness: 0.35, roughness: 0.45, transparent: true, opacity: 0.95
+        });
+        const padCapMat = new THREE.MeshStandardMaterial({
+            color: 0x36e0ff, emissive: 0x1aa9d6, emissiveIntensity: 0.7,
+            metalness: 0.3, roughness: 0.3, transparent: true, opacity: 0.96
+        });
+        // expose padMat name used elsewhere (flash on hit) -> drive the cap
+        const padMat = padCapMat;
+
+        const padBody = new THREE.Mesh(new THREE.BoxGeometry(padW, PAD_H, padD), padBodyMat);
+        pad.add(padBody);
+        const CAP_H = 0.28;
+        const padCap = new THREE.Mesh(
+            new THREE.BoxGeometry(padW * 0.86, CAP_H, padD * 0.86),
+            padCapMat
+        );
+        padCap.position.y = PAD_H / 2 + CAP_H / 2 - 0.02;
+        pad.add(padCap);
+
+        // glowing edge outline around the full body
+        const padEdges = new THREE.LineSegments(
+            new THREE.EdgesGeometry(new THREE.BoxGeometry(padW, PAD_H, padD)),
+            new THREE.LineBasicMaterial({color: 0xaef2ff, transparent: true, opacity: 0.85})
+        );
+        pad.add(padEdges);
+
+        const padTarget = new THREE.Vector3(0, pad.position.y, 0);
+
+        function rebuildPad() {
+            padBody.geometry.dispose();
+            padBody.geometry = new THREE.BoxGeometry(padW, PAD_H, padD);
+            padCap.geometry.dispose();
+            padCap.geometry = new THREE.BoxGeometry(padW * 0.86, CAP_H, padD * 0.86);
+            padEdges.geometry.dispose();
+            padEdges.geometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(padW, PAD_H, padD));
+        }
+
+        // ---- Orb (power-up) ----
+        const POWER = {
+            1: {name: 'Overdrive', color: 0xff4d6d, css: '#ff4d6d', dur: 0},
+            2: {name: 'Phase Flip', color: 0x36e0ff, css: '#36e0ff', dur: 0},
+            3: {name: 'Wide Pad', color: 0xa6ff5e, css: '#a6ff5e', dur: 12},
+            4: {name: 'Adagio', color: 0xb18bff, css: '#b18bff', dur: 9}
+        };
+        const orbMesh = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(0.9, 0),
+            new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                emissive: 0xffffff,
+                emissiveIntensity: 0.8,
+                metalness: 0.4,
+                roughness: 0.2
+            })
+        );
+        orbMesh.visible = false;
+        scene.add(orbMesh);
+        const orbGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: glowTex, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
+        }));
+        orbGlow.scale.set(4, 4, 1);
+        orbGlow.visible = false;
+        scene.add(orbGlow);
+
+        // A vertical beam from the orb down to the floor — shows the X/Z landing spot
+        // so the player can pre-position the pad to catch it.
+        const orbBeamGeo = new THREE.CylinderGeometry(0.06, 0.06, 1, 8, 1, true);
+        const orbBeam = new THREE.Mesh(
+            orbBeamGeo,
+            new THREE.MeshBasicMaterial({
+                color: 0xffffff, transparent: true, opacity: 0.35,
+                side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+            })
+        );
+        orbBeam.visible = false;
+        scene.add(orbBeam);
+
+        // Pulsing floor ring marking the orb's landing/collection spot.
+        const orbReticle = new THREE.Mesh(
+            new THREE.RingGeometry(1.0, 1.3, 32),
+            new THREE.MeshBasicMaterial({
+                color: 0xffffff, transparent: true, opacity: 0.6,
+                side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false
+            })
+        );
+        orbReticle.rotation.x = -Math.PI / 2;
+        orbReticle.visible = false;
+        scene.add(orbReticle);
+
+        // ---- Particle pool (impacts) ----
+        const PCOUNT = 220;
+        const pGeo = new THREE.BufferGeometry();
+        const pPos = new Float32Array(PCOUNT * 3);
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+        const pColors = new Float32Array(PCOUNT * 3);
+        pGeo.setAttribute('color', new THREE.BufferAttribute(pColors, 3));
+        const pMat = new THREE.PointsMaterial({
+            size: 0.35,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.9,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            map: makeDotTexture()
+        });
+        const points = new THREE.Points(pGeo, pMat);
+        scene.add(points);
+        const parts = [];          // {x,y,z,vx,vy,vz,life,decay,r,g,b}
+        function emit(x, y, z, col, n, power) {
+            n = reduceMotion ? Math.ceil(n * 0.4) : n;
+            const c = new THREE.Color(col);
+            for (let i = 0; i < n && parts.length < PCOUNT; i++) {
+                const a = Math.random() * Math.PI * 2, e = Math.acos(2 * Math.random() - 1),
+                    sp = (0.06 + Math.random() * 0.16) * power;
+                parts.push({
+                    x, y, z,
+                    vx: Math.sin(e) * Math.cos(a) * sp, vy: Math.cos(e) * sp + 0.04, vz: Math.sin(e) * Math.sin(a) * sp,
+                    life: 1, decay: 0.012 + Math.random() * 0.02, r: c.r, g: c.g, b: c.b
+                });
+            }
+        }
+
+        function updateParticles(dt) {
+            for (let i = parts.length - 1; i >= 0; i--) {
+                const p = parts[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.z += p.vz * dt;
+                p.vy -= 0.006 * dt;
+                p.life -= p.decay * dt;
+                if (p.life <= 0) parts.splice(i, 1);
+            }
+            for (let i = 0; i < PCOUNT; i++) {
+                if (i < parts.length) {
+                    const p = parts[i];
+                    pPos[i * 3] = p.x;
+                    pPos[i * 3 + 1] = p.y;
+                    pPos[i * 3 + 2] = p.z;
+                    const l = Math.max(0, p.life);
+                    pColors[i * 3] = p.r * l;
+                    pColors[i * 3 + 1] = p.g * l;
+                    pColors[i * 3 + 2] = p.b * l;
+                } else {
+                    pPos[i * 3 + 1] = 9999;   // park offscreen
+                }
+            }
+            pGeo.attributes.position.needsUpdate = true;
+            pGeo.attributes.color.needsUpdate = true;
+        }
+
+        // expanding shock ring on the floor (impact feedback)
+        const rings = [];
+
+        function floorRing(x, z, col) {
+            if (reduceMotion) return;
+            const m = new THREE.Mesh(
+                new THREE.RingGeometry(0.2, 0.4, 32),
+                new THREE.MeshBasicMaterial({
+                    color: col,
+                    transparent: true,
+                    opacity: 0.6,
+                    side: THREE.DoubleSide,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                })
+            );
+            m.rotation.x = -Math.PI / 2;
+            m.position.set(x, FLOOR_Y + 0.05, z);
+            scene.add(m);
+            rings.push({mesh: m, r: 0.4, max: 3.2, life: 1});
+        }
+
+        function wallRing(pos, normal, col) {
+            if (reduceMotion) return;
+            const m = new THREE.Mesh(
+                new THREE.RingGeometry(0.2, 0.4, 32),
+                new THREE.MeshBasicMaterial({
+                    color: col,
+                    transparent: true,
+                    opacity: 0.5,
+                    side: THREE.DoubleSide,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false
+                })
+            );
+            m.position.copy(pos);
+            // orient ring to face along normal
+            const q = new THREE.Quaternion();
+            q.setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+            m.quaternion.copy(q);
+            scene.add(m);
+            rings.push({mesh: m, r: 0.4, max: 2.6, life: 1});
+        }
+
+        function updateRings(dt) {
+            for (let i = rings.length - 1; i >= 0; i--) {
+                const r = rings[i];
+                r.r += (r.max - r.r) * 0.14 * dt;
+                r.life -= 0.04 * dt;
+                const s = r.r;
+                r.mesh.scale.set(s, s, s);
+                r.mesh.material.opacity = Math.max(0, r.life * 0.6);
+                if (r.life <= 0) {
+                    scene.remove(r.mesh);
+                    r.mesh.geometry.dispose();
+                    r.mesh.material.dispose();
+                    rings.splice(i, 1);
+                }
+            }
+        }
+
+        // =========================================================================
+        // Textures (procedural — no external assets)
+        // =========================================================================
+        function makeGlowTexture() {
+            const c = document.createElement('canvas');
+            c.width = c.height = 128;
+            const g = c.getContext('2d');
+            const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+            grd.addColorStop(0, 'rgba(255,255,255,1)');
+            grd.addColorStop(0.25, 'rgba(255,255,255,0.5)');
+            grd.addColorStop(1, 'rgba(255,255,255,0)');
+            g.fillStyle = grd;
+            g.fillRect(0, 0, 128, 128);
+            const t = new THREE.CanvasTexture(c);
+            return t;
+        }
+
+        function makeDotTexture() {
+            const c = document.createElement('canvas');
+            c.width = c.height = 64;
+            const g = c.getContext('2d');
+            const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+            grd.addColorStop(0, 'rgba(255,255,255,1)');
+            grd.addColorStop(0.6, 'rgba(255,255,255,0.6)');
+            grd.addColorStop(1, 'rgba(255,255,255,0)');
+            g.fillStyle = grd;
+            g.beginPath();
+            g.arc(32, 32, 32, 0, Math.PI * 2);
+            g.fill();
+            const t = new THREE.CanvasTexture(c);
+            return t;
+        }
+
+        // =========================================================================
+        // Game state
+        // =========================================================================
+        const STATE = {MENU: 0, PLAY: 1, PAUSE: 2, OVER: 3};
+        let state = STATE.MENU;
+
+        const vel = new THREE.Vector3();
+        const gravity = 0.012;
+        let speedScale = 1;
+        let score = 0, best = 0, combo = 0, bestCombo = 0;
+        let time = 0;
+        let shake = 0;
+
+        let orb = null;            // {kind, life, vy, landed, restTimer}
+        let orbTimer = 0;
+        const active = {};         // timed powers
+
+        // best score (graceful if storage blocked)
+        try {
+            best = parseInt(localStorage.getItem('resonance3d_best') || '0', 10) || 0;
+        } catch (e) {
+        }
+        document.getElementById('bestV').textContent = best;
+
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+        function resetBall() {
+            // Serve from high in the cube with almost no downward speed, so the player
+            // gets a long, readable first descent before the first catch.
+            ball.position.set(rand(-3, 3), S * 0.8, rand(-3, 3));
+            const ang = rand(0, Math.PI * 2);
+            vel.set(Math.cos(ang) * 0.05, 0, Math.sin(ang) * 0.05);
+        }
+
+        function newGame() {
+            score = 0;
+            combo = 0;
+            bestCombo = 0;
+            speedScale = 1;
+            padW = padBase;
+            padD = padBaseD;
+            rebuildPad();
+            for (const k in active) delete active[k];
+            renderChips();
+            if (toastEl) toastEl.classList.remove('show');
+            pad.position.set(0, FLOOR_Y + PAD_H / 2 + 0.05, 0);
+            padTarget.set(0, FLOOR_Y + PAD_H / 2 + 0.05, 0);
+            orb = null;
+            orbMesh.visible = false;
+            orbGlow.visible = false;
+            orbBeam.visible = false;
+            orbReticle.visible = false;
+            orbTimer = rand(5, 8);
+            parts.length = 0;
+            resetBall();
+            updateScore();
+            setCombo(0);
+        }
+
+        // =========================================================================
+        // Input — pointer-lock relative mouse motion.
+        // -------------------------------------------------------------------------
+        // Absolute cursor->floor mapping has two problems from this angled camera:
+        //  (1) the floor appears as a perspective trapezoid, so a linear screen map
+        //      never lines up with the visible floor, and
+        //  (2) an absolute map forces the real cursor to stay inside the canvas, so
+        //      it slips out the moment you move fast.
+        // Pointer Lock solves both: we hide the OS cursor, capture the mouse, and
+        // move the pad by RELATIVE deltas. The cursor can never leave, and motion
+        // feels 1:1 because we scale screen-pixel deltas into world units using the
+        // floor's on-screen size.
+        // =========================================================================
+        let pointerLocked = false;
+
+        // How many world-units the pad travels per pixel of mouse movement.
+        // Calibrated so dragging across the canvas width sweeps the full play area.
+        function sensitivity() {
+            const r = canvas.getBoundingClientRect();
+            const playW = (S - 0.5) * 2;                 // world width the pad can cover
+            return (playW / Math.max(1, r.width)) * 1.6; // 1.6 = a touch faster than 1:1
+        }
+
+        function movePadByDelta(dx, dy) {
+            const sens = sensitivity();
+            const limX = (S - 0.5) - padW / 2;
+            const limZ = (S - 0.5) - padD / 2;
+            padTarget.x = clamp(padTarget.x + dx * sens, -limX, limX);
+            // mouse down (positive dy) = toward viewer = +Z (near)
+            padTarget.z = clamp(padTarget.z + dy * sens, -limZ, limZ);
+        }
+
+        // Absolute fallback (used before lock is engaged, and on touch).
+        function pointerToFloorAbsolute(clientX, clientY) {
+            const r = canvas.getBoundingClientRect();
+            let nx = clamp((clientX - r.left) / r.width, 0, 1);
+            let ny = clamp((clientY - r.top) / r.height, 0, 1);
+            const limX = (S - 0.5) - padW / 2;
+            const limZ = (S - 0.5) - padD / 2;
+            padTarget.x = (nx * 2 - 1) * limX;
+            padTarget.z = (ny * 2 - 1) * limZ;
+        }
+
+        function requestLock() {
+            if (canvas.requestPointerLock) {
+                canvas.requestPointerLock();
+            }
+        }
+
+        document.addEventListener('pointerlockchange', () => {
+            pointerLocked = (document.pointerLockElement === canvas);
+            // If the player hit Escape (or the browser dropped the lock) while playing,
+            // pause rather than silently losing mouse control.
+            if (!pointerLocked && state === STATE.PLAY) {
+                pause();
+            }
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (pointerLocked) {
+                movePadByDelta(e.movementX || 0, e.movementY || 0);
+            } else if (state === STATE.PLAY) {
+                // not locked yet — track absolutely so the pad still responds
+                pointerToFloorAbsolute(e.clientX, e.clientY);
+            }
+        });
+
+        canvas.addEventListener('mousedown', e => {
+            Sound.init();
+            Sound.resume();
+            if (state === STATE.PLAY && !pointerLocked) requestLock();
+        });
+
+        // Touch keeps absolute mapping (no pointer lock on touch devices)
+        canvas.addEventListener('touchstart', e => {
+            Sound.init();
+            Sound.resume();
+            if (e.touches[0]) pointerToFloorAbsolute(e.touches[0].clientX, e.touches[0].clientY);
+        }, {passive: true});
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (e.touches[0]) pointerToFloorAbsolute(e.touches[0].clientX, e.touches[0].clientY);
+        }, {passive: false});
+
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            const k = e.key.toLowerCase();
+            keys[k] = true;
+            if (k === ' ') {
+                e.preventDefault();
+                if (state === STATE.MENU || state === STATE.OVER) start();
+            }
+            if (k === 'p') {
+                if (state === STATE.PLAY) pause(); else if (state === STATE.PAUSE) resume();
+            }
+        });
+        window.addEventListener('keyup', e => {
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        function keyboardPad(dt) {
+            const lim = S - 0.5, sp = 0.5 * dt;
+            if (keys['a'] || keys['arrowleft']) padTarget.x = clamp(padTarget.x - sp, -lim + padW / 2, lim - padW / 2);
+            if (keys['d'] || keys['arrowright']) padTarget.x = clamp(padTarget.x + sp, -lim + padW / 2, lim - padW / 2);
+            if (keys['w'] || keys['arrowup']) padTarget.z = clamp(padTarget.z - sp, -lim + padD / 2, lim - padD / 2);
+            if (keys['s'] || keys['arrowdown']) padTarget.z = clamp(padTarget.z + sp, -lim + padD / 2, lim - padD / 2);
+        }
+
+        // =========================================================================
+        // Screens
+        // =========================================================================
+        const startScreen = document.getElementById('startScreen');
+        const overScreen = document.getElementById('overScreen');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const show = el => el.classList.remove('hidden');
+        const hide = el => el.classList.add('hidden');
+
+        function exitLock() {
+            if (document.pointerLockElement === canvas && document.exitPointerLock) {
+                document.exitPointerLock();
+            }
+        }
+
+        function start() {
+            Sound.init();
+            Sound.resume();
+            hide(startScreen);
+            hide(overScreen);
+            hide(pauseScreen);
+            newGame();
+            state = STATE.PLAY;
+            wrap.classList.add('playing');
+            // engage mouse capture so the cursor can't slip out
+            requestLock();
+        }
+
+        function pause() {
+            state = STATE.PAUSE;
+            show(pauseScreen);
+            wrap.classList.remove('playing');
+            exitLock();
+        }
+
+        function resume() {
+            state = STATE.PLAY;
+            hide(pauseScreen);
+            wrap.classList.add('playing');
+            requestLock();
+        }
+
+        function gameOver() {
+            state = STATE.OVER;
+            wrap.classList.remove('playing');
+            exitLock();
+            Sound.over();
+            best = Math.max(best, score);
+            try {
+                localStorage.setItem('resonance3d_best', String(best));
+            } catch (e) {
+            }
+            document.getElementById('bestV').textContent = best;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalCombo').textContent = '×' + bestCombo;
+            document.getElementById('overFlavor').textContent = flavor(score, bestCombo);
+            emit(ball.position.x, ball.position.y, ball.position.z, 0xff4d6d, 40, 2.2);
+            shake = 1.2;
+            show(overScreen);
+        }
+
+        function flavor(s, c) {
+            if (s === 0) return "Gone before the first note. The cube is unforgiving.";
+            if (s < 8) return "A few notes, then quiet.";
+            if (s < 20) return "You were finding the rhythm of the room.";
+            if (s < 40) return "A rally that filled the whole cube.";
+            if (c >= 12) return "You read all three dimensions at once. Rare.";
+            return "Virtuoso in the round. The cube remembers you.";
+        }
+
+        document.getElementById('startBtn').addEventListener('click', start);
+        document.getElementById('restartBtn').addEventListener('click', start);
+        document.getElementById('resumeBtn').addEventListener('click', resume);
+
+        const soundBtn = document.getElementById('soundBtn');
+        const soundWaves = soundBtn.querySelector('.waves');
+        soundBtn.addEventListener('click', () => {
+            Sound.init();
+            Sound.muted = !Sound.muted;
+            soundBtn.classList.toggle('muted', Sound.muted);
+            soundWaves.style.opacity = Sound.muted ? 0.25 : 1;
+        });
+
+        // =========================================================================
+        // HUD
+        // =========================================================================
+        const scoreV = document.getElementById('scoreV');
+        const comboWrap = document.getElementById('comboWrap');
+        const comboV = document.getElementById('comboV');
+        const chipsEl = document.getElementById('chips');
+        const toastEl = document.getElementById('toast');
+        const depthFill = document.getElementById('depthFill');
+
+        const POWER_DESC = {
+            1: 'Ball surges',
+            2: 'Heading reversed',
+            3: 'Pad widened',
+            4: 'Cube slowed'
+        };
+        let toastTimer = null;
+
+        function showToast(kind) {
+            const p = POWER[kind];
+            toastEl.innerHTML =
+                `<span class="tname" style="color:${p.css}">${p.name}</span>` +
+                `<span class="tdesc">${POWER_DESC[kind] || ''}</span>`;
+            toastEl.classList.remove('show');
+            // force reflow so the animation restarts even on rapid pickups
+            void toastEl.offsetWidth;
+            toastEl.classList.add('show');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1150);
+        }
+
+        function updateScore() {
+            scoreV.textContent = score;
+        }
+
+        function setCombo(c) {
+            combo = c;
+            if (c >= 2) {
+                comboWrap.classList.add('on');
+                comboV.textContent = '×' + c;
+            } else comboWrap.classList.remove('on');
+        }
+
+        function renderChips() {
+            chipsEl.innerHTML = '';
+            for (const k in active) {
+                const p = POWER[k];
+                const left = Math.ceil(active[k] - time);
+                const chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.innerHTML = `<span class="dot" style="background:${p.css};box-shadow:0 0 8px ${p.css}"></span>${p.name} <span class="t">${left}s</span>`;
+                chipsEl.appendChild(chip);
+            }
+        }
+
+        // =========================================================================
+        // Power-ups
+        // =========================================================================
+        function spawnOrb() {
+            const kind = Math.floor(rand(1, 5));
+            orb = {kind, life: 11, phase: Math.random() * Math.PI * 2, vy: 0, landed: false, restTimer: 6};
+            const p = POWER[kind];
+            // Spawn high in the cube. The orb will gently fall under light gravity and
+            // settle onto the floor, where the player sweeps it up with the PAD —
+            // far more reachable than chasing it through the air with the ball.
+            orbMesh.position.set(rand(-S + 1.8, S - 1.8), rand(S * 0.3, S * 0.75), rand(-S + 1.8, S - 1.8));
+            orbMesh.material.color.setHex(p.color);
+            orbMesh.material.emissive.setHex(p.color);
+            orbMesh.visible = true;
+            orbGlow.material.color.setHex(p.color);
+            orbGlow.visible = true;
+            orbBeam.material.color.setHex(p.color);
+            orbBeam.visible = true;
+            Sound.spawn();
+        }
+
+        function collectOrb() {
+            const p = POWER[orb.kind];
+            Sound.orb(orb.kind);
+            showToast(orb.kind);
+            emit(orbMesh.position.x, orbMesh.position.y, orbMesh.position.z, p.color, 26, 1.6);
+            floorRing(orbMesh.position.x, orbMesh.position.z, p.color);
+            switch (orb.kind) {
+                case 1:
+                    vel.x *= 1.4;
+                    vel.z *= 1.4;
+                    speedScale = Math.min(1.7, speedScale * 1.05);
+                    break;
+                case 2:
+                    vel.x *= -1;
+                    vel.z *= -1;
+                    break;
+                case 3:
+                    padW = Math.min(S * 1.1, padBase * 1.9);
+                    padD = Math.min(S * 1.1, padBaseD * 1.9);
+                    rebuildPad();
+                    active[3] = time + p.dur;
+                    break;
+                case 4:
+                    active[4] = time + p.dur;
+                    break;
+            }
+            renderChips();
+            orb = null;
+            orbMesh.visible = false;
+            orbGlow.visible = false;
+            orbBeam.visible = false;
+            orbReticle.visible = false;
+            orbTimer = rand(6, 9);
+        }
+
+        function tickPowers(dt) {
+            let changed = false;
+            for (const k in active) {
+                if (time >= active[k]) {
+                    if (k === '3') {
+                        padW = padBase;
+                        padD = padBaseD;
+                        rebuildPad();
+                    }
+                    delete active[k];
+                    changed = true;
+                }
+            }
+            if (changed) renderChips();
+            if (Math.floor(time * 2) !== Math.floor((time - dt / 60) * 2)) renderChips();
+        }
+
+        function timeFactor() {
+            return active[4] ? 0.5 : 1;
+        }
+
+        // =========================================================================
+        // Core update
+        // =========================================================================
+        function update(dt) {
+            time += dt / 60;
+            keyboardPad(dt);
+
+            // ease pad toward target
+            pad.position.x += (padTarget.x - pad.position.x) * Math.min(1, 0.3 * dt);
+            pad.position.z += (padTarget.z - pad.position.z) * Math.min(1, 0.3 * dt);
+
+            const tf = timeFactor();
+
+            // physics
+            vel.y -= gravity * speedScale * tf;
+            ball.position.x += vel.x * speedScale * tf;
+            ball.position.y += vel.y * speedScale * tf;
+            ball.position.z += vel.z * speedScale * tf;
+            ball.rotation.x += 0.04 * dt;
+            ball.rotation.y += 0.05 * dt;
+
+            const lim = S - ballR;
+
+            // X walls
+            if (ball.position.x <= -lim) {
+                ball.position.x = -lim;
+                vel.x = Math.abs(vel.x);
+                wallHit(new THREE.Vector3(-S, ball.position.y, ball.position.z), new THREE.Vector3(1, 0, 0));
+            } else if (ball.position.x >= lim) {
+                ball.position.x = lim;
+                vel.x = -Math.abs(vel.x);
+                wallHit(new THREE.Vector3(S, ball.position.y, ball.position.z), new THREE.Vector3(-1, 0, 0));
+            }
+            // Z walls
+            if (ball.position.z <= -lim) {
+                ball.position.z = -lim;
+                vel.z = Math.abs(vel.z);
+                wallHit(new THREE.Vector3(ball.position.x, ball.position.y, -S), new THREE.Vector3(0, 0, 1));
+            } else if (ball.position.z >= lim) {
+                ball.position.z = lim;
+                vel.z = -Math.abs(vel.z);
+                wallHit(new THREE.Vector3(ball.position.x, ball.position.y, S), new THREE.Vector3(0, 0, -1));
+            }
+            // ceiling
+            if (ball.position.y >= lim) {
+                ball.position.y = lim;
+                vel.y = -Math.abs(vel.y);
+                wallHit(new THREE.Vector3(ball.position.x, S, ball.position.z), new THREE.Vector3(0, -1, 0));
+            }
+
+            // pad / floor catch
+            const padTop = FLOOR_Y + PAD_H + 0.1;   // top surface of the raised pad
+            if (ball.position.y - ballR <= padTop) {
+                const overX = Math.abs(ball.position.x - pad.position.x) <= padW / 2 + ballR * 0.5;
+                const overZ = Math.abs(ball.position.z - pad.position.z) <= padD / 2 + ballR * 0.5;
+                if (overX && overZ && vel.y < 0) {
+                    padHit();
+                } else if (ball.position.y - ballR <= FLOOR_Y - 0.5) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            // orb life / fall / collect
+            if (state === STATE.PLAY) {
+                if (!orb) {
+                    orbTimer -= dt / 60;
+                    if (orbTimer <= 0) spawnOrb();
+                } else {
+                    // gravity-driven fall until it rests on the floor
+                    const restY = FLOOR_Y + 0.9;
+                    if (!orb.landed) {
+                        orb.vy -= gravity * 0.45 * dt;
+                        orbMesh.position.y += orb.vy * dt;
+                        if (orbMesh.position.y <= restY) {
+                            orbMesh.position.y = restY;
+                            orb.vy = 0;
+                            orb.landed = true;
+                            // a little landing puff + ring
+                            emit(orbMesh.position.x, restY, orbMesh.position.z, POWER[orb.kind].color, 10, 1.0);
+                            floorRing(orbMesh.position.x, orbMesh.position.z, POWER[orb.kind].color);
+                        }
+                        orb.life -= dt / 60;           // airborne lifespan
+                    } else {
+                        // sits on the floor for a fixed window, then fades
+                        orb.restTimer -= dt / 60;
+                        orb.life = orb.restTimer;      // life mirrors the rest window
+                    }
+                    if (orb.life <= 0) {
+                        orb = null;
+                        orbMesh.visible = false;
+                        orbGlow.visible = false;
+                        orbBeam.visible = false;
+                        orbReticle.visible = false;
+                        orbTimer = rand(5, 8);
+                    } else {
+                        // Collection: the PAD sweeps it up once it's on (or near) the floor.
+                        const padReach = orb.landed;
+                        const overX = Math.abs(orbMesh.position.x - pad.position.x) <= padW / 2 + 1.0;
+                        const overZ = Math.abs(orbMesh.position.z - pad.position.z) <= padD / 2 + 1.0;
+                        if (padReach && overX && overZ) {
+                            collectOrb();
+                        } else if (!orb.landed && ball.position.distanceTo(orbMesh.position) < ballR + 0.6) {
+                            // the ball can still snag one in mid-air as a lucky bonus,
+                            // but the tight radius keeps the pad as the main route
+                            collectOrb();
+                        }
+                    }
+                }
+            }
+
+            tickPowers(dt);
+            updateParticles(dt);
+            updateRings(dt);
+            if (shake > 0) shake *= Math.pow(0.86, dt);
+
+            syncVisuals(dt);
+        }
+
+        function wallHit(pos, normal) {
+            Sound.wall();
+            emit(pos.x, pos.y, pos.z, 0x36e0ff, 5, 0.9);
+            wallRing(pos, normal, 0x36e0ff);
+            shake = Math.max(shake, 0.3);
+        }
+
+        function padHit() {
+            // Horizontal steering comes from where the ball struck the pad.
+            // Vertical launch is a strong, near-constant impulse so the ball always
+            // arcs high into the cube (~75-85% of the height) and gives the player
+            // well over a second of air time to read and reposition.
+            const relX = (ball.position.x - pad.position.x) / (padW / 2);
+            const relZ = (ball.position.z - pad.position.z) / (padD / 2);
+
+            // base launch climbs very gently as the rally builds, so it stays readable
+            const launch = 0.55 + Math.min(0.06, combo * 0.003);
+            vel.x = relX * 0.11;                 // gentler sideways steer than before
+            vel.z = relZ * 0.11;
+            vel.y = launch;
+            ball.position.y = padTop_safe();
+
+            score += 1 + Math.floor(combo / 4) + (active[1] ? 1 : 0);
+            speedScale = Math.min(1.7, speedScale + 0.006);   // slower, gentler ramp
+            setCombo(combo + 1);
+            bestCombo = Math.max(bestCombo, combo);
+            updateScore();
+
+            // pitch mapped to X position across the floor (consistent with 2D feel)
+            const norm = clamp((ball.position.x + S) / (S * 2), 0, 1);
+            Sound.pad(norm, combo);
+
+            emit(ball.position.x, FLOOR_Y + 0.6, ball.position.z, 0xff4d6d, 12 + Math.min(18, combo * 2), 1.2);
+            floorRing(ball.position.x, ball.position.z, 0xff4d6d);
+            shake = Math.max(shake, 0.4 + Math.min(0.8, combo * 0.06));
+
+            // pad flash
+            padMat.emissiveIntensity = 1.2;
+        }
+
+        function padTop_safe() {
+            return FLOOR_Y + PAD_H + 0.1 + ballR + 0.01;
+        }
+
+        // keep meshes/sprites in sync with physics + decay flashes
+        function syncVisuals(dt) {
+            ballGlow.position.copy(ball.position);
+            const col = active[4] ? 0xb18bff : 0xff4d6d;
+            ballMat.color.setHex(col);
+            ballMat.emissive.setHex(active[1] ? 0xff7a90 : (active[4] ? 0x8d6bd6 : 0xff1f43));
+            ballGlow.material.color.setHex(active[4] ? 0xb18bff : (active[1] ? 0xff7a90 : 0xff4d6d));
+
+            // shadow + reticle + drop line track ball's X/Z on the floor
+            shadow.position.set(ball.position.x, FLOOR_Y + 0.04, ball.position.z);
+            const h = (ball.position.y - FLOOR_Y) / (S * 2);          // 0..~1 height ratio
+            const sc = 1 + h * 1.4;                               // shadow grows with height
+            shadow.scale.set(sc, sc, sc);
+            shadow.material.opacity = 0.5 - h * 0.25;
+
+            reticle.position.set(ball.position.x, FLOOR_Y + 0.06, ball.position.z);
+            reticle.material.color.setHex(col);
+
+            dropGeo.setFromPoints([
+                new THREE.Vector3(ball.position.x, ball.position.y - ballR, ball.position.z),
+                new THREE.Vector3(ball.position.x, FLOOR_Y + 0.05, ball.position.z)
+            ]);
+            dropLine.computeLineDistances();
+            dropGeo.attributes.position.needsUpdate = true;
+
+            // depth meter (Z axis): map z from -S..S to top..bottom of meter
+            const zr = clamp((ball.position.z + S) / (S * 2), 0, 1);
+            depthFill.style.top = (zr * 106) + 'px';
+
+            // orb spin + glow + landing guides
+            if (orb) {
+                orbMesh.rotation.x += 0.03 * dt;
+                orbMesh.rotation.y += 0.04 * dt;
+                const pulse = 1 + Math.sin(time * 4 + orb.phase) * 0.15;
+                orbMesh.scale.setScalar(pulse);
+                orbGlow.position.copy(orbMesh.position);
+                const fade = orb.life < 2 ? orb.life / 2 : 1;
+                orbGlow.material.opacity = 0.9 * fade;
+                orbMesh.material.opacity = fade;
+
+                // beam from orb down to its floor spot
+                const beamTopY = orbMesh.position.y - 0.6;
+                const beamBotY = FLOOR_Y + 0.05;
+                const beamH = Math.max(0.001, beamTopY - beamBotY);
+                orbBeam.position.set(orbMesh.position.x, (beamTopY + beamBotY) / 2, orbMesh.position.z);
+                orbBeam.scale.set(1, beamH, 1);
+                orbBeam.material.opacity = (orb.landed ? 0.12 : 0.32) * fade;
+
+                // floor reticle pulses; turns solid/larger once landed & catchable
+                orbReticle.visible = true;
+                orbReticle.position.set(orbMesh.position.x, FLOOR_Y + 0.06, orbMesh.position.z);
+                const rPulse = orb.landed ? (1.05 + Math.sin(time * 6) * 0.12) : 1.0;
+                orbReticle.scale.set(rPulse, rPulse, rPulse);
+                orbReticle.material.opacity = (orb.landed ? 0.85 : 0.4) * fade;
+            }
+
+            // pad emissive decay back to rest
+            padMat.emissiveIntensity += (0.5 - padMat.emissiveIntensity) * 0.1 * dt;
+        }
+
+        // =========================================================================
+        // Camera motion — gentle orbit gives parallax = depth cue. Shake on impact.
+        // =========================================================================
+        let camAngle = 0;
+
+        function updateCamera(dt) {
+            if (!reduceMotion) {
+                camAngle += 0.0016 * dt;
+            }
+            const radius = 26, height = 15;
+            let cx = Math.sin(camAngle) * 4;           // small lateral sway only
+            camera.position.x = cx;
+            camera.position.y = height;
+            camera.position.z = radius;
+            if (shake > 0.01) {
+                camera.position.x += rand(-shake, shake);
+                camera.position.y += rand(-shake, shake) * 0.6;
+            }
+            camera.lookAt(0, -1.5, 0);
+
+            // gently rotate the cube itself for extra dimensionality.
+            // The pad lives in scene-space (not inside cubeGroup), so we apply the
+            // SAME yaw to it — otherwise the floor grid drifts under a static pad and
+            // the pad appears to slowly rotate on its own.
+            if (!reduceMotion && state === STATE.PLAY) {
+                const yaw = Math.sin(time * 0.15) * 0.06;
+                cubeGroup.rotation.y = yaw;
+                pad.rotation.y = yaw;
+            }
+        }
+
+        // =========================================================================
+        // Menu atmosphere — ball drifts lazily inside the cube behind the panel
+        // =========================================================================
+        function menuDrift(dt) {
+            ball.position.x += Math.sin(time * 0.6) * 0.01 * dt;
+            ball.position.y = S * 0.2 + Math.sin(time * 0.8) * 1.6;
+            ball.position.z += Math.cos(time * 0.5) * 0.01 * dt;
+            ball.position.x = clamp(ball.position.x, -S + 1, S - 1);
+            ball.position.z = clamp(ball.position.z, -S + 1, S - 1);
+            ball.rotation.y += 0.01 * dt;
+            syncVisuals(dt);
+        }
+
+        // =========================================================================
+        // Resize
+        // =========================================================================
+        function resize() {
+            const r = wrap.getBoundingClientRect();
+            renderer.setSize(r.width, r.height, false);
+            camera.aspect = r.width / r.height;
+            camera.updateProjectionMatrix();
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        // =========================================================================
+        // Loop
+        // =========================================================================
+        let last = performance.now();
+
+        function frame(now) {
+            let dt = (now - last) / 16.6667;
+            last = now;
+            if (dt > 3) dt = 3;
+
+            if (state === STATE.PLAY) {
+                update(dt);
+            } else {
+                time += dt / 60 * 0.5;
+                updateParticles(dt);
+                updateRings(dt);
+                if (shake > 0) shake *= Math.pow(0.86, dt);
+                if (state === STATE.MENU) menuDrift(dt);
+            }
+            updateCamera(dt);
+            renderer.render(scene, camera);
+            requestAnimationFrame(frame);
+        }
+
+        // boot
+        resetBall();
+        document.getElementById('loading').style.display = 'none';
+        show(startScreen);
+        requestAnimationFrame(frame);
+
+    })();
+</script>
+
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>弹球挑战</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成·弹跳球游戏</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

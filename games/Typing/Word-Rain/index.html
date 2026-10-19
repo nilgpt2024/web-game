@@ -1245,4 +1245,1225 @@ const UPGRADES = [{
     fx: '-0.3 max word length'
 }, {
     id: 'bombWords',
-    name: '
+    name: 'Bomb Words',
+    desc: l => `Spawn: ${l * 4}%`,
+    baseCost: 15,
+    growth: 1.20,
+    maxLevel: 10,
+    fx: '+4% bomb chance'
+}, {
+    id: 'nukeWords',
+    name: 'Nuke Words',
+    desc: l => `Spawn: ${(l * 1.5).toFixed(1)}%`,
+    baseCost: 50,
+    growth: 1.30,
+    maxLevel: 7,
+    fx: '+1.5% nuke chance'
+}, {
+    id: 'cryoPulse',
+    name: 'Cryo Pulse',
+    desc: l => `Freeze spawn: ${l * 3}%`,
+    baseCost: 20,
+    growth: 1.22,
+    maxLevel: 8,
+    fx: '+3% freeze word chance'
+}, {
+    id: 'autoTyper',
+    name: 'Auto-Typer',
+    desc: l => `${l} char${l !== 1 ? 's' : ''} / 2s`,
+    baseCost: 30,
+    growth: 1.35,
+    maxLevel: 15,
+    fx: '+1 char per 2s'
+}, {
+    id: 'goldRush',
+    name: 'Gold Rush',
+    desc: l => `+${(l * 0.3).toFixed(1)} gold/word`,
+    baseCost: 12,
+    growth: 1.20,
+    maxLevel: 20,
+    fx: '+0.3 gold per word'
+}, {
+    id: 'streakShield',
+    name: 'Streak Shield',
+    desc: l => `${l} miss${l !== 1 ? 'es' : ''} buffer`,
+    baseCost: 25,
+    growth: 1.40,
+    maxLevel: 5,
+    fx: '+1 miss buffer'
+}, {
+    id: 'critStrike',
+    name: 'Critical Strike',
+    desc: l => `${l * 5}% insta-kill`,
+    baseCost: 20,
+    growth: 1.25,
+    maxLevel: 10,
+    fx: '+5% chance to auto-complete'
+}, {
+    id: 'wordMagnet',
+    name: 'Word Magnet',
+    desc: l => `-${l * 8}% speed in danger`,
+    baseCost: 14,
+    growth: 1.20,
+    maxLevel: 10,
+    fx: 'Words slow near bottom'
+}, {
+    id: 'doubleGold',
+    name: 'Double Gold',
+    desc: l => `${l * 6}% chance`,
+    baseCost: 18,
+    growth: 1.22,
+    maxLevel: 10,
+    fx: '+6% chance for 2x gold'
+}, {
+    id: 'comboMaster',
+    name: 'Combo Master',
+    desc: l => `Thresholds: ${Math.max(2, 5 - l)}/${Math.max(4, 10 - l * 2)}/${Math.max(8, 20 - l * 3)}`,
+    baseCost: 22,
+    growth: 1.28,
+    maxLevel: 4,
+    fx: 'Lower streak thresholds'
+}];
+let state = {gold: 0, upgrades: {}, totalRounds: 0, bestTime: 0, bestWords: 0, bestWPM: 0, overclock: 0};
+
+function gl(id) {
+    return state.upgrades[id] || 0
+}
+
+function upgCost(u) {
+    const l = gl(u.id);
+    return l >= u.maxLevel ? Infinity : Math.floor(u.baseCost * Math.pow(u.growth, l))
+}
+
+function saveState() {
+    try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(state))
+    } catch (e) {
+    }
+}
+
+function loadState() {
+    try {
+        const s = localStorage.getItem(SAVE_KEY);
+        if (s) {
+            state = {...state, ...JSON.parse(s)};
+            return true
+        }
+    } catch (e) {
+    }
+    return false
+}
+
+function resetState() {
+    state = {gold: 0, upgrades: {}, totalRounds: 0, bestTime: 0, bestWords: 0, bestWPM: 0, overclock: 0};
+    saveState()
+}
+
+const FALLBACK_WORDS = ["the", "and", "for", "are", "but", "not", "you", "all", "can", "her", "was", "one", "our", "out", "day", "had", "hot", "oil", "old", "red", "sit", "top", "two", "age", "ago", "air", "also", "area", "army", "away", "baby", "back", "ball", "bank", "base", "bath", "bean", "bear", "beat", "been", "beer", "bell", "belt", "best", "bill", "bird", "bite", "blue", "boat", "body", "bomb", "bone", "book", "born", "boss", "both", "burn", "busy", "cafe", "cake", "call", "calm", "came", "camp", "card", "care", "case", "cash", "cast", "cave", "chat", "chip", "city", "club", "coal", "coat", "code", "coin", "cold", "come", "cook", "cool", "copy", "core", "cost", "crew", "crop", "dark", "data", "date", "dawn", "dead", "deaf", "deal", "dear", "debt", "deep", "deny", "desk", "diet", "dirt", "dish", "disk", "dock", "does", "done", "door", "dose", "down", "draw", "drew", "drop", "drug", "drum", "dual", "duke", "dull", "dump", "dust", "duty", "each", "earn", "ease", "east", "easy", "edge", "else", "even", "ever", "evil", "exam", "exit", "face", "fact", "fail", "fair", "fall", "fame", "farm", "fast", "fate", "fear", "feed", "feel", "feet", "fell", "felt", "file", "fill", "film", "find", "fine", "fire", "firm", "fish", "five", "flag", "flat", "flew", "flow", "fold", "folk", "food", "foot", "ford", "form", "fort", "foul", "four", "free", "from", "fuel", "full", "fund", "gain", "game", "gang", "gate", "gave", "gaze", "gear", "gene", "gift", "girl", "give", "glad", "goal", "goes", "gold", "golf", "gone", "good", "grab", "gray", "grew", "grid", "grip", "grow", "gulf", "half", "hall", "hand", "hang", "hard", "harm", "hate", "have", "head", "hear", "heat", "held", "hell", "help", "herb", "here", "hero", "high", "hill", "hire", "hold", "hole", "holy", "home", "hope", "horn", "host", "hour", "huge", "hung", "hunt", "hurt", "idea", "inch", "into", "iron", "item", "jack", "jail", "jane", "jean", "john", "join", "joke", "jump", "june", "jury", "just", "keen", "keep", "kent", "kept", "kick", "kill", "kind", "king", "knee", "knew", "knit", "know", "lack", "laid", "lake", "lamp", "land", "lane", "last", "late", "lawn", "lead", "leaf", "lean", "left", "lend", "less", "life", "lift", "like", "limb", "lime", "limp", "line", "link", "lion", "list", "live", "load", "loan", "lock", "logo", "long", "look", "lord", "lose", "loss", "lost", "love", "luck", "mail", "main", "make", "male", "mall", "many", "mark", "mask", "mass", "mate", "math", "maze", "meal", "mean", "meat", "meet", "menu", "mere", "mess", "mild", "milk", "mill", "mind", "mine", "miss", "mode", "mood", "moon", "more", "most", "move", "much", "must", "myth", "name", "navy", "near", "neat", "neck", "need", "news", "next", "nice", "nine", "node", "none", "norm", "nose", "note", "noun", "odds", "okay", "once", "only", "onto", "open", "oral", "pack", "page", "paid", "pain", "pair", "pale", "palm", "panel", "park", "part", "pass", "past", "path", "peak", "peer", "pick", "pile", "pine", "pink", "pipe", "plan", "play", "plot", "plug", "plus", "poem", "poet", "pole", "poll", "pond", "pool", "poor", "pope", "pork", "port", "pose", "post", "pour", "pray", "pull", "pump", "pure", "push", "quit", "race", "rage", "raid", "rail", "rain", "rank", "rare", "rate", "read", "real", "rear", "rely", "rent", "rest", "rice", "rich", "ride", "ring", "rise", "risk", "road", "rock", "rode", "role", "roll", "roof", "room", "root", "rope", "rose", "rule", "rush", "safe", "said", "sake", "sale", "salt", "same", "sand", "sang", "save", "seat", "seed", "seek", "seem", "seen", "self", "sell", "send", "sent", "ship", "shop", "shot", "show", "shut", "sick", "side", "sign", "silk", "sing", "sink", "site", "size", "skin", "slip", "slow", "snap", "snow", "soft", "soil", "sold", "sole", "some", "song", "soon", "sort", "soul", "spin", "spot", "star", "stay", "stem", "step", "stop", "such", "suit", "sure", "swim", "tail", "take", "tale", "talk", "tall", "tank", "tape", "task", "taxi", "team", "tell", "tend", "tent", "term", "test", "text", "than", "that", "them", "then", "they", "thin", "this", "tide", "till", "time", "tiny", "tire", "told", "toll", "tone", "took", "tool", "tops", "tore", "torn", "tour", "town", "trap", "tray", "tree", "trim", "trio", "trip", "true", "tube", "tune", "turn", "twin", "type", "ugly", "unit", "upon", "urge", "used", "user", "vale", "vary", "vast", "verb", "very", "vice", "view", "vine", "visa", "void", "volt", "vote", "wade", "wage", "wait", "wake", "walk", "wall", "ward", "warm", "warn", "wash", "wave", "weak", "wear", "week", "well", "went", "were", "west", "what", "when", "whom", "wide", "wife", "wild", "will", "wind", "wine", "wing", "wire", "wise", "wish", "with", "wood", "word", "wore", "work", "worm", "worn", "wrap", "yard", "yeah", "year", "zero", "zone", "apple", "brave", "chair", "dance", "eagle", "flame", "grape", "house", "juice", "knife", "lemon", "mango", "night", "ocean", "piano", "queen", "river", "stone", "table", "ultra", "voice", "water", "youth", "amber", "badge", "candy", "drift", "elbow", "frost", "ghost", "happy", "ivory", "jewel", "karma", "light", "magic", "noble", "olive", "pearl", "quest", "robin", "solar", "tiger", "unity", "vivid", "wheat", "xenon", "yield", "zebra", "atlas", "blaze", "cloud", "delta", "ember", "focus", "glyph", "haven", "index", "joker", "knack", "lunar", "marsh", "nexus", "orbit", "prism", "radar", "scout", "troop", "umbra", "vault", "wrath", "stock", "blend", "crane", "sworn", "plume", "stove", "brisk", "chunk", "grain", "flint", "surge", "ridge", "blunt", "slate", "plank", "spore", "thorn", "crisp", "realm", "epoch", "forge", "herald", "spirit", "temple", "anchor", "breeze", "candle", "throne", "summit", "quartz", "velvet", "copper", "silver", "beacon", "hollow", "shadow", "frenzy", "mystic", "voyage", "wonder", "trophy", "cipher", "escape", "frozen", "ignite", "launch", "method", "native", "origin", "reflex", "shield", "tribal", "vendor", "binary", "clutch", "divine", "fabric", "harbor", "mortal", "nimble", "puzzle", "rustic", "sample", "theory", "update", "absorb", "bright", "cobalt", "decode", "filter", "gentle", "inward", "jigsaw", "kernel", "matrix"];
+const NUKE_WORDS = ["armageddon", "annihilate", "catastrophe", "apocalypse", "obliterate", "disintegrate", "destruction", "earthquake", "cataclysm"];
+const FREEZE_WORDS = ["blizzard", "glacier", "frostbite", "icicle", "avalanche", "tundra", "permafrost", "snowfall"];
+let wordPool = [...FALLBACK_WORDS];
+fetch('https://random-word-api.herokuapp.com/word?number=200').then(r => r.json()).then(w => {
+    const f = w.filter(x => x.length >= 3 && x.length <= 10 && /^[a-z]+$/.test(x));
+    if (f.length > 50) wordPool = [...new Set([...FALLBACK_WORDS, ...f])]
+}).catch(() => {
+});
+
+function randWord(mn, mx) {
+    const c = wordPool.filter(w => w.length >= mn && w.length <= mx);
+    return c.length ? c[Math.floor(Math.random() * c.length)] : wordPool[Math.floor(Math.random() * wordPool.length)]
+}
+
+let audioCtx = null, soundMuted = false;
+
+function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)()
+}
+
+function playTone(freq, dur, type = 'sine', vol = 0.08) {
+    if (soundMuted || !audioCtx) return;
+    try {
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        g.gain.setValueAtTime(vol, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.start();
+        o.stop(audioCtx.currentTime + dur)
+    } catch (e) {
+    }
+}
+
+function sndType() {
+    playTone(880 + Math.random() * 200, 0.06, 'square', 0.04)
+}
+
+function sndComplete() {
+    playTone(660, 0.08, 'sine', 0.06);
+    setTimeout(() => playTone(880, 0.08, 'sine', 0.06), 60);
+    setTimeout(() => playTone(1100, 0.1, 'sine', 0.05), 120)
+}
+
+function sndError() {
+    playTone(180, 0.12, 'sawtooth', 0.06)
+}
+
+function sndDamage() {
+    playTone(100, 0.2, 'triangle', 0.1)
+}
+
+function sndBomb() {
+    playTone(80, 0.3, 'sawtooth', 0.08);
+    setTimeout(() => playTone(120, 0.2, 'square', 0.05), 50)
+}
+
+function sndNuke() {
+    let f = 80;
+    for (let i = 0; i < 8; i++) setTimeout(() => playTone(f + i * 100, 0.15, 'sawtooth', 0.04), i * 30)
+}
+
+function sndFreeze() {
+    playTone(1200, 0.15, 'sine', 0.05);
+    setTimeout(() => playTone(1600, 0.12, 'sine', 0.04), 80);
+    setTimeout(() => playTone(2000, 0.15, 'sine', 0.03), 160)
+}
+
+function sndBuy() {
+    playTone(520, 0.06, 'sine', 0.06);
+    setTimeout(() => playTone(780, 0.1, 'sine', 0.06), 70)
+}
+
+function sndPrestige() {
+    for (let i = 0; i < 6; i++) setTimeout(() => playTone(400 + i * 150, 0.2, 'sine', 0.05), i * 60)
+}
+
+let musicInterval = null;
+const PENTA_CALM = [261.6, 293.7, 329.6, 392.0, 440.0, 523.3, 587.3, 659.3];
+const PENTA_TENSE = [261.6, 311.1, 349.2, 392.0, 466.2, 523.3, 622.3, 698.5];
+let musicStep = 0;
+
+function playMusicNote() {
+    if (soundMuted || !audioCtx || !combat || !combat.running) return;
+    const hpRatio = combat.hp / combat.maxHP;
+    const scale = hpRatio < 0.35 ? PENTA_TENSE : PENTA_CALM;
+    const intensity = Math.min(1, combat.elapsed / 120);
+    const vol = 0.02 + intensity * 0.015;
+    const noteCount = 1 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < noteCount; i++) {
+        const idx = (musicStep + i * 2) % scale.length;
+        const octaveShift = Math.random() < 0.3 ? 2 : 1;
+        const freq = scale[idx] * octaveShift;
+        const dur = 0.3 + Math.random() * 0.5;
+        setTimeout(() => playTone(freq, dur, 'sine', vol * (0.6 + Math.random() * 0.4)), i * 150)
+    }
+    musicStep = (musicStep + 1) % scale.length
+}
+
+function startMusic() {
+    stopMusic();
+    if (soundMuted) return;
+    musicStep = 0;
+    playMusicNote();
+    musicInterval = setInterval(() => {
+        if (!combat || !combat.running) {
+            stopMusic();
+            return
+        }
+        playMusicNote()
+    }, 2200 + Math.random() * 800)
+}
+
+function stopMusic() {
+    if (musicInterval) {
+        clearInterval(musicInterval);
+        musicInterval = null
+    }
+}
+
+document.getElementById('mute-btn').addEventListener('click', function () {
+    soundMuted = !soundMuted;
+    this.textContent = soundMuted ? '♪̸' : '♪';
+    this.style.color = soundMuted ? 'var(--red)' : 'var(--text-dim)';
+    if (soundMuted) stopMusic(); else if (combat && combat.running) startMusic()
+});
+let combat = null;
+
+function getOPMult() {
+    return Math.pow(1.05, state.overclock)
+}
+
+function getMaxHP() {
+    return 5 + gl('fortify') + state.overclock
+}
+
+function getFallMult() {
+    return Math.pow(0.97, gl('slowField'))
+}
+
+function getMaxLenReduc() {
+    return gl('shortCircuit') * 0.3
+}
+
+function getBombCh() {
+    return gl('bombWords') * 0.04
+}
+
+function getNukeCh() {
+    return gl('nukeWords') * 0.015
+}
+
+function getFreezeCh() {
+    return gl('cryoPulse') * 0.03
+}
+
+function getAutoSpeed() {
+    return gl('autoTyper')
+}
+
+function getGoldBonus() {
+    return gl('goldRush') * 0.3
+}
+
+function getStreakShield() {
+    return gl('streakShield')
+}
+
+function getCritCh() {
+    return gl('critStrike') * 0.05
+}
+
+function getMagnetSlow() {
+    return gl('wordMagnet') * 0.08
+}
+
+function getDoubleGoldCh() {
+    return gl('doubleGold') * 0.06
+}
+
+function getStreakThresholds() {
+    const l = gl('comboMaster');
+    return [Math.max(2, 5 - l), Math.max(4, 10 - l * 2), Math.max(8, 20 - l * 3)]
+}
+
+function getSplitCh(elapsed) {
+    if (elapsed < 45) return 0;
+    return Math.min(0.08, 0.02 + (elapsed - 45) / 75 * 0.06)
+}
+
+function getFastWordCh(elapsed) {
+    if (elapsed < 90) return 0;
+    return Math.min(0.35, 0.15 + (elapsed - 90) / 60 * 0.2)
+}
+
+function createCombat() {
+    const mhp = getMaxHP();
+    return {
+        hp: mhp,
+        maxHP: mhp,
+        gold: 0,
+        wordsDestroyed: 0,
+        streak: 0,
+        bestStreak: 0,
+        streakMissBuffer: 0,
+        correctKeys: 0,
+        totalKeys: 0,
+        startTime: 0,
+        elapsed: 0,
+        words: [],
+        targetId: null,
+        autoTargetId: null,
+        autoTimer: 0,
+        nextSpawnTime: 0,
+        wordIdCounter: 0,
+        running: false,
+        animFrame: null,
+        lastTime: 0,
+        freezeUntil: 0,
+        wpmTimestamps: [],
+        lastGold: 0,
+        lastComboThreshold: 0,
+        phase: ''
+    }
+}
+
+function getDiff(t) {
+    const si = t > 120 ? Math.max(0.25, 2.5 - t * 0.025) : Math.max(0.4, 2.5 - t * 0.025);
+    const bfs = 25 + t * 0.8;
+    const fs = bfs * getFallMult();
+    const mn = 3;
+    const rmx = Math.min(10, 4 + Math.floor(t / 20));
+    const mx = Math.max(mn, Math.round(rmx - getMaxLenReduc()));
+    const baseMa = Math.min(12, 2 + Math.floor(t / 12));
+    const ma = t > 150 ? Math.min(16, baseMa + Math.floor((t - 150) / 30)) : baseMa;
+    return {spawnInterval: si, fallSpeed: fs, minLen: mn, maxLen: mx, maxActive: ma}
+}
+
+function calcGold(base, isSplit) {
+    const bonus = getGoldBonus();
+    const th = getStreakThresholds();
+    let sb = 0;
+    if (combat.streak >= th[2]) sb = 3; else if (combat.streak >= th[1]) sb = 2; else if (combat.streak >= th[0]) sb = 1;
+    let total = (base + (isSplit ? 2 : 0) + bonus + sb) * getOPMult();
+    if (Math.random() < getDoubleGoldCh()) total *= 2;
+    return total
+}
+
+const COMBO_MESSAGES = [{threshold: 5, text: 'NICE', color: 'var(--cyan)'}, {
+    threshold: 10,
+    text: 'GREAT',
+    color: 'var(--green)'
+}, {threshold: 20, text: 'ON FIRE', color: 'var(--gold)'}, {
+    threshold: 35,
+    text: 'UNSTOPPABLE',
+    color: 'var(--orange)'
+}, {threshold: 50, text: 'GODLIKE', color: 'var(--nuke)'}];
+
+function checkComboPopup() {
+    let highest = 0;
+    for (const cm of COMBO_MESSAGES) {
+        if (combat.streak >= cm.threshold) highest = cm.threshold
+    }
+    if (highest > combat.lastComboThreshold) {
+        combat.lastComboThreshold = highest;
+        const msg = COMBO_MESSAGES.find(m => m.threshold === highest);
+        if (msg) showComboPopup(msg.text, msg.color)
+    }
+}
+
+function showComboPopup(text, color) {
+    const el = document.createElement('div');
+    el.className = 'combo-popup';
+    el.textContent = text;
+    el.style.color = color;
+    $gameArea.appendChild(el);
+    setTimeout(() => el.remove(), 1100)
+}
+
+const $start = document.getElementById('start-screen'), $combat = document.getElementById('combat-screen'),
+    $shop = document.getElementById('shop-screen'), $roundOver = document.getElementById('round-over'),
+    $gameArea = document.getElementById('game-area'), $input = document.getElementById('input-display'),
+    $hpInner = document.getElementById('hp-bar-inner'), $hpText = document.getElementById('hp-text'),
+    $hpContainer = document.getElementById('hp-container'), $cGold = document.getElementById('combat-gold'),
+    $cStreak = document.getElementById('combat-streak'), $cWords = document.getElementById('combat-words'),
+    $cTimer = document.getElementById('combat-timer'), $wpmDisplay = document.getElementById('wpm-display'),
+    $dangerZone = document.getElementById('danger-zone'), $phaseLabel = document.getElementById('phase-label');
+
+function showScreen(id) {
+    $start.style.display = 'none';
+    $combat.style.display = 'none';
+    $shop.style.display = 'none';
+    $roundOver.style.display = 'none';
+    if (id === 'start') {
+        $start.style.display = 'flex';
+        const opInfo = document.getElementById('start-op-info');
+        opInfo.textContent = state.overclock > 0 ? `OVERCLOCK ×${state.overclock} — +${((getOPMult() - 1) * 100).toFixed(0)}% gold, +${state.overclock} HP` : ''
+    } else if (id === 'combat') $combat.style.display = 'flex'; else if (id === 'shop') {
+        $shop.style.display = 'flex';
+        renderShop()
+    } else if (id === 'roundover') $roundOver.style.display = 'flex'
+}
+
+function updateHP() {
+    const p = (combat.hp / combat.maxHP) * 100;
+    $hpInner.style.width = p + '%';
+    $hpInner.style.background = p > 40 ? 'var(--hp-bar)' : p > 20 ? 'var(--orange)' : 'var(--red)';
+    $hpText.textContent = `${combat.hp}/${combat.maxHP}`
+}
+
+function updateStats() {
+    const newGold = Math.floor(combat.gold);
+    if (newGold > combat.lastGold) {
+        combat.lastGold = newGold;
+        $cGold.classList.remove('gold-flash');
+        void $cGold.offsetWidth;
+        $cGold.classList.add('gold-flash')
+    }
+    $cGold.textContent = newGold;
+    $cStreak.textContent = combat.streak;
+    $cStreak.classList.remove('streak-fire', 'streak-inferno');
+    if (combat.streak >= 20) $cStreak.classList.add('streak-inferno'); else if (combat.streak >= 10) $cStreak.classList.add('streak-fire');
+    $cWords.textContent = combat.wordsDestroyed;
+    $cTimer.textContent = Math.floor(combat.elapsed) + 's'
+}
+
+function updateDangerZone() {
+    if (!combat) return;
+    let nearCount = 0;
+    const dangerY = $gameArea.clientHeight - 62;
+    const warnY = dangerY * 0.65;
+    combat.words.forEach(w => {
+        if (!w.destroyed && w.y > warnY) nearCount++
+    });
+    const intensity = Math.min(1, nearCount / 4);
+    $dangerZone.style.opacity = 0.3 + intensity * 0.7;
+    $dangerZone.style.height = (2 + intensity * 3) + 'px'
+}
+
+function updatePhaseLabel() {
+    if (!combat) return;
+    let phase = '';
+    const t = combat.elapsed;
+    if (t < 20) phase = 'WARM UP'; else if (t < 45) phase = 'STEADY'; else if (t < 90) phase = 'RISING'; else if (t < 120) phase = 'INTENSE'; else if (t < 150) phase = 'CRITICAL'; else phase = 'OVERDRIVE';
+    if (phase !== combat.phase) {
+        combat.phase = phase;
+        $phaseLabel.textContent = phase;
+        $phaseLabel.style.opacity = '0.6';
+        setTimeout(() => {
+            if ($phaseLabel.textContent === phase) $phaseLabel.style.opacity = '0.3'
+        }, 1500)
+    }
+}
+
+function calcWPM() {
+    if (!combat) return 0;
+    const now = combat.elapsed;
+    const cutoff = now - 15;
+    const recent = combat.wpmTimestamps.filter(t => t > cutoff);
+    const elapsed = Math.min(15, now);
+    if (elapsed < 1) return 0;
+    return Math.round((recent.length / 5) / (elapsed / 60))
+}
+
+function renderInput() {
+    const t = combat.words.find(w => w.id === combat.targetId);
+    if (!t) {
+        $input.innerHTML = '<span class="cursor"></span>';
+        return
+    }
+    let h = '';
+    for (let i = 0; i < t.text.length; i++) {
+        if (i < t.typedIndex) {
+            h += `<span class="${t.autoTypedChars.has(i) ? 'typed-auto' : 'typed'}">${t.text[i]}</span>`
+        } else if (i === t.typedIndex) {
+            h += `<span class="cursor"></span><span class="pending">${t.text[i]}</span>`
+        } else {
+            h += `<span class="pending">${t.text[i]}</span>`
+        }
+    }
+    $input.innerHTML = h
+}
+
+function renderWord(w) {
+    if (!w.el) {
+        w.el = document.createElement('div');
+        w.el.className = 'word-entity';
+        if (w.type === 'bomb') w.el.classList.add('bomb');
+        if (w.type === 'nuke') w.el.classList.add('nuke');
+        if (w.type === 'freeze') w.el.classList.add('freeze');
+        if (w.type === 'split') w.el.classList.add('split');
+        if (w.fast) w.el.classList.add('fast-word');
+        $gameArea.appendChild(w.el)
+    }
+    w.el.style.left = w.x + 'px';
+    w.el.style.top = w.y + 'px';
+    const isFrozen = combat && combat.freezeUntil > combat.elapsed;
+    w.el.classList.toggle('frozen-state', isFrozen && w.type !== 'freeze');
+    w.el.classList.toggle('targeted', w.id === combat.targetId);
+    w.el.classList.toggle('auto-targeted', w.id === combat.autoTargetId && w.id !== combat.targetId);
+    let h = '';
+    for (let i = 0; i < w.text.length; i++) {
+        if (i < w.typedIndex) {
+            h += `<span class="${w.autoTypedChars.has(i) && !w.playerTypedChars.has(i) ? 'char-auto' : 'char-typed'}">${w.text[i]}</span>`
+        } else {
+            h += `<span class="char-pending">${w.text[i]}</span>`
+        }
+    }
+    if (w.id === combat.autoTargetId && w.id !== combat.targetId) h += '<span class="auto-indicator">BOT</span>';
+    const prog = w.text.length > 0 ? (w.typedIndex / w.text.length) * 100 : 0;
+    if (prog > 0 && prog < 100) h += `<div class="word-progress" style="width:${prog}%"></div>`;
+    w.el.innerHTML = h
+}
+
+function removeWordEl(w, anim) {
+    if (w.el) {
+        if (anim) {
+            w.el.classList.add(anim);
+            setTimeout(() => w.el.remove(), 400)
+        } else w.el.remove()
+    }
+}
+
+function emitParticles(x, y, color, count) {
+    count = count || 8;
+    for (let i = 0; i < count; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.background = color;
+        p.style.left = (x + Math.random() * 40) + 'px';
+        p.style.top = (y + Math.random() * 20) + 'px';
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 30 + Math.random() * 60;
+        p.style.setProperty('--px', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--py', Math.sin(angle) * dist + 'px');
+        $gameArea.appendChild(p);
+        setTimeout(() => p.remove(), 500)
+    }
+}
+
+function screenShake(intensity, duration) {
+    const start = performance.now();
+
+    function shake(now) {
+        const el = now - start;
+        if (el > duration) {
+            $gameArea.style.transform = '';
+            return
+        }
+        const decay = 1 - el / duration;
+        const sx = (Math.random() - 0.5) * 2 * intensity * decay;
+        const sy = (Math.random() - 0.5) * 2 * intensity * decay;
+        $gameArea.style.transform = `translate(${sx}px,${sy}px)`;
+        requestAnimationFrame(shake)
+    }
+
+    requestAnimationFrame(shake)
+}
+
+function goldPopup(x, y, amt) {
+    const el = document.createElement('div');
+    el.className = 'gold-popup';
+    el.textContent = `+${amt.toFixed(1)}g`;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    $gameArea.appendChild(el);
+    setTimeout(() => el.remove(), 800)
+}
+
+function showCritFlash(x, y) {
+    const el = document.createElement('div');
+    el.className = 'crit-flash';
+    el.textContent = 'CRIT!';
+    el.style.left = x + 'px';
+    el.style.top = (y - 20) + 'px';
+    $gameArea.appendChild(el);
+    setTimeout(() => el.remove(), 700)
+}
+
+function flashDamage() {
+    const el = document.createElement('div');
+    el.className = 'damage-flash';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 350)
+}
+
+function bombExplode(w) {
+    const el = document.createElement('div');
+    el.className = 'bomb-shockwave';
+    el.style.left = (w.x + 40) + 'px';
+    el.style.top = (w.y + 10) + 'px';
+    $gameArea.appendChild(el);
+    setTimeout(() => el.remove(), 600);
+    sndBomb();
+    screenShake(4, 200);
+    emitParticles(w.x + 20, w.y, '#fb923c', 10);
+    const cx = w.x + 40, cy = w.y + 10, r = 180;
+    combat.words.forEach(o => {
+        if (o.id === w.id || o.destroyed) return;
+        const dx = (o.x + 40) - cx, dy = (o.y + 10) - cy;
+        if (Math.sqrt(dx * dx + dy * dy) < r) {
+            o.destroyed = true;
+            removeWordEl(o, 'destroying');
+            emitParticles(o.x, o.y, '#fb923c', 6);
+            const ge = calcGold(1);
+            combat.gold += ge;
+            combat.wordsDestroyed++;
+            goldPopup(o.x, o.y, ge)
+        }
+    });
+    combat.words = combat.words.filter(ww => !ww.destroyed)
+}
+
+function nukeExplode() {
+    const el = document.createElement('div');
+    el.className = 'nuke-flash';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 700);
+    sndNuke();
+    screenShake(7, 300);
+    combat.words.forEach(w => {
+        if (!w.destroyed) {
+            w.destroyed = true;
+            removeWordEl(w, 'destroying');
+            emitParticles(w.x, w.y, '#e879f9', 6);
+            const ge = calcGold(1);
+            combat.gold += ge;
+            combat.wordsDestroyed++
+        }
+    });
+    combat.words = [];
+    combat.targetId = null;
+    combat.autoTargetId = null
+}
+
+function freezeActivate() {
+    const el = document.createElement('div');
+    el.className = 'freeze-flash';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 600);
+    sndFreeze();
+    combat.freezeUntil = combat.elapsed + 3;
+    combat.words.forEach(w => {
+        if (w.el) renderWord(w)
+    })
+}
+
+function splitWord(w) {
+    const half = Math.ceil(w.text.length / 2);
+    const diff = getDiff(combat.elapsed);
+    const w1text = randWord(Math.max(3, half - 1), half + 1);
+    const w2text = randWord(Math.max(3, half - 1), half + 1);
+    const aw = $gameArea.clientWidth;
+    [{text: w1text, xOff: -30}, {text: w2text, xOff: 30}].forEach(s => {
+        const nx = Math.max(10, Math.min(aw - s.text.length * 14 - 30, w.x + s.xOff));
+        combat.words.push({
+            id: ++combat.wordIdCounter,
+            text: s.text,
+            type: 'normal',
+            x: nx,
+            y: w.y,
+            typedIndex: 0,
+            autoTypedChars: new Set(),
+            playerTypedChars: new Set(),
+            fallSpeed: diff.fallSpeed,
+            el: null,
+            destroyed: false,
+            fast: false,
+            critChecked: true
+        })
+    })
+}
+
+function spawnWord() {
+    const diff = getDiff(combat.elapsed);
+    if (combat.words.length >= diff.maxActive) return;
+    let type = 'normal', text;
+    const r = Math.random();
+    if (getNukeCh() > 0 && r < getNukeCh()) {
+        type = 'nuke';
+        text = NUKE_WORDS[Math.floor(Math.random() * NUKE_WORDS.length)]
+    } else if (getFreezeCh() > 0 && r < getNukeCh() + getFreezeCh()) {
+        type = 'freeze';
+        text = FREEZE_WORDS[Math.floor(Math.random() * FREEZE_WORDS.length)]
+    } else if (getBombCh() > 0 && r < getNukeCh() + getFreezeCh() + getBombCh()) {
+        type = 'bomb';
+        text = randWord(5, 7)
+    } else if (getSplitCh(combat.elapsed) > 0 && Math.random() < getSplitCh(combat.elapsed)) {
+        type = 'split';
+        text = randWord(5, 8)
+    } else {
+        text = randWord(diff.minLen, diff.maxLen)
+    }
+    const aw = $gameArea.clientWidth;
+    const mx = Math.max(10, aw - text.length * 14 - 30);
+    const isFast = type === 'normal' && Math.random() < getFastWordCh(combat.elapsed);
+    const newWord = {
+        id: ++combat.wordIdCounter,
+        text,
+        type,
+        x: 10 + Math.random() * mx,
+        y: -20,
+        typedIndex: 0,
+        autoTypedChars: new Set(),
+        playerTypedChars: new Set(),
+        fallSpeed: isFast ? diff.fallSpeed * 1.8 : diff.fallSpeed,
+        el: null,
+        destroyed: false,
+        fast: isFast,
+        critChecked: false
+    };
+    combat.words.push(newWord)
+}
+
+function findTarget(ch, excludeId) {
+    let best = null, bestY = -Infinity;
+    for (const w of combat.words) {
+        if (w.destroyed || w.id === excludeId) continue;
+        if (w.text[w.typedIndex] === ch) {
+            if (w.y > bestY) {
+                bestY = w.y;
+                best = w
+            }
+        }
+    }
+    return best
+}
+
+function findPrefixSwitch(typedPrefix, ch, excludeId) {
+    const full = typedPrefix + ch;
+    let best = null, bestY = -Infinity;
+    for (const w of combat.words) {
+        if (w.destroyed || w.id === excludeId) continue;
+        if (w.typedIndex > 0) continue;
+        if (w.text.length >= full.length && w.text.startsWith(full)) {
+            if (w.y > bestY) {
+                bestY = w.y;
+                best = w
+            }
+        }
+    }
+    return best
+}
+
+function handleKey(e) {
+    if (!combat || !combat.running) return;
+    if (e.key === 'Escape') {
+        combat.targetId = null;
+        renderInput();
+        return
+    }
+    if (e.key === 'Backspace') {
+        const t = combat.words.find(w => w.id === combat.targetId);
+        if (t && t.typedIndex > 0) {
+            t.typedIndex--;
+            t.playerTypedChars.delete(t.typedIndex);
+            t.autoTypedChars.delete(t.typedIndex);
+            renderWord(t);
+            renderInput()
+        }
+        e.preventDefault();
+        return
+    }
+    if (e.key.length !== 1) return;
+    const ch = e.key.toLowerCase();
+    if (!/^[a-z]$/.test(ch)) return;
+    combat.totalKeys++;
+    let t = combat.words.find(w => w.id === combat.targetId);
+    if (t && t.destroyed) {
+        combat.targetId = null;
+        t = null
+    }
+    if (t) {
+        if (t.text[t.typedIndex] === ch) {
+            combat.correctKeys++;
+            combat.wpmTimestamps.push(combat.elapsed);
+            t.playerTypedChars.add(t.typedIndex);
+            t.typedIndex++;
+            sndType();
+            renderWord(t);
+            renderInput();
+            if (t.typedIndex >= t.text.length) completeWord(t);
+            return
+        }
+        const typedSoFar = t.text.substring(0, t.typedIndex);
+        const prefixAlt = findPrefixSwitch(typedSoFar, ch, t.id);
+        if (prefixAlt) {
+            combat.targetId = prefixAlt.id;
+            if (combat.autoTargetId === prefixAlt.id) combat.autoTargetId = null;
+            const newIdx = t.typedIndex + 1;
+            for (let i = 0; i < newIdx; i++) prefixAlt.playerTypedChars.add(i);
+            prefixAlt.typedIndex = newIdx;
+            combat.correctKeys++;
+            combat.wpmTimestamps.push(combat.elapsed);
+            sndType();
+            renderWord(prefixAlt);
+            renderWord(t);
+            renderInput();
+            if (prefixAlt.typedIndex >= prefixAlt.text.length) completeWord(prefixAlt);
+            return
+        }
+        const alt = findTarget(ch, t.id);
+        if (alt) {
+            combat.targetId = alt.id;
+            if (combat.autoTargetId === alt.id) combat.autoTargetId = null;
+            combat.correctKeys++;
+            combat.wpmTimestamps.push(combat.elapsed);
+            alt.playerTypedChars.add(alt.typedIndex);
+            alt.typedIndex++;
+            sndType();
+            renderWord(alt);
+            renderInput();
+            if (alt.typedIndex >= alt.text.length) completeWord(alt);
+            return
+        }
+        $input.classList.remove('shake');
+        void $input.offsetWidth;
+        $input.classList.add('shake');
+        sndError();
+        return
+    }
+    const best = findTarget(ch, null);
+    if (best) {
+        combat.targetId = best.id;
+        if (combat.autoTargetId === best.id) combat.autoTargetId = null;
+        combat.correctKeys++;
+        combat.wpmTimestamps.push(combat.elapsed);
+        best.playerTypedChars.add(best.typedIndex);
+        best.typedIndex++;
+        sndType();
+        renderWord(best);
+        renderInput();
+        if (best.typedIndex >= best.text.length) completeWord(best)
+    }
+}
+
+function completeWord(w) {
+    w.destroyed = true;
+    const isSplit = w.type === 'split';
+    const ge = calcGold(isSplit ? 3 : 1);
+    combat.gold += ge;
+    combat.wordsDestroyed++;
+    combat.streak++;
+    if (combat.streak > combat.bestStreak) combat.bestStreak = combat.streak;
+    combat.streakMissBuffer = 0;
+    checkComboPopup();
+    const $s = $cStreak;
+    $s.classList.remove('streak-pulse');
+    void $s.offsetWidth;
+    $s.classList.add('streak-pulse');
+    goldPopup(w.x, w.y, ge);
+    sndComplete();
+    const colorMap = {normal: '#4ade80', bomb: '#fb923c', nuke: '#e879f9', freeze: '#7dd3fc', split: '#bef264'};
+    emitParticles(w.x, w.y, colorMap[w.type] || '#4ade80', 8);
+    if (w.type === 'bomb') bombExplode(w); else if (w.type === 'nuke') nukeExplode(); else if (w.type === 'freeze') freezeActivate(); else if (w.type === 'split') splitWord(w);
+    removeWordEl(w, 'destroying');
+    combat.words = combat.words.filter(ww => ww.id !== w.id);
+    if (combat.targetId === w.id) combat.targetId = null;
+    if (combat.autoTargetId === w.id) combat.autoTargetId = null;
+    renderInput();
+    updateStats()
+}
+
+function wordHitBottom(w) {
+    w.destroyed = true;
+    removeWordEl(w, 'fell');
+    combat.hp--;
+    flashDamage();
+    sndDamage();
+    screenShake(2, 120);
+    $hpContainer.classList.remove('hp-shake');
+    void $hpContainer.offsetWidth;
+    $hpContainer.classList.add('hp-shake');
+    updateHP();
+    if (combat.streak > 0) {
+        combat.streakMissBuffer++;
+        if (combat.streakMissBuffer > getStreakShield()) {
+            combat.streak = 0;
+            combat.streakMissBuffer = 0;
+            combat.lastComboThreshold = 0
+        }
+    }
+    if (w.id === combat.targetId) {
+        combat.targetId = null;
+        renderInput()
+    }
+    if (w.id === combat.autoTargetId) combat.autoTargetId = null;
+    combat.words = combat.words.filter(ww => ww.id !== w.id);
+    if (combat.hp <= 0) endRound()
+}
+
+function autoTyperTick(dt) {
+    const speed = getAutoSpeed();
+    if (speed <= 0) return;
+    combat.autoTimer += dt;
+    const interval = 2 / speed;
+    while (combat.autoTimer >= interval) {
+        combat.autoTimer -= interval;
+        let cands = combat.words.filter(w => w.id !== combat.targetId && !w.destroyed);
+        if (cands.length === 0) return;
+        cands.sort((a, b) => b.y - a.y);
+        const tgt = cands[0];
+        combat.autoTargetId = tgt.id;
+        if (tgt.typedIndex < tgt.text.length) {
+            tgt.autoTypedChars.add(tgt.typedIndex);
+            tgt.typedIndex++;
+            renderWord(tgt);
+            if (tgt.typedIndex >= tgt.text.length) {
+                tgt.destroyed = true;
+                const ge = calcGold(1);
+                combat.gold += ge;
+                combat.wordsDestroyed++;
+                combat.streak++;
+                if (combat.streak > combat.bestStreak) combat.bestStreak = combat.streak;
+                checkComboPopup();
+                goldPopup(tgt.x, tgt.y, ge);
+                emitParticles(tgt.x, tgt.y, '#22d3ee', 6);
+                removeWordEl(tgt, 'destroying');
+                combat.words = combat.words.filter(ww => ww.id !== tgt.id);
+                combat.autoTargetId = null;
+                updateStats()
+            }
+        }
+    }
+}
+
+function updateBgIntensity() {
+    if (!combat) return;
+    const t = Math.min(combat.elapsed / 120, 1);
+    const r = 10 + Math.round(t * 8);
+    const g = 10 - Math.round(t * 2);
+    const b = 15 - Math.round(t * 4);
+    document.body.style.backgroundColor = `rgb(${r},${g},${Math.max(8, b)})`
+}
+
+function gameLoop(now) {
+    if (!combat || !combat.running) return;
+    combat.animFrame = requestAnimationFrame(gameLoop);
+    if (combat.lastTime === 0) combat.lastTime = now;
+    const dt = Math.min((now - combat.lastTime) / 1000, 0.1);
+    combat.lastTime = now;
+    combat.elapsed += dt;
+    const diff = getDiff(combat.elapsed);
+    const dangerY = $gameArea.clientHeight - 62;
+    const magnetZone = dangerY * 0.7;
+    const isFrozen = combat.freezeUntil > combat.elapsed;
+    combat.nextSpawnTime -= dt;
+    if (combat.nextSpawnTime <= 0) {
+        spawnWord();
+        combat.nextSpawnTime = diff.spawnInterval
+    }
+    for (let i = combat.words.length - 1; i >= 0; i--) {
+        const w = combat.words[i];
+        if (w.destroyed) continue;
+        if (!w.critChecked && getCritCh() > 0 && w.typedIndex === 0) {
+            w.critChecked = true;
+            if (Math.random() < getCritCh()) {
+                for (let j = 0; j < w.text.length; j++) w.playerTypedChars.add(j);
+                w.typedIndex = w.text.length;
+                showCritFlash(w.x, w.y);
+                completeWord(w);
+                if (!combat.running) return;
+                continue
+            }
+        }
+        if (!isFrozen) {
+            let spd = w.fallSpeed;
+            if (getMagnetSlow() > 0 && w.y > magnetZone) spd *= (1 - getMagnetSlow());
+            w.y += spd * dt
+        }
+        renderWord(w);
+        if (w.y >= dangerY) {
+            wordHitBottom(w);
+            if (!combat.running) return
+        }
+    }
+    autoTyperTick(dt);
+    updateStats();
+    updateBgIntensity();
+    updateDangerZone();
+    updatePhaseLabel();
+    const wpm = calcWPM();
+    $wpmDisplay.textContent = wpm + ' WPM';
+    combat.wpmTimestamps = combat.wpmTimestamps.filter(t => t > combat.elapsed - 15)
+}
+
+function startRound() {
+    $gameArea.querySelectorAll('.word-entity,.gold-popup,.bomb-shockwave,.particle,.combo-popup,.crit-flash').forEach(e => e.remove());
+    combat = createCombat();
+    combat.running = true;
+    combat.lastTime = 0;
+    combat.nextSpawnTime = 1.0;
+    state.totalRounds++;
+    saveState();
+    initAudio();
+    showScreen('combat');
+    updateHP();
+    updateStats();
+    renderInput();
+    document.body.style.backgroundColor = '';
+    $phaseLabel.textContent = '';
+    startMusic();
+    if (state.totalRounds === 1) {
+        const hint = document.createElement('div');
+        hint.id = 'keybind-hint';
+        hint.textContent = 'Type to destroy words · ESC to deselect · Backspace to undo';
+        $gameArea.appendChild(hint);
+        setTimeout(() => {
+            const h = document.getElementById('keybind-hint');
+            if (h) h.remove()
+        }, 8500)
+    }
+    combat.animFrame = requestAnimationFrame(gameLoop)
+}
+
+function endRound() {
+    combat.running = false;
+    if (combat.animFrame) cancelAnimationFrame(combat.animFrame);
+    stopMusic();
+    document.body.style.backgroundColor = '';
+    const ts = combat.elapsed, tb = Math.floor(ts / 10), tg = Math.floor(combat.gold + tb);
+    state.gold += tg;
+    let records = [];
+    if (ts > state.bestTime) {
+        state.bestTime = ts;
+        records.push('TIME')
+    }
+    if (combat.wordsDestroyed > state.bestWords) {
+        state.bestWords = combat.wordsDestroyed;
+        records.push('WORDS')
+    }
+    const wpm = calcWPM();
+    if (wpm > state.bestWPM) {
+        state.bestWPM = wpm;
+        records.push('WPM')
+    }
+    saveState();
+    const $sumTime = document.getElementById('sum-time');
+    $sumTime.textContent = Math.floor(ts) + 's';
+    $sumTime.classList.toggle('record', records.includes('TIME'));
+    const $sumWords = document.getElementById('sum-words');
+    $sumWords.textContent = combat.wordsDestroyed;
+    $sumWords.classList.toggle('record', records.includes('WORDS'));
+    const $sumWpm = document.getElementById('sum-wpm');
+    $sumWpm.textContent = wpm;
+    $sumWpm.classList.toggle('record', records.includes('WPM'));
+    const acc = combat.totalKeys > 0 ? Math.round((combat.correctKeys / combat.totalKeys) * 100) : 0;
+    document.getElementById('sum-accuracy').textContent = acc + '%';
+    document.getElementById('round-gold').textContent = `+${tg} GOLD`;
+    const $rec = document.getElementById('round-record');
+    $rec.textContent = records.length > 0 ? 'NEW RECORD: ' + records.join(', ') : '';
+    if (combat.bestStreak >= 5) {
+        $rec.textContent += ($rec.textContent ? ' · ' : '') + 'Best Streak: ' + combat.bestStreak
+    }
+    setTimeout(() => showScreen('roundover'), 300)
+}
+
+function canPrestige() {
+    const maxedCount = UPGRADES.filter(u => gl(u.id) >= u.maxLevel).length;
+    return state.totalRounds >= 20 && maxedCount >= 3
+}
+
+function doPrestige() {
+    state.upgrades = {};
+    state.gold = 0;
+    state.overclock = (state.overclock || 0) + 1;
+    saveState();
+    initAudio();
+    sndPrestige();
+    const fl = document.createElement('div');
+    fl.className = 'prestige-flash';
+    document.body.appendChild(fl);
+    setTimeout(() => fl.remove(), 900);
+    setTimeout(() => renderShop(), 400)
+}
+
+function renderShop() {
+    document.getElementById('shop-gold').innerHTML = `${Math.floor(state.gold)}<span> GOLD</span>`;
+    const $op = document.getElementById('op-display');
+    if (state.overclock > 0) {
+        $op.innerHTML = `OVERCLOCK ×${state.overclock} <span>— +${((getOPMult() - 1) * 100).toFixed(0)}% gold, +${state.overclock} HP</span>`
+    } else $op.textContent = '';
+    const $ng = document.getElementById('next-goal');
+    let cheapest = null, cheapCost = Infinity;
+    UPGRADES.forEach(u => {
+        const c = upgCost(u);
+        if (c > state.gold && c < cheapCost) {
+            cheapCost = c;
+            cheapest = u
+        }
+    });
+    if (cheapest) {
+        const need = cheapCost - Math.floor(state.gold);
+        $ng.textContent = `Next: ${cheapest.name} Lv ${gl(cheapest.id) + 1} — need ${need} more gold`
+    } else if (UPGRADES.every(u => gl(u.id) >= u.maxLevel)) {
+        $ng.textContent = 'All upgrades maxed!'
+    } else $ng.textContent = '';
+    const $ps = document.getElementById('prestige-section');
+    if (canPrestige()) {
+        $ps.innerHTML = `<div id="prestige-card"><h2>⚡ OVERCLOCK</h2><p>Reset all upgrades and gold.<br>Gain +1 Overclock Point permanently.</p><p class="prestige-bonus">Current: ×${state.overclock} → ×${state.overclock + 1} (+5% gold, +1 HP)</p><button class="btn-prestige" id="prestige-btn">OVERCLOCK</button></div>`;
+        document.getElementById('prestige-btn').addEventListener('click', () => {
+            if (confirm('OVERCLOCK: Reset ALL upgrades and gold?\n\nYou will gain +1 Overclock Point:\n• Permanent +5% gold multiplier\n• Permanent +1 starting HP\n\nThis cannot be undone.')) {
+                doPrestige()
+            }
+        })
+    } else $ps.innerHTML = '';
+    const $l = document.getElementById('shop-upgrades');
+    $l.innerHTML = '';
+    UPGRADES.forEach(u => {
+        const lvl = gl(u.id), cost = upgCost(u), maxed = lvl >= u.maxLevel, canBuy = !maxed && state.gold >= cost;
+        const card = document.createElement('div');
+        card.className = 'upgrade-card';
+        const left = document.createElement('div');
+        left.className = 'upgrade-left';
+        const nm = document.createElement('div');
+        nm.className = 'upgrade-name';
+        nm.innerHTML = u.name + (maxed ? '<span class="maxed">MAX</span>' : `<span class="level">Lv ${lvl}</span>`);
+        const desc = document.createElement('div');
+        desc.className = 'upgrade-desc';
+        if (lvl > 0 && !maxed) {
+            desc.textContent = u.desc(lvl) + ' → ' + u.desc(lvl + 1)
+        } else if (lvl > 0 && maxed) {
+            desc.textContent = u.desc(lvl)
+        } else desc.textContent = u.fx;
+        left.appendChild(nm);
+        left.appendChild(desc);
+        if (lvl > 0 && !maxed) {
+            const preview = document.createElement('div');
+            preview.className = 'upgrade-preview';
+            preview.textContent = `Next: ${u.fx}`;
+            left.appendChild(preview)
+        }
+        const btn = document.createElement('button');
+        btn.className = 'upgrade-buy' + (maxed ? ' maxed-btn' : '');
+        btn.textContent = maxed ? 'MAXED' : `${cost}g`;
+        btn.disabled = !canBuy;
+        if (!maxed) btn.addEventListener('click', () => {
+            if (state.gold >= cost) {
+                state.gold -= cost;
+                state.upgrades[u.id] = (state.upgrades[u.id] || 0) + 1;
+                saveState();
+                card.classList.remove('just-bought');
+                void card.offsetWidth;
+                card.classList.add('just-bought');
+                initAudio();
+                sndBuy();
+                renderShop()
+            }
+        });
+        card.appendChild(left);
+        card.appendChild(btn);
+        $l.appendChild(card)
+    });
+    document.getElementById('shop-stats').textContent = `Best: ${Math.floor(state.bestTime)}s | ${state.bestWords} words | ${state.bestWPM} WPM | Round #${state.totalRounds}`
+}
+
+document.addEventListener('keydown', handleKey);
+document.addEventListener('keydown', e => {
+    if (e.key === ' ' && combat && combat.running) e.preventDefault()
+});
+document.getElementById('start-btn').addEventListener('click', startRound);
+document.getElementById('btn-upgrade').addEventListener('click', () => showScreen('shop'));
+document.getElementById('btn-play-again').addEventListener('click', startRound);
+document.getElementById('shop-play-btn').addEventListener('click', startRound);
+document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('Reset all progress including Overclock? This cannot be undone.')) {
+        resetState();
+        showScreen('start')
+    }
+});
+if (loadState() && state.totalRounds > 0) showScreen('shop'); else showScreen('start');</script>
+
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>文字雨</h4>
+<div class="cn-guide-lang">🔴 含较多英文文本，建议理解英文后游玩</div>
+<div class="cn-guide-desc">AI生成·打字雨</div>
+<div class="cn-guide-tip">💡 在单词落入底部前用键盘输入它，输入正确即消除，防止单词堆积。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

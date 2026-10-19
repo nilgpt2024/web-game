@@ -713,4 +713,119 @@
         if (this.aimLine) this.aimLine.clear();
 
         const W = 1080;
-        const laneDisplayW = W * this.cfg.mechanics.lane.wid
+        const laneDisplayW = W * this.cfg.mechanics.lane.widthFactor;
+        const laneLeft = W * 0.5 - (laneDisplayW) / 2 + this.cfg.mechanics.lane.railMargin;
+        const laneRight = W * 0.5 + (laneDisplayW) / 2 - this.cfg.mechanics.lane.railMargin;
+        const topY = 200 + 10;
+        this.setupPins(laneLeft, laneRight, topY + 220);
+        this.spawnBall(W / 2, 200 + this.cfg.mechanics.lane.height - 80);
+        this.snapshotStandingCount = this.pins.length;
+
+        for (const box of this.hudTexts.frames) {
+          if (box.g) box.g.destroy();
+          if (box.label) box.label.destroy();
+          if (box.t1) box.t1.destroy();
+          if (box.t2) box.t2.destroy();
+          if (box.sum) box.sum.destroy();
+          if (box.t3) box.t3.destroy();
+        }
+        this.hudTexts.frames = [];
+        if (this.hudTexts.total) this.hudTexts.total.destroy();
+        if (this.hudTexts.frameTitle) this.hudTexts.frameTitle.destroy();
+        if (this.hudTexts.target) this.hudTexts.target.destroy();
+
+        this.createHUD();
+        this.refreshHUD();
+
+        this.gameStarted = false;
+        this.showHowToOverlay();
+      }
+
+      createHUD() {
+        const topY = 70, left = 40, boxW = 94, gap = 8;
+        this.hudTexts.frameTitle = this.add.text(400, 160, this.cfg.strings.frameTitle, { fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#a6c6ff' });
+        this.hudTexts.total = this.add.text(250, 220, `${this.cfg.strings.scoreLabel}: 0`, {
+          fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#a6ffb4'
+        }).setOrigin(1, 0.5);
+        this.hudTexts.target = this.add.text(960, 220, `${this.cfg.strings.targetLabel}: ${this.cfg.targetScore}`, {
+          fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#a6c6ff'
+        }).setOrigin(1, 0.5);
+
+        for (let i = 0; i < 10; i++) {
+          const x = left + i * (boxW + gap);
+          const g = this.add.graphics();
+          g.lineStyle(2, 0x7aa2ff, 0.9).strokeRoundedRect(x, topY, boxW, 60, 6);
+          g.lineStyle(1, 0x7aa2ff, 0.5).strokeLineShape(new Phaser.Geom.Line(x + boxW / 2, topY, x + boxW / 2, topY + 60));
+          const label = this.add.text(x + boxW / 2, topY - 10, String(i + 1), { fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#a6c6ff' }).setOrigin(0.5, 1);
+          const t1 = this.add.text(x + boxW * 0.28, topY + 14, '', { fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
+          const t2 = this.add.text(x + boxW * 0.72, topY + 14, '', { fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
+          const sum = this.add.text(x + boxW / 2, topY + 44, '', { fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#a6ffb4' }).setOrigin(0.5);
+          this.hudTexts.frames.push({ g, label, t1, t2, sum, t3: null });
+          if (i === 9) {
+            const t3 = this.add.text(x + boxW * 0.5, topY + 14, '', { fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Arial', fontSize: '40px', color: '#ffffff' }).setOrigin(0.5);
+            this.hudTexts.frames[i].t3 = t3;
+          }
+        }
+      }
+
+      refreshHUD(final = false) {
+        const { total, frames } = computeScore(this.rolls);
+        if (this.hudTexts.total) this.hudTexts.total.setText(`${this.cfg.strings.scoreLabel}: ${total}`);
+        for (let i = 0; i < 10; i++) {
+          const f = frames[i]; if (!f) continue;
+          const box = this.hudTexts.frames[i]; if (!box) continue;
+          box.t1.setText(f.mark1 ?? ''); box.t2.setText(f.mark2 ?? '');
+          if (box.t3) box.t3.setText(f.mark3 ?? ''); box.sum.setText(f.sum ?? '');
+        }
+      }
+    }
+
+    /* ------------------------------
+       Game Config & Launch
+    ------------------------------- */
+    const config = {
+      type: Phaser.AUTO,
+      parent: 'game',
+      width: 1080,
+      height: 1920,
+      backgroundColor: '#0b0f1a',
+      physics: { default: 'matter', matter: { gravity: { y: 0 }, enableSleep: true } },
+      scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+      scene: [BootScene, BowlingScene]
+    };
+    new Phaser.Game(config);
+  </script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>Bowling</h4>
+<div class="cn-guide-lang">🟡 仅少量英文（菜单/按钮），基本不影响游玩</div>
+<div class="cn-guide-desc">AI生成·Bowling游戏</div>
+<div class="cn-guide-tip">💡 以点击、拖拽或简单按键为主，跟随画面提示操作即可上手。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+
+</html>

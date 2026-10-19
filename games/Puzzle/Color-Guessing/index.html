@@ -444,4 +444,434 @@ migrateLegacy();
 function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
 
 // ---------- sound ----------
-l
+let ac = null, muted = false;
+try { muted = localStorage.getItem(KEY + '.mute') === '1'; } catch (e) {}
+document.body.classList.toggle('muted', muted);
+function audio() {
+  if (muted) return null;
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function noise(a, dur, freq, gain, type = 'bandpass', at = 0) {
+  const n = Math.ceil(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+  s.buffer = buf; f.type = type; f.frequency.value = freq; g.gain.value = gain;
+  s.connect(f).connect(g).connect(a.destination); s.start(a.currentTime + at);
+}
+function tone(a, freq, dur, gain, at = 0, type = 'sine') {
+  const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + at;
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .05);
+}
+let lastTick = 0;
+function sTick() { const a = audio(); if (!a) return; const now = performance.now(); if (now - lastTick < 28) return; lastTick = now; noise(a, .012, 3800, .05); }
+function sTear() { const a = audio(); if (!a) return; noise(a, .14, 2400, .09, 'highpass'); }
+function sThud() { const a = audio(); if (!a) return; tone(a, 92, .2, .5); noise(a, .06, 500, .35, 'lowpass'); }
+function sScore(s) {
+  const a = audio(); if (!a) return;
+  // the better the match, the higher and fuller the chord
+  const steps = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24], k = Math.round(s), base = 196 * Math.pow(2, steps[k] / 12);
+  tone(a, base, .9, .12, 0, 'triangle');
+  if (s >= 5) tone(a, base * 1.25, .9, .07, .06, 'triangle');
+  if (s >= 8) tone(a, base * 1.5, 1.1, .07, .12, 'triangle');
+  if (s >= 9.5) tone(a, base * 2, 1.3, .06, .2, 'sine');
+}
+$('snd').onclick = () => {
+  muted = !muted; document.body.classList.toggle('muted', muted);
+  try { localStorage.setItem(KEY + '.mute', muted ? '1' : '0'); } catch (e) {}
+  if (!muted) sTick();
+};
+
+// ---------- state ----------
+const params = new URLSearchParams(location.search);
+let today = C.dayKey(new Date());
+let mode, seed, rounds, round, phase, cur, practiceLog;
+
+const BARS = [
+  {key: 'h', name: 'Hue', max: 360},
+  {key: 's', name: 'Vividness', max: 1},
+  {key: 'l', name: 'Lightness', max: 1},
+];
+const tools = $('tools');
+for (const b of BARS) {
+  const sl = document.createElement('div');
+  sl.className = 'slider'; sl.tabIndex = 0;
+  sl.setAttribute('role', 'slider'); sl.setAttribute('aria-label', b.name);
+  sl.innerHTML = '<div class="name">' + b.name + '</div><div class="note"></div><div class="bar"><div class="g"></div><div class="gap"></div><div class="gap"></div><div class="tick"></div><div class="knob"><i></i></div></div>';
+  tools.appendChild(sl);
+  b.el = sl; b.bar = sl.querySelector('.bar'); b.g = sl.querySelector('.g'); b.knob = sl.querySelector('.knob');
+  b.note = sl.querySelector('.note'); b.gaps = [...sl.querySelectorAll('.gap')]; b.tick = sl.querySelector('.tick');
+  bindSlider(b);
+}
+
+const css = rgb => 'rgb(' + rgb.map(v => Math.round(v)).join(',') + ')';
+const hsl = (h, s, l) => 'hsl(' + h.toFixed(1) + ' ' + (s * 100).toFixed(1) + '% ' + (l * 100).toFixed(1) + '%)';
+const mixHex = () => C.rgbToHex(C.hslToRgb(cur.h, cur.s, cur.l));
+const lum = hex => { const [L] = C.rgbToLab(C.hexToRgb(hex)); return L; };
+const inkOn = hex => lum(hex) > 62 ? '#161616' : '#fbfbf8';
+
+function paintBars() {
+  const {h, s, l} = cur;
+  const hs = Math.max(s, .6), hl = Math.min(.66, Math.max(.36, l));
+  const hueStops = []; for (let d = 0; d <= 360; d += 30) hueStops.push(hsl(d, hs, hl));
+  BARS[0].g.style.background = 'linear-gradient(90deg,' + hueStops.join(',') + ')';
+  BARS[1].g.style.background = 'linear-gradient(90deg,' + hsl(h, 0, l) + ',' + hsl(h, 1, l) + ')';
+  BARS[2].g.style.background = 'linear-gradient(90deg,#000,' + hsl(h, s, .5) + ',#fff)';
+  for (const b of BARS) {
+    const p = cur[b.key] / b.max * 100;
+    b.knob.style.left = p + '%';
+    b.g.style.setProperty('--p', p + '%');
+    b.el.setAttribute('aria-valuenow', b.key === 'h' ? Math.round(cur.h) : Math.round(cur[b.key] * 100));
+    b.el.setAttribute('aria-valuemin', 0); b.el.setAttribute('aria-valuemax', b.key === 'h' ? 360 : 100);
+  }
+}
+function paintMix() {
+  const rgb = C.hslToRgb(cur.h, cur.s, cur.l);
+  chip.style.setProperty('--mix', css(rgb));
+  paintBars();
+}
+
+function bindSlider(b) {
+  let drag = false, lastStep = -1;
+  const set = (clientX, ease) => {
+    const r = b.bar.getBoundingClientRect();
+    const p = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    const v = p * b.max;
+    const step = Math.round(p * 48);
+    if (step !== lastStep) { if (lastStep >= 0) sTick(); lastStep = step; }
+    b.knob.classList.toggle('ease', !!ease);
+    cur[b.key] = b.key === 'h' && v >= 360 ? 359.9 : v;
+    touched();
+    paintMix();
+  };
+  b.el.addEventListener('pointerdown', e => {
+    if (phase !== 'mix') return;
+    e.preventDefault();
+    audio();
+    drag = true; b.el.setPointerCapture(e.pointerId); b.el.classList.add('held');
+    set(e.clientX, true);
+  });
+  b.el.addEventListener('pointermove', e => { if (drag) set(e.clientX, false); });
+  const up = () => { drag = false; lastStep = -1; b.el.classList.remove('held'); };
+  b.el.addEventListener('pointerup', up); b.el.addEventListener('pointercancel', up);
+  b.el.addEventListener('keydown', e => {
+    if (phase !== 'mix') return;
+    const big = e.shiftKey ? 10 : 1, unit = b.max / 240 * big;
+    let v = cur[b.key];
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') v += unit;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') v -= unit;
+    else if (e.key === 'Home') v = 0; else if (e.key === 'End') v = b.max;
+    else return;
+    e.preventDefault();
+    cur[b.key] = b.key === 'h' ? (v + 360) % 360 : Math.min(1, Math.max(0, v));
+    b.knob.classList.remove('ease'); sTick(); touched(); paintMix();
+  });
+}
+
+let nudgeTimer = 0, hasTouched = false;
+function touched() {
+  if (hasTouched) return;
+  hasTouched = true; clearTimeout(nudgeTimer);
+  try { localStorage.setItem(KEY + '.seen', '1'); } catch (e) {}
+}
+function maybeNudge() {
+  let seen = false; try { seen = localStorage.getItem(KEY + '.seen') === '1'; } catch (e) {}
+  if (seen || REDUCED) { hasTouched = true; return; }
+  // the hue knob swings out and back on its own, and the field changes colour with it
+  const swing = () => {
+    if (hasTouched || phase !== 'mix') return;
+    const h0 = cur.h, t0 = performance.now(), dur = 1500;
+    const step = now => {
+      if (hasTouched || phase !== 'mix') return;
+      const k = Math.min(1, (now - t0) / dur), e = Math.sin(k * Math.PI) * (1 - .35 * Math.sin(k * Math.PI * 2));
+      cur.h = (h0 + 38 * e + 360) % 360; paintMix();
+      if (k < 1) requestAnimationFrame(step); else { cur.h = h0; paintMix(); nudgeTimer = setTimeout(swing, 5000); }
+    };
+    requestAnimationFrame(step);
+  };
+  nudgeTimer = setTimeout(swing, 1200);
+}
+
+// ---------- screens ----------
+function setCode(hex, animate) {
+  const inn = $('codeIn');
+  const html = '<span class="hash">#</span>' + hex.slice(1);
+  const [r, g, b] = C.hexToRgb(hex), sub = $('sub'), rgbLine = 'R ' + r + ' · G ' + g + ' · B ' + b;
+  if (!animate || REDUCED) { inn.innerHTML = html; sub.textContent = rgbLine; return; }
+  sub.style.transition = 'opacity .16s'; sub.style.opacity = 0;
+  setTimeout(() => { sub.textContent = rgbLine; sub.style.opacity = 1; }, 200);
+  inn.classList.add('out');
+  setTimeout(() => { inn.innerHTML = html; inn.classList.remove('out'); inn.classList.add('enter'); void inn.offsetWidth; requestAnimationFrame(() => inn.classList.remove('enter')); }, 200);
+}
+function paintDeck(log) {
+  deck.forEach((d, i) => {
+    d.className = ''; d.style.background = '';
+    if (log[i]) { d.className = 'done'; d.style.background = 'linear-gradient(135deg,' + log[i].t + ' 0 62%,' + log[i].y + ' 62%)'; }
+    else if (phase !== 'sheet' && i === round) d.className = 'now';
+  });
+}
+const log = () => mode === 'daily' ? (save.days[today] ? save.days[today].r : []) : practiceLog;
+
+function startSheet(m, s) {
+  mode = m; seed = s; rounds = C.sheet(seed);
+  practiceLog = [];
+  const done = log().length;
+  $('no').textContent = mode === 'daily' ? 'No. ' + C.dayNo(today) : 'Practice';
+  if (done >= C.ROUNDS) { showSheet(false); return; }
+  chip.classList.remove('sheet');
+  round = done;
+  beginRound(false);
+}
+function beginRound(animate) {
+  chip.classList.remove('reveal');
+  const R = rounds[round];
+  cur = {...R.start};
+  for (const b of BARS) b.knob.classList.toggle('ease', !!animate && !REDUCED);
+  // the new code and the new mix arrive together, as the old code leaves
+  const wait = animate && !REDUCED ? 200 : 0;
+  phase = wait ? 'turn' : 'mix';
+  setTimeout(() => {
+    field.classList.toggle('fade', !!wait); paintMix(); phase = 'mix'; chip.classList.add('mixing');
+    setTimeout(() => field.classList.remove('fade'), 260);
+  }, wait);
+  setCode(R.target, animate);
+  $('ord').textContent = 'Match';
+  tgtEl.style.transition = animate && !REDUCED ? 'clip-path .35s var(--ease)' : 'none';
+  tgtEl.style.clipPath = 'inset(0 100% 0 0)';
+  $('flabL').classList.remove('on'); $('flabR').classList.remove('on');
+  const seal = $('seal'); seal.classList.remove('land', 'stay'); seal.style.opacity = '';
+  $('stubLbl').textContent = 'Stamp';
+  paintDeck(log());
+  if (round === 0 && mode === 'daily') maybeNudge();
+  $('live').textContent = 'Colour ' + (round + 1) + ' of 5: match ' + R.target.split('').join(' ');
+}
+
+function doStamp() {
+  if (phase !== 'mix') return;
+  phase = 'reveal'; chip.classList.remove('mixing');
+  audio();
+  const yours = mixHex(), t = rounds[round].target;
+  let rec;
+  if (mode === 'daily') { rec = C.stamp(save, today, round, yours); persist(); }
+  else { rec = {t, y: yours, s: C.score(C.distance(t, yours))}; practiceLog.push(rec); }
+  if (!rec) { startSheet(mode, seed); return; }
+  const n = C.notes(t, [cur.h, cur.s, cur.l]);
+
+  // the target floods into the left half
+  chip.style.setProperty('--tgt', t);
+  tgtEl.style.transition = REDUCED ? 'none' : 'clip-path .52s cubic-bezier(.2,.8,.2,1)';
+  tgtEl.style.clipPath = 'inset(0 50% 0 0)';
+  const fl = $('flabL'), fr = $('flabR');
+  fl.innerHTML = 'Target <b>' + t + '</b>'; $('yoursHex').textContent = yours;
+  fl.style.setProperty('--fl', inkOn(t)); fr.style.setProperty('--fl', inkOn(yours));
+  setTimeout(() => { fl.classList.add('on'); fr.classList.add('on'); }, REDUCED ? 0 : 90);
+
+  // the bars: where the target sat, and the gap to where you left it
+  const parts = [n.hue, n.sat, n.light];
+  BARS.forEach((b, i) => {
+    const nt = parts[i];
+    b.note.textContent = nt.word; b.note.classList.toggle('ok', nt.level !== 'far');
+    const [g1, g2] = b.gaps;
+    if (nt.target === null) { b.tick.style.display = g1.style.display = g2.style.display = 'none'; return; }
+    b.tick.style.display = g1.style.display = '';
+    const tp = nt.target / b.max * 100;
+    b.tick.style.left = tp + '%';
+    // the gap runs from the target to the mix; on the hue bar the short way may wrap past the end
+    const yp = b.key === 'h' ? tp + nt.d / 360 * 100 : cur[b.key] / b.max * 100;
+    const a = Math.min(tp, yp), z = Math.max(tp, yp);
+    const seg = (g, from, to) => { g.style.left = from + '%'; g.style.width = Math.max(0, to - from) + '%'; };
+    if (a < 0) { seg(g1, 0, z); seg(g2, 100 + a, 100); g2.style.display = ''; }
+    else if (z > 100) { seg(g1, a, 100); seg(g2, 0, z - 100); g2.style.display = ''; }
+    else { seg(g1, a, z); g2.style.display = 'none'; }
+  });
+
+  // the stub tears, the stamp comes down in the target's own ink, the score counts up
+  const stub = $('stub'); stub.classList.remove('tear'); void stub.offsetWidth; stub.classList.add('tear');
+  sTear();
+  $('stubLbl').textContent = round + 1 >= C.ROUNDS ? 'See the sheet' : 'Next colour';
+  chip.style.setProperty('--seal', sealInk(t));
+  const seal = $('seal'), sealN = $('sealN');
+  sealN.textContent = rec.s.toFixed(1);
+  const landAt = REDUCED ? 0 : 150;
+  setTimeout(() => {
+    chip.classList.add('reveal');
+    seal.classList.remove('stay'); void seal.getBoundingClientRect(); seal.classList.add('land');
+    setTimeout(() => {
+      sThud();
+      chip.classList.remove('thud'); void chip.offsetWidth; if (!REDUCED) chip.classList.add('thud');
+      sScore(rec.s);
+      const d = deck[round]; d.className = 'done pop'; d.style.background = 'linear-gradient(135deg,' + t + ' 0 62%,' + yours + ' 62%)';
+      setTimeout(() => d.classList.remove('pop'), 260);
+    }, REDUCED ? 0 : 200);
+  }, landAt);
+  $('live').textContent = 'Target ' + t + '. Yours ' + yours + '. ' + rec.s.toFixed(1) + ' out of 10. ' + parts.map(p => p.word).join(', ') + '.';
+}
+function countUp(el, to, ms, done) {
+  if (!ms) { el.textContent = to.toFixed(1); done(); return; }
+  const t0 = performance.now();
+  const step = now => {
+    const k = Math.min(1, (now - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = (to * e).toFixed(1);
+    if (k < 1) requestAnimationFrame(step); else { el.textContent = to.toFixed(1); done(); }
+  };
+  requestAnimationFrame(step);
+}
+function sealInk(hex) {
+  // the stamp is inked in the target colour, darkened until it reads on paper
+  let rgb = C.hexToRgb(hex);
+  for (let i = 0; i < 16 && C.rgbToLab(rgb)[0] > 46; i++) rgb = rgb.map(v => v * .88);
+  return css(rgb);
+}
+
+function next() {
+  if (phase !== 'reveal') return;
+  phase = 'turn';
+  const stub = $('stub'); stub.classList.remove('tear'); void stub.offsetWidth; stub.classList.add('tear'); sTear();
+  if (round + 1 >= C.ROUNDS) { showSheet(true); return; }
+  // clear the marks first, then the new mix comes in, then the new code
+  const seal = $('seal');
+  seal.classList.remove('land'); seal.classList.add('stay'); seal.style.transition = 'opacity .18s'; seal.style.opacity = 0;
+  chip.classList.remove('reveal');
+  $('flabL').classList.remove('on'); $('flabR').classList.remove('on');
+  setTimeout(() => { round++; beginRound(true); }, REDUCED ? 0 : 200);
+}
+
+function showSheet(animate) {
+  phase = 'sheet'; chip.classList.remove('mixing');
+  chip.classList.remove('reveal');
+  const entries = log(), seal = $('seal');
+  seal.classList.remove('land', 'stay'); seal.style.opacity = 0;
+  const strip = $('strip');
+  strip.innerHTML = entries.map(x => '<div class="row"><i style="background:' + x.t + '"></i><i style="background:' + x.y + '"></i><span class="l" style="color:' + inkOn(x.t) + '">' + x.t + '</span><span class="r" style="color:' + inkOn(x.y) + '">' + x.y + '</span><b style="color:' + sealInk(x.t) + '">' + x.s.toFixed(1) + '</b></div>').join('');
+  const rows = [...strip.children];
+  if (animate && !REDUCED) { rows.forEach((r, i) => { r.style.transitionDelay = (i * 70) + 'ms'; }); }
+  else rows.forEach(r => { r.style.transition = 'none'; });
+  chip.classList.add('sheet');
+  paintDeck(entries);
+  const tot = entries.reduce((a, x) => a + x.s, 0);
+  if (mode === 'daily') {
+    $('endOrd').textContent = 'Today\u2019s sheet';
+    $('stats').innerHTML = '<div>Streak<b>' + C.streak(save, today) + '</b></div><div>Best<b>' + C.best(save).toFixed(1) + '</b></div><div>Sheets<b>' + C.played(save) + '</b></div>';
+    $('other').textContent = 'Practice sheet';
+    $('stubLbl').textContent = 'Share';
+  } else {
+    save.practiceBest = Math.max(save.practiceBest || 0, Math.round(tot * 10) / 10); persist();
+    $('endOrd').textContent = 'Practice sheet';
+    $('stats').innerHTML = '<div>Best practice<b>' + save.practiceBest.toFixed(1) + '</b></div><div>Today’s<b>' + (C.done(save.days[today]) ? C.total(save.days[today]).toFixed(1) : '—') + '</b></div>';
+    $('other').textContent = C.done(save.days[today]) ? 'Today’s sheet' : 'Play today’s';
+    $('stubLbl').textContent = 'Another sheet';
+  }
+  $('lean').innerHTML = leanText(entries);
+  const top = entries.reduce((a, x) => x.s > a.s ? x : a, entries[0]);
+  chip.style.setProperty('--tink', sealInk(top.t));
+  $('tsealN').textContent = tot.toFixed(1); $('total').textContent = tot.toFixed(1) + ' of 50';
+  $('tsealNo').textContent = mode === 'daily' ? 'No. ' + C.dayNo(today) : 'PRACTICE';
+  const ts = $('tseal'); ts.classList.remove('land', 'stay'); void ts.getBoundingClientRect();
+  ts.classList.add(animate && !REDUCED ? 'land' : 'stay');
+  if (animate) setTimeout(sThud, REDUCED ? 0 : 550);
+  tickNext();
+  if (animate) sScore(tot / 5);
+  $('live').textContent = 'Sheet done: ' + tot.toFixed(1) + ' out of 50.';
+}
+function leanText(entries) {
+  const h = C.habit(entries);
+  if (!h) return '';
+  return (h.kind === 'lean' ? 'Too ' + h.word : 'Strong on ' + h.name.toLowerCase()) + ' <em>in ' + h.n + ' of ' + h.of + ' colours</em>';
+}
+function countUpTotal(tot, animate) {
+  const el = $('total');
+  const put = v => { el.innerHTML = v.toFixed(1) + '<small>/50</small>'; };
+  if (!animate || REDUCED) { put(tot); return; }
+  const t0 = performance.now();
+  const step = now => { const k = Math.min(1, (now - t0) / 700), e = 1 - Math.pow(1 - k, 3); put(tot * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+let nextTimer = 0;
+function tickNext() {
+  clearTimeout(nextTimer);
+  const now = new Date(), mid = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const left = Math.max(0, mid - now), h = Math.floor(left / 36e5), m = Math.floor(left / 6e4) % 60, s = Math.floor(left / 1e3) % 60;
+  $('nextIn').innerHTML = 'Next sheet in<b>' + h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + '</b>';
+  if (C.dayKey(now) !== today && phase === 'sheet' && mode === 'daily') { today = C.dayKey(now); startSheet('daily', today); return; }
+  nextTimer = setTimeout(tickNext, 1000 - now.getMilliseconds() + 5);
+}
+
+$('stub').onclick = () => {
+  if (phase === 'turn') return;
+  if (phase === 'mix') doStamp();
+  else if (phase === 'reveal') next();
+  else if (mode === 'daily') share();
+  else startPractice();
+};
+$('other').onclick = () => {
+  if (mode === 'daily') startPractice();
+  else { history.replaceState(null, '', location.pathname); startSheet('daily', today); }
+};
+function startPractice() {
+  const s = 'p' + Math.random().toString(36).slice(2, 8);
+  history.replaceState(null, '', '?sheet=' + s);
+  startSheet('practice', s);
+}
+async function share() {
+  const e = save.days[today], text = C.shareText(e, C.dayNo(today), URL_HOME);
+  try {
+    if (navigator.share && matchMedia('(pointer:coarse)').matches) { await navigator.share({text}); return; }
+    await navigator.clipboard.writeText(text); toast('Copied to the clipboard');
+  } catch (err) { if (err && err.name !== 'AbortError') toast('Could not copy'); }
+}
+let toastT = 0;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1800); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.repeat && document.activeElement && document.activeElement.tagName !== 'BUTTON') {
+    e.preventDefault(); $('stub').click();
+  }
+});
+
+// the old Color Guessing Game kept no scores, only that someone had played before; a returning
+// player skips the first-visit nudge
+function migrateLegacy() {
+  try { if (localStorage.getItem('colorGamePlayed')) localStorage.setItem(KEY + '.seen', '1'); } catch (e) {}
+}
+
+const sp = params.get('sheet');
+if (sp && /^[a-z0-9]{1,24}$/i.test(sp)) startSheet('practice', sp);
+else startSheet('daily', today);
+})();
+</script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>颜色猜谜</h4>
+<div class="cn-guide-lang">🟡 仅少量英文（菜单/按钮），基本不影响游玩</div>
+<div class="cn-guide-desc">AI生成·猜颜色游戏</div>
+<div class="cn-guide-tip">💡 通过点击、拖拽或滑动来移动和组合元素，观察规律，达成关卡目标。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

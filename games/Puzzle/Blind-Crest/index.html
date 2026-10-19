@@ -666,4 +666,836 @@ function renderCall(call){
   }
 }
 
-/* ── input ──────────────────────────────────────────
+/* ── input ───────────────────────────────────────────────────────────── */
+const keys={};
+addEventListener('keydown',e=>{
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown',' '].includes(e.key)) e.preventDefault();
+  keys[e.key]=true;
+  if(e.key==='r'||e.key==='R'){ if(G.running||G.finished) restartStage(); }
+  if(e.key==='v'||e.key==='V'){ Voice.on=!Voice.on; flash(Voice.on?'VOICE ON':'VOICE OFF',1); }
+});
+addEventListener('keyup',e=>{ keys[e.key]=false; });
+
+/* Steering is proportional to how far out your thumb is, not full lock the
+   instant you tap: binary steering on a phone means permanent over-correction.
+   The middle band is speed — lower half brakes, upper half lifts off. All
+   touches are read together, so steering and braking work with two thumbs. */
+const touch={steer:0, brake:false, coast:false};
+function readTouches(e){
+  const w=window.innerWidth, h=window.innerHeight;
+  let steer=0, brake=false, coast=false;
+  for(const t of e.touches){
+    // -1 at the far left of the screen, +1 at the far right
+    const u=Math.max(-1, Math.min(1, (t.clientX - w/2)/(w*0.42)));
+    if(Math.abs(u) <= 0.15){
+      // narrow band down the middle is speed, not steering
+      if(t.clientY > h*0.42) brake=true; else coast=true;
+    } else {
+      // squared, so a thumb near the middle is a gentle correction and only
+      // the edge of the screen is full lock
+      const m=Math.sign(u)*u*u;
+      if(Math.abs(m) > Math.abs(steer)) steer=m;
+    }
+  }
+  touch.steer=steer; touch.brake=brake; touch.coast=coast;
+  if(e.cancelable) e.preventDefault();
+}
+{
+  const n=document.getElementById('touch');
+  for(const ev of ['touchstart','touchmove','touchend','touchcancel'])
+    n.addEventListener(ev, readTouches, {passive:false});
+}
+let hintT=0;
+function showHints(){
+  const h=document.getElementById('hints');
+  if(!h) return;
+  h.style.opacity='1'; hintT=performance.now()+4200;
+}
+
+if(matchMedia('(hover:none)').matches) document.body.classList.add('touch');
+// and switch over the moment a real finger arrives, in case the media query
+// was wrong about the device
+addEventListener('touchstart', function once(){
+  document.body.classList.add('touch');
+  removeEventListener('touchstart', once);
+}, {passive:true, capture:true});
+
+function flash(msg,dur){ G.warnMsg=msg; G.warnT=dur||1.1; }
+
+/* ── physics ─────────────────────────────────────────────────────────── */
+function update(dt){
+  if(!G.running) return;
+  const segs=G.stage.segs;
+  const base=Math.floor(G.pos/SEG);
+  if(base>=segs.length-42){ finishStage(); return; }
+  const seg=segs[base];
+
+  // ---- driver input
+  const left  = keys['ArrowLeft']||keys['a']||keys['A'];
+  const right = keys['ArrowRight']||keys['d']||keys['D'];
+  const isTouch = document.body.classList.contains('touch');
+  const brake = keys['ArrowDown']||keys['s']||keys['S']||touch.brake;
+  const gas   = keys['ArrowUp']||keys['w']||keys['W'] || (isTouch && !brake && !touch.coast);
+  // both at once: a touch laptop should not lose its arrow keys
+  const kb=(right?1:0)-(left?1:0);
+  const want = kb!==0 ? kb : touch.steer;
+  // slower than it was: the old rate hit full lock in a tenth of a second
+  G.steer += (want-G.steer)*Math.min(1, dt*7.5);
+
+  // ---- longitudinal
+  const onRoad=Math.abs(G.x)<=ROADW;
+  if(brake)      G.v -= 13.5*dt;
+  else if(gas)   G.v += (9.2*(1-G.v/VMAX)+1.2)*dt;
+  else           G.v -= 1.4*dt;
+  // The verge is not a run-off area — but the drag has to be a rolling
+  // resistance, not a constant. A flat 13.5 m/s^2 exceeded what full throttle
+  // gives from a standstill (10.4), so a car that stopped on the grass could
+  // never move again: stuck for good, with only a stage restart to escape.
+  if(!onRoad)    G.v -= (2.0 + 0.30*G.v)*dt;
+  G.v=Math.max(0, Math.min(VMAX, G.v));
+
+  // ---- lateral. The car has a heading of its own now. Steering turns the
+  // front wheels; the car follows where it is pointed, and the road turns
+  // underneath it at its own rate. Before this the input moved the car
+  // sideways without ever pointing it, which is why cornering felt automatic.
+  const gf = onRoad ? 1 : 0.42;
+  const WB = 2.7;                                   // wheelbase, metres
+  const maxLat = GRIP*gf;
+  // The input asks for a FRACTION OF AVAILABLE GRIP, and that is converted
+  // into a steering angle. Steering first and clamping the angle afterwards
+  // looks equivalent and is not: above about a tenth of lock every input
+  // clamps to the same angle at speed, so steering goes binary exactly where
+  // proportional control matters. This way half a thumb is always half a turn.
+  const askLat = G.steer * maxLat;
+  const vEff = Math.max(6, G.v);
+  const lock = 0.50 * (1 - 0.55*Math.min(1, G.v/VMAX));
+  let delta = Math.atan(askLat*WB/(vEff*vEff));
+  delta = Math.max(-lock, Math.min(lock, delta));
+  const roadRate = seg.curve/SEG * G.v;             // how fast the road turns
+  // The +3 is a low-speed assist. Yaw rate is proportional to speed, which is
+  // true of a real car and means a crawling one cannot be pointed at all — so
+  // a driver who has slowed right down gets stuck facing the wrong way.
+  G.yaw += ((G.v+3.0)*Math.tan(delta)/WB - roadRate)*dt;
+  // Damping acts on heading RELATIVE TO THE ROAD, which is zero when you are
+  // following it — so this costs nothing in a steady corner and only pulls
+  // out deviations. Cheap stability.
+  // 1.3 was picked by sweeping it against two measurements at once: offs at a
+  // human reaction lag (0.94 at 0.7, 0.11 here, 0.00 at 1.8) and whether the
+  // co-driver still pays (5.4s, 5.1s, then collapsing to 1.5s at 1.8, because
+  // a car that stable survives arriving too fast and the notes stop mattering).
+  G.yaw *= Math.exp(-1.3*dt);
+  G.yaw = Math.max(-0.5, Math.min(0.5, G.yaw));
+  G.vx  = G.v*Math.sin(G.yaw);                      // sideways speed, for the look
+  G.x  += G.vx*dt;
+
+  if(!onRoad){ G.offT+=dt; G.shake=Math.min(1, G.shake+dt*3); }
+  else { G.offT=0; G.shake=Math.max(0, G.shake-dt*4); }
+
+  // belt and braces: nothing may leave the player stranded
+  if(!onRoad && G.v < 1.2 && G.offT > 2.5){
+    G.penalty+=5; G.x=0; G.vx=0; G.yaw=0; G.v=8; G.offT=0;
+    flash('OFF · +5s', 1.6);
+  }
+
+  // beached
+  if(Math.abs(G.x)>ROADW*2.0){
+    G.penalty+=5; G.x=0; G.vx=0; G.yaw=0; G.v=Math.min(G.v,7);
+    flash('OFF · +5s', 1.6);
+  }
+
+  G.pos += G.v*dt;
+  G.t += dt;
+
+  // ---- the co-driver reads ahead
+  const lead = G.v*3.6 + 38;
+  for(const c of G.calls){
+    if(c.spoken) continue;
+    const d=c.seg*SEG - G.pos;
+    if(d<-20){ c.spoken=true; continue; }
+    if(d<=lead){
+      c.spoken=true;
+      renderCall(c);
+      Voice.say(spokenText(c));
+      break;
+    }
+  }
+
+  // ---- live delta against your best run on this stage
+  const hm=Math.floor(G.pos/100);
+  while(G.splits.length<=hm && hm<400){
+    G.splits.push(G.t+G.penalty);
+    if(G.bestSplits && G.bestSplits[G.splits.length-1]!=null)
+      G.delta=(G.t+G.penalty)-G.bestSplits[G.splits.length-1];
+  }
+  if(G.warnT>0) G.warnT-=dt;
+  if(hintT && performance.now()>hintT){
+    const h=document.getElementById('hints');
+    if(h) h.style.opacity='0';
+    hintT=0;
+  }
+}
+
+/* ── render ──────────────────────────────────────────────────────────── */
+/* ── far country: ridgelines that parallax as the road turns ─────────── */
+let RIDGE=null;
+function buildRidges(seed){
+  const r=mulberry(hashSeed(seed+'|ridge'));
+  RIDGE=[];
+  for(let layer=0; layer<3; layer++){
+    const w=[];
+    for(let k=0;k<5;k++) w.push({f:0.6+r()*3.4, a:(0.25+r()*0.75)/(k+1), p:r()*6.28});
+    RIDGE.push({w, depth:0.10+layer*0.16, h:(3-layer)*0.030+0.026});
+  }
+}
+function ridgeY(layer, t){
+  let v=0; for(const w of layer.w) v+=Math.sin(t*w.f+w.p)*w.a;
+  return v;
+}
+function drawRidges(L,HOR,head){
+  if(!RIDGE) return;
+  for(let i=RIDGE.length-1;i>=0;i--){
+    const lay=RIDGE[i];
+    // far hills sit between sky and ground, and wash out with distance
+    const base=[0,1,2].map(k=> L.sky[1][k]*0.55 + L.grass[1][k]*0.45);
+    ctx.fillStyle=mix(base, L.fogc, 0.74-0.18*i);
+    ctx.beginPath(); ctx.moveTo(0,HOR+2);
+    const step=Math.max(6, W/70);
+    for(let px=0;px<=W+step;px+=step){
+      const u=(px/W-0.5)*3.2 - head*lay.depth*7.0;
+      ctx.lineTo(px, HOR+2 - (ridgeY(lay,u)*0.5+0.5)*H*lay.h - H*0.006);
+    }
+    ctx.lineTo(W,HOR+2); ctx.closePath(); ctx.fill();
+  }
+}
+
+/* ── the things that stand beside the road ───────────────────────────── */
+function shade(base, lit, L, fog){
+  const S=L.sun;
+  const c=[0,1,2].map(k=> base[k]*(1-S.str) + (lit? S.warm[k] : S.amb[k])*S.str*(base[k]/210+0.35));
+  return mix(c.map(v=>Math.max(0,Math.min(255,v))), L.fogc, fog);
+}
+function tri(x,y,w,h,fill){ ctx.fillStyle=fill; ctx.beginPath();
+  ctx.moveTo(x,y-h); ctx.lineTo(x+w,y); ctx.lineTo(x-w,y); ctx.closePath(); ctx.fill(); }
+
+function drawProp(o, px, gy, m, L, fog){
+  const S=L.sun, lit = (o.side*S.x)<0 ? true : false;
+  const lean = S.x*0.10;
+  const sh=(w,h)=>{ // contact shadow
+    if(S.str<0.3) return;
+    ctx.fillStyle='rgba(0,0,0,'+(0.20*S.str).toFixed(3)+')';
+    ctx.beginPath(); ctx.ellipse(px - S.x*w*0.55, gy, w*0.75, Math.max(1,h*0.022), 0,0,7); ctx.fill();
+  };
+  switch(o.type){
+    case 'conifer': case 'conifer_tall': {
+      const h=o.s*m, w=o.s*(0.20+o.a*0.10)*m;
+      sh(w,h);
+      ctx.fillStyle=shade([54,42,30], lit, L, fog);
+      ctx.fillRect(px-w*0.10, gy-h*0.28, w*0.20, h*0.28);
+      const dark=shade([24,42,30], false, L, fog), brite=shade([46,74,48], true, L, fog);
+      for(let k=0;k<3;k++){
+        const yy=gy-h*(0.18+k*0.27), ww=w*(1-k*0.24), hh=h*(0.42-k*0.06);
+        tri(px+lean*hh, yy, ww, hh, dark);
+        ctx.save(); ctx.beginPath();
+        ctx.moveTo(px+lean*hh, yy-hh); ctx.lineTo(px+lean*hh+(lit?-ww:ww), yy);
+        ctx.lineTo(px+lean*hh, yy); ctx.closePath(); ctx.clip();
+        tri(px+lean*hh, yy, ww, hh, brite); ctx.restore();
+      }
+      break; }
+    case 'broadleaf': {
+      const h=o.s*m, w=o.s*0.34*m; sh(w,h);
+      ctx.fillStyle=shade([58,46,34], lit, L, fog);
+      ctx.fillRect(px-w*0.08, gy-h*0.45, w*0.16, h*0.45);
+      ctx.fillStyle=shade([40,62,38], false, L, fog);
+      ctx.beginPath(); ctx.ellipse(px, gy-h*0.66, w, h*0.34, 0,0,7); ctx.fill();
+      ctx.fillStyle=shade([64,92,52], true, L, fog);
+      ctx.beginPath(); ctx.ellipse(px-(lit?1:-1)*w*0.30, gy-h*0.74, w*0.60, h*0.22, 0,0,7); ctx.fill();
+      break; }
+    case 'stump': {
+      const h=o.s*m*0.5, w=o.s*0.22*m; sh(w,h);
+      ctx.fillStyle=shade([62,50,38], lit, L, fog);
+      ctx.fillRect(px-w/2, gy-h, w, h); break; }
+    case 'rock': case 'boulder': {
+      const h=o.s*m*0.55, w=o.s*m*0.62; sh(w,h);
+      ctx.fillStyle=shade([96,94,88], false, L, fog);
+      ctx.beginPath(); ctx.moveTo(px-w, gy);
+      ctx.lineTo(px-w*0.55, gy-h*0.85); ctx.lineTo(px+w*0.15, gy-h);
+      ctx.lineTo(px+w*0.9, gy-h*0.45); ctx.lineTo(px+w, gy); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=shade([132,130,122], true, L, fog);
+      ctx.beginPath(); ctx.moveTo(px+(lit?-w*0.55:w*0.15), gy-h*0.85);
+      ctx.lineTo(px+w*0.15, gy-h); ctx.lineTo(px+(lit?0:w*0.9), gy-h*0.45); ctx.closePath(); ctx.fill();
+      break; }
+    case 'tuft': {
+      const h=o.s*m, w=o.s*m*0.55;
+      const g=BIOMES[o.bio||0].ground;
+      ctx.fillStyle=mix([g[0]*0.92+18, g[1]*0.92+22, g[2]*0.92+10], L.fogc, fog);
+      for(let k=-1;k<=1;k++){
+        ctx.beginPath();
+        ctx.moveTo(px+k*w*0.45, gy);
+        ctx.lineTo(px+k*w*0.45+w*0.22*(k+o.a), gy-h);
+        ctx.lineTo(px+k*w*0.45+w*0.30, gy);
+        ctx.closePath(); ctx.fill();
+      }
+      break; }
+    case 'gorse': {
+      const h=o.s*m*0.5, w=o.s*m*0.5;
+      ctx.fillStyle=shade([74,80,44], false, L, fog);
+      ctx.beginPath(); ctx.ellipse(px, gy-h*0.4, w*0.7, h*0.45, 0,0,7); ctx.fill();
+      if(o.a>0.5){ ctx.fillStyle=shade([172,150,52], true, L, fog);
+        ctx.beginPath(); ctx.ellipse(px-w*0.2, gy-h*0.6, w*0.3, h*0.18, 0,0,7); ctx.fill(); }
+      break; }
+    case 'snowpole': {
+      const h=o.s*m, w=Math.max(1,0.06*m);
+      ctx.fillStyle=shade([236,232,224], lit, L, fog);
+      ctx.fillRect(px-w/2, gy-h, w, h);
+      ctx.fillStyle=shade([210,72,58], lit, L, fog);
+      ctx.fillRect(px-w/2, gy-h, w, h*0.22); break; }
+    case 'fence': {
+      const h=o.s*m, w=Math.max(1,0.07*m);
+      ctx.fillStyle=shade([88,72,52], lit, L, fog);
+      ctx.fillRect(px-w/2, gy-h, w, h);
+      ctx.fillStyle=shade([70,58,44], lit, L, fog);
+      ctx.fillRect(px-m*1.1, gy-h*0.78, m*2.2, Math.max(1,0.045*m));
+      ctx.fillRect(px-m*1.1, gy-h*0.45, m*2.2, Math.max(1,0.045*m));
+      break; }
+    case 'gate': {
+      const h=o.s*m, w=m*1.7;
+      ctx.fillStyle=shade([176,168,150], lit, L, fog);
+      ctx.fillRect(px-w/2, gy-h, Math.max(1,0.09*m), h);
+      ctx.fillRect(px+w/2, gy-h, Math.max(1,0.09*m), h);
+      for(let k=0;k<4;k++) ctx.fillRect(px-w/2, gy-h+k*h/4, w, Math.max(1,0.05*m));
+      break; }
+    case 'bale': {
+      const h=o.s*m*0.30, w=o.s*m*0.30; sh(w,h);
+      ctx.fillStyle=shade([186,166,102], lit, L, fog);
+      ctx.beginPath(); ctx.ellipse(px, gy-h*0.5, w*0.5, h*0.5, 0,0,7); ctx.fill();
+      break; }
+    case 'wall': {
+      const h=o.s*m*0.45, w=m*3.2;
+      ctx.fillStyle=shade([124,118,104], lit, L, fog);
+      ctx.fillRect(px-w/2, gy-h, w, h);
+      ctx.fillStyle=shade([98,92,80], false, L, fog);
+      for(let k=0;k<3;k++) ctx.fillRect(px-w/2, gy-h+k*h/3, w, Math.max(1,h*0.04));
+      break; }
+    case 'barn': {
+      const h=o.s*m*0.62, w=o.s*m*0.55; sh(w,h);
+      ctx.fillStyle=shade([104,74,58], lit, L, fog);
+      ctx.fillRect(px-w/2, gy-h*0.72, w, h*0.72);
+      ctx.fillStyle=shade([72,66,62], lit, L, fog);
+      ctx.beginPath(); ctx.moveTo(px-w*0.60, gy-h*0.72); ctx.lineTo(px, gy-h*1.06);
+      ctx.lineTo(px+w*0.60, gy-h*0.72); ctx.closePath(); ctx.fill();
+      if(L.stars>0.2){ ctx.fillStyle='rgba(255,214,132,'+(0.85*(1-fog)).toFixed(2)+')';
+        ctx.fillRect(px-w*0.14, gy-h*0.50, w*0.20, h*0.20); }
+      break; }
+    case 'crowd': {
+      const h=o.s*m*0.42;
+      const cols=[[196,72,64],[64,92,168],[212,196,72],[70,150,110],[220,220,224]];
+      for(let k=0;k<3;k++){
+        const c=cols[Math.floor(((o.a*97+k*31)%5))], xx=px+(k-1)*h*0.34;
+        ctx.fillStyle=shade(c, lit, L, fog);
+        ctx.fillRect(xx-h*0.11, gy-h*0.78, h*0.22, h*0.78);
+        ctx.fillStyle=shade([228,196,166], lit, L, fog);
+        ctx.beginPath(); ctx.arc(xx, gy-h*0.88, h*0.13, 0, 7); ctx.fill();
+      }
+      break; }
+    case 'cliff': {
+      const h=o.s*m, w=o.s*m*0.85;
+      ctx.fillStyle=shade([86,82,78], false, L, fog);
+      ctx.beginPath(); ctx.moveTo(px-w, gy);
+      ctx.lineTo(px-w*0.7, gy-h*0.7); ctx.lineTo(px-w*0.1, gy-h);
+      ctx.lineTo(px+w*0.6, gy-h*0.55); ctx.lineTo(px+w, gy); ctx.closePath(); ctx.fill();
+      ctx.fillStyle=shade([116,110,102], true, L, fog);
+      ctx.beginPath(); ctx.moveTo(px-w*0.1, gy-h);
+      ctx.lineTo(px+w*0.6, gy-h*0.55); ctx.lineTo(px+w*0.15, gy-h*0.4); ctx.closePath(); ctx.fill();
+      break; }
+  }
+}
+
+/* ── render ──────────────────────────────────────────────────────────── */
+function render(){
+  const L=G.look, segs=G.stage.segs, props=G.stage.props;
+  const HOR=SCENE.hor, FL=SCENE.fl, CAM_H=SCENE.camH;
+  const shakeX=(Math.random()-0.5)*G.shake*7, shakeY=(Math.random()-0.5)*G.shake*5;
+  const base=Math.floor(G.pos/SEG);
+  const head=segs[base]?segs[base].head:0;
+
+  // ---- sky
+  const sky=ctx.createLinearGradient(0,0,0,HOR+40);
+  sky.addColorStop(0,'rgb('+L.sky[0]+')'); sky.addColorStop(1,'rgb('+L.sky[1]+')');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,W,HOR+42);
+
+  if(L.stars>0){                                   // stars, fixed to the world
+    for(let i=0;i<70;i++){
+      const sx=((i*2654435761)%10000)/10000, sy=((i*40503)%997)/997;
+      const x=(((sx - head*0.02)%1)+1)%1*W, y=sy*HOR*0.82;
+      const tw=0.45+0.55*Math.sin(i*1.7 + G.t*1.6);
+      ctx.fillStyle='rgba(226,232,246,'+(L.stars*tw*(0.30+0.5*sy)).toFixed(3)+')';
+      ctx.fillRect(x, y, 1.6, 1.6);
+    }
+  }
+  { // sun or moon, low and to one side
+    const S=L.sun, sxp=W*(0.5 - S.x*0.42) - head*70, syp=HOR - S.y*HOR*0.72;
+    const rr=Math.min(W,H)*0.055;
+    const g=ctx.createRadialGradient(sxp,syp,rr*0.2,sxp,syp,rr*6);
+    g.addColorStop(0,'rgba('+S.warm+','+(0.42*S.str+0.10).toFixed(2)+')');
+    g.addColorStop(1,'rgba('+S.warm+',0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,HOR+60);
+    ctx.fillStyle='rgba('+S.warm+','+(0.55+0.4*S.str).toFixed(2)+')';
+    ctx.beginPath(); ctx.arc(sxp,syp,rr*(L.stars>0.8?0.55:0.8),0,7); ctx.fill();
+  }
+  for(let i=0;i<5;i++){                             // cloud bands
+    const cy=HOR*(0.16+i*0.13), cx=(((i*0.23 - head*0.06)%1)+1)%1*(W*1.4)-W*0.2;
+    ctx.fillStyle=mix(L.sky[0], L.sky[1], 0.55+0.35*Math.sin(i));
+    ctx.globalAlpha=0.22+0.10*Math.sin(i*2.1);
+    ctx.beginPath(); ctx.ellipse(cx, cy, W*(0.16+0.10*((i*7)%3)), HOR*0.028, 0,0,7); ctx.fill();
+    ctx.globalAlpha=1;
+  }
+
+  drawRidges(L, HOR, head);
+
+  // ground under everything
+  const Bnow=BIOMES[(segs[base]&&segs[base].bio)||0];
+  const gBase=[(L.grass[0][0]+Bnow.ground[0])/2,(L.grass[0][1]+Bnow.ground[1])/2,
+               (L.grass[0][2]+Bnow.ground[2])/2];
+  const gnd=ctx.createLinearGradient(0,HOR,0,HOR+H*0.15);
+  gnd.addColorStop(0,'rgb('+L.fogc+')'); gnd.addColorStop(1,mix(gBase,L.fogc,0.04));
+  ctx.fillStyle=gnd; ctx.fillRect(0,HOR-H*0.06,W,H-HOR+H*0.06);
+
+  const drawN=Math.min(56, L.dist*3+16);
+
+  // ---- project the road forward.
+  // Everything is integrated from the car's exact position, not from the
+  // segment boundary behind it. Anchoring to the boundary made the camera
+  // elevation step and the curve accumulation restart every six metres,
+  // which at speed is a visible jolt about seven times a second.
+  const frac=(G.pos - base*SEG)/SEG;
+  const segN=segs[base+1]||segs[base];
+  const camY=(segs[base] ? segs[base].y+(segN.y-segs[base].y)*frac : 0)+CAM_H;
+  const sightM=L.dist*SEG;
+  let x=0, dx=0, span=1-frac;
+  const proj=[];
+  for(let i=0;i<drawN;i++){
+    const idx=base+i, sg=segs[idx]; if(!sg) break;
+    const z=Math.max(0.9, idx*SEG - G.pos + 1.2);
+    const scale=CAM_D/z;
+    const yHere=(i===0) ? camY-CAM_H : sg.y;
+    proj.push({
+      sx: W/2 + scale*(x - G.x)*FL - G.yaw*0.5*FL + shakeX,
+      sy: HOR - scale*(yHere - camY)*FL + shakeY,
+      sw: scale*ROADW*FL,
+      // smoothstep rather than a power: it flattens out as it reaches the
+      // sight limit, so the last few quads differ by less and the road
+      // dissolves instead of ending on a line. Slightly more fog mid-range
+      // than the old curve, so it cannot widen the effective sight.
+      fog: (t=>t*t*(3-2*t))(Math.min(1, z/sightM)),
+      idx, s:sg, scale, z
+    });
+    // advance by the part of this segment that lies ahead of the sample
+    x  += dx*span + 0.5*sg.curve*SEG*span*span;
+    dx += sg.curve*SEG*span;
+    span = 1;
+  }
+
+  // ---- road and banks, near to far, skipping whatever a crest hides
+  let clipY=H+50;
+  const drawn=[];
+  for(let i=0;i<proj.length-1;i++){
+    const a=proj[i], b=proj[i+1];
+    if(b.sy>=clipY || a.fog>=0.999) continue;
+    clipY=b.sy; drawn.push(i);
+    const fog=a.fog, fc=L.fogc;
+    const B=BIOMES[a.s.bio!==undefined?a.s.bio:0];
+    // Alternating light/dark bands every four segments pulsed the whole frame
+    // at about 1.7 Hz at speed: slow enough to see, fast enough to irritate.
+    // Fine per-segment noise instead — high frequency reads as surface, not
+    // as a throb.
+    const n=(((a.idx*2654435761)>>>0)%1000)/1000 - 0.5;
+    const gcol=[ (L.grass[0][0]+B.ground[0])/2 + n*7,
+                 (L.grass[0][1]+B.ground[1])/2 + n*7,
+                 (L.grass[0][2]+B.ground[2])/2 + n*5 ];
+    const grass=mix(gcol, fc, fog*0.92);
+    const road=mix([L.road[0][0]+n*4, L.road[0][1]+n*4, L.road[0][2]+n*4], fc, fog*0.92);
+
+    // far ground plane
+    // Near segments project a ground quad wider than the canvas; the base
+    // ground fill already covers that with the same biome colour, so painting
+    // it again is pure overdraw.
+    if(a.sw*7 < W*1.6) drawPoly(a.sx,a.sy,a.sw*7,b.sx,b.sy,b.sw*7, grass);
+
+    // Kerbs are striped within the segment rather than a whole segment per
+    // colour: a six-metre colour period strobes at 7 Hz, a 1.5 m one converges
+    // into texture. The contrast fades out with distance so it cannot alias.
+    const stripeMix=Math.min(1, fog*1.9);
+    const rumA=mix(L.rumble[0], fc, fog*0.92), rumB=mix(L.rumble[1], fc, fog*0.92);
+    const rumAvg=mix([(L.rumble[0][0]+L.rumble[1][0])/2,(L.rumble[0][1]+L.rumble[1][1])/2,
+                      (L.rumble[0][2]+L.rumble[1][2])/2], fc, fog*0.92);
+    const NST = fog<0.30 ? 4 : 1;
+    for(let q=0;q<NST;q++){
+      const t0=q/NST, t1=(q+1)/NST;
+      const xa=a.sx+(b.sx-a.sx)*t0, ya=a.sy+(b.sy-a.sy)*t0, wa=a.sw+(b.sw-a.sw)*t0;
+      const xb=a.sx+(b.sx-a.sx)*t1, yb=a.sy+(b.sy-a.sy)*t1, wb=a.sw+(b.sw-a.sw)*t1;
+      const base=((a.idx*NST+q)&1) ? rumB : rumA;
+      drawPoly(xa,ya,wa*1.15,xb,yb,wb*1.15, stripeMix>0.85 ? rumAvg : base);
+    }
+    drawPoly(a.sx,a.sy,a.sw,b.sx,b.sy,b.sw, road);
+    // two darker strips where everyone drives, and a patch here and there
+    if(fog<0.55){
+      const worn=mix([L.road[0][0]*0.90, L.road[0][1]*0.90, L.road[0][2]*0.92], fc, fog*0.92);
+      drawPoly(a.sx-a.sw*0.45,a.sy,a.sw*0.20,b.sx-b.sw*0.45,b.sy,b.sw*0.20, worn);
+      drawPoly(a.sx+a.sw*0.45,a.sy,a.sw*0.20,b.sx+b.sw*0.45,b.sy,b.sw*0.20, worn);
+      if((a.idx*2654435761>>>0)%23===0){
+        const pch=mix([L.road[0][0]*1.16, L.road[0][1]*1.14, L.road[0][2]*1.12], fc, fog*0.92);
+        drawPoly(a.sx+a.sw*0.2,a.sy,a.sw*0.4,b.sx+b.sw*0.2,b.sy,b.sw*0.4, pch);
+      }
+    }
+    if(((a.idx>>1)&1)===0 && fog<0.60)
+      drawPoly(a.sx,a.sy,a.sw*0.035,b.sx,b.sy,b.sw*0.035, mix([214,210,200],fc,fog*0.92));
+  }
+
+  // ---- banks, as one continuous hillside per side rather than facets.
+  // The strip runs all the way to the car. Starting it a few segments out
+  // left a floating angled edge that slid away as you approached, which read
+  // as walls appearing and vanishing. Near vertices project enormously, so
+  // they are clamped well outside the frame instead of being dropped.
+  {
+    const CX=(v)=>Math.max(-2.5*W, Math.min(3.5*W, v));
+    const CY=(v)=>Math.max(-1.5*H, Math.min(2.5*H, v));
+    if(drawn.length>2){
+      const nearY=proj[drawn[0]].sy, farY=proj[drawn[drawn.length-1]].sy;
+      for(const side of [-1,1]){
+        let any=false;
+        ctx.beginPath();
+        for(let n=0;n<drawn.length;n++){
+          const p=proj[drawn[n]];
+          const h=Math.min(5,(side<0?p.s.bl:p.s.br)||0);
+          if(h>0.4) any=true;
+          const m=p.scale*FL;
+          const ox=CX(p.sx+side*(ROADW+0.9+h*0.55)*m), oy=CY(p.sy-h*m);
+          n?ctx.lineTo(ox,oy):ctx.moveTo(ox,oy);
+        }
+        for(let n=drawn.length-1;n>=0;n--){
+          const p=proj[drawn[n]];
+          ctx.lineTo(CX(p.sx+side*p.sw*1.14), CY(p.sy));
+        }
+        ctx.closePath();
+        if(!any) continue;
+        const B0=BIOMES[segs[base].bio||0];
+        const c=shadeRGB([(L.grass[0][0]+B0.ground[0])/2,(L.grass[0][1]+B0.ground[1])/2,
+                          (L.grass[0][2]+B0.ground[2])/2], side*L.sun.x<0, L);
+        const g=ctx.createLinearGradient(0,farY-H*0.04,0,Math.min(nearY,H));
+        g.addColorStop(0,mix(c,L.fogc,0.88));
+        g.addColorStop(1,mix(c,L.fogc,0.04));
+        ctx.fillStyle=g; ctx.fill();
+      }
+    }
+  }
+
+  // ---- everything that stands up, far to near
+  for(let n=drawn.length-1;n>=0;n--){
+    const i=drawn[n], p=proj[i];
+    if(p.fog>0.985) continue;
+    const m2px=p.scale*FL;
+    const list=(i>=2)?props[p.idx]:null;
+    if(list) for(const o of list){
+      // Props sit on the road plane. Lifting them onto the bank is
+      // geometrically truer but we never draw the plateau they would stand
+      // on, so they read as floating.
+      const px=p.sx + o.side*(ROADW+o.off)*m2px;
+      drawProp(o, px, p.sy, m2px, L, p.fog);
+    }
+    if(p.idx%4===0){                                  // the marker posts
+      const side=(p.idx%8===0)?1:-1;
+      const px=p.sx+side*(ROADW+1.0)*m2px, h=1.05*m2px;
+      ctx.fillStyle=mix([230,227,220], L.fogc, p.fog);
+      ctx.fillRect(px-0.07*m2px, p.sy-h, 0.14*m2px, h);
+      ctx.fillStyle=mix([200,68,56], L.fogc, p.fog);
+      ctx.fillRect(px-0.07*m2px, p.sy-h, 0.14*m2px, h*0.3);
+    }
+  }
+
+  // ---- headlights
+  if(L.dist<=7){
+    ctx.globalCompositeOperation='lighter';
+    const g=ctx.createRadialGradient(W/2,H*0.80,8,W/2,H*0.80,H*0.62);
+    g.addColorStop(0,'rgba(255,240,198,.26)'); g.addColorStop(0.45,'rgba(255,240,198,.10)');
+    g.addColorStop(1,'rgba(255,240,198,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='source-over';
+  }
+
+  const haze=ctx.createLinearGradient(0,HOR-H*0.015,0,HOR+H*0.07);
+  haze.addColorStop(0,'rgba('+L.fogc+',.30)'); haze.addColorStop(1,'rgba('+L.fogc+',0)');
+  ctx.fillStyle=haze; ctx.fillRect(0,HOR-H*0.015,W,H*0.085);
+
+  // Headlights. A single trapezoid with a linear gradient has hard straight
+  // edges and reads as a grey wedge; three nested cones stack into something
+  // with a soft edge for the cost of two more fills.
+  if(L.dist<=6){
+    ctx.globalCompositeOperation='lighter';
+    const aim=-G.steer*W*0.24;
+    for(let k=0;k<3;k++){
+      const spread=0.13+k*0.075, reach=0.30+k*0.16, al=0.085-k*0.022;
+      const g=ctx.createLinearGradient(0,H*0.90,0,HOR+H*0.04);
+      g.addColorStop(0,'rgba(255,240,200,'+al.toFixed(3)+')');
+      g.addColorStop(0.5,'rgba(255,240,200,'+(al*0.45).toFixed(3)+')');
+      g.addColorStop(1,'rgba(255,240,200,0)');
+      ctx.fillStyle=g;
+      ctx.beginPath();
+      ctx.moveTo(W/2-W*0.03, H*0.92); ctx.lineTo(W/2+W*0.03, H*0.92);
+      ctx.lineTo(W/2+W*reach+aim, HOR+H*0.05);
+      ctx.lineTo(W/2-W*reach+aim, HOR+H*0.05);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+  // dust and gravel where a wheel has dropped off the tarmac
+  if(G.shake>0.02){
+    const B0=BIOMES[segs[base].bio||0];
+    for(let i=0;i<14;i++){
+      const t=(i/14+ (G.t*1.7)%1)%1;
+      const sp=1-t;
+      const x=W/2 + Math.sign(G.x)*W*(0.06+t*0.30)*(0.6+0.8*((i*37)%7)/7);
+      const y=H*(0.90-t*0.20) + ((i*53)%11-5)*2;
+      ctx.fillStyle='rgba('+B0.ground.map(v=>Math.min(255,v+70)).join(',')+','
+        +(0.30*G.shake*sp).toFixed(3)+')';
+      ctx.beginPath(); ctx.arc(x,y, W*0.006*(1+t*3), 0, 7); ctx.fill();
+    }
+  }
+
+  drawCar();
+
+  if(VIG) ctx.drawImage(VIG, 0, 0, W, H);
+
+  drawMini();
+}
+
+function shadeRGB(base, lit, L){
+  const S=L.sun;
+  return [0,1,2].map(k=> Math.max(0,Math.min(255,
+    base[k]*(1-S.str*0.7) + (lit?S.warm[k]:S.amb[k])*S.str*0.7*(base[k]/210+0.35))));
+}
+
+function drawCar(){
+  const cw=Math.min(W*0.235, H*0.32), ch=cw*0.52;
+  const braking = keys['ArrowDown']||keys['s']||keys['S']||touch.brake;
+  // the body leans on the springs: roll from lateral load, pitch from braking
+  const roll = Math.max(-0.14, Math.min(0.14, G.vx*0.016 + G.steer*0.035));
+  const squat = braking ? 1 : (G.v>2 ? -0.35 : 0);
+  const cx=W/2 - G.steer*cw*0.05, cy=H*0.935 + squat*ch*0.05;
+  const body='#22303f', dark='#16202b', glass='#0a1018';
+
+  ctx.save();
+  ctx.translate(cx,cy); ctx.rotate(roll*0.55 + G.yaw*0.55);
+
+  // ground shadow, tight under the car
+  ctx.fillStyle='rgba(0,0,0,.40)';
+  ctx.beginPath(); ctx.ellipse(0, ch*0.05, cw*0.50, ch*0.11, 0,0,7); ctx.fill();
+
+  // rear wheels, leaning with the body
+  const wy=-ch*0.02, wh=ch*0.46, ww=cw*0.135;
+  ctx.fillStyle='#0b0f14';
+  roundRect(-cw*0.54, wy-wh, ww, wh, ch*0.05); ctx.fill();
+  roundRect( cw*0.54-ww, wy-wh, ww, wh, ch*0.05); ctx.fill();
+  ctx.fillStyle='#2b343d';   // a hint of rim
+  roundRect(-cw*0.525, wy-wh*0.72, ww*0.72, wh*0.42, ch*0.03); ctx.fill();
+  roundRect( cw*0.54-ww*0.94, wy-wh*0.72, ww*0.72, wh*0.42, ch*0.03); ctx.fill();
+
+  // arches and sills
+  ctx.fillStyle=dark;
+  roundRect(-cw*0.50, -ch*0.46, cw*1.00, ch*0.26, ch*0.09); ctx.fill();
+
+  // main body
+  ctx.fillStyle=body;
+  roundRect(-cw*0.43, -ch*0.80, cw*0.86, ch*0.74, ch*0.13); ctx.fill();
+  // cabin, narrower and set back
+  ctx.fillStyle=body;
+  roundRect(-cw*0.31, -ch*1.08, cw*0.62, ch*0.32, ch*0.12); ctx.fill();
+  ctx.fillStyle=glass;
+  roundRect(-cw*0.25, -ch*1.03, cw*0.50, ch*0.21, ch*0.07); ctx.fill();
+  // a lit strip along the top edge, so it reads against a dark road
+  ctx.fillStyle='rgba(255,255,255,.10)';
+  roundRect(-cw*0.31, -ch*1.09, cw*0.62, ch*0.04, ch*0.02); ctx.fill();
+
+  // brake lights, with a glow when hard on them
+  if(braking){
+    ctx.globalCompositeOperation='lighter';
+    for(const sx of [-cw*0.30, cw*0.30]){
+      const g=ctx.createRadialGradient(sx,-ch*0.54,1,sx,-ch*0.54,ch*0.95);
+      g.addColorStop(0,'rgba(255,66,48,.55)'); g.addColorStop(1,'rgba(255,66,48,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(sx,-ch*0.54,ch*0.95,0,7); ctx.fill();
+    }
+    ctx.globalCompositeOperation='source-over';
+  }
+  ctx.fillStyle= braking ? '#ff4436' : '#8d2a22';
+  roundRect(-cw*0.38, -ch*0.62, cw*0.18, ch*0.13, 3); ctx.fill();
+  roundRect( cw*0.20, -ch*0.62, cw*0.18, ch*0.13, 3); ctx.fill();
+  // plate
+  ctx.fillStyle='rgba(226,222,210,.85)';
+  roundRect(-cw*0.10, -ch*0.38, cw*0.20, ch*0.10, 2); ctx.fill();
+
+  ctx.restore();
+}
+
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+/* ── HUD ─────────────────────────────────────────────────────────────── */
+function hud(){
+  el('spd').textContent=Math.round(G.v*3.6);
+  el('clock').textContent=fmt(G.t+G.penalty);
+  const left=Math.max(0,(G.stage.segs.length-42)*SEG - G.pos);
+  el('togo').textContent=(left/1000).toFixed(2)+' km';
+  const p=Math.min(1, G.pos/((G.stage.segs.length-42)*SEG));
+  el('progdot').style.top=(p*100)+'%';
+  const d=el('delta');
+  if(G.delta!=null && G.best!=null){
+    d.textContent=fmtD(G.delta);
+    d.style.color = G.delta<0 ? 'var(--good)' : 'var(--bad)';
+  } else d.textContent='';
+  const w=el('warn');
+  w.textContent=G.warnMsg;
+  w.style.opacity=G.warnT>0 ? Math.min(1,G.warnT*2.2) : 0;
+}
+
+/* ── loop ────────────────────────────────────────────────────────────── */
+let last=0;
+function frame(ts){
+  requestAnimationFrame(frame);
+  const dt=Math.min(0.05,(ts-last)/1000||0); last=ts;
+  if(!G.stage) return;
+  // fixed steps keep the physics identical regardless of refresh rate
+  let acc=dt;
+  while(acc>0){ const h=Math.min(1/120, acc); update(h); acc-=h; }
+  render(); hud();
+}
+requestAnimationFrame(frame);
+
+/* ── stage flow ──────────────────────────────────────────────────────── */
+function startStage(){
+  loadStage();
+  el('menu').classList.add('hide');
+  el('result').classList.add('hide');
+  G.running=true;
+  showHints();
+  flash('GO', 0.9);
+}
+function restartStage(){
+  Voice.stop();
+  G.running=false;
+  startStage();
+}
+function finishStage(){
+  G.running=false; G.finished=true; Voice.stop();
+  const total=G.t+G.penalty;
+  // remember the run if it is the best on this stage
+  if(G.best==null || total<G.best){
+    try{ localStorage.setItem(bestKey(), JSON.stringify({t:total, s:G.splits})); }catch(e){}
+  }
+  G.results.push({stage:G.stageIdx, t:G.t, pen:G.penalty, total, name:G.look.name,
+                  best:(G.best==null||total<G.best)});
+  showResult();
+}
+
+function showResult(){
+  const last=G.results[G.results.length-1];
+  const more = G.rally && G.stageIdx < G.nStages-1;
+  let h='';
+  h+='<div class="lab">'+((more||!G.rally)?'Stage '+(G.stageIdx+1)+' complete':'Rally complete')+'</div>';
+  h+='<div class="lab" style="margin-top:8px">Stage '+(G.stageIdx+1)+' · '+last.name+'</div>';
+  h+='<div class="tot">'+fmt(last.total)+'</div>';
+  if(last.pen>0) h+='<div class="lab pen">includes '+last.pen+'s in penalties</div>';
+  if(last.best) h+='<div class="lab" style="color:var(--good)">personal best on this stage</div>';
+  h+='<div style="height:14px"></div>';
+
+  if(G.rally){
+    h+='<table><tr><th>Stage</th><th>Pen</th><th>Time</th></tr>';
+    let sum=0;
+    for(const r of G.results){
+      sum+=r.total;
+      h+='<tr'+(r.stage===G.stageIdx?' class="now"':'')+'><td>'+(r.stage+1)+' · '+r.name+'</td><td>'
+        +(r.pen?('<span class="pen">+'+r.pen+'</span>'):'—')+'</td><td>'+fmt(r.total)+'</td></tr>';
+    }
+    h+='</table><div class="lab">Total</div><div class="tot">'+fmt(sum)+'</div>';
+  }
+
+  h+='<div class="row">';
+  if(more) h+='<button id="next">Next stage</button>';
+  else     h+='<button id="again">Run it again</button>';
+  h+='<button class="ghost" id="retry">Retry this stage</button>';
+  h+='<button class="ghost" id="tomenu">Menu</button></div>';
+  h+='<p class="note">Seed <b style="color:var(--hi)">'+G.seed+'</b> — same seed, same stages.</p>';
+
+  el('resbody').innerHTML=h;
+  el('result').classList.remove('hide');
+  const nx=el('next'); if(nx) nx.onclick=()=>{ G.stageIdx++; startStage(); };
+  const ag=el('again'); if(ag) ag.onclick=()=>{ G.results=[]; G.stageIdx=0; startStage(); };
+  el('retry').onclick=()=>{ G.results.pop(); startStage(); };
+  el('tomenu').onclick=()=>{ el('result').classList.add('hide'); el('menu').classList.remove('hide'); };
+}
+
+/* ── menu ────────────────────────────────────────────────────────────── */
+function randomSeed(){
+  const a=['ash','fen','gorse','tarn','birk','crag','slate','holt','mere','scar','wold','brack'];
+  const b=['hollow','edge','bank','moor','beck','fell','gate','row','cross','head'];
+  const r=Math.random;
+  return a[Math.floor(r()*a.length)]+'-'+b[Math.floor(r()*b.length)]+'-'+(100+Math.floor(r()*900));
+}
+function currentSeed(){
+  const v=el('seedin').value.trim();
+  return v || randomSeed();
+}
+function begin(rally){
+  Voice.init();
+  G.seed=currentSeed(); el('seedin').value=G.seed;
+  G.rally=rally; G.stageIdx=0; G.results=[];
+  const u=new URL(location.href); u.searchParams.set('seed',G.seed);
+  history.replaceState(null,'',u);
+  startStage();
+}
+el('go').onclick=()=>begin(true);
+el('single').onclick=()=>begin(false);
+el('reseed').onclick=()=>{ el('seedin').value=randomSeed(); };
+
+const urlSeed=new URL(location.href).searchParams.get('seed');
+el('seedin').value = urlSeed || randomSeed();
+el('menunote').textContent = ('speechSynthesis' in window)
+  ? 'The notes are spoken aloud and printed on screen. V mutes the voice.'
+  : 'This browser has no speech synthesis — the notes are printed on screen instead.';
+
+resize();
+/* a still frame behind the menu, so the page is not a blank box */
+G.seed=el('seedin').value; G.rally=true; G.stageIdx=1; loadStage(); G.pos=140; G.v=0;
+</script>
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>盲纹</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成·纹章解谜</div>
+<div class="cn-guide-tip">💡 通过点击、拖拽或滑动来移动和组合元素，观察规律，达成关卡目标。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body></html>

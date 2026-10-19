@@ -771,4 +771,248 @@ function join(idx, kind) {
 
 function go() {
     if (joined.size === 0) return;
-    players = [...joined.entries()].sort((a, b) => a[0] - b[0]).map(([i, k]) => m
+    players = [...joined.entries()].sort((a, b) => a[0] - b[0]).map(([i, k]) => makePlayer(i, k));
+    audio();
+    startMatch();
+}
+
+/* ---------- input ---------- */
+const keyOwner = new Map();   // code -> [playerIndex, side]
+PLAYERS.forEach((d, i) => {
+    d.keys.forEach((c, s) => keyOwner.set(c, [i, s]));
+    d.alt.forEach((c, s) => keyOwner.set(c, [i, s]));
+});
+
+function setTurn(idx, side, down) {
+    const p = players.find(q => q.idx === idx);
+    if (!p || p.kind === 'bot') return;
+    if (side === 0) p.left = down; else p.right = down;
+}
+
+window.addEventListener('keydown', e => {
+    if (e.repeat) return;
+    const own = keyOwner.get(e.code);
+    if (own || e.code === 'Space') e.preventDefault();
+
+    if (e.code === 'Space') {
+        if (phase === 'lobby') go();
+        else if (phase === 'roundover') newRound();
+        else if (phase === 'gameover') { startMatch(); }
+        return;
+    }
+    if (e.code === 'Escape' && (phase === 'running' || phase === 'countdown')) { toLobby(); return; }
+    if (!own) return;
+    if (phase === 'lobby') join(own[0]);
+    else setTurn(own[0], own[1], true);
+}, { passive: false });
+
+window.addEventListener('keyup', e => {
+    const own = keyOwner.get(e.code);
+    if (!own) return;
+    e.preventDefault();
+    setTurn(own[0], own[1], false);
+}, { passive: false });
+
+// original slot 6 is the mouse: left button turns left, right turns right
+window.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('mousedown', e => {
+    if (e.button !== 0 && e.button !== 2) return;
+    if (e.target.closest('button')) return;
+    const side = e.button === 0 ? 0 : 1;
+    if (phase === 'lobby') { join(5); e.preventDefault(); }
+    else if (joined.get(5) === 'human') { setTurn(5, side, true); e.preventDefault(); }
+});
+window.addEventListener('mouseup', e => {
+    if (e.button !== 0 && e.button !== 2) return;
+    setTurn(5, e.button === 0 ? 0 : 1, false);
+});
+
+/* ---------- touch ----------
+   Six players on a phone is a fiction, so this does not pretend: touch
+   gives two players four pads, one pair per side of the screen, and the
+   rest of the field can be filled with bots. */
+const padsEl = document.getElementById('pads');
+let padDefs = [];
+
+function layoutPads() {
+    padsEl.innerHTML = '';
+    padDefs = [];
+    if (!touchMode) return;
+    const humans = players.length ? players.filter(p => p.kind === 'human') : [...joined.entries()].filter(e => e[1] === 'human').map(e => ({ idx: e[0] }));
+    const use = humans.slice(0, 2);
+    const portrait = window.innerHeight > window.innerWidth;
+    use.forEach((p, n) => {
+        const col = PLAYERS[p.idx].color;
+        for (let side = 0; side < 2; side++) {
+            const d = document.createElement('div');
+            d.className = 'pad';
+            d.style.color = col;
+            d.style.borderColor = col;
+            d.textContent = side === 0 ? '↶' : '↷';
+            if (portrait) {
+                d.style.left = (side === 0 ? '2%' : '52%');
+                d.style.width = '46%';
+                d.style.height = '20%';
+                d.style.top = n === 0 ? '78%' : '2%';
+                if (n === 1) d.style.transform = 'rotate(180deg)';
+            } else {
+                d.style.width = '16%';
+                d.style.height = '46%';
+                d.style.left = n === 0 ? '1%' : '83%';
+                d.style.top = side === 0 ? '52%' : '2%';
+            }
+            padsEl.appendChild(d);
+            padDefs.push({ el: d, idx: p.idx, side });
+        }
+    });
+}
+
+function padAt(t) {
+    for (const p of padDefs) {
+        const r = p.el.getBoundingClientRect();
+        if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) return p;
+    }
+    return null;
+}
+
+const touchMap = new Map();
+function touchStart(e) {
+    if (!touchMode) return;
+    for (const t of e.changedTouches) {
+        const p = padAt(t);
+        if (!p) continue;
+        touchMap.set(t.identifier, p);
+        p.el.classList.add('active');
+        setTurn(p.idx, p.side, true);
+        e.preventDefault();
+    }
+}
+function touchEnd(e) {
+    for (const t of e.changedTouches) {
+        const p = touchMap.get(t.identifier);
+        if (!p) continue;
+        touchMap.delete(t.identifier);
+        p.el.classList.remove('active');
+        setTurn(p.idx, p.side, false);
+    }
+}
+window.addEventListener('touchstart', touchStart, { passive: false });
+window.addEventListener('touchend', touchEnd);
+window.addEventListener('touchcancel', touchEnd);
+
+/* ---------- buttons ---------- */
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+function toLobby() {
+    phase = 'lobby';
+    players = [];
+    hide('hud'); hide('roundOver'); hide('gameOver');
+    show('lobby');
+    document.getElementById('menuBtn').classList.add('hidden');
+    padsEl.innerHTML = ''; padDefs = [];
+    refreshLobby();
+}
+
+document.getElementById('startBtn').onclick = go;
+document.getElementById('nextBtn').onclick = () => newRound();
+document.getElementById('againBtn').onclick = () => startMatch();
+document.getElementById('lobbyBtn').onclick = toLobby;
+document.getElementById('menuBtn').onclick = toLobby;
+document.getElementById('addBot').onclick = () => {
+    for (let i = 0; i < PLAYERS.length; i++) if (!joined.has(i)) { join(i, 'bot'); return; }
+};
+document.getElementById('dropBot').onclick = () => {
+    const bots = [...joined.entries()].filter(e => e[1] === 'bot');
+    if (bots.length) { joined.delete(bots[bots.length - 1][0]); refreshLobby(); }
+};
+document.getElementById('fsBtn').onclick = () => {
+    if (!document.fullscreenElement) (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen).call(document.documentElement);
+    else document.exitFullscreen();
+};
+
+/* ---------- touch lobby extras ---------- */
+function detectTouch() {
+    touchMode = IS_TOUCH;
+    if (!touchMode) return;
+    document.body.classList.add('touch');
+    const hint = document.createElement('div');
+    hint.className = 'row';
+    hint.innerHTML = '<button id="t1" type="button" class="primary">1 player vs 3 bots</button>' +
+                     '<button id="t2" type="button">2 players, one phone</button>';
+    document.getElementById('lobby').appendChild(hint);
+    const note = document.createElement('p');
+    note.className = 'note';
+    note.textContent = 'On a touch screen each player gets two pads on their own side of the screen. Two is the honest maximum; bots fill the rest.';
+    document.getElementById('lobby').appendChild(note);
+    document.getElementById('t1').onclick = () => { joined.clear(); join(3); join(0, 'bot'); join(1, 'bot'); join(2, 'bot'); go(); };
+    document.getElementById('t2').onclick = () => { joined.clear(); join(3); join(0); join(1, 'bot'); go(); };
+}
+
+/* ---------- start ---------- */
+seed = parseSeed();
+rng = mulberry32(seed);
+{
+    const u = new URL(location.href);
+    if (u.searchParams.get('seed') !== seedString()) {
+        u.searchParams.set('seed', seedString());
+        history.replaceState(null, '', u);
+    }
+}
+buildRoster();
+refreshLobby();
+detectTouch();
+clearField();
+window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+resize();
+
+/* hooks for the headless tests: nothing here is used by play */
+window.__kurve = {
+    get phase() { return phase; },
+    get players() { return players; },
+    get roundNo() { return roundNo; },
+    get target() { return target; },
+    seed: () => seedString(),
+    join, go, newRound,
+    setSeed: s => { seed = s >>> 0; rng = mulberry32(seed); },
+    place: (i, x, y, a) => { const p = players.find(q => q.idx === i); if (p) { p.x = x; p.y = y; p.ang = a; p.pending = []; } },
+    setHole: (i, inDist, len) => { const p = players.find(q => q.idx === i); if (p) { p.holeIn = inDist; p.holeLeft = len; } },
+    step, clearField, stampDisc, solidAt,
+    constants: { FW, FH, SPEED, TURN_RADIUS, LINE_W, HOLE_LEN, HOLE_MIN, HOLE_MAX, DT },
+    force: ph => { phase = ph; }
+};
+</script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>曲线蛇</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成·曲线对战</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

@@ -531,4 +531,343 @@ function startRun(mode, code) {
 }
 function levelFor(run) {
   if (G.cache && G.cache.n === run.level && G.cache.seed === run.seed && G.cache.w === field.w && G.cache.h === field.h) return G.cache.lv;
-  const 
+  const lv = T.makeLevel(run.seed, run.level, field);
+  G.cache = {n: run.level, seed: run.seed, w: field.w, h: field.h, lv};
+  return lv;
+}
+function beginLevel() {
+  G.lv = levelFor(G.run);
+  G.sim = T.newSim(G.lv.orbs, field);
+  const nt = Math.floor((G.run.level - 1) / 4) % TIERS.length;
+  if (nt !== tier) { tier = nt; buildBackdrop(); }
+  G.parts = []; G.links = []; G.rings = []; G.tags = []; G.pulse = 0; G.dud = false; G.goalFlag = false; G.t = 0; G.phase = 'aim'; G.lastCnt = -1;
+  hud.lv.textContent = 'Level ' + G.run.level;
+  { const it = $('intro'); it.innerHTML = `<span>${NAMES[nt]}</span>Level ${G.run.level}`; it.classList.toggle('hold', !save.seen && G.run.level === 1); it.classList.remove('go', 'out'); void it.offsetWidth; it.classList.add('go'); }
+  setCount(0, G.lv.spec.goal, true);
+  setScore(G.run.score);
+  const first = !save.seen && G.run.level === 1;
+  $('tip').classList.toggle('on', first);
+  if (first) setTimeout(() => { if (G.lv && G.phase === 'aim') { const s = T.newSim(G.lv.orbs, field); for (let i = 0; i < 100; i++) T.step(s, 0); G.lv.hint = T.bestTap(s.orbs, field, G.lv.spec.goal, 7); } }, 30);
+  hud.live.textContent = 'Level ' + G.run.level + '. Light ' + G.lv.spec.goal + ' orbs with one tap.';
+}
+function doTap(x, y) {
+  if (G.screen !== 'play' || G.phase !== 'aim' || G.t < 0.35) return;
+  audio();
+  T.tap(G.sim, x / U, y / U);
+  G.phase = 'burst'; G.cursor = null; G.tapT = G.t; G.seedPos = {x: x / U, y: y / U};
+  $('tip').classList.remove('on'); $('intro').classList.add('out');
+  if (!save.seen) { save.seen = true; store(); }
+  handleEvents(); // same frame: the bloom exists before the next draw
+}
+function handleEvents() {
+  const s = G.sim, ev = s.events; s.events = [];
+  for (const e of ev) {
+    if (e.type === 'seed') { sfx('seed'); buzz(10); G.pulse = 0.7; G.rings.push({x: e.x, y: e.y, life: 0, max: 0.55, col: '#ffffff', R: 0.22}); }
+    else if (e.type === 'ignite') {
+      sfx('ignite', e.k, e);
+      setCount(e.k, G.lv.spec.goal);
+      const n = REDUCED ? 3 : 9, col = DEPTH[Math.min(e.depth, 6)];
+      for (let i = 0; i < n; i++) { const a = Math.random() * 6.283, sp = 0.05 + Math.random() * 0.14; G.parts.push({x: e.x, y: e.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0, max: 0.5 + Math.random() * 0.6, col}); }
+      const par = s.blooms.find(b => b.id === (s.blooms.find(q => q.id === e.id) || {}).parent);
+      if (par) G.links.push({x1: par.x, y1: par.y, x2: e.x, y2: e.y, age: 0, col});
+      G.tags.push({x: e.x, y: e.y, k: e.k, life: 0, max: 0.8, col});
+      G.rings.push({x: e.x, y: e.y, life: 0, max: 0.4, col, R: e.kind === 'giant' ? 0.16 : 0.1});
+      G.rings.push({x: e.x, y: e.y, life: 0, max: 0.18, col: '#ffffff', R: 0.045, flash: true});
+      if (e.k % 4 === 0) buzz(6);
+    } else if (e.type === 'goal') {
+      sfx('goal'); buzz(30); G.pulse = 1;
+      const f = $('flash'); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+      hud.live.textContent = 'Goal reached';
+    } else if (e.type === 'end') {
+      G.resultAt = G.t + 0.9; G.phase = 'settle';
+      if (s.caught > 0) { const p = $('pop'); p.textContent = '+' + fmt(s.score); p.classList.remove('go'); void p.offsetWidth; p.classList.add('go'); }
+    }
+  }
+}
+
+/* ---------- result ---------- */
+const STAR = '<svg viewBox="0 0 24 24"><path d="M12 1.8l3 6.6 7.2.8-5.4 4.9 1.5 7.1L12 17.5l-6.3 3.7 1.5-7.1L1.8 9.2l7.2-.8z"/></svg>';
+function lightsHtml(n, lost) { let h = '<div class="lights">'; for (let i = 0; i < T.LIGHTS; i++) h += `<i class="${i >= n ? 'off' : ''}${lost && i === n ? ' just' : ''}"></i>`; return h + '</div>'; }
+function finishLevel() {
+  const sp = G.lv.spec, s = G.sim; $('dim').classList.remove('go');
+  const out = T.settle(G.run, sp, {caught: s.caught, score: s.score});
+  const prev = G.run; G.run = out.run;
+  G.phase = 'result';
+  const sheet = $('sheet');
+  setScore(G.run.score);
+  if (out.passed) {
+    sfx('clear'); buzz(20);
+    if (G.run.lights > prev.lights) setLights(G.run.lights);
+    sheet.innerHTML = `<h2>Level ${sp.n} clear</h2><div class="stars">${[1, 2, 3].map(i => `<span>${STAR.replace('<svg', '<svg class="' + (i <= out.stars ? 'lit' : '') + '" style="animation-delay:' + (0.25 + i * 0.18) + 's"')}</span>`).join('')}</div>
+      <div class="pts">+${fmt(s.score + 100 * out.stars)}</div><p class="sub">${s.caught} of ${sp.total} lit · ${out.stars < 3 ? 'three stars at ' + sp.star3 : 'a perfect tide'}${out.relit ? ' · a light returns' : ''}</p>
+      <button class="btn main" id="bNext">Next level</button>`;
+    G.cache = null; setTimeout(() => { if (G.run === out.run) levelFor(G.run); }, 60);
+    saveProgress(false);
+  } else {
+    sfx('fail'); { const d = $('dim'); d.classList.remove('go'); void d.offsetWidth; d.classList.add('go'); }
+    setLights(G.run.lights, true);
+    if (G.run.over) {
+      const isBest = G.run.score > save.best;
+      saveProgress(true);
+      const shareable = G.mode === 'daily' ? 'Tonight\'s tide' : 'Tide ' + G.code;
+      sheet.innerHTML = `<h2>The tide goes out</h2><div class="big">${fmt(G.run.score)}</div><p class="sub">${isBest ? 'A new best' : 'Best ' + fmt(save.best)}</p>
+        <div class="row"><div>Level<b>${G.run.level}</b></div><div>Cleared<b>${G.run.clears}</b></div></div>
+        <button class="btn main" id="bAgain">Dive again</button><button class="lnk" id="bShare">Copy this tide's link</button>`;
+    } else {
+      sheet.innerHTML = `<h2>${sp.goal - s.caught} short</h2><p class="sub">You lit ${s.caught}, the tide needed ${sp.goal}.</p>${lightsHtml(G.run.lights)}
+        <button class="btn main" id="bRetry">Try again</button>`;
+      saveProgress(false);
+    }
+  }
+  show('card', true);
+  setTimeout(() => { const b = sheet.querySelector('.btn'); if (b) b.focus({preventScroll: true}); }, 400);
+}
+function saveProgress(ended) {
+  const r = G.run;
+  save.best = Math.max(save.best, r.score);
+  save.bestLevel = Math.max(save.bestLevel, r.level);
+  if (ended) save.runs++;
+  if (G.mode === 'daily') {
+    const d = save.daily.day === G.ymd ? save.daily : {day: G.ymd, level: 0, score: 0};
+    d.level = Math.max(d.level, r.level); d.score = Math.max(d.score, r.score); save.daily = d;
+  }
+  if (!ended && save.runs === 0) save.runs = 0;
+  store();
+}
+$('sheet').addEventListener('click', e => {
+  const id = e.target.closest('button')?.id; if (!id) return;
+  sfx('ui');
+  if (id === 'bNext') { show('card', false); beginLevel(); }
+  else if (id === 'bRetry') { show('card', false); beginLevel(); }
+  else if (id === 'bAgain') { startRun(G.mode === 'daily' ? 'free' : 'free'); }
+  else if (id === 'bShare') {
+    const url = location.origin + location.pathname + '?seed=' + encodeURIComponent(G.code);
+    const done = () => { e.target.textContent = 'Link copied'; };
+    (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(done, () => { prompt('Copy this link', url); });
+  }
+});
+
+/* ---------- attract (home) ---------- */
+function startAttract() {
+  const lv = {orbs: T.layout(T.hash('home', Math.floor(Math.random() * 1e6)), 6, field, 0)};
+  const sim = T.newSim(lv.orbs, field);
+  const sp = T.bestTap(lv.orbs, field, 9, 6);
+  G.attract = {sim, tapAt: 1.8, x: sp.x, y: sp.y, t: 0, endAt: 0};
+  G.sim = null; G.parts = []; G.links = [];
+}
+function attractTick(dt) {
+  const a = G.attract; a.t += dt;
+  const s = a.sim;
+  if (!s.tapped && a.t > a.tapAt) { T.tap(s, a.x, a.y); }
+  T.step(s, 0);
+  const ev = s.events; s.events = [];
+  for (const e of ev) if (e.type === 'ignite') {
+    const col = DEPTH[Math.min(e.depth, 6)];
+    for (let i = 0; i < 6; i++) { const an = Math.random() * 6.283, sp = 0.05 + Math.random() * 0.1; G.parts.push({x: e.x, y: e.y, vx: Math.cos(an) * sp, vy: Math.sin(an) * sp, life: 0, max: 0.5 + Math.random() * 0.5, col}); }
+    const par = s.blooms.find(b => b.id === (s.blooms.find(q => q.id === e.id) || {}).parent);
+    if (par) G.links.push({x1: par.x, y1: par.y, x2: e.x, y2: e.y, age: 0, col});
+  }
+  if (s.done) { if (!a.endAt) a.endAt = a.t + 1.2; if (a.t > a.endAt) startAttract(); }
+}
+
+/* ---------- drawing ---------- */
+function drawOrb(o, t, alpha) {
+  const x = px(o.x), y = px(o.y), r = px(o.r), pulse = 1 + 0.07 * Math.sin(t * 2.2 + o.phase * 6.28);
+  g.globalAlpha = alpha;
+  const gr = g.createRadialGradient(x, y, 0, x, y, r * 2.7 * pulse);
+  gr.addColorStop(0, 'rgba(255,190,110,.30)'); gr.addColorStop(1, 'rgba(255,190,110,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(x, y, r * 2.7 * pulse, 0, 7); g.fill();
+  g.globalCompositeOperation = 'source-over';
+  g.fillStyle = '#f3c98a'; g.beginPath();
+  if (o.kind === 'long') { for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 + 0.5; g.lineTo(x + Math.cos(a) * r * 1.08, y + Math.sin(a) * r * 1.08); } g.closePath(); }
+  else g.arc(x, y, r, 0, 7);
+  g.fill();
+  g.fillStyle = '#fff6e4'; g.beginPath(); g.arc(x, y, r * 0.4, 0, 7); g.fill();
+  g.globalCompositeOperation = 'lighter';
+  g.strokeStyle = '#f3c98a';
+  if (o.kind === 'giant') {
+    g.lineWidth = Math.max(2.5, r * 0.11); g.beginPath(); g.arc(x, y, r * 1.45, 0, 7); g.stroke();
+    g.globalAlpha = alpha * 0.4; g.lineWidth = 2; g.beginPath(); g.arc(x, y, r * 2, 0, 7); g.stroke();
+  } else if (o.kind === 'long') {
+    g.lineWidth = Math.max(2.5, r * 0.11); g.setLineDash([2, 7]); g.lineDashOffset = -t * 6;
+    g.beginPath(); g.arc(x, y, r * 1.75, 0, 7); g.stroke(); g.setLineDash([]);
+  }
+  g.globalAlpha = 1;
+}
+function drawBloom(b) {
+  const r = px(T.bloomRadius(b)); if (r <= 0.5) return;
+  const life = T.bloomLife(b.kind), K = T.KINDS[b.kind];
+  const shrinkT = (b.age - T.GROW - K.hold) / T.SHRINK;
+  const a = shrinkT > 0 ? Math.max(0, 1 - shrinkT) : 1;
+  const col = DEPTH[Math.min(b.depth, 6)], x = px(b.x), y = px(b.y);
+  const fill = g.createRadialGradient(x, y, 0, x, y, r);
+  fill.addColorStop(0, col + '55'); fill.addColorStop(0.55, col + '22'); fill.addColorStop(0.9, col + '44'); fill.addColorStop(1, col + '00');
+  g.globalAlpha = a; g.fillStyle = fill; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
+  g.lineWidth = 3.5; g.strokeStyle = col; g.shadowColor = col; g.shadowBlur = 22;
+  g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke(); g.shadowBlur = 0;
+  g.lineWidth = 1.3; g.strokeStyle = '#fff'; g.globalAlpha = a * 0.75; g.beginPath(); g.arc(x, y, Math.max(1, r - 3), 0, 7); g.stroke();
+  const flare = Math.max(0, 1 - b.age / 0.5);
+  const fr = r * (0.22 + 0.3 * flare), f2 = g.createRadialGradient(x, y, 0, x, y, fr);
+  f2.addColorStop(0, '#fff'); f2.addColorStop(1, 'rgba(255,255,255,0)');
+  g.globalAlpha = a * (0.55 + 0.45 * flare); g.fillStyle = f2; g.beginPath(); g.arc(x, y, fr, 0, 7); g.fill();
+  if (b.seed) { g.globalAlpha = a; g.strokeStyle = '#fff'; g.lineWidth = 2; const c = Math.max(7, r * 0.1); g.beginPath(); g.moveTo(x - c, y); g.lineTo(x + c, y); g.moveTo(x, y - c); g.lineTo(x, y + c); g.stroke(); }
+  g.globalAlpha = 1;
+}
+function drawScene(sim, t, orbAlpha, dt) {
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g.globalCompositeOperation = 'source-over';
+  g.drawImage(backdrop, 0, 0, W, H);
+  if (G.pulse > 0 && !REDUCED) { g.fillStyle = `rgba(190,255,245,${0.07 * G.pulse})`; g.fillRect(0, 0, W, H); }
+  for (const s of snow) {
+    const sp = REDUCED ? 0 : (0.004 + s.L * 0.004);
+    const yy = ((s.y - t * sp) % 1 + 1) % 1, xx = s.x + (REDUCED ? 0 : Math.sin(t * 0.3 + s.p) * 0.01);
+    g.fillStyle = `rgba(170,255,240,${s.a})`; g.beginPath(); g.arc(xx * W, yy * H, s.s, 0, 7); g.fill();
+  }
+  g.globalCompositeOperation = 'lighter';
+  if (sim) {
+    for (const o of sim.orbs) drawOrb(o, t, orbAlpha);
+    for (const l of G.links) {
+      const a = Math.max(0, 1 - l.age / 0.9);
+      g.globalAlpha = a * 0.85; g.strokeStyle = l.col; g.lineWidth = 3;
+      g.beginPath(); g.moveTo(px(l.x1), px(l.y1)); g.lineTo(px(l.x1) + (px(l.x2) - px(l.x1)) * Math.min(1, l.age / 0.12), px(l.y1) + (px(l.y2) - px(l.y1)) * Math.min(1, l.age / 0.12)); g.stroke();
+    }
+    g.globalAlpha = 1;
+    for (const b of sim.blooms) drawBloom(b);
+  }
+  for (const r of G.rings) {
+    const k = r.life / r.max, e = 1 - (1 - k) ** 3, rr = px(r.R) * e + 2;
+    g.globalAlpha = (1 - k) * (r.flash ? 0.9 : 0.75); g.strokeStyle = r.col; g.lineWidth = r.flash ? 5 : 3 * (1 - k) + 1;
+    g.beginPath(); g.arc(px(r.x), px(r.y), rr, 0, 7); g.stroke();
+    if (r.flash) { g.fillStyle = '#fff'; g.globalAlpha = (1 - k) * 0.6; g.beginPath(); g.arc(px(r.x), px(r.y), rr * 0.7, 0, 7); g.fill(); }
+  }
+  for (const p of G.parts) {
+    const k = p.life / p.max; g.globalAlpha = (1 - k) * 0.9; g.fillStyle = p.col;
+    g.beginPath(); g.arc(px(p.x + p.vx * p.life), px(p.y + p.vy * p.life), 2.2 * (1 - k) + 0.6, 0, 7); g.fill();
+  }
+  g.globalCompositeOperation = 'source-over';
+  for (const t of G.tags) {
+    const k = t.life / t.max, e = 1 - (1 - Math.min(1, k * 2)) ** 2;
+    g.globalAlpha = k < 0.6 ? 1 : 1 - (k - 0.6) / 0.4;
+    g.font = `800 ${Math.round(18 + Math.min(t.k, 20) * 0.5)}px ${getComputedStyle(document.body).fontFamily}`;
+    g.textAlign = 'center'; g.fillStyle = '#fff'; g.shadowColor = t.col; g.shadowBlur = 12;
+    g.fillText(t.k, px(t.x), px(t.y) - 18 - e * 22);
+  }
+  g.shadowBlur = 0; g.globalAlpha = 1; g.globalCompositeOperation = 'lighter';
+  // aim ghost: a mouse hovers it, a finger drags it; the pearls it would reach swell
+  if (G.screen === 'play' && G.phase === 'aim' && G.cursor && sim) {
+    const cx = G.cursor.x, cy = G.cursor.y, R = px(T.KINDS.spark.R), pu = REDUCED ? 1 : 0.5 + 0.5 * Math.sin(clock * 8);
+    g.globalCompositeOperation = 'lighter';
+    const gh = g.createRadialGradient(cx, cy, 0, cx, cy, R);
+    gh.addColorStop(0, 'rgba(255,255,255,.10)'); gh.addColorStop(1, 'rgba(255,255,255,.02)');
+    g.fillStyle = gh; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 3; g.shadowColor = '#fff'; g.shadowBlur = 12;
+    g.beginPath(); g.arc(cx, cy, R, 0, 7); g.stroke(); g.shadowBlur = 0;
+    g.lineWidth = 2; g.beginPath(); g.moveTo(cx - 9, cy); g.lineTo(cx + 9, cy); g.moveTo(cx, cy - 9); g.lineTo(cx, cy + 9); g.stroke();
+    for (const o of sim.orbs) if (Math.hypot(px(o.x) - cx, px(o.y) - cy) <= R + px(o.r)) {
+      g.strokeStyle = `rgba(255,255,255,${0.5 + 0.4 * pu})`; g.lineWidth = 2.5;
+      g.beginPath(); g.arc(px(o.x), px(o.y), px(o.r) * (1.9 + 0.2 * pu), 0, 7); g.stroke();
+    }
+  }
+  // first-time hint
+  if (G.screen === 'play' && G.phase === 'aim' && !save.seen && G.run.level === 1 && G.lv) {
+    const h = G.lv.hint, k = REDUCED ? 1 : 0.5 + 0.5 * Math.sin(t * 3);
+    g.globalCompositeOperation = 'source-over';
+    g.strokeStyle = `rgba(255,255,255,${0.35 + 0.4 * k})`; g.lineWidth = 2.5; g.setLineDash([6, 8]);
+    g.beginPath(); g.arc(px(h.x), px(h.y), px(T.KINDS.spark.R) * (REDUCED ? 1 : 0.94 + 0.06 * k), 0, 7); g.stroke(); g.setLineDash([]);
+  }
+}
+
+/* ---------- loop ---------- */
+let last = 0, acc = 0, clock = 0;
+function frame(ts) {
+  const dt = Math.min(0.1, last ? (ts - last) / 1000 : 0.016); last = ts; clock += dt;
+  for (const p of G.parts) p.life += dt;
+  G.parts = G.parts.filter(p => p.life < p.max);
+  for (const t of G.tags) t.life += dt;
+  G.tags = G.tags.filter(t => t.life < t.max);
+  for (const r of G.rings) r.life += dt;
+  G.rings = G.rings.filter(r => r.life < r.max);
+  G.pulse = Math.max(0, G.pulse - dt * 2.2);
+  if (G.screen === 'play' && G.phase === 'burst' && !G.dud && G.sim && G.t - G.tapT > 0.5 && G.sim.caught === 0) {
+    G.dud = true; sfx('fail');
+    for (let i = 0; i < 10; i++) { const a = Math.random() * 6.283, sp = 0.03 + Math.random() * 0.06; G.parts.push({x: G.seedPos.x, y: G.seedPos.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp + 0.04, life: 0, max: 0.7 + Math.random() * 0.5, col: '#7f9a9a'}); }
+  }
+  for (const l of G.links) l.age += dt;
+  G.links = G.links.filter(l => l.age < 0.95);
+  if (G.screen === 'home' && G.attract) {
+    acc += dt;
+    while (acc >= T.DT) { attractTick(T.DT); acc -= T.DT; }
+    drawScene(G.attract.sim, clock, 0.75);
+  } else if (G.screen === 'play' && G.sim) {
+    G.t += dt;
+    if (G.phase !== 'result') {
+      acc += dt;
+      while (acc >= T.DT) { T.step(G.sim, G.lv.spec.goal); acc -= T.DT; if (G.sim.events.length) handleEvents(); }
+    }
+    if (G.phase === 'settle' && G.t >= G.resultAt) finishLevel();
+    drawScene(G.sim, clock, Math.min(1, G.t / 0.5));
+  } else drawScene(null, clock, 1);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- input ---------- */
+let down = false;
+const TOUCH_LIFT = 84; // a finger hides what it aims at, so the ring floats above it
+const aimAt = e => { const t = e.pointerType !== 'mouse'; G.cursor = {x: e.clientX, y: Math.max(field.top * U, e.clientY - (t ? TOUCH_LIFT : 0)), touch: t}; };
+cv.addEventListener('pointerdown', e => { if (G.phase !== 'aim') return; down = true; try { cv.setPointerCapture(e.pointerId); } catch (x) {} aimAt(e); });
+cv.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' || down) aimAt(e); });
+cv.addEventListener('pointerup', e => { if (!down) return; down = false; aimAt(e); const c = G.cursor; doTap(c.x, c.y); if (e.pointerType !== 'mouse') G.cursor = null; });
+cv.addEventListener('pointercancel', () => { down = false; G.cursor = null; });
+cv.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') G.cursor = null; });
+$('bDaily').addEventListener('click', () => startRun('daily'));
+$('bFree').addEventListener('click', () => startRun('free'));
+$('bHome').addEventListener('click', () => { sfx('ui'); goHome(); });
+const bs = $('bSound');
+function paintSound() { bs.setAttribute('aria-pressed', String(muted)); bs.setAttribute('aria-label', muted ? 'Sound off' : 'Sound on'); bs.style.opacity = muted ? 0.45 : ''; bs.querySelector('.w').style.display = muted ? 'none' : ''; }
+bs.addEventListener('click', () => { muted = !muted; try { localStorage.setItem('glowtide.mute', muted ? '1' : '0'); } catch (e) {} paintSound(); if (!muted) { audio(); sfx('ui'); } });
+paintSound();
+addEventListener('resize', resize);
+document.addEventListener('contextmenu', e => e.preventDefault());
+
+resize();
+const qs = new URLSearchParams(location.search);
+refreshHome();
+if (qs.get('seed')) { G.screen = 'home'; startAttract(); startRun('free', qs.get('seed').slice(0, 40)); }
+else startAttract();
+window.__tide = {G, T, doTap, finishLevel, beginLevel};
+requestAnimationFrame(frame);
+})();
+</script>
+
+
+
+
+<!-- AIGameHub CN Guide Panel (auto-injected, game-agnostic) -->
+<style>
+.cn-guide-btn{position:fixed;right:16px;bottom:16px;z-index:2147483000;background:linear-gradient(135deg,#7C6CFF,#5B4FE0);color:#fff;border:none;border-radius:999px;padding:10px 18px;font:600 14px/1 'Microsoft YaHei',system-ui,sans-serif;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);display:flex;align-items:center;gap:6px;transition:transform .2s}.cn-guide-btn:hover{transform:translateY(-2px)}.cn-guide-btn:active{transform:scale(.96)}
+.cn-guide-panel{position:fixed;right:16px;bottom:70px;z-index:2147483000;width:min(340px,calc(100vw - 32px));max-height:70vh;overflow:auto;background:#1a1724;color:#f0edf7;border:1px solid rgba(124,108,255,.4);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.5);font:14px/1.7 'Microsoft YaHei',system-ui,sans-serif;padding:16px 18px;box-sizing:border-box;display:none}
+.cn-guide-panel.open{display:block}
+.cn-guide-panel h4{margin:0 0 4px;font-size:17px;font-weight:700;color:#fff;padding-right:28px}
+.cn-guide-panel .cn-guide-lang{font-size:12px;margin-bottom:10px}
+.cn-guide-panel .cn-guide-desc{font-size:13px;color:#c9c3dd;margin:8px 0 12px}
+.cn-guide-panel .cn-guide-tip{background:rgba(124,108,255,.12);border-left:3px solid #7C6CFF;border-radius:6px;padding:8px 10px;font-size:13px;color:#d9d3f0;margin:8px 0 12px}
+.cn-guide-panel a.cn-guide-more{display:inline-block;color:#a99bff;text-decoration:none;font-size:13px;font-weight:600}
+.cn-guide-panel a.cn-guide-more:hover{text-decoration:underline}
+.cn-guide-close{position:absolute;top:10px;right:12px;background:none;border:none;color:#9b93b8;font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.cn-guide-close:hover{color:#fff}
+</style>
+<div id="cn-guide-wrap">
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<h4>连锁反应</h4>
+<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
+<div class="cn-guide-desc">AI生成·连锁反应策略</div>
+<div class="cn-guide-tip">💡 方向键或鼠标控制角色/物体，空格或点击触发主操作，在有限时间内争取更高分数。</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+</div>
+</div>
+<script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>
+
+</body>
+</html>

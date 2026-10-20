@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, follow">
+<title>页面不存在（404）| AIGameHub</title>
+<meta name="theme-color" content="#0d0b0f">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎮</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'Plus Jakarta Sans',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+    background:#0d0b0f; color:#e8e4ec; min-height:100vh;
+    display:flex; align-items:center; justify-content:center; padding:24px;
+    overflow:hidden; position:relative;
+  }
+  .glow { position:fixed; border-radius:50%; filter:blur(120px); opacity:.35; z-index:0; }
+  .g1 { width:480px; height:480px; background:#7c3aed; top:-160px; left:-120px; }
+  .g2 { width:420px; height:420px; background:#2563eb; bottom:-180px; right:-100px; }
+  .wrap { position:relative; z-index:1; text-align:center; max-width:620px; }
+  .logo { display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:#fff; font-weight:800; font-size:22px; margin-bottom:36px; }
+  .logo i { color:#a78bfa; font-size:24px; }
+  .code { font-size:clamp(88px,20vw,150px); font-weight:800; line-height:1;
+    background:linear-gradient(135deg,#a78bfa 0%,#60a5fa 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  h1 { font-size:clamp(22px,4vw,30px); font-weight:700; margin:12px 0 14px; }
+  p { color:#a89fb5; font-size:16px; line-height:1.7; margin-bottom:32px; }
+  .actions { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; gap:8px; padding:13px 26px; border-radius:12px;
+    font-size:15px; font-weight:600; text-decoration:none; transition:transform .15s,box-shadow .15s; }
+  .btn-primary { background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; box-shadow:0 8px 24px rgba(124,58,237,.35); }
+  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(124,58,237,.5); }
+  .btn-ghost { background:rgba(255,255,255,.06); color:#e8e4ec; border:1px solid rgba(255,255,255,.12); }
+  .btn-ghost:hover { background:rgba(255,255,255,.1); }
+  .hint { margin-top:28px; font-size:13px; color:#6b6379; }
+</style>
+</head>
+<body>
+  <div class="glow g1"></div>
+  <div class="glow g2"></div>
+  <div class="wrap">
+    <a class="logo" href="/"><i class="fas fa-gamepad"></i> AIGameHub</a>
+    <div class="code">404</div>
+    <h1>页面走丢了</h1>
+    <p>你访问的页面可能已下架、移动或从未存在。<br>这里的每款游戏都能直接在浏览器中打开即玩，去首页继续探索吧。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="/"><i class="fas fa-home"></i> 返回首页</a>
+      <a class="btn btn-ghost" href="/#directory"><i class="fas fa-th-large"></i> 浏览全部游戏</a>
+    </div>
+    <div class="hint">如认为该链接应有效，可联系 2952671670@qq.com 反馈</div>
+  </div>
+</body>
+</html>

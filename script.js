@@ -51,7 +51,7 @@ const gamesData ={
         { name: '算盘', lang: 'little', path: 'games/Puzzle/abacus/index.html', preview: 'games/Puzzle/abacus/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·算盘计算游戏', isNew: true },
         { name: '收敛', lang: 'little', path: 'games/Puzzle/convergence/index.html', preview: 'games/Puzzle/convergence/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·益智收敛游戏', isNew: true },
         { name: '洪水线', lang: 'little', path: 'games/Puzzle/floodline/index.html', preview: 'games/Puzzle/floodline/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·洪水模拟益智游戏', isNew: true },
-        { name: '单词构成', lang: 'text', path: 'games/Puzzle/wordform/index.html', preview: 'games/Puzzle/wordform/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·单词构成益智游戏', isNew: true },
+        { name: '单词构成', lang: 'text', path: 'games/Casual/wordform/index.html', preview: 'games/Casual/wordform/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·单词构成益智游戏', isNew: true },
         { name: '6Oct', lang: 'little', path: 'games/Puzzle/6oct/index.html', preview: 'games/Puzzle/6oct/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·6Oct游戏', isNew: true },
         { name: 'Cargo Stack', lang: 'little', path: 'games/Puzzle/cargo-stack/index.html', preview: 'games/Puzzle/cargo-stack/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Cargo Stack游戏', isNew: true },
         { name: 'Circuit Bulb', lang: 'little', path: 'games/Puzzle/circuit-bulb/index.html', preview: 'games/Puzzle/circuit-bulb/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Circuit Bulb游戏', isNew: true },
@@ -81,7 +81,9 @@ const gamesData ={
         { name: 'Silent Meridian', lang: 'little', path: 'games/Astra/Silent-Meridian/index.html', preview: 'games/Astra/Silent-Meridian/preview.webp', icon: 'fas fa-compass', desc: '静默子午线：网页解谜游戏' },
         { name: 'CityMaker', lang: 'no_need', path: 'games/Puzzle/CityMaker/index.html', preview: 'games/Puzzle/CityMaker/preview.webp', icon: 'fas fa-gamepad', desc: '在 4×4 街区上玩 2048：合并相同建筑，沿十一级建筑阶梯从传统民居成长为城市天际线。', author: 'Derek Wang', source: 'astragames 收录（开源）', github: 'https://github.com/derek-wangpch/OpenCityMaker' },
         { name: 'Sunjing Puzzles', lang: 'no_need', path: 'games/Puzzle/Sunjing-Puzzles/index.html', preview: 'games/Puzzle/Sunjing-Puzzles/preview.webp', icon: 'fas fa-gamepad', desc: '在 3D 木作展台拆解六构件互锁木锁，挑战两种华容道布局，支持提示与移动撤销。', author: 'MartinDelophy', source: 'astragames 收录（开源）', github: 'https://github.com/MartinDelophy/awesome-gpt-6-astra' },
-        { name: 'The Fourth Knock', lang: 'little', path: 'games/Puzzle/The-Fourth-Knock/index.html', preview: 'games/Puzzle/The-Fourth-Knock/preview.webp', icon: 'fas fa-gamepad', desc: '探索 Cedar House、与陌生人交谈，在短篇 2.5D 侦探冒险中拼出密室凶案的真相。', author: 'Nikhil Desai', source: 'astragames 收录（开源）', github: 'https://github.com/nikhilsatishdesai/the-fourth-knock' }
+        { name: 'The Fourth Knock', lang: 'little', path: 'games/Puzzle/The-Fourth-Knock/index.html', preview: 'games/Puzzle/The-Fourth-Knock/preview.webp', icon: 'fas fa-gamepad', desc: '探索 Cedar House、与陌生人交谈，在短篇 2.5D 侦探冒险中拼出密室凶案的真相。', author: 'Nikhil Desai', source: 'astragames 收录（开源）', github: 'https://github.com/nikhilsatishdesai/the-fourth-knock' },
+        { name: 'Cialdini 3D', lang: 'text', added: '2026-10-20', path: 'games/Puzzle/Cialdini-3D/index.html', preview: '', icon: '🧩', desc: '3D 空间解谜，在立体场景中移动、观察并触发机关解开谜题。', isNew: true },
+        { name: 'Sliding Puzzle', lang: 'no_need', added: '2026-10-20', path: 'games/Puzzle/Sliding-Puzzle-Game/index.html', preview: 'games/Puzzle/Sliding-Puzzle-Game/preview.webp', icon: '🔢', desc: '数字华容道滑动拼图，把打乱的方块按顺序滑动还原。', isNew: true }
     ],
     Action: [
         { name: 'Miami Flap', lang: 'no_need', added: '2026-10-10', path: 'games/Action/miami-flap/index.html', preview: 'games/Action/miami-flap/preview.webp', icon: '🐦', desc: '点击振翅穿越霓虹水管，收集星星并连续精准过管获得奖励；经典与混乱模式还加入护盾、磁铁和可解锁外观。' },
@@ -132,7 +134,7 @@ const gamesData ={
         { name: 'DRONE', lang: 'no_need', added: '2026-10-10', path: 'games/Action/drone-io/index.html', preview: 'games/Action/drone-io/preview.webp', icon: '🌐', desc: '驾驶无人机在本地竞技场躲避电脑对手，利用雷达寻找机会并逐步升级。' },
         { name: 'Knightmare', lang: 'no_need', added: '2026-10-10', path: 'games/Action/knightmare-medusa/index.html', preview: 'games/Action/knightmare-medusa/preview.webp', icon: '🎮', desc: '在 Knightmare 的非官方 3D 首领战改编中射击、闪避，并释放净化迎战美杜莎。' },
         { name: 'Archery', lang: 'little', path: 'games/Action/Archery/index.html', preview: 'games/Action/Archery/preview.webp', icon: 'fas fa-bullseye', desc: '射箭竞技' },
-        { name: 'Mount & Blade', lang: 'little', path: 'games/Action/Archery-3D/dist/index.html', preview: 'games/Action/Archery-3D/dist/preview.webp', icon: 'fas fa-horse-head', desc: '骑马与砍杀：3D马上战场混战' },
+        { name: 'Mount & Blade', lang: 'little', path: 'games/Action/Archery-3D/index.html', preview: 'games/Action/Archery-3D/preview.webp', icon: 'fas fa-horse-head', desc: '骑马与砍杀：3D马上战场混战' },
         { name: 'Breakout', lang: 'no_need', path: 'games/Action/Breakout/index.html', preview: 'games/Action/Breakout/preview.webp', icon: 'fas fa-cube', hot: true, desc: '打砖块游戏' },
         { name: 'Crossy Road', lang: 'little', path: 'games/Action/Crossy-Road/index.html', preview: 'games/Action/Crossy-Road/preview.webp', icon: 'fas fa-road', desc: '过马路挑战' },
         { name: 'Emoji Catcher', lang: 'little', path: 'games/Action/Emoji-Catcher/index.html', preview: 'games/Action/Emoji-Catcher/preview.webp', icon: 'fas fa-smile', desc: '表情符号捕捉' },
@@ -147,7 +149,7 @@ const gamesData ={
         { name: 'Space Shooter', lang: 'no_need', path: 'games/Action/Space-Shooter/index.html', preview: 'games/Action/Space-Shooter/preview.webp', icon: 'fas fa-rocket', desc: '太空射击' },
         { name: 'Platform Game', lang: 'no_need', path: 'games/Action/Platform-Game/index.html', preview: 'games/Action/Platform-Game/preview.webp', icon: 'fas fa-person-running', desc: '平台跳跃冒险' },
         { name: 'Reaction Test', lang: 'little', path: 'games/Action/Reaction-Test/index.html', preview: 'games/Action/Reaction-Test/preview.webp', icon: 'fas fa-bolt', desc: '反应速度测试' },
-        { name: 'Ink Raiders', lang: 'little', path: 'games/Action/Ink-Raiders/dist/index.html', preview: 'games/Action/Ink-Raiders/dist/preview.webp', icon: 'fas fa-fill-drip', desc: '墨水突击：3D竞技场喷射涂地击杀' },
+        { name: 'Ink Raiders', lang: 'little', path: 'games/Action/Ink-Raiders/index.html', preview: 'games/Action/Ink-Raiders/preview.webp', icon: 'fas fa-fill-drip', desc: '墨水突击：3D竞技场喷射涂地击杀' },
         { name: 'Odyssey Expedition', lang: 'little', path: 'games/Action/Odyssey-Expedition/index.html', preview: 'games/Action/Odyssey-Expedition/preview.webp', icon: 'fas fa-compass', desc: '奥德赛远征：3D海盗远航冒险' },
         { name: '表情部落生存', lang: 'no_need', path: 'games/Action/Emoji-Horde-Survival/index.html', preview: 'games/Action/Emoji-Horde-Survival/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·表情生存射击', isNew: true },
         { name: '键盘躲避', lang: 'no_need', path: 'games/Action/keyboard-dodger/index.html', preview: 'games/Action/keyboard-dodger/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·键盘控制躲避游戏', isNew: true },
@@ -203,7 +205,12 @@ const gamesData ={
         { name: 'Voidbound', lang: 'little', path: 'games/Action/Voidbound/index.html', preview: 'games/Action/Voidbound/preview.webp', icon: 'fas fa-gamepad', desc: '在教堂竞技场中以轻重剑击、闪避和范围魔法迎战恶魔。', author: 'Alexey Fateev', source: 'astragames 收录（开源）', github: 'https://github.com/alesha-pro/bench-portal' },
         { name: 'Neural Sight', lang: 'little', path: 'games/Action/Neural-Sight/index.html', preview: 'games/Action/Neural-Sight/preview.webp', icon: 'fas fa-gamepad', desc: '在高斯泼溅实景构成的第一人称游戏原型中探索，体验武器影像、感染者与可投掷弹力球。', author: 'Earl Cameron', source: 'astragames 收录（开源）', github: 'https://github.com/monstercameron/Neural-Sight' },
         { name: 'Saber Descent', lang: 'little', path: 'games/Action/Saber-Descent/index.html', preview: 'games/Action/Saber-Descent/preview.webp', icon: 'fas fa-gamepad', desc: '手持能量剑深入五层地牢，组合斩击、格挡和冲刺，击败守卫并寻找下一道传送门。', author: 'Dwayne', source: 'astragames 收录（开源）', github: 'https://github.com/Vheissu/saber-battle' },
-        { name: 'Mario Mix 2', lang: 'little', path: 'games/Action/Mario-Mix-2/index.html', preview: 'games/Action/Mario-Mix-2/preview.webp', icon: 'fas fa-gamepad', desc: '让《忍者龙剑传》的隼龙与《坦克大战》的坦克进入马里奥地下关卡 1-2，也可双角色接力救回公主。', author: 'Aha-xiaoQ', source: 'astragames 收录（开源）', github: 'https://github.com/Aha-xiaoQ/aha-xiaoq.github.io' }
+        { name: 'Mario Mix 2', lang: 'little', path: 'games/Action/Mario-Mix-2/index.html', preview: 'games/Action/Mario-Mix-2/preview.webp', icon: 'fas fa-gamepad', desc: '让《忍者龙剑传》的隼龙与《坦克大战》的坦克进入马里奥地下关卡 1-2，也可双角色接力救回公主。', author: 'Aha-xiaoQ', source: 'astragames 收录（开源）', github: 'https://github.com/Aha-xiaoQ/aha-xiaoq.github.io' },
+        { name: 'Odyssey Voyage', lang: 'little', added: '2026-10-20', path: 'games/Action/Odyssey-Voyage/index.html', preview: '', icon: '⛵', desc: '扬帆起航的海上冒险，躲避暗礁与风暴、收集物资，探索奥德赛航路。', isNew: true },
+        { name: 'Pirate Raid', lang: 'little', added: '2026-10-20', path: 'games/Action/Pirate-Raid/index.html', preview: '', icon: '🏴‍☠️', desc: '指挥海盗船发起突袭，瞄准开炮、接舷跳帮，劫掠港口。', isNew: true },
+        { name: 'Pirate Raiders', lang: 'little', added: '2026-10-20', path: 'games/Action/Pirate-Raiders/index.html', preview: '', icon: '🏝️', desc: '海盗题材动作闯关，在岛屿与战船间战斗、收集宝藏。', isNew: true },
+        { name: 'Space Shooter 3D', lang: 'little', added: '2026-10-20', path: 'games/Action/Space-Shooter-3D/index.html', preview: '', icon: '🚀', desc: '3D 太空飞行射击，操控战机在星空中穿梭并击落敌舰。', isNew: true },
+        { name: '纳粹僵尸：便携版', lang: 'little', added: '2026-10-20', path: 'games/FPS/Nazi-Zombies-Portable/index.html', preview: '', icon: '🧟', desc: '使命召唤纳粹僵尸模式的网页复刻，第一人称生存射击，修窗、买枪、撑过一波波尸潮。', isNew: true }
     ],
     Arcade: [
         { name: 'Sulli RUN', lang: 'no_need', added: '2026-10-10', path: 'games/Arcade/sulli-run/index.html', preview: 'games/Arcade/sulli-run/preview.webp', icon: '🎮', desc: '操纵 3D 大猩猩在霓虹城市中跑酷，切换跑道、跳跃和滑行，躲避障碍并提高得分。' },
@@ -338,7 +345,8 @@ const gamesData ={
         { name: 'APEX CLUB', lang: 'no_need', path: 'games/Astra/Apex-Club/index.html', preview: 'games/Astra/Apex-Club/preview.webp', icon: 'fas fa-car', desc: 'Bay Circuit 3D卡丁车大奖赛' },
         { name: 'Fruit Ninja', lang: 'no_need', path: 'games/Astra/Fruit-Ninja-Dojo/index.html', preview: 'games/Astra/Fruit-Ninja-Dojo/preview.webp', icon: 'fas fa-apple-whole', desc: '水果忍者·再来一刀：经典切水果' },
         { name: 'Race Jimothy', lang: 'no_need', path: 'games/Astra/Race-Jimothy/index.html', preview: 'games/Astra/Race-Jimothy/preview.webp', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' },
-        { name: 'Voidrunner', lang: 'no_need', path: 'games/Arcade/Voidrunner/index.html', preview: 'games/Arcade/Voidrunner/preview.webp', icon: 'fas fa-gamepad', desc: '驾驶反重力飞船在霓虹赛道上与七名对手竞速，结合加速、气刹与武器争夺名次。', author: 'Alexey Fateev', source: 'astragames 收录（开源）', github: 'https://github.com/alesha-pro/bench-portal' }
+        { name: 'Voidrunner', lang: 'no_need', path: 'games/Arcade/Voidrunner/index.html', preview: 'games/Arcade/Voidrunner/preview.webp', icon: 'fas fa-gamepad', desc: '驾驶反重力飞船在霓虹赛道上与七名对手竞速，结合加速、气刹与武器争夺名次。', author: 'Alexey Fateev', source: 'astragames 收录（开源）', github: 'https://github.com/alesha-pro/bench-portal' },
+        { name: 'Doodle Jump', lang: 'no_need', added: '2026-10-20', path: 'games/Arcade/Doodle-Jump-Game/index.html', preview: 'games/Arcade/Doodle-Jump-Game/preview.webp', icon: '🦘', desc: '涂鸦跳跃，按方向键让小怪兽不断踩跳板向上，避开黑洞与障碍。', isNew: true }
     ],
     Board: [
         { name: 'Connect Four', lang: 'no_need', path: 'games/Board/Connect-Four/index.html', preview: 'games/Board/Connect-Four/preview.webp', icon: 'fas fa-circle', desc: '经典四子连珠策略游戏' },
@@ -369,10 +377,11 @@ const gamesData ={
         { name: '黑白棋', lang: 'no_need', path: 'games/Board/othello/index.html', preview: 'games/Board/othello/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·经典黑白棋游戏', isNew: true },
         { name: '五线棋', lang: 'no_need', path: 'games/Board/pentegrammai/index.html', preview: 'games/Board/pentegrammai/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·原创棋盘游戏', isNew: true },
         { name: '塞尼特棋', lang: 'no_need', path: 'games/Board/senet/index.html', preview: 'games/Board/senet/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·古埃及棋盘游戏', isNew: true },
-        { name: '乌尔棋', lang: 'no_need', path: 'games/Board/ur/index.html', preview: 'games/Board/ur/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·古美索不达米亚棋盘游戏', isNew: true },
+        { name: '乌尔棋', lang: 'no_need', path: 'games/Casual/ur/index.html', preview: 'games/Casual/ur/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·古美索不达米亚棋盘游戏', isNew: true },
         { name: 'Carrom', lang: 'no_need', path: 'games/Board/carrom/index.html', preview: 'games/Board/carrom/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Carrom游戏', isNew: true },
         { name: 'Snake And Ladder', lang: 'no_need', path: 'games/Board/snake-and-ladder/index.html', preview: 'games/Board/snake-and-ladder/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·Snake And Ladder游戏', isNew: true },
-        { name: 'Three Kingdoms', lang: 'text', path: 'games/Board/Three-Kingdoms/index.html', preview: 'games/Board/Three-Kingdoms/preview.webp', icon: 'fas fa-gamepad', desc: '选择魏、蜀、吴，在 15 城地图上经营金粮、指挥 108 名武将，以回合制征战对抗 AI 势力，争夺天下统一。', author: 'MartinDelophy', source: 'astragames 收录（开源）', github: 'https://github.com/MartinDelophy/awesome-gpt-6-astra' }
+        { name: 'Three Kingdoms', lang: 'text', path: 'games/Board/Three-Kingdoms/index.html', preview: 'games/Board/Three-Kingdoms/preview.webp', icon: 'fas fa-gamepad', desc: '选择魏、蜀、吴，在 15 城地图上经营金粮、指挥 108 名武将，以回合制征战对抗 AI 势力，争夺天下统一。', author: 'MartinDelophy', source: 'astragames 收录（开源）', github: 'https://github.com/MartinDelophy/awesome-gpt-6-astra' },
+        { name: 'Mahjong Solitaire', lang: 'no_need', added: '2026-10-20', path: 'games/Board/Mahjong-Solitaire-Game/index.html', preview: 'games/Board/Mahjong-Solitaire-Game/preview.webp', icon: '🀄', desc: '经典麻将连连看，配对两张相同的开放麻将牌，逐步清空整个牌面。', isNew: true }
     ],
     Memory: [
         { name: 'Color Match', lang: 'no_need', path: 'games/Memory/Color-Match/index.html', icon: 'fas fa-palette', desc: '颜色匹配记忆' },
@@ -387,7 +396,8 @@ const gamesData ={
         { name: 'Speed Typing', lang: 'text', path: 'games/Typing/Speed-Typing/index.html', icon: 'fas fa-keyboard', desc: '速度打字练习' },
         { name: 'Type Master', lang: 'text', path: 'games/Typing/Type-Master/index.html', icon: 'fas fa-font', desc: '打字大师' },
         { name: 'Typing Speed Challenge', lang: 'text', path: 'games/Typing/Typing-Speed-Challenge/index.html', icon: 'fas fa-stopwatch', desc: '打字速度挑战' },
-        { name: '打字比赛', lang: 'text', path: 'games/Typing/typing-race/index.html', preview: 'games/Typing/typing-race/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·打字速度比赛', isNew: true }
+        { name: '打字比赛', lang: 'text', path: 'games/Typing/typing-race/index.html', preview: 'games/Typing/typing-race/preview.webp', icon: 'fas fa-gamepad', desc: 'AI生成·打字速度比赛', isNew: true },
+        { name: 'Typing Game', lang: 'no_need', added: '2026-10-20', path: 'games/Typing/Typing-Game/index.html', preview: 'games/Typing/Typing-Game/preview.webp', icon: '⌨️', desc: '打字练习小游戏，按提示快速准确敲击对应字母，提升输入速度。', isNew: true }
     ],
     Adventure: [
         

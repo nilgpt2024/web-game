@@ -210,7 +210,8 @@ const gamesData ={
         { name: 'Pirate Raid', lang: 'little', added: '2026-10-20', path: 'games/Action/Pirate-Raid/index.html', preview: '', icon: '🏴‍☠️', desc: '指挥海盗船发起突袭，瞄准开炮、接舷跳帮，劫掠港口。', isNew: true },
         { name: 'Pirate Raiders', lang: 'little', added: '2026-10-20', path: 'games/Action/Pirate-Raiders/index.html', preview: '', icon: '🏝️', desc: '海盗题材动作闯关，在岛屿与战船间战斗、收集宝藏。', isNew: true },
         { name: 'Space Shooter 3D', lang: 'little', added: '2026-10-20', path: 'games/Action/Space-Shooter-3D/index.html', preview: '', icon: '🚀', desc: '3D 太空飞行射击，操控战机在星空中穿梭并击落敌舰。', isNew: true },
-        { name: '纳粹僵尸：便携版', lang: 'little', added: '2026-10-20', path: 'games/FPS/Nazi-Zombies-Portable/index.html', preview: '', icon: '🧟', desc: '使命召唤纳粹僵尸模式的网页复刻，第一人称生存射击，修窗、买枪、撑过一波波尸潮。', isNew: true }
+        { name: '纳粹僵尸：便携版', lang: 'little', added: '2026-10-20', path: 'games/FPS/Nazi-Zombies-Portable/index.html', preview: '', icon: '🧟', desc: '使命召唤纳粹僵尸模式的网页复刻，第一人称生存射击，修窗、买枪、撑过一波波尸潮。', isNew: true },
+        { name: '涂鸦街区', lang: 'no_need', added: '2026-10-21', path: 'games/FPS/Doodle-District/index.html', preview: 'games/FPS/Doodle-District/preview.webp', icon: 'fas fa-pen-nib', desc: '蓝色圆珠笔在笔记本纸上手绘的第一人称生存射击：抓钩飞檐、太刀弹反子弹、波次生存，还能 10 人联机混战。', author: 'iifor', source: 'GitHub 公开仓库', github: 'https://github.com/iifor/doodleshooter', isNew: true }
     ],
     Arcade: [
         { name: 'Sulli RUN', lang: 'no_need', added: '2026-10-10', path: 'games/Arcade/sulli-run/index.html', preview: 'games/Arcade/sulli-run/preview.webp', icon: '🎮', desc: '操纵 3D 大猩猩在霓虹城市中跑酷，切换跑道、跳跃和滑行，躲避障碍并提高得分。' },
@@ -526,6 +527,7 @@ const gamesData ={
 };
 // 生成艺术体验（AI 生成交互体验合集）：独立于玩法分类展示，不参与筛选与计数
 const genArtExperiences = [
+    { name: '金色寺庙', path: 'games/Astra/Golden-Temple/index.html', preview: 'games/Astra/Golden-Temple/preview.webp', icon: 'fas fa-japanese-castle', desc: 'Opus 5.5 用 3.1 万行代码全程序化生成的黄金时刻日式寺庙，拖拽漫游 + 10 个电影镜头。' },
     { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', preview: 'games/Astra/Orbital-Garden/preview.webp', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },
     { name: '极光观测台', path: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/index.html', preview: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
     { name: '形态编辑', path: 'games/Astra/MiaAI-Experiences/002-form-editorial/index.html', preview: 'games/Astra/MiaAI-Experiences/002-form-editorial/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },

@@ -1,0 +1,36 @@
+{
+  "id": "doodle-district",
+  "title": "Doodle District（涂鸦街区）— 画在笔记本纸上的第一人称生存射击",
+  "created_at": "2026-10-21",
+  "category": "fps",
+  "description": "蓝色圆珠笔在横线笔记本纸上手绘的第一人称生存射击：抓钩飞越屋顶峡谷、太刀弹反子弹、手雷、波次生存（每 5 波 Boss），支持单人或最多 10 人 WebRTC 联机混战。场景、敌人、8-bit 音乐全部由 Three.js 程序化生成，无模型/贴图/音频文件。",
+  "entry": "index.html",
+  "attribution_status": "GitHub 仓库未附带 LICENSE 文件、未标注开源授权；此处仅为作者公开演示的自托管，已保留全部源码与作者署名并列出仓库地址，正式商用授权以作者确认为准。",
+  "workflow": "Three.js 全程序化渲染到包含明暗、墨迹 ID、视空间法线与深度的缓冲区，后处理绘制轮廓、排线、纸纹、横线与红色页边；联机为 WebRTC(PeerJS) P2P，无需游戏服务器。",
+  "technologies": [
+    "HTML",
+    "JavaScript",
+    "Three.js",
+    "WebGL",
+    "WebRTC",
+    "PeerJS"
+  ],
+  "external_dependencies": [
+    "Three.js（vendored）",
+    "PeerJS（vendored）"
+  ],
+  "external_assets": [],
+  "requires": [
+    "现代浏览器与 WebGL",
+    "鼠标 + 键盘或 PS5 手柄",
+    "联机需网络（P2P，使用公共 PeerJS 中继）"
+  ],
+  "submitter": {
+    "name": "iifor",
+    "url": "https://github.com/iifor/doodleshooter"
+  },
+  "demo_url": "https://doodleshooter.vercel.app",
+  "creator": {
+    "name": "iifor"
+  }
+}

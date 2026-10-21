@@ -2,6 +2,9 @@
 // Translation data embedded directly to avoid CORS issues
 const TRANSLATIONS = {
     'zh-CN': {
+        "meta": {
+            "title": "免费在线小游戏 500+ 打开即玩 | 无需下载注册 - AIGameHub"
+        },
         "nav": {
             "home": "首页",
             "games": "游戏",
@@ -247,6 +250,9 @@ const TRANSLATIONS = {
         }
     },
     'en': {
+        "meta": {
+            "title": "500+ Free AI-Generated Browser Games - Play Online Instantly | AIGameHub"
+        },
         "nav": {
             "home": "Home",
             "games": "Games",
@@ -585,6 +591,12 @@ class I18n {
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === this.currentLang);
         });
+
+        // 同步切换浏览器标签页标题（静态默认英文；中文用户自动/手动切中文时联动）
+        const metaTitle = this.t('meta.title');
+        if (metaTitle) {
+            document.title = metaTitle;
+        }
     }
 
     bindEvents() {

@@ -1,0 +1,1 @@
+export{t as ASH_HOOKS,n as BAMBOO_HOOKS,r as WATER_HOOKS,i as metalHooks,a as panelHooks,o as paperHooks,s as smokeMaterial,c as stoneHooks,l as swayDepthHooks}from"./props-mat-Mxp53ahH.js";

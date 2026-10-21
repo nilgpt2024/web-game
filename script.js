@@ -346,6 +346,7 @@ const gamesData ={
         { name: 'Fruit Ninja', lang: 'no_need', path: 'games/Astra/Fruit-Ninja-Dojo/index.html', preview: 'games/Astra/Fruit-Ninja-Dojo/preview.webp', icon: 'fas fa-apple-whole', desc: '水果忍者·再来一刀：经典切水果' },
         { name: 'Race Jimothy', lang: 'no_need', path: 'games/Astra/Race-Jimothy/index.html', preview: 'games/Astra/Race-Jimothy/preview.webp', icon: 'fas fa-pencil-ruler', desc: '画画赛车：和浣熊比赛' },
         { name: 'Voidrunner', lang: 'no_need', path: 'games/Arcade/Voidrunner/index.html', preview: 'games/Arcade/Voidrunner/preview.webp', icon: 'fas fa-gamepad', desc: '驾驶反重力飞船在霓虹赛道上与七名对手竞速，结合加速、气刹与武器争夺名次。', author: 'Alexey Fateev', source: 'astragames 收录（开源）', github: 'https://github.com/alesha-pro/bench-portal' },
+        { name: 'Golden Temple', lang: 'no_need', added: '2026-10-21', path: 'games/Astra/Golden-Temple/index.html', preview: 'games/Astra/Golden-Temple/preview.webp', icon: 'fas fa-japanese-castle', desc: '纯代码生成的黄金时刻日式寺庙 3D 场景：3.1 万行 JS 构建 2440 万三角形，拖拽漫游 + 10 个电影镜头。', author: 'Leon Lin', source: 'GitHub 开源（MIT）', github: 'https://github.com/Leonxlnx/golden-temple', isNew: true },
         { name: 'Doodle Jump', lang: 'no_need', added: '2026-10-20', path: 'games/Arcade/Doodle-Jump-Game/index.html', preview: 'games/Arcade/Doodle-Jump-Game/preview.webp', icon: '🦘', desc: '涂鸦跳跃，按方向键让小怪兽不断踩跳板向上，避开黑洞与障碍。', isNew: true }
     ],
     Board: [

@@ -1,0 +1,1 @@
+export{t as BOXPROJ,n as boxProject,r as makeInteriorMaterials}from"./interior-mats-bBh1o1jZ.js";

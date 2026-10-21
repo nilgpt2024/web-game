@@ -1,0 +1,1 @@
+export{t as HAIR,n as getShape,r as smax,i as smin}from"./interior-shapes-ANGXe5kp.js";

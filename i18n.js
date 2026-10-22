@@ -518,8 +518,7 @@ class I18n {
     }
 
     detectLanguage() {
-        const browserLang = navigator.language;
-        if (browserLang.startsWith('zh')) return 'zh-CN';
+        // English-first: 英文为主（赚国外钱定位），中文用户可手动切换
         return 'en';
     }
 

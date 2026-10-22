@@ -24,6 +24,7 @@ export class HUD {
       <div class="killfeed" id="killfeed"></div>
       <div class="screen" id="screen"><div class="panel" id="panel"></div></div>
       <div class="touchui" id="touchui" aria-hidden="true">
+        <div class="rotate-hint" id="rotatehint">🔄 旋转手机至横屏，视野更开阔（竖屏也可直接玩）</div>
         <div class="joy" id="joy"><div class="joy-thumb" id="joythumb"></div></div>
         <div class="tbtns">
           <button type="button" class="tbtn tb-grapple" data-act="grapple">抓钩</button>

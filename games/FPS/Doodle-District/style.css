@@ -217,6 +217,8 @@ html, body { overscroll-behavior: none; }
 canvas#c { touch-action: none; }
 #touchui { position: absolute; inset: 0; display: none; pointer-events: none; z-index: 4; }
 #hud.touch #touchui { display: block; }
+.rotate-hint { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); display: none; background: rgba(246,243,230,.9); border: 2px solid var(--ink); border-radius: 18px; padding: 8px 16px; font-size: 15px; color: var(--ink); white-space: nowrap; z-index: 6; pointer-events: none; }
+@media (orientation: portrait) { .rotate-hint { display: block; } }
 .joy { position: absolute; width: 116px; height: 116px; margin: -58px 0 0 -58px; border-radius: 50%; background: rgba(26,48,192,.12); border: 2.5px dashed rgba(26,48,192,.5); box-sizing: border-box; opacity: 0; transition: opacity .15s; pointer-events: none; }
 .joy.on { opacity: 1; }
 .joy-thumb { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(26,48,192,.28); border: 2.5px solid var(--ink); box-sizing: border-box; }
@@ -262,4 +264,29 @@ canvas#c { touch-action: none; }
   .lobby input[type=text] { width: 96px; font-size: 20px; }
   .online input[type=text] { width: 110px; font-size: 22px; }
   .online .code { font-size: 34px; letter-spacing: 6px; }
+}
+/* portrait (竖屏) touch layout: re-arrange buttons so nothing overlaps the HUD */
+@media (orientation: portrait) {
+  .hud-tl { left: 4%; top: 7%; font-size: 18px; }
+  .hud-tr { right: 4%; top: 7%; font-size: 18px; }
+  .hud-bl { left: 4%; bottom: 34%; }
+  .hud-br { right: 4%; bottom: 34%; }
+  .ammo b { font-size: 36px; }
+  .bar { width: 120px; height: 12px; }
+  .health { font-size: 18px; margin-bottom: 6px; }
+  .tally { width: 170px; }
+  .killfeed { font-size: 18px; top: 18%; }
+  .tb-fire { right: 14px; bottom: 16px; width: 76px; height: 76px; font-size: 18px; }
+  .tb-jump { right: 102px; bottom: 62px; width: 56px; height: 56px; font-size: 14px; }
+  .tb-aim { right: 16px; bottom: 106px; width: 52px; height: 52px; font-size: 13px; }
+  .tb-grapple { left: 96px; bottom: 96px; width: 54px; height: 54px; font-size: 13px; }
+  .tb-sprint { left: 20px; bottom: 96px; width: 52px; height: 52px; font-size: 13px; }
+  .tb-reload { right: 76px; bottom: 14px; width: 50px; height: 50px; font-size: 13px; }
+  .tb-grenade { left: 98px; bottom: 36px; width: 50px; height: 50px; font-size: 13px; }
+  .tb-pause { right: 8px; top: 7%; width: 40px; height: 40px; font-size: 13px; }
+  .joy { width: 100px; height: 100px; margin: -50px 0 0 -50px; }
+  .joy-thumb { width: 46px; height: 46px; margin: -23px 0 0 -23px; }
+  .tip { bottom: 30%; font-size: 18px; }
+  .bossbar { top: 15%; font-size: 18px; }
+  .rotate-hint { top: 20%; font-size: 13px; white-space: normal; max-width: 86vw; text-align: center; }
 }

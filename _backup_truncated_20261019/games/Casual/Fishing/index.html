@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Casual/Fishing/">
+
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎣</text></svg>"/>
+    <title>Play PLUMB Online - Free Casual Game | AIGameHub</title>
+    <meta name="keywords"
+          content="fishing game, deep sea, the deep, descent, anglerfish, bioluminescence, tension, reel, plumb line, rare fish, legendary, html game, canvas game, standalone"/>
+    <meta name="description"
+          content="Play PLUMB online for free — a casual game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!"/>
+    <style>
+        :root {
+            --bg: #04121f;
+            --panel: rgba(9, 21, 34, .86);
+            --panel-2: rgba(11, 26, 41, .92);
+            --stroke: rgba(150, 196, 224, .16);
+            --stroke-2: rgba(150, 196, 224, .28);
+            --ink: #eaf3f7;
+            --muted: #9fb6c4;
+            --faint: #6f8595;
+            --brass: #f0c067;
+            --brass-2: #c79a44;
+            --teal: #5fe3c8;
+            --cyan: #86e1ff;
+            --danger: #ff6b6b;
+            --amber: #ffb454;
+            --common: #cfd8dd;
+            --uncommon: #79d98c;
+            --rare: #5aa7ff;
+            --legend: #ffd56b;
+            --junk: #c6b491;
+            --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --mono: ui-monospace, SFMono-Regular, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html, body {
+            height: 100%
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--sans);
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #c {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            display: block;
+            touch-action: none;
+            cursor: pointer
+        }
+
+        .mono {
+            font-family: var(--mono);
+            font-variant-numeric: tabular-nums
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        #hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(2, 10, 18, .55), rgba(2, 10, 18, 0));
+        }
+
+        .readout {
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.05;
+            padding: 7px 11px;
+            border: 1px solid var(--stroke);
+            border-radius: 11px;
+            background: var(--panel);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+        }
+
+        .readout .lbl {
+            font-size: 9.5px;
+            letter-spacing: .22em;
+            color: var(--faint);
+            text-transform: uppercase
+        }
+
+        .readout .val {
+            font-size: 17px;
+            color: var(--ink);
+            margin-top: 2px
+        }
+
+        .readout .val small {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        #coinReadout .val {
+            color: var(--brass)
+        }
+
+        .spacer {
+            flex: 1
+        }
+
+        .hud-btns {
+            pointer-events: auto;
+            display: flex;
+            gap: 8px
+        }
+
+        button {
+            font-family: var(--sans);
+            color: var(--ink);
+            cursor: pointer;
+            border: 1px solid var(--stroke-2);
+            border-radius: 10px;
+            background: var(--panel);
+            backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px);
+            padding: 9px 13px;
+            font-size: 13.5px;
+            letter-spacing: .02em;
+            transition: transform .08s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+        }
+
+        button:hover {
+            background: rgba(18, 38, 56, .92);
+            border-color: var(--stroke-2)
+        }
+
+        button:active {
+            transform: translateY(1px)
+        }
+
+        button:focus-visible {
+            outline: 2px solid var(--cyan);
+            outline-offset: 2px
+        }
+
+        button[disabled] {
+            opacity: .4;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .icon-btn {
+            padding: 9px 11px;
+            min-width: 42px;
+            text-align: center
+        }
+
+        #btnSound[aria-pressed="true"] {
+            color: var(--faint);
+            border-color: var(--stroke)
+        }
+
+        #fightbar {
+            position: fixed;
+            left: 50%;
+            bottom: 26px;
+            transform: translateX(-50%);
+            z-index: 6;
+            width: min(440px, 76vw);
+            pointer-events: none;
+            text-align: center;
+        }
+
+        #tension-wrap {
+            height: 13px;
+            border-radius: 9px;
+            border: 1px solid var(--stroke-2);
+            background: rgba(4, 12, 20, .7);
+            overflow: hidden;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, .4);
+        }
+
+        #tension-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 8px;
+            transition: width .06s linear, background .12s linear;
+            background: linear-gradient(90deg, #3fd6c0, #5fe3c8)
+        }
+
+        #fight-label {
+            margin-top: 8px;
+            font-size: 12.5px;
+            letter-spacing: .04em;
+            color: var(--ink);
+            text-shadow: 0 1px 6px rgba(0, 0, 0, .7)
+        }
+
+        #fight-label b {
+            color: var(--brass)
+        }
+
+        #hint {
+            position: fixed;
+            left: 50%;
+            bottom: 26px;
+            transform: translateX(-50%);
+            z-index: 5;
+            pointer-events: none;
+            font-size: 13px;
+            color: var(--muted);
+            background: var(--panel);
+            border: 1px solid var(--stroke);
+            border-radius: 999px;
+            padding: 8px 16px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, .5);
+            max-width: 88vw;
+            text-align: center;
+            transition: opacity .4s ease;
+        }
+
+        #toast {
+            position: fixed;
+            left: 50%;
+            top: 78px;
+            transform: translateX(-50%) translateY(-6px);
+            z-index: 7;
+            pointer-events: none;
+            font-size: 13.5px;
+            letter-spacing: .01em;
+            color: var(--ink);
+            background: var(--panel-2);
+            border: 1px solid var(--stroke-2);
+            border-radius: 12px;
+            padding: 10px 16px;
+            opacity: 0;
+            transition: opacity .3s ease, transform .3s ease;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .45);
+            max-width: 90vw;
+            text-align: center;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+
+        #toast .tdot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            margin-right: 8px;
+            vertical-align: middle
+        }
+
+        #catch {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -46%) scale(.92);
+            z-index: 8;
+            width: min(330px, 84vw);
+            opacity: 0;
+            pointer-events: none;
+            background: var(--panel-2);
+            border: 1px solid var(--stroke-2);
+            border-radius: 20px;
+            padding: 18px 18px 20px;
+            text-align: center;
+            box-shadow: 0 28px 80px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .02) inset;
+            transition: opacity .35s cubic-bezier(.2, .8, .2, 1), transform .45s cubic-bezier(.2, .8, .2, 1);
+        }
+
+        #catch.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1)
+        }
+
+        #catch .eyebrow {
+            font-size: 10px;
+            letter-spacing: .28em;
+            text-transform: uppercase;
+            color: var(--faint)
+        }
+
+        #catch.isnew .eyebrow {
+            color: var(--brass)
+        }
+
+        #catchCanvas {
+            display: block;
+            margin: 8px auto 4px;
+            border-radius: 14px;
+            background: radial-gradient(120% 90% at 50% 30%, rgba(40, 80, 110, .35), rgba(4, 14, 24, .5))
+        }
+
+        #catch .cname {
+            font-size: 23px;
+            font-weight: 600;
+            letter-spacing: .01em;
+            margin: 6px 0 2px
+        }
+
+        #catch .crarity {
+            font-size: 11px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            margin-bottom: 12px
+        }
+
+        #catch .cstats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            border-top: 1px solid var(--stroke);
+            padding-top: 12px
+        }
+
+        #catch .cstat {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1
+        }
+
+        #catch .cstat .k {
+            font-size: 9.5px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--faint)
+        }
+
+        #catch .cstat .v {
+            font-size: 18px;
+            margin-top: 3px
+        }
+
+        #catch .cstat .v.coin {
+            color: var(--brass)
+        }
+
+        .scrim {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(2, 9, 16, .55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+
+        .sheet {
+            width: min(560px, 94vw);
+            max-height: 92vh;
+            overflow: auto;
+            overscroll-behavior: contain;
+            background: linear-gradient(180deg, var(--panel-2), rgba(7, 17, 28, .96));
+            border: 1px solid var(--stroke-2);
+            border-radius: 20px;
+            box-shadow: 0 30px 90px rgba(0, 0, 0, .6);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .sheet-head {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--stroke);
+            background: linear-gradient(180deg, rgba(11, 26, 41, .98), rgba(11, 26, 41, .82));
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .sheet-head h2 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: .18em;
+            text-transform: uppercase
+        }
+
+        .sheet-head .sub {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: .04em;
+            margin-top: 3px
+        }
+
+        .sheet-body {
+            padding: 16px 18px 22px
+        }
+
+        .x {
+            min-width: 38px;
+            padding: 8px 10px
+        }
+
+        .shop-balance {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding: 11px 14px;
+            border: 1px solid var(--stroke);
+            border-radius: 12px;
+            background: rgba(6, 16, 26, .6)
+        }
+
+        .shop-balance .lab {
+            font-size: 10px;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--faint)
+        }
+
+        .shop-balance .amt {
+            font-size: 22px;
+            color: var(--brass)
+        }
+
+        .urow {
+            display: flex;
+            gap: 13px;
+            align-items: center;
+            padding: 14px 0;
+            border-top: 1px solid var(--stroke)
+        }
+
+        .urow:first-child {
+            border-top: none
+        }
+
+        .uicon {
+            flex: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: rgba(8, 20, 32, .8);
+            border: 1px solid var(--stroke-2)
+        }
+
+        .uicon svg {
+            width: 26px;
+            height: 26px
+        }
+
+        .ubody {
+            flex: 1;
+            min-width: 0
+        }
+
+        .uname {
+            font-size: 14.5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 9px
+        }
+
+        .udesc {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 3px;
+            line-height: 1.35
+        }
+
+        .ueffect {
+            font-size: 11.5px;
+            color: var(--teal);
+            margin-top: 5px;
+            font-family: var(--mono)
+        }
+
+        .dots {
+            display: inline-flex;
+            gap: 3px;
+            vertical-align: middle
+        }
+
+        .dots i {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(150, 196, 224, .22);
+            display: inline-block
+        }
+
+        .dots i.on {
+            background: var(--brass)
+        }
+
+        .ubuy {
+            flex: none;
+            text-align: center;
+            min-width: 96px
+        }
+
+        .ubuy .cost {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            justify-content: center
+        }
+
+        .ubuy.maxed button {
+            display: none
+        }
+
+        .maxtag {
+            font-size: 11px;
+            letter-spacing: .16em;
+            color: var(--brass);
+            text-transform: uppercase
+        }
+
+        .jhead {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px
+        }
+
+        .jprog {
+            flex: 1;
+            height: 8px;
+            border-radius: 6px;
+            background: rgba(150, 196, 224, .14);
+            overflow: hidden
+        }
+
+        .jprog > i {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, var(--brass-2), var(--brass));
+            border-radius: 6px
+        }
+
+        .jsection {
+            font-size: 10px;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--faint);
+            margin: 16px 0 9px
+        }
+
+        .jgrid {
+            display: grid;
+            grid-template-columns:repeat(auto-fill, minmax(118px, 1fr));
+            gap: 10px
+        }
+
+        .jcell {
+            border: 1px solid var(--stroke);
+            border-radius: 13px;
+            padding: 9px;
+            background: rgba(6, 16, 26, .5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center
+        }
+
+        .jcell.found {
+            border-color: var(--stroke-2)
+        }
+
+        .jcell canvas {
+            border-radius: 9px;
+            background: radial-gradient(120% 100% at 50% 35%, rgba(30, 64, 92, .3), rgba(4, 12, 22, .4))
+        }
+
+        .jcell .jn {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 7px;
+            line-height: 1.2
+        }
+
+        .jcell .jn.unk {
+            color: var(--faint);
+            letter-spacing: .1em
+        }
+
+        .jcell .jr {
+            font-size: 8.5px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            margin-top: 3px
+        }
+
+        .jcell .jmeta {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 5px;
+            font-family: var(--mono)
+        }
+
+        .jcell .jhintd {
+            font-size: 9.5px;
+            color: var(--faint);
+            margin-top: 5px;
+            font-family: var(--mono)
+        }
+
+        .help-body p {
+            font-size: 13.5px;
+            line-height: 1.55;
+            color: var(--ink);
+            margin: 0 0 12px
+        }
+
+        .help-body .k {
+            font-family: var(--mono);
+            font-size: 12px;
+            background: rgba(8, 20, 32, .9);
+            border: 1px solid var(--stroke-2);
+            border-radius: 6px;
+            padding: 2px 7px;
+            color: var(--cyan)
+        }
+
+        .help-body h3 {
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--brass);
+            margin: 18px 0 8px
+        }
+
+        .help-body ul {
+            margin: 0 0 12px;
+            padding-left: 18px
+        }
+
+        .help-body li {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--muted);
+            margin: 5px 0
+        }
+
+        .help-body li b {
+            color: var(--ink)
+        }
+
+        #start {
+            z-index: 11;
+            background: rgba(2, 9, 16, .34);
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px)
+        }
+
+        .start-card {
+            width: min(520px, 92vw);
+            text-align: center;
+            padding: 34px 30px 26px;
+            background: linear-gradient(180deg, rgba(8, 20, 33, .86), rgba(5, 14, 24, .92));
+            border: 1px solid var(--stroke-2);
+            border-radius: 24px;
+            box-shadow: 0 40px 120px rgba(0, 0, 0, .6);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 6px
+        }
+
+        .brand .logo {
+            font-size: 34px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5))
+        }
+
+        .title {
+            font-size: clamp(40px, 12vw, 64px);
+            font-weight: 300;
+            letter-spacing: .36em;
+            margin: 0;
+            padding-left: .36em;
+            line-height: 1;
+            background: linear-gradient(180deg, #fff, #bcd6e4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 30px rgba(120, 200, 230, .18)
+        }
+
+        .tagline {
+            font-size: 13px;
+            letter-spacing: .06em;
+            color: var(--muted);
+            margin: 14px 0 22px
+        }
+
+        .start-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center
+        }
+
+        .primary {
+            font-size: 16px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            padding: 14px 30px;
+            border-radius: 13px;
+            color: #1c1304;
+            border: 1px solid rgba(255, 220, 150, .5);
+            background: linear-gradient(180deg, #ffd987, #e7b052);
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(230, 170, 70, .28);
+        }
+
+        .primary:hover {
+            background: linear-gradient(180deg, #ffe09a, #edb85c)
+        }
+
+        .ghost {
+            font-size: 13px;
+            color: var(--muted);
+            background: transparent;
+            border-color: var(--stroke)
+        }
+
+        .start-foot {
+            margin-top: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            color: var(--faint);
+            font-size: 11.5px
+        }
+
+        .start-foot .dr {
+            display: flex;
+            align-items: center;
+            gap: 9px
+        }
+
+        .start-foot .dr .ticks {
+            width: 2px;
+            height: 34px;
+            background: linear-gradient(180deg, #bcd6e4, var(--teal), rgba(20, 40, 60, 0));
+            border-radius: 2px
+        }
+
+        .start-foot .dr .marks {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 34px;
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: .12em;
+            text-align: left
+        }
+
+        .start-foot button {
+            font-size: 11.5px;
+            padding: 7px 12px
+        }
+
+        @media (max-width: 560px) {
+            .readout .val {
+                font-size: 15px
+            }
+
+            .readout {
+                padding: 6px 9px
+            }
+
+            .hud-btns button {
+                padding: 8px 10px;
+                font-size: 12.5px
+            }
+
+            #hud {
+                gap: 7px;
+                padding: 8px 8px
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition-duration: .001ms !important
+            }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"PLUMB","item":"https://suipce.com/games/Casual/Fishing/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/Fishing/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Casual/Fishing/preview.png"></head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+    <div class="readout" id="depthReadout">
+        <span class="lbl">Depth</span>
+        <span class="val mono"><span id="depthVal">0</span><small>m</small></span>
+    </div>
+    <div class="readout" id="lineReadout">
+        <span class="lbl">Line</span>
+        <span class="val mono"><span id="lineVal">300</span><small>m</small></span>
+    </div>
+    <div class="spacer"></div>
+    <div class="readout" id="coinReadout">
+        <span class="lbl">Coins</span>
+        <span class="val mono" id="coinVal">0</span>
+    </div>
+    <div class="hud-btns">
+        <button id="btnShop">Shop</button>
+        <button id="btnJournal">Journal</button>
+        <button id="btnSound" class="icon-btn" aria-pressed="false" title="Sound">&#9834;</button>
+        <button id="btnHelp" class="icon-btn" title="How to play">?</button>
+    </div>
+</div>
+
+<div id="hint" class="hidden"></div>
+
+<div id="fightbar" class="hidden">
+    <div id="tension-wrap">
+        <div id="tension-fill"></div>
+    </div>
+    <div id="fight-label"><b>Fish on.</b> Reel to bring it up &mdash; ease off when it dives.</div>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<div id="catch" class="hidden">
+    <div class="eyebrow" id="catchEyebrow">Landed</div>
+    <canvas id="catchCanvas" width="240" height="150"></canvas>
+    <div class="cname" id="catchName">&mdash;</div>
+    <div class="crarity" id="catchRarity">&mdash;</div>
+    <div class="cstats">
+        <div class="cstat"><span class="k">Size</span><span class="v mono" id="catchSize">&mdash;</span></div>
+        <div class="cstat"><span class="k">Depth</span><span class="v mono" id="catchDepth">&mdash;</span></div>
+        <div class="cstat"><span class="k">Value</span><span class="v coin mono" id="catchValue">&mdash;</span></div>
+    </div>
+</div>
+
+<div id="shop" class="scrim hidden">
+    <div class="sheet" role="dialog" aria-label="Shop">
+        <div class="sheet-head">
+            <div><h2>Tackle Shop</h2>
+                <div class="sub">Spend your catch. Reach deeper. Hold the big ones.</div>
+            </div>
+            <button class="x" data-close="shop" aria-label="Close">&#10005;</button>
+        </div>
+        <div class="sheet-body" id="shopBody"></div>
+    </div>
+</div>
+
+<div id="journal" class="scrim hidden">
+    <div class="sheet" role="dialog" aria-label="Field Journal">
+        <div class="sheet-head">
+            <div><h2>Field Journal</h2>
+                <div class="sub" id="journalSub">0 of 0 species logged</div>
+            </div>
+            <button class="x" data-close="journal" aria-label="Close">&#10005;</button>
+        </div>
+        <div class="sheet-body" id="journalBody"></div>
+    </div>
+</div>
+
+<div id="help" class="scrim hidden">
+    <div class="sheet" role="dialog" aria-label="How to play">
+        <div class="sheet-head">
+            <div><h2>How to play</h2>
+                <div class="sub">One control. A long way down.</div>
+            </div>
+            <button class="x" data-close="help" aria-label="Close">&#10005;</button>
+        </div>
+        <div class="sheet-body help-body">
+            <p>You control one thing: the line. <span class="k">Hold</span> (mouse, tap, or <span class="k">Space</span>)
+                to <b>reel up</b>. <span class="k">Release</span> and the lure <b>sinks</b> on its own. Feather it to
+                hold a depth.</p>
+            <h3>Catching</h3>
+            <ul>
+                <li>Fish live in <b>depth bands</b>. Sink your lure into a fish's band and it'll come investigate.</li>
+                <li>When one bites, you're <b>hooked</b>. Reel to bring it up.</li>
+                <li>Every fish <b>fights</b>. Reeling builds <b>tension</b>; when a fish dives, ease off or the line <b>snaps</b>
+                    and it's gone.
+                </li>
+                <li>Land it by bringing it to the surface.</li>
+            </ul>
+            <h3>Going deeper</h3>
+            <ul>
+                <li>Sell catches for coins. Buy a <b>longer line</b> to descend &mdash; the rarest creatures glow in the
+                    dark far below.
+                </li>
+                <li><b>Stronger line</b> resists tension, so you can land the monsters. A <b>brighter lure</b> draws
+                    fish in; a <b>faster reel</b> shortens the fight.
+                </li>
+                <li>Fill the <b>journal</b>. There are legends down there, and a few curiosities.</li>
+            </ul>
+            <p style="color:var(--faint);font-size:12px">Progress saves automatically in your browser.</p>
+        </div>
+    </div>
+</div>
+
+<div id="start" class="scrim hidden">
+    <div class="start-card">
+        <div class="brand"><span class="logo">&#127907;</span>
+            <h1 class="title">PLUMB</h1></div>
+        <div class="tagline">A fishing game about the deep. Drop a line, and plumb the dark.</div>
+        <div class="start-actions">
+            <button class="primary" id="btnPlay">Cast off</button>
+            <button class="ghost hidden" id="btnContinue">Continue your log</button>
+        </div>
+        <div class="start-foot">
+            <div class="dr">
+                <div class="ticks"></div>
+                <div class="marks"><span>0m sunlight</span><span>600m twilight</span><span>2600m abyss</span></div>
+            </div>
+            <button id="btnSoundStart" aria-pressed="false">Sound: on</button>
+        </div>
+    </div>
+</div>
+
+<!-- This file is fully standalone. On gptgames.dev you can paste your site chrome back in:
+     <script src="../sidebar.js" data-position="bottom-right"></script> -->
+<script>
+    /*GAME_START*/
+    "use strict";
+    (function () {
+// ===================================================== utils
+        const TAU = Math.PI * 2;
+        const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+        const lerp = (a, b, t) => a + (b - a) * t;
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const randInt = (a, b) => Math.floor(rand(a, b + 1));
+        const approach = (v, t, d) => v < t ? Math.min(v + d, t) : Math.max(v - d, t);
+        const sign = x => x < 0 ? -1 : 1;
+
+        function lerpRGB(a, b, t) {
+            return [Math.round(lerp(a[0], b[0], t)), Math.round(lerp(a[1], b[1], t)), Math.round(lerp(a[2], b[2], t))];
+        }
+
+        function rgb(c) {
+            return "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+        }
+
+        function rgba(c, a) {
+            return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
+        }
+
+        function weightedPick(arr, w) {
+            let s = 0;
+            for (const x of w) s += x;
+            let r = Math.random() * s;
+            for (let i = 0; i < arr.length; i++) {
+                r -= w[i];
+                if (r <= 0) return arr[i];
+            }
+            return arr[arr.length - 1];
+        }
+
+        const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+        const Store = (function () {
+            let ok = true;
+            const mem = {};
+            try {
+                const k = '__plumb_t';
+                localStorage.setItem(k, '1');
+                localStorage.removeItem(k);
+            } catch (e) {
+                ok = false;
+            }
+            return {
+                get(k) {
+                    try {
+                        return ok ? localStorage.getItem(k) : (k in mem ? mem[k] : null);
+                    } catch (e) {
+                        return k in mem ? mem[k] : null;
+                    }
+                },
+                set(k, v) {
+                    try {
+                        if (ok) localStorage.setItem(k, v); else mem[k] = v;
+                    } catch (e) {
+                        mem[k] = v;
+                    }
+                }
+            };
+        })();
+
+// ===================================================== canvas
+        const canvas = 

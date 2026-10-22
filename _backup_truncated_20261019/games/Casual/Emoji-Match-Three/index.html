@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Casual/Emoji-Match-Three/">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Moodswing Online - Free Casual Game | AIGameHub</title>
+<meta name="description" content="Play Moodswing online for free — a casual game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="theme-color" content="#1A1446">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2A1535;--gold:#FFD84D;--panel:rgba(22,10,46,.66)}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#1A1446;color:#fff;font-family:Fredoka,system-ui,sans-serif;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+#cv{position:fixed;left:0;top:0;touch-action:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.num{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-weight:400}
+
+/* HUD */
+#hud{position:fixed;display:flex;flex-direction:column;gap:10px;opacity:0;transform:translateY(-12px);transition:opacity .35s ease,transform .35s cubic-bezier(.2,.9,.3,1.2);pointer-events:none;padding-top:env(safe-area-inset-top)}
+#hud.on{opacity:1;transform:none;pointer-events:auto}
+.panel{position:relative;display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:24px;padding:8px;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 24px rgba(10,4,30,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.moves{width:84px;height:68px;border-radius:18px;background:linear-gradient(#FFE27A,#FFB13D);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 -4px 0 rgba(180,90,0,.35);flex:0 0 auto;transition:background .3s}
+.moves b{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-weight:400;font-size:34px;line-height:1}
+.moves small{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin-top:4px}
+.moves.low{background:linear-gradient(#FFB0A0,#FF6A55);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.05)}}
+#goals{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+.goal{position:relative;display:flex;align-items:center;gap:2px;background:rgba(255,255,255,.12);border-radius:18px;padding:2px 12px 2px 2px;height:60px;min-width:96px}
+.goal canvas{width:56px;height:56px;flex:0 0 auto}
+.goal b{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-weight:400;font-size:20px;min-width:1.4em;text-align:center}
+.goal.done b::before{content:'';display:inline-block;width:22px;height:12px;border-left:5px solid #7CF0A0;border-bottom:5px solid #7CF0A0;transform:rotate(-45deg) translate(2px,-3px)}
+.goal.bump{animation:bump .28s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes bump{40%{transform:scale(1.12)}}
+#pauseBtn{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;flex:0 0 auto}
+.land .panel{flex-wrap:wrap;justify-content:center;padding:10px}
+.land #goals{flex-basis:100%;flex-direction:column;align-items:stretch}
+.land .goal{justify-content:space-between;padding-right:18px}
+.land .goal b{font-size:28px}
+.land .goal{height:70px}.land .goal canvas{width:66px;height:66px}
+.land .moves small{font-size:14px}
+.land .moves{width:100%;height:118px;border-radius:22px}
+.land .moves b{font-size:60px}
+.land #pauseBtn{order:5;margin-top:6px;width:56px;height:56px}
+@media (max-width:360px){.goal{min-width:80px}.goal canvas{width:46px;height:46px}.moves{width:72px}}
+
+/* sheets */
+.sheet{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s ease;padding:16px}
+.sheet.on{opacity:1;pointer-events:auto}
+#home{transition-duration:.15s}
+#intro .card{transition-delay:.08s}
+.card{background:#FFF8EE;color:var(--ink);border-radius:28px;padding:26px 24px 22px;width:min(340px,100%);text-align:center;box-shadow:0 0 0 6px #6E2865,0 0 0 9px #FFD27A,0 24px 60px rgba(10,4,30,.5);transform:scale(.86) translateY(20px);transition:transform .38s cubic-bezier(.2,.9,.3,1.25)}
+.sheet.on .card{transform:none}
+.card h2{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-weight:400;font-size:28px;line-height:1.2;margin-bottom:12px}
+.card .lvl{font-size:13px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;opacity:.55;margin-bottom:4px}
+.big{display:block;width:100%;margin-top:14px;padding:14px 18px;border-radius:20px;background:linear-gradient(#FFE27A,#FFB13D);color:var(--ink);font-family:'Mochiy Pop One',Fredoka,sans-serif;font-size:22px;box-shadow:inset 0 -5px 0 rgba(180,90,0,.35),0 6px 16px rgba(180,90,0,.25);transition:transform .12s ease}
+.big:active{transform:scale(.96)}
+.row{display:flex;gap:10px;margin-top:10px}
+.row button{flex:1;padding:12px;border-radius:16px;background:#EFE3F7;font-weight:600;font-size:16px;transition:transform .12s ease}
+.row button:active{transform:scale(.96)}
+.igs{display:flex;justify-content:center;gap:12px;margin:6px 0 4px}
+.ig{display:flex;flex-direction:column;align-items:center;background:#F1E6F8;border-radius:18px;padding:6px 12px 8px}
+.ig canvas{width:62px;height:62px}
+.ig b{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-weight:400;font-size:20px}
+.movesline{font-weight:600;opacity:.7;margin-top:8px}
+.movesline .num{font-size:18px;opacity:1}
+#intro{background:rgba(20,8,44,.15);align-items:flex-start;padding-top:calc(110px + env(safe-area-inset-top))}
+@media (min-width:700px){#intro .card{width:400px;padding:30px}#intro .ig canvas{width:80px;height:80px}}
+#pause,#result{background:rgba(20,8,44,.45)}
+#resStars{display:flex;justify-content:center;gap:6px;margin:4px 0 10px}
+#resStars i{font-style:normal;font-size:52px;line-height:1;color:#4A3466;-webkit-text-stroke:3px #2A1535;opacity:.35;transition:transform .35s cubic-bezier(.2,.9,.3,1.6),color .2s}
+#resStars i:nth-child(2){transform:translateY(-10px)}
+#resStars i.on{color:var(--gold);-webkit-text-stroke:3px var(--ink);transform:scale(1.15);opacity:1}
+#resStars i.on:nth-child(2){transform:translateY(-10px) scale(1.2)}
+#resScore{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-size:30px}
+#resBest{font-size:15px;font-weight:600;color:#C2185A;min-height:1.2em}
+.card .lbl{font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;opacity:.55;margin-top:6px}
+#result{align-items:flex-end;padding-bottom:max(28px,env(safe-area-inset-bottom))}
+.land #result{align-items:center}
+#resLeft .ig b{font-size:16px}
+.snd{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center}
+.snd .off{display:none}.snd[aria-pressed=false] .on{display:none}.snd[aria-pressed=false] .off{display:block}
+.card .snd{background:#EFE3F7;margin:10px auto 0}
+
+/* home */
+#home{flex-direction:column;justify-content:space-between;padding:max(24px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+#home .top{width:100%;display:flex;justify-content:flex-end}
+.logo{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-size:clamp(40px,12vw,76px);line-height:1;letter-spacing:-.01em;text-align:center;color:#FFF4E0;text-shadow:0 4px 0 #6E2865,0 8px 24px rgba(20,8,44,.5)}
+.logo span:nth-child(1){color:#FFC531}.logo span:nth-child(2){color:#FF5C8F}.logo span:nth-child(3){color:#3FA0FF}.logo span:nth-child(4){color:#FF5A33}
+#cast{width:min(520px,100%);height:min(90px,18vw);display:block;margin:10px auto 0}
+.homecol{display:flex;flex-direction:column;align-items:center;width:min(360px,100%);gap:14px}
+#play{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:16px 18px 14px;margin:0}
+#play small{font-family:Fredoka,sans-serif;font-size:14px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+#trail{display:flex;gap:8px;justify-content:center}
+.node{width:58px;height:62px;border-radius:18px;background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+.node span{font-family:'Mochiy Pop One',Fredoka,sans-serif;font-size:18px}
+.node i{font-style:normal;font-size:12px;color:var(--gold);letter-spacing:1px;min-height:14px}
+.node i em{font-style:normal;color:rgba(255,255,255,.25)}
+.node.cur{background:#FFF8EE;color:var(--ink);box-shadow:0 0 0 3px var(--gold)}
+.node.locked{opacity:.4}
+.homefoot{font-size:12px;opacity:.55;text-align:center}
+.homefoot a{color:inherit}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important;animation:none!important}}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"Moodswing","item":"https://suipce.com/games/Casual/Emoji-Match-Three/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/Emoji-Match-Three/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Casual/Emoji-Match-Three/preview.png"></head>
+<body>
+<canvas id="cv" aria-label="Game board"></canvas>
+<div id="hud">
+  <div class="panel">
+    <div class="moves" aria-label="Moves left"><b id="mv">0</b><small>moves</small></div>
+    <div id="goals" aria-label="Goals"></div>
+    <button id="pauseBtn" aria-label="Pause"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1.5" fill="#fff"/><rect x="9.5" y="2" width="3.5" height="12" rx="1.5" fill="#fff"/></svg></button>
+  </div>
+</div>
+
+<section class="sheet" id="home" aria-label="Moodswing">
+  <div class="top"><button class="snd" id="snd" aria-label="Sound" aria-pressed="true">
+    <svg class="on" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    <svg class="off" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#fff"/><path d="M16 9l5 6M21 9l-5 6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+  </button></div>
+  <div>
+    <h1 class="logo"><span>M</span><span>o</span><span>o</span><span>d</span>swing</h1>
+    <canvas id="cast" aria-hidden="true"></canvas>
+  </div>
+  <div class="homecol">
+    <button class="big" id="play"><small id="playLbl">Play</small><span>Level <span id="playN">1</span></span></button>
+    <div id="trail"></div>
+    <p class="homefoot"><span id="oldBest"></span><br>a <a href="https://www.gptgames.dev/">gptgames.dev</a> game</p>
+  </div>
+</section>
+
+<section class="sheet" id="intro" aria-live="polite">
+  <div class="card">
+    <div class="lvl">Level <span id="introN"></span></div>
+    <div class="igs" id="introGoals"></div>
+    <div class="movesline">in <span class="num" id="introMoves"></span> moves</div>
+  </div>
+</section>
+
+<section class="sheet" id="pause" aria-label="Paused">
+  <div class="card">
+    <div class="lvl">Level <span id="pauseN"></span></div>
+    <h2>Paused</h2>
+    <button class="big" id="resume">Resume</button>
+    <div class="row"><button id="restart">Restart</button><button id="home1">Home</button></div>
+    <button class="snd" id="snd2" aria-label="Sound" aria-pressed="true">
+      <svg class="on" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#2A1535"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="#2A1535" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <svg class="off" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#2A1535"/><path d="M16 9l5 6M21 9l-5 6" stroke="#2A1535" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</section>
+
+<section class="sheet" id="result" aria-live="polite">
+  <div class="card">
+    <h2 id="resTitle"></h2>
+    <div id="resStars"></div>
+    <div class="igs" id="resLeft"></div>
+    <div class="lbl">Score</div><div id="resScore"></div>
+    <div id="resBest"></div>
+    <button class="big" id="resMain"></button>
+    <div class="row"><button id="resAgain">Replay</button><button id="resHome">Home</button></div>
+  </div>
+</section>
+
+<script id="core">
+// Moodswing core: the board, the rules, the levels. No DOM. The page animates the events play() returns.
+const MS = (() => {
+  const W = 8, H = 8, N = W * H;
+  const MOODS = 6, RING = -1;
+  const PTS = {piece: 30, cloud: 60, h: 150, v: 150, b: 250, r: 400, finale: 300};
+
+  // ---- random: mulberry32, its state lives in the game so a save carries on identically
+  function rnd(st) {
+    let t = (st.r = (st.r + 0x6D2B79F5) | 0);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  const ri = (st, n) => Math.floor(rnd(st) * n);
+  function hash(s) { let h = 2166136261; for (const c of String(s)) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return h >>> 0; }
+
+  // ---- boards: '#' plays, '.' is a hole
+  const MASKS = [
+    ['########', '########', '########', '########', '########', '########', '########', '########'],
+    ['.######.', '########', '########', '########', '########', '########', '########', '.######.'],
+    ['..####..', '.######.', '########', '########', '########', '########', '.######.', '..####..'],
+    ['########', '########', '###..###', '##....##', '##....##', '###..###', '########', '########'],
+    ['###..###', '########', '########', '.######.', '.######.', '########', '########', '###..###'],
+    ['.##..##.', '########', '########', '########', '.######.', '..####..', '..####..', '...##...'],
+    ['########', '########', '##.##.##', '########', '########', '##.##.##', '########', '########'],
+    ['##....##', '###..###', '########', '########', '########', '########', '###..###', '##....##'],
+    ['########', '#.####.#', '########', '###..###', '###..###', '########', '#.####.#', '########'],
+    ['..####..', '..####..', '########', '########', '########', '########', '..####..', '..####..'],
+  ];
+  // cloud patterns: cells as [x, y] in the left half (mirrored), value = layers
+  const CLOUDS = {
+    core:   [[3, 3, 2], [3, 4, 2], [2, 3, 1], [2, 4, 1], [3, 2, 1], [3, 5, 1]],
+    band:   [[0, 3, 1], [1, 3, 1], [2, 3, 1], [3, 3, 1], [0, 4, 1], [1, 4, 1], [2, 4, 1], [3, 4, 1]],
+    floor:  [[0, 7, 1], [1, 7, 1], [2, 7, 1], [3, 7, 1], [0, 6, 1], [1, 6, 1], [2, 6, 1], [3, 6, 1]],
+    edges:  [[0, 2, 1], [0, 3, 1], [0, 4, 1], [0, 5, 1], [1, 2, 1], [1, 3, 1], [1, 4, 1], [1, 5, 1]],
+    xmark:  [[1, 1, 1], [2, 2, 1], [3, 3, 2], [1, 6, 1], [2, 5, 1], [3, 4, 2], [2, 1, 1], [2, 6, 1]],
+    rings:  [[1, 1, 1], [2, 1, 1], [3, 1, 1], [1, 2, 1], [1, 3, 1], [1, 4, 1], [1, 5, 1], [1, 6, 1], [2, 6, 1], [3, 6, 1], [3, 3, 2], [3, 4, 2]],
+    storm:  [[2, 2, 2], [3, 2, 2], [2, 3, 2], [3, 3, 2], [2, 4, 2], [3, 4, 2], [2, 5, 2], [3, 5, 2]],
+    top:    [[1, 1, 1], [2, 1, 2], [3, 1, 2], [1, 2, 1], [2, 2, 1], [3, 2, 1], [3, 0, 1], [2, 0, 1]],
+  };
+
+  // The first levels teach one thing each; after that levels are made from the number.
+  const TUTOR = [
+    {mask: 0, colors: 5, moves: 20, goals: [{t: 'm', m: 1, n: 12}]},
+    {mask: 1, colors: 5, moves: 20, goals: [{t: 'm', m: 0, n: 14}, {t: 'm', m: 2, n: 14}]},
+    {mask: 0, colors: 5, moves: 22, goals: [{t: 'c'}], clouds: 'band', layers: 1},
+    {mask: 2, colors: 5, moves: 22, goals: [{t: 'm', m: 3, n: 18}, {t: 'c'}], clouds: 'floor', layers: 1},
+    {mask: 1, colors: 5, moves: 24, goals: [{t: 'c'}], clouds: 'core'},
+    {mask: 3, colors: 5, moves: 22, goals: [{t: 'm', m: 4, n: 18}, {t: 'm', m: 2, n: 18}]},
+    {mask: 0, colors: 6, moves: 25, goals: [{t: 'm', m: 1, n: 16}]},
+    {mask: 4, colors: 5, moves: 24, goals: [{t: 'c'}], clouds: 'storm'},
+  ];
+  const PATTERNS = Object.keys(CLOUDS);
+
+  // Levels past the tutorial are made from their number and a variant; TABLE holds, per level, the variant, the
+  // moves and the median score at the win (before the moves left are paid out) that the bot in
+  // test/emoji_match_three.mjs reached (see its 'levels' suite).
+  const TABLE = '0:20:57 0:20:80 0:22:179 0:22:173 0:24:97 0:22:61 0:25:57 0:24:126 0:17:50 2:17:47 0:23:87 5:17:98 0:28:126 0:32:106 2:17:60 2:18:143 1:22:87 0:17:82 0:28:121 0:17:199 1:20:67 3:18:110 1:31:114 3:21:107 1:30:103 0:20:117 0:27:68 1:17:198 0:28:92 0:24:77 1:22:46 0:21:153 0:22:89 0:31:130 0:28:131 0:29:113 5:24:65 1:23:116 0:19:97 12:17:64 0:30:119 0:30:86 1:24:87 1:23:170 0:17:112 5:19:78 0:23:145 0:27:145 0:31:104 0:24:155 1:30:94 12:17:64 0:22:126 1:18:110 1:21:51 1:27:161 0:31:93 2:18:96 0:23:133 2:28:133';
+  const tab = n => { const s = TABLE.split(' ')[n - 1]; if (!s) return null; const [v, moves, med] = s.split(':').map(Number); return {v, moves, med: med * 100}; };
+  const LEVELS = 60;
+  function level(n, variant) {
+    n = Math.max(1, n | 0);
+    // past the last measured level the designs come round again, from level 9 on
+    if (n > LEVELS && variant === undefined) { const d = level(TUTOR.length + 1 + (n - TUTOR.length - 1) % (LEVELS - TUTOR.length)); d.n = n; return d; }
+    const T = tab(n);
+    let d;
+    if (n <= TUTOR.length) d = JSON.parse(JSON.stringify(TUTOR[n - 1]));
+    else {
+      const st = {r: hash('level' + n + ':' + (variant ?? (T ? T.v : 0)))};
+      const kind = n % 3, hard = Math.min(1, (n - TUTOR.length) / 40);
+      d = {mask: ri(st, MASKS.length), colors: n % 4 === 0 ? 5 : 6, goals: []};
+      if (kind !== 1) {
+        const k = kind === 0 ? 2 : 1, a = ri(st, d.colors);
+        for (let j = 0; j < k; j++) d.goals.push({t: 'm', m: (a + j * 2) % d.colors, n: Math.round(((kind === 0 ? 14 : 18) + hard * 12) * (d.colors === 5 ? 1.6 : 1))});
+      }
+      if (kind !== 0) { d.goals.push({t: 'c'}); d.clouds = PATTERNS[ri(st, PATTERNS.length)]; if (hard < 0.25) d.layers = 1; }
+      d.moves = (d.colors === 6 ? 25 : 21) + (kind === 2 ? 3 : 0) - Math.round(hard * 3);
+    }
+    d.n = n;
+    // clouds: mirror the pattern, keep only cells that play
+    const mask = MASKS[d.mask], clouds = new Array(N).fill(0);
+    // a cloud only goes where a line of three can cross it both ways, so none is left to luck
+    const ok = (x, y) => x >= 0 && y >= 0 && x < W && y < H && mask[y][x] === '#';
+    const run = (x, y, dx, dy) => [-2, -1, 0].some(s => [0, 1, 2].every(k => ok(x + (s + k) * dx, y + (s + k) * dy)));
+    if (d.clouds) for (const [x, y, l] of CLOUDS[d.clouds]) for (const xx of [x, W - 1 - x]) {
+      if (ok(xx, y) && run(xx, y, 1, 0) && run(xx, y, 0, 1)) clouds[y * W + xx] = d.layers ? Math.min(l, d.layers) : l;
+    }
+    d.cloudMap = clouds;
+    for (const g of d.goals) if (g.t === 'c') g.n = clouds.reduce((s, v) => s + v, 0);
+    if (T && variant === undefined) d.moves = T.moves;
+    // winning is one star at least; the three marks on the sun's rail sit at scores a hasty, a careful and a very
+    // good player reach
+    const med = T ? T.med : d.moves * 250;
+    d.stars = [Math.round(med * 0.0028) * 100, Math.round(med * 0.0085) * 100, Math.round(med * 0.0135) * 100];
+    return d;
+  }
+
+  // ---- state
+  function start(n, attempt = 0, variant) {
+    const lv = level(n, variant);
+    const st = {
+      n, r: hash('deal' + n + ':' + attempt) | 0, id: 1, moves: lv.moves, score: 0, made: 0,
+      mask: MASKS[lv.mask].join('').split('').map(c => c === '#'),
+      cells: new Array(N).fill(null), clouds: lv.cloudMap.slice(), colors: lv.colors,
+      goals: lv.goals.map(g => ({t: g.t, m: g.m, n: g.n, left: g.n})), stars: lv.stars, over: null,
+    };
+    deal(st);
+    return st;
+  }
+  const piece = (st, m, sp = null) => ({m, sp, id: st.id++});
+  const xy = i => [i % W, (i / W) | 0];
+  const at = (x, y) => (x < 0 || y < 0 || x >= W || y >= H) ? -1 : y * W + x;
+
+  function deal(st) {
+    for (let tries = 0; tries < 200; tries++) {
+      for (let i = 0; i < N; i++) {
+        if (!st.mask[i]) { st.cells[i] = null; continue; }
+        const [x, y] = xy(i);
+        let m;
+        do m = ri(st, st.colors);
+        while ((x >= 2 && same(st, at(x - 1, y), m) && same(st, at(x - 2, y), m)) || (y >= 2 && same(st, at(x, y - 1), m) && same(st, at(x, y - 2), m)));
+        st.cells[i] = piece(st, m);
+      }
+      if (findMoves(st).length >= 3) return;
+    }
+  }
+  function same(st, i, m) { const p = i >= 0 && st.cells[i]; return !!p && p.m === m && m >= 0; }
+
+  // ---- matching
+  // Runs of three or more of one mood; runs that touch join one group. Each group may make a special.
+  function groups(st) {
+    const runs = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W;) {
+      const i = at(x, y), p = st.cells[i];
+      let len = 1;
+      if (p && p.m >= 0) while (x + len < W && same(st, at(x + len, y), p.m)) len++;
+      if (p && p.m >= 0 && len >= 3) runs.push({d: 'h', cells: Array.from({length: len}, (_, k) => at(x + k, y)), m: p.m});
+      x += len;
+    }
+    for (let x = 0; x < W; x++) for (let y = 0; y < H;) {
+      const i = at(x, y), p = st.cells[i];
+      let len = 1;
+      if (p && p.m >= 0) while (y + len < H && same(st, at(x, y + len), p.m)) len++;
+      if (p && p.m >= 0 && len >= 3) runs.push({d: 'v', cells: Array.from({length: len}, (_, k) => at(x, y + k)), m: p.m});
+      y += len;
+    }
+    // union runs that share a cell
+    const owner = new Map(), gs = [];
+    for (const r of runs) {
+      const hit = new Set(r.cells.filter(c => owner.has(c)).map(c => owner.get(c)));
+      let g;
+      if (hit.size) { const [first, ...rest] = [...hit]; g = first; for (const o of rest) { g.runs.push(...o.runs); o.runs.length = 0; o.dead = true; } }
+      else { g = {runs: [], m: r.m}; gs.push(g); }
+      g.runs.push(r);
+      for (const run of g.runs) for (const c of run.cells) owner.set(c, g);
+    }
+    return gs.filter(g => !g.dead).map(g => {
+      const cells = [...new Set(g.runs.flatMap(r => r.cells))];
+      const maxH = Math.max(0, ...g.runs.filter(r => r.d === 'h').map(r => r.cells.length));
+      const maxV = Math.max(0, ...g.runs.filter(r => r.d === 'v').map(r => r.cells.length));
+      let sp = null;
+      if (maxH >= 5 || maxV >= 5) sp = 'r';
+      else if (maxH >= 3 && maxV >= 3) sp = 'b';
+      else if (maxH === 4) sp = 'h';
+      else if (maxV === 4) sp = 'v';
+      // where it is born: the crossing of an L or T, else the middle of the longest run
+      let home;
+      if (sp === 'b') { const hs = new Set(g.runs.filter(r => r.d === 'h').flatMap(r => r.cells)); home = g.runs.filter(r => r.d === 'v').flatMap(r => r.cells).find(c => hs.has(c)); }
+      if (home === undefined) { const long = g.runs.reduce((a, b) => b.cells.length > a.cells.length ? b : a); home = long.cells[(long.cells.length - 1) >> 1]; }
+      return {m: g.m, cells, sp, home};
+    });
+  }
+
+  function adjacent(a, b) { const [ax, ay] = xy(a), [bx, by] = xy(b); return Math.abs(ax - bx) + Math.abs(ay - by) === 1; }
+  function swapCells(st, a, b) { const t = st.cells[a]; st.cells[a] = st.cells[b]; st.cells[b] = t; }
+  function isCombo(st, a, b) { const p = st.cells[a], q = st.cells[b]; return p.sp === 'r' || q.sp === 'r' || (p.sp && q.sp); }
+  function lineAt(st, i, d) { return d === 'h' ? hasRun(st, i, 1, 0) : hasRun(st, i, 0, 1); }
+  function hasRun(st, i, dx, dy) {
+    const p = st.cells[i]; if (!p || p.m < 0) return false;
+    const [x, y] = xy(i); let n = 1;
+    for (let k = 1; same(st, at(x + dx * k, y + dy * k), p.m); k++) n++;
+    for (let k = 1; same(st, at(x - dx * k, y - dy * k), p.m); k++) n++;
+    return n >= 3;
+  }
+  function valid(st, a, b) {
+    if (st.over || a < 0 || b < 0 || !adjacent(a, b) || !st.cells[a] || !st.cells[b]) return false;
+    if (isCombo(st, a, b)) return true;
+    swapCells(st, a, b);
+    const ok = lineAt(st, a, 'h') || lineAt(st, a, 'v') || lineAt(st, b, 'h') || lineAt(st, b, 'v');
+    swapCells(st, a, b);
+    return ok;
+  }
+  function findMoves(st) {
+    const out = [];
+    for (let i = 0; i < N; i++) for (const j of [i + 1, i + W]) {
+      if (j >= N || (j === i + 1 && j % W === 0)) continue;
+      if (st.cells[i] && st.cells[j] && valid({...st, over: null}, i, j)) out.push([i, j]);
+    }
+    return out;
+  }
+
+  // ---- clearing
+  // area each special clears when it fires; d is its direction for lines
+  function blast(st, i, sp) {
+    const [x, y] = xy(i), out = [];
+    if (sp === 'h') for (let k = 0; k < W; k++) out.push(at(k, y));
+    else if (sp === 'v') for (let k = 0; k < H; k++) out.push(at(x, k));
+    else if (sp === 'b') for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) out.push(at(x + dx, y + dy));
+    return out.filter(c => c >= 0 && st.mask[c]);
+  }
+  function mostCommon(st) {
+    const n = new Array(MOODS).fill(0);
+    for (const p of st.cells) if (p && p.m >= 0) n[p.m]++;
+    let best = 0; for (let m = 1; m < MOODS; m++) if (n[m] > n[best]) best = m;
+    return best;
+  }
+  function ofMood(st, m) { const out = []; for (let i = 0; i < N; i++) if (st.cells[i] && st.cells[i].m === m) out.push(i); return out; }
+
+  // Clears a set of cells, firing every special caught in it, and returns the wave for the page.
+  function clearWave(st, seed, wave, makes, fires0 = []) {
+    const gone = new Map(), fires = [...fires0], queue = [...seed];
+    for (const f of fires0) f.cells.forEach(c => queue.push(c));
+    while (queue.length) {
+      const i = queue.shift();
+      if (gone.has(i) || !st.cells[i]) continue;
+      const p = st.cells[i];
+      gone.set(i, p);
+      if (p.sp === 'h' || p.sp === 'v' || p.sp === 'b') { const cells = blast(st, i, p.sp); fires.push({i, sp: p.sp, cells}); queue.push(...cells); }
+      else if (p.sp === 'r') { const m = mostCommon(st), cells = ofMood(st, m); fires.push({i, sp: 'r', m, cells}); queue.push(...cells); }
+    }
+    const cleared = [], hits = [];
+    let pts = 0;
+    for (const [i, p] of gone) {
+      cleared.push({i, id: p.id, m: p.m, sp: p.sp});
+      st.cells[i] = null;
+      if (p.m >= 0) for (const g of st.goals) if (g.t === 'm' && g.m === p.m && g.left > 0) g.left--;
+      pts += PTS.piece * wave;
+      if (st.clouds[i] > 0) {
+        st.clouds[i]--; hits.push({i, left: st.clouds[i]}); pts += PTS.cloud;
+        for (const g of st.goals) if (g.t === 'c' && g.left > 0) g.left--;
+      }
+    }
+    const made = [];
+    for (const mk of makes) {
+      const p = piece(st, mk.sp === 'r' ? RING : mk.m, mk.sp);
+      st.cells[mk.i] = p; made.push({i: mk.i, id: p.id, m: p.m, sp: p.sp}); pts += PTS[mk.sp]; st.made++;
+    }
+    st.score += pts;
+    return {e: 'clear', wave, cleared, hits, made, fires: fires.map(f => ({i: f.i, sp: f.sp, m: f.m})), pts};
+  }
+
+  function gravity(st) {
+    const moves = [], spawns = [];
+    for (let x = 0; x < W; x++) {
+      const col = []; for (let y = 0; y < H; y++) if (st.mask[at(x, y)]) col.push(at(x, y));
+      let w = col.length - 1;
+      for (let r = col.length - 1; r >= 0; r--) {
+        const p = st.cells[col[r]];
+        if (p) { if (r !== w) { st.cells[col[w]] = p; st.cells[col[r]] = null; moves.push({id: p.id, from: col[r], to: col[w]}); } w--; }
+      }
+      for (let k = w; k >= 0; k--) { const p = piece(st, ri(st, st.colors)); st.cells[col[k]] = p; spawns.push({id: p.id, m: p.m, sp: null, to: col[k], drop: w + 1}); }
+    }
+    return {e: 'fall', moves, spawns};
+  }
+
+  // the first wave of a swap that involves a ring or two specials
+  function comboWave(st, a, b) {
+    const p = st.cells[a], q = st.cells[b], fires = [];
+    const ring = p.sp === 'r' ? a : b, other = ring === a ? b : a, o = st.cells[other];
+    if (p.sp === 'r' && q.sp === 'r') {
+      const cells = []; for (let i = 0; i < N; i++) if (st.cells[i]) cells.push(i);
+      fires.push({i: b, sp: 'rr', cells});
+      st.cells[a] = {...p, sp: null}; st.cells[b] = {...q, sp: null};
+      return clearWave(st, [a, b], 1, [], fires);
+    }
+    if (p.sp === 'r' || q.sp === 'r') {
+      const m = o.m, cells = ofMood(st, m);
+      st.cells[ring] = {...st.cells[ring], sp: null};
+      if (o.sp) {
+        // every piece of that mood takes the other's power, then they all go off
+        const kinds = o.sp === 'b' ? ['b'] : ['h', 'v'];
+        for (const c of cells) st.cells[c] = {...st.cells[c], sp: c === other ? o.sp : kinds[ri(st, kinds.length)]};
+        return clearWave(st, [ring], 1, [], [{i: ring, sp: 'r' + o.sp, m, cells}]);
+      }
+      return clearWave(st, [ring], 1, [], [{i: ring, sp: 'r', m, cells}]);
+    }
+    // two specials meet where the moved piece lands
+    const [x, y] = xy(b), kinds = [p.sp, q.sp].sort().join('');
+    const cells = [];
+    const row = yy => { for (let k = 0; k < W; k++) cells.push(at(k, yy)); }, col = xx => { for (let k = 0; k < H; k++) cells.push(at(xx, k)); };
+    if (kinds === 'bb') { for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) cells.push(at(x + dx, y + dy)); }
+    else if (kinds.includes('b')) { for (let d = -1; d <= 1; d++) { if (y + d >= 0 && y + d < H) row(y + d); if (x + d >= 0 && x + d < W) col(x + d); } }
+    else { row(y); col(x); }
+    const ok = cells.filter(c => c >= 0 && st.mask[c]);
+    fires.push({i: b, sp: kinds, cells: ok});
+    st.cells[a] = {...p, sp: null}; st.cells[b] = {...q, sp: null};
+    return clearWave(st, [a, b], 1, [], fires);
+  }
+
+  // Plays one swap. Returns the events in order, or null if the swap does nothing (then nothing changes).
+  function play(st, a, b) {
+    if (!valid(st, a, b)) return null;
+    const ev = [{e: 'swap', a, b}];
+    st.moves--;
+    let wave = 1;
+    if (isCombo(st, a, b)) {
+      swapCells(st, a, b);
+      ev.push(comboWave(st, a, b)); ev.push(gravity(st)); wave = 2;
+    } else swapCells(st, a, b);
+    settle(st, ev, wave, [a, b]);
+    return ev;
+  }
+  function settle(st

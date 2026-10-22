@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Play SKYLINE Online - Free Arcade Game | AIGameHub</title>
+    <meta name="description"
+          content="SKYLINE is a browser incremental game built on the classic Stacker arcade mechanic. Drop sliding blocks to raise a glass skyscraper, chain perfect drops for huge multipliers, weather the storm, and prestige into an architect skill tree. Free to play, no install.">
+    <meta name="keywords"
+          content="skyline, stacker game, incremental game, idle game, tower builder, city builder, browser game, perfect drop, prestige, free online game">
+    <meta name="author" content="gptgames.dev">
+    <meta name="theme-color" content="#0a0e1c">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Skyline/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="gptgames.dev">
+    <meta property="og:url" content="https://gptgames.dev/games/skyline.html">
+    <meta property="og:title" content="Play SKYLINE Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description"
+          content="Drop sliding blocks to raise a glass skyscraper, chain perfect drops for huge multipliers, weather the storm, and prestige into an architect skill tree. Free to play in your browser.">
+    <meta property="og:image" content="https://gptgames.dev/screenshots/screenshot_277.webp">
+    <meta property="og:image:alt"
+          content="A glass skyscraper rising against a city skyline at dusk in the game SKYLINE">
+
+    <!-- Twitter Card -->
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Skyline/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Skyline/preview.png">
+    <meta name="twitter:url" content="https://gptgames.dev/games/skyline.html">
+    <meta name="twitter:title" content="Play SKYLINE Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description"
+          content="Drop sliding blocks to raise a glass skyscraper, chain perfect drops, weather the storm, and prestige into an architect skill tree. Free browser game.">
+    <meta name="twitter:image" content="https://gptgames.dev/screenshots/screenshot_277.webp">
+
+    <!-- Structured data -->
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"SKYLINE","url":"https://gptgames.dev/games/skyline.html","description":"A browser incremental game built on the classic Stacker arcade mechanic. Drop sliding blocks to raise a glass skyscraper, chain perfect drops for huge multipliers, weather the storm, and prestige into an architect skill tree.","image":"https://gptgames.dev/screenshots/screenshot_277.webp","genre":["Incremental","Idle","Arcade","Casual"],"gamePlatform":"Web browser","applicationCategory":"Game","operatingSystem":"Any","playMode":"SinglePlayer","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <style>
+        /* ============================================================
+   SKYLINE — design tokens
+   Palette: deep architectural night + blueprint cyan + warm
+   "currency" amber + perfect-drop magenta. The world is a city
+   at dusk seen on a drafting table: ink, graphite, blueprint,
+   sodium-lamp glow.
+   ============================================================ */
+        :root {
+            --ink: #0a0e14; /* near-black background */
+            --ink-2: #111722; /* panel */
+            --ink-3: #1a2230; /* raised panel */
+            --line: #243044; /* hairline */
+            --graphite: #5a6678; /* muted text */
+            --paper: #c9d4e3; /* body text */
+            --blueprint: #4cc8ff; /* primary accent (blueprint cyan) */
+            --blueprint-d: #1d7fb0;
+            --amber: #ffc857; /* currency / bricks */
+            --perfect: #ff48d2;
+            --perfect2: #ff48d2; /* perfect magenta */
+            --good: #7CFFB2; /* success green */
+            --danger: #ff5c5c;
+            --gold: #ffe27a;
+            --font-disp: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+            --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: var(--ink);
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--paper);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #app {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ---- top HUD ---- */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 10px 12px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(10, 14, 20, .92), rgba(10, 14, 20, 0));
+        }
+
+        .hud-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .hud-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .bricks {
+            font-family: var(--font-mono);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--amber);
+            letter-spacing: -.5px;
+            line-height: 1;
+            text-shadow: 0 0 18px rgba(255, 200, 87, .35);
+        }
+
+        .bricks-label {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--graphite);
+            text-transform: uppercase;
+        }
+
+        .stat-row {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--paper);
+        }
+
+        .stat-row .k {
+            color: var(--graphite);
+        }
+
+        .height-big {
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 22px;
+            line-height: 1;
+            color: var(--blueprint);
+            text-shadow: 0 0 14px rgba(76, 200, 255, .3);
+        }
+
+        .chain-badge {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 16px;
+            padding: 2px 8px;
+            border-radius: 7px;
+            line-height: 1.2;
+            background: rgba(255, 72, 210, .12);
+            color: var(--perfect2);
+            border: 1px solid rgba(255, 72, 210, .3);
+            transition: transform .08s ease;
+            min-width: 64px;
+            text-align: right;
+        }
+
+        .chain-badge.zero {
+            opacity: .4;
+            background: rgba(90, 102, 120, .1);
+            color: var(--graphite);
+            border-color: var(--line);
+        }
+
+        /* ---- storm indicator ---- */
+        #stormIndicator {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            width: min(220px, 46vw);
+            pointer-events: none;
+            text-align: center;
+            opacity: 0;
+            transition: opacity .4s;
+        }
+
+        #stormIndicator.show {
+            opacity: 1;
+        }
+
+        .storm-label {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--graphite);
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            transition: color .3s;
+        }
+
+        .storm-bar {
+            height: 6px;
+            background: rgba(20, 28, 40, .8);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .storm-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #5a9fd6, #9fb4cc);
+            transition: width .2s, background .4s;
+        }
+
+        #stormIndicator.warn .storm-label {
+            color: var(--amber);
+        }
+
+        #stormIndicator.warn .storm-fill {
+            background: linear-gradient(90deg, var(--amber), #ffd980);
+        }
+
+        #stormIndicator.building .storm-label {
+            color: #8ab4d8;
+        }
+
+        #stormIndicator.peak .storm-label {
+            color: var(--danger);
+        }
+
+        #stormIndicator.peak .storm-fill {
+            background: linear-gradient(90deg, var(--danger), #ff8a8a);
+        }
+
+        #stormIndicator.peak {
+            animation: stormpulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes stormpulse {
+            0%, 100% {
+                opacity: .85;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* ---- canvas ---- */
+        #stage {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ---- block-type picker (bottom dock) ---- */
+        #typedock {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 15;
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+            pointer-events: none;
+        }
+
+        .type-btn {
+            pointer-events: auto;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--ink-2);
+            color: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 7px 10px;
+            min-width: 62px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .12s ease;
+            line-height: 1.25;
+            opacity: .85;
+        }
+
+        .type-btn .kbd {
+            display: block;
+            font-size: 8px;
+            color: var(--graphite);
+            letter-spacing: 1px;
+        }
+
+        .type-btn .mult {
+            display: block;
+            font-size: 9px;
+            margin-top: 1px;
+        }
+
+        .type-btn.sel {
+            border-color: var(--blueprint);
+            color: #fff;
+            opacity: 1;
+            box-shadow: 0 0 0 1px var(--blueprint), 0 0 16px rgba(76, 200, 255, .25);
+            transform: translateY(-3px);
+        }
+
+        .type-btn.locked {
+            opacity: .3;
+            cursor: not-allowed;
+        }
+
+        .type-btn.t-heavy.sel {
+            border-color: #8aa0c0;
+            box-shadow: 0 0 0 1px #8aa0c0, 0 0 16px rgba(138, 160, 192, .25);
+        }
+
+        .type-btn.t-light.sel {
+            border-color: var(--good);
+            box-shadow: 0 0 0 1px var(--good), 0 0 16px rgba(124, 255, 178, .25);
+        }
+
+        /* ---- right rail buttons ---- */
+        #rail {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 18;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .rail-btn {
+            pointer-events: auto;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--ink-2);
+            border: 1px solid var(--line);
+            color: var(--paper);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            transition: all .12s ease;
+            position: relative;
+            line-height: 1;
+        }
+
+        .rail-btn:hover {
+            border-color: var(--blueprint);
+            color: #fff;
+        }
+
+        .rail-btn.active {
+            border-color: var(--good);
+            color: var(--good);
+            box-shadow: 0 0 14px rgba(124, 255, 178, .3);
+        }
+
+        .rail-btn .lbl {
+            font-size: 7px;
+            letter-spacing: 1px;
+            color: var(--graphite);
+        }
+
+        .rail-btn .dot {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--amber);
+            display: none;
+        }
+
+        .rail-btn.notify .dot {
+            display: block;
+        }
+
+        /* ---- combo vault meter ---- */
+        #vaultwrap {
+            position: absolute;
+            left: 12px;
+            bottom: 72px;
+            z-index: 16;
+            width: 160px;
+            display: none;
+        }
+
+        #vaultwrap.show {
+            display: block;
+        }
+
+        .vault-label {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            letter-spacing: 1.5px;
+            color: var(--graphite);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .vault-bar {
+            height: 10px;
+            background: var(--ink-3);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .vault-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--blueprint-d), var(--perfect2));
+            transition: width .15s ease;
+        }
+
+        .vault-btn {
+            margin-top: 5px;
+            width: 100%;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(255, 72, 210, .15);
+            color: var(--perfect2);
+            border: 1px solid rgba(255, 72, 210, .4);
+            border-radius: 7px;
+            padding: 5px;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all .12s;
+        }
+
+        .vault-btn:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        /* ---- charge meter overlay ---- */
+        #chargewrap {
+            position: absolute;
+            left: 50%;
+            bottom: 78px;
+            transform: translateX(-50%);
+            z-index: 16;
+            width: 200px;
+            display: none;
+            text-align: center;
+        }
+
+        #chargewrap.show {
+            display: block;
+        }
+
+        .charge-bar {
+            height: 8px;
+            background: var(--ink-3);
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .charge-fill {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, var(--amber), var(--perfect2));
+        }
+
+        .charge-x {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--amber);
+            margin-top: 2px;
+        }
+
+        /* ============ PANELS (shop / prestige / settings) ============ */
+        .panel {
+            position: absolute;
+            inset: 0;
+            z-index: 40;
+            display: none;
+            background: rgba(8, 11, 16, .72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .panel.open {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-card {
+            margin: auto;
+            width: min(680px, 95vw);
+            max-height: 88vh;
+            background: var(--ink-2);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+        }
+
+        .panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .panel-title {
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: -.3px;
+        }
+
+        .panel-title .sub {
+            display: block;
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--graphite);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .close-x {
+            background: none;
+            border: none;
+            color: var(--graphite);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px 8px;
+        }
+
+        .close-x:hover {
+            color: #fff;
+        }
+
+        .panel-body {
+            overflow-y: auto;
+            padding: 12px 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .shop-group-title {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--blueprint);
+            margin: 14px 4px 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .shop-group-title:first-child {
+            margin-top: 2px;
+        }
+
+        .up {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--ink-3);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 7px;
+            transition: border-color .12s;
+        }
+
+        .up.affordable {
+            border-color: rgba(76, 200, 255, .35);
+        }
+
+        .up-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .up-name {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .up-lvl {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--graphite);
+            background: var(--ink);
+            padding: 1px 6px;
+            border-radius: 5px;
+        }
+
+        .up-desc {
+            font-size: 11.5px;
+            color: var(--graphite);
+            margin-top: 2px;
+            line-height: 1.35;
+        }
+
+        .buy-btn {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 12px;
+            background: var(--ink);
+            color: var(--amber);
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 8px 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .12s;
+            min-width: 78px;
+            text-align: center;
+        }
+
+        .buy-btn.can {
+            background: rgba(255, 200, 87, .14);
+            border-color: var(--amber);
+            color: var(--gold);
+        }
+
+        .buy-btn.can:hover {
+            background: rgba(255, 200, 87, .24);
+        }
+
+        .buy-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        .buy-btn.max {
+            color: var(--good);
+            border-color: var(--good);
+            background: rgba(124, 255, 178, .1);
+        }
+
+        .toggle-pill {
+            font-size: 10px;
+            padding: 1px 7px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            color: var(--graphite);
+        }
+
+        .toggle-pill.on {
+            color: var(--good);
+            border-color: var(--good);
+        }
+
+        /* ===== radial skill tree ===== */
+        .panel-card-tree {
+            width: min(720px, 96vw);
+            height: 88vh;
+            max-height: 88vh;
+        }
+
+        .tree-bricks {
+            margin-left: auto;
+            margin-right: 14px;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--amber);
+            text-shadow: 0 0 12px rgba(255, 200, 87, .3);
+        }
+
+        .tree-stage {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #0e1626 0%, #080b12 70%);
+        }
+
+        #treeCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            cursor: grab;
+        }
+
+        #treeCanvas:active {
+            cursor: grabbing;
+        }
+
+        .tree-zoom {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .zbtn {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: rgba(17, 23, 34, .85);
+            border: 1px solid var(--line);
+            color: var(--paper);
+            font-size: 17px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zbtn:hover {
+            border-color: var(--blueprint);
+            color: #fff;
+        }
+
+        .tree-detail {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            background: rgba(13, 19, 30, .94);
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            padding: 11px 13px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: border-color .2s;
+        }
+
+        .tree-detail.lit {
+            border-color: var(--bc, var(--blueprint));
+            box-shadow: 0 0 18px color-mix(in srgb, var(--bc, var(--blueprint)) 20%, transparent);
+        }
+
+        .td-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 3px;
+        }
+
+        .td-name {
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--bc, #fff);
+        }
+
+        .td-lvl {
+            font-family: var(--font-mono);
+            font-size: 10px;
+            color: var(--graphite);
+            white-space: nowrap;
+        }
+
+        .td-desc {
+            font-size: 11.5px;
+            color: var(--graphite);
+            line-height: 1.4;
+            margin-bottom: 7px;
+            min-height: 28px;
+        }
+
+        .td-stat {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--bc, var(--blueprint));
+            margin-bottom: 9px;
+            min-height: 15px;
+        }
+
+        .td-stat .arrow {
+            color: var(--graphite);
+            margin: 0 4px;
+        }
+
+        .td-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .td-qty {
+            display: flex;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .td-qty button {
+            background: var(--ink);
+            color: var(--graphite);
+            border: none;
+            padding: 0 10px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .12s;
+        }
+
+        .td-qty button.on {
+            background: color-mix(in srgb, var(--bc, var(--blueprint)) 22%, var(--ink));
+            color: #fff;
+        }
+
+        .td-qty button:hover:not(.on) {
+            color: var(--paper);
+        }
+
+        .td-buy {
+            flex: 1;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 12.5px;
+            border-radius: 9px;
+            padding: 9px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid var(--line);
+            background: var(--ink);
+            color: var(--graphite);
+            transition: all .12s;
+        }
+
+        .td-buy.buy {
+            background: color-mix(in srgb, var(--bc, var(--blueprint)) 18%, var(--ink));
+            border-color: var(--bc, var(--blueprint));
+            color: #fff;
+        }
+
+        .td-buy.buy:hover {
+            filter: brightness(1.15);
+        }
+
+        .td-buy.wait {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .td-buy.done {
+            background: color-mix(in srgb, var(--good) 12%, var(--ink));
+            border-color: var(--good);
+            color: var(--good);
+            cursor: default;
+        }
+
+        .td-buy.locked {
+            opacity: .6;
+            cursor: not-allowed;
+            border-style: dashed;
+        }
+
+        @supports not (background:color-mix(in srgb,red,blue)) {
+            .td-buy.buy {
+                background: var(--ink-3);
+                border-color: var(--blueprint);
+                color: #fff;
+            }
+
+            .tree-detail.lit {
+                border-color: var(--blueprint);
+            }
+
+            .td-qty button.on {
+                background: var(--ink-3);
+                color: #fff;
+            }
+        }
+
+        /* prestige */
+        .prestige-hero {
+            text-align: center;
+            padding: 8px 0 16px;
+        }
+
+        .prestige-num {
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 44px;
+            color: var(--blueprint);
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(76, 200, 255, .4);
+        }
+
+        .prestige-sub {
+            font-size: 12px;
+            color: var(--graphite);
+            margin-top: 4px;
+        }
+
+        .demolish-btn {
+            display: block;
+            margin: 6px auto 4px;
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 15px;
+            background: linear-gradient(135deg, var(--danger), #b03030);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 28px;
+            cursor: pointer;
+            letter-spacing: .5px;
+            transition: transform .1s;
+        }
+
+        .demolish-btn:hover {
+            transform: scale(1.03);
+        }
+
+        .demolish-btn:disabled {
+            background: var(--ink-3);
+            color: var(--graphite);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .arch-branch {
+            margin-bottom: 16px;
+        }
+
+        .arch-bname {
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 2px;
+        }
+
+        .arch-bname.precision {
+            color: var(--perfect2);
+        }
+
+        .arch-bname.automation {
+            color: var(--graphite);
+        }
+
+        .arch-bname.skyline {
+            color: var(--blueprint);
+        }
+
+        .arch-bdesc {
+            font-size: 11px;
+            color: var(--graphite);
+            margin-bottom: 8px;
+        }
+
+        /* run-over modal */
+        #runover {
+            position: absolute;
+            inset: 0;
+            z-index: 50;
+            display: none;
+            background: rgba(8, 11, 16, .85);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #runover.open {
+            display: flex;
+        }
+
+        .ro-title {
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 34px;
+            color: var(--danger);
+            letter-spacing: 1px;
+            text-shadow: 0 0 30px rgba(255, 92, 92, .4);
+        }
+
+        .ro-sub {
+            font-size: 13px;
+            color: var(--graphite);
+            margin: 4px 0 22px;
+            letter-spacing: 1px;
+        }
+
+        .ro-keep {
+            font-size: 12px;
+            color: var(--good);
+            margin: 0 0 20px;
+            max-width: 340px;
+            text-align: center;
+            line-height: 1.5;
+            opacity: .9;
+        }
+
+        .ro-stats {
+            display: flex;
+            gap: 26px;
+            margin-bottom: 26px;
+        }
+
+        .ro-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .ro-stat .v {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--paper);
+        }
+
+        .ro-stat .l {
+            font-size: 10px;
+            letter-spacing: 1.5px;
+            color: var(--graphite);
+            text-transform: uppercase;
+        }
+
+        .rebuild-btn {
+            font-family: var(--font-disp);
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: .5px;
+            background: linear-gradient(135deg, var(--blueprint), var(--blueprint-d));
+            color: #04141d;
+            border: none;
+            border-radius: 14px;
+            padding: 14px 40px;
+            cursor: pointer;
+            transition: transform .1s;
+            box-shadow: 0 0 30px rgba(76, 200, 255, .35);
+        }
+
+        .rebuild-btn:hover {
+            transform: scale(1.04);
+        }
+
+        /* settings / save */
+        .set-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          

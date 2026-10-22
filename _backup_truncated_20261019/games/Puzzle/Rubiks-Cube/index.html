@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+    <meta name="description" content="Play Rubik's Cube online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="keywords" content="Rubik's Cube, 3D puzzle, cube simulator, Three.js, online game, puzzle game, speedcubing, timer">
+    <meta name="author" content="Claude Opus 4.6 prompted by Tobias Müller">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Play Rubik's Cube Online - Free Puzzle Game | AIGameHub">
+    <meta property="og:description" content="Play Rubik's Cube online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.gptgames.dev/games/rubiks_cube.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_264.webp">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Rubiks-Cube/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Rubiks-Cube/preview.png">
+    <meta name="twitter:title" content="Play Rubik's Cube Online - Free Puzzle Game | AIGameHub">
+    <meta name="twitter:description" content="Play Rubik's Cube online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_264.webp">
+    <link rel="canonical" href="https://suipce.com/games/Puzzle/Rubiks-Cube/">
+    <title>Play Rubik's Cube Online - Free Puzzle Game | AIGameHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{background:#0F0F0F;overflow:hidden;font-family:'Inter',sans-serif;color:#E5E5E5;touch-action:none;user-select:none;-webkit-user-select:none;width:100vw;height:100vh;position:relative}
+        canvas{display:block;width:100%;height:100%}
+        #ui-layer{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+        #timer-display{position:absolute;top:24px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-weight:600;font-size:32px;color:#E5E5E5;letter-spacing:1px;opacity:0;transition:opacity 0.2s}
+        #timer-display.visible{opacity:1}
+        #move-counter{position:absolute;top:64px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-weight:400;font-size:14px;color:#737373;opacity:0;transition:opacity 0.2s}
+        #move-counter.visible{opacity:1}
+        #prompt-text{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);font-size:15px;font-weight:400;color:#E5E5E5;white-space:nowrap;pointer-events:auto;cursor:pointer}
+        #difficulty-label{position:absolute;bottom:130px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:600;color:#6366F1;white-space:nowrap;letter-spacing:1px;opacity:0;transition:opacity 0.3s}
+        #difficulty-label.visible{opacity:1}
+        #pb-display{position:absolute;top:16px;right:16px;font-size:11px;color:#737373;opacity:0.3;transition:opacity 0.2s;text-align:right;line-height:1.7;pointer-events:auto;font-family:'JetBrains Mono',monospace}
+        #pb-display:hover{opacity:1}
+        #controls-bar{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto}
+        #controls-bar button{width:44px;height:44px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#E5E5E5;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;position:relative;font-family:'Inter',sans-serif}
+        #controls-bar button:hover{background:rgba(255,255,255,0.1)}
+        #controls-bar button:active{background:rgba(255,255,255,0.14)}
+        .tooltip{position:absolute;bottom:52px;left:50%;transform:translateX(-50%);font-size:11px;color:#E5E5E5;background:rgba(30,30,30,0.95);padding:4px 8px;border-radius:4px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.15s}
+        #controls-bar button:hover .tooltip{opacity:1}
+        #difficulty-btn{font-size:11px!important;font-weight:600;width:auto!important;padding:0 12px;letter-spacing:0.5px}
+        #stats-panel{position:absolute;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;transition:opacity 0.25s,transform 0.25s;text-align:center}
+        #stats-panel.visible{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+        .stats-grid{display:flex;gap:24px;justify-content:center;margin-bottom:8px;flex-wrap:wrap}
+        .stat{text-align:center}
+        .stat-value{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:20px;color:#E5E5E5}
+        .stat-value.pb{color:#10B981}
+        .stat-label{font-size:11px;color:#737373;margin-top:2px}
+        .stat-delta{font-size:11px;color:#10B981;margin-top:1px;font-family:'JetBrains Mono',monospace}
+        .stat-delta.miss{color:#737373}
+        .actions{display:flex;gap:8px;justify-content:center;margin-top:12px}
+        .actions button{padding:8px 20px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#E5E5E5;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;pointer-events:auto;width:auto!important;height:auto!important}
+        .actions button:hover{background:rgba(255,255,255,0.1)}
+        .actions button.primary{background:#6366F1;border-color:#6366F1}
+        .actions button.primary:hover{background:#5558E6}
+        #pause-overlay{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(15,15,15,0.85);display:none;align-items:center;justify-content:center;z-index:20;cursor:pointer;pointer-events:auto}
+        #pause-overlay.visible{display:flex}
+        #pause-overlay span{font-size:28px;font-weight:700;color:#E5E5E5}
+        #hint-overlay{position:absolute;top:50%;right:20px;transform:translateY(-50%);max-width:220px;padding:12px 16px;background:rgba(20,20,20,0.92);border:1px solid rgba(99,102,241,0.3);border-radius:8px;opacity:0;pointer-events:none;transition:opacity 0.2s;font-size:13px;line-height:1.5}
+        #hint-overlay.visible{opacity:1;pointer-events:auto}
+        .hint-stage{font-size:10px;color:#6366F1;letter-spacing:1px;font-weight:600;margin-bottom:4px}
+        .hint-text{color:#999;font-size:12px;margin-bottom:8px;line-height:1.5}
+        #hint-overlay button{padding:5px 12px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);border-radius:4px;color:#6366F1;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;width:auto!important;height:auto!important}
+        #scramble-info{position:absolute;top:16px;left:16px;font-size:11px;color:#737373;opacity:0;transition:opacity 0.3s;font-family:'JetBrains Mono',monospace}
+        #scramble-info.visible{opacity:0.5}
+        #streak-display{font-size:12px;color:#6366F1;margin-top:6px;font-weight:600;font-family:'JetBrains Mono',monospace}
+        @media(max-width:600px){
+            #timer-display{font-size:26px;top:16px}
+            #move-counter{top:50px;font-size:12px}
+            #controls-bar{bottom:16px;gap:6px}
+            #stats-panel{bottom:72px}
+            .stats-grid{gap:14px}
+            .stat-value{font-size:17px}
+            #hint-overlay{right:10px;max-width:180px}
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Rubik's Cube","item":"https://suipce.com/games/Puzzle/Rubiks-Cube/"}]}</script>
+</head>
+<body>
+<div id="ui-layer">
+    <div id="timer-display">00:00.00</div>
+    <div id="move-counter">0 moves</div>
+    <div id="scramble-info"></div>
+    <div id="difficulty-label"></div>
+    <div id="prompt-text">Click to scramble</div>
+    <div id="pb-display"></div>
+    <div id="controls-bar">
+        <button id="undo-btn">↩<span class="tooltip">Undo · Ctrl+Z</span></button>
+        <button id="hint-btn">?<span class="tooltip">Hint · H</span></button>
+        <button id="reset-btn">⟲<span class="tooltip">Hold 1s to reset</span></button>
+        <button id="difficulty-btn">EASY<span class="tooltip">Difficulty · Tab</span></button>
+        <button id="mute-btn">♪<span class="tooltip">Mute · M</span></button>
+    </div>
+    <div id="stats-panel">
+        <div class="stats-grid">
+            <div class="stat"><div class="stat-value" id="stat-time">--</div><div class="stat-label">Time</div><div class="stat-delta" id="stat-time-delta"></div></div>
+            <div class="stat"><div class="stat-value" id="stat-moves">--</div><div class="stat-label">Moves</div><div class="stat-delta" id="stat-moves-delta"></div></div>
+            <div class="stat"><div class="stat-value" id="stat-eff">--</div><div class="stat-label">Efficiency</div></div>
+            <div class="stat"><div class="stat-value" id="stat-tps">--</div><div class="stat-label">TPS</div></div>
+            <div class="stat"><div class="stat-value" id="stat-hints">--</div><div class="stat-label">Hints</div></div>
+        </div>
+        <div id="streak-display"></div>
+        <div class="actions">
+            <button class="primary" id="same-btn">Same Difficulty</button>
+            <button id="next-btn">Next Difficulty</button>
+        </div>
+    </div>
+    <div id="pause-overlay"><span>Paused — click to resume</span></div>
+    <div id="hint-overlay">
+        <div class="hint-stage" id="hint-stage"></div>
+        <div class="hint-text" id="hint-text"></div>
+        <button id="hint-dismiss-btn">Got it</button>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+    (function(){'use strict';
+
+        const COLORS={R:0xE63946,L:0xFF6B35,U:0xFFFFFF,D:0xFFD500,F:0x1D4ED8,B:0x16A34A};
+        const FACES=['U','D','R','L','F','B'];
+        const AXES={U:'y',D:'y',R:'x',L:'x',F:'z',B:'z'};
+        const LAYERS={U:1,D:-1,R:1,L:-1,F:1,B:-1};
+        const CW_SIGN={U:-1,D:1,R:-1,L:1,F:-1,B:1};
+        const DIFFICULTY_CFG={EASY:{label:'EASY',min:5,max:8,desc:'5–8 moves'},MEDIUM:{label:'MED',min:12,max:15,desc:'12–15 moves'},HARD:{label:'HARD',min:20,max:25,desc:'20–25 moves'}};
+        const DIFF_ORDER=['EASY','MEDIUM','HARD'];
+        const SNAP_THRESHOLD=0.4;
+        const COMMIT_MS=120;
+        const REVERT_MS=90;
+        const CUBIE_SIZE=0.92;
+        const GAP=1.0;
+        const STICKER_INSET=0.82;
+        const CAM_DEFAULT_DIST=7.5;
+        const CAM_DEFAULT_THETA=Math.PI*0.22;
+        const CAM_DEFAULT_PHI=Math.PI*0.18;
+
+// State
+        const state={
+            phase:'ready',
+            moveCount:0,moveHistory:[],hintsUsed:0,streak:0,
+            timer:{start:0,elapsed:0,running:false},
+            scramble:{sequence:[],difficulty:'EASY',moveCount:0},
+            momentum:{value:0,lastMoveTime:0},
+            settings:{muted:false,difficulty:'EASY'},
+            pb:{EASY:{time:Infinity,moves:Infinity},MEDIUM:{time:Infinity,moves:Infinity},HARD:{time:Infinity,moves:Infinity}},
+            idleRotating:true,
+            cameraTransition:null,
+        };
+
+        try{const s=JSON.parse(localStorage.getItem('rubiks_v3'));if(s){if(s.muted!==undefined)state.settings.muted=s.muted;if(s.difficulty)state.settings.difficulty=s.difficulty;if(s.pb)for(const d of DIFF_ORDER)if(s.pb[d])state.pb[d]=s.pb[d];}}catch(e){}
+        function saveLS(){try{localStorage.setItem('rubiks_v3',JSON.stringify({muted:state.settings.muted,difficulty:state.settings.difficulty,pb:state.pb}));}catch(e){}}
+
+// Audio
+        let audioCtx=null;
+        function aud(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+
+        function playClick(vol=0.08,freq=800){
+            if(state.settings.muted)return;
+            const c=aud(),t=c.currentTime;
+            const bs=Math.floor(c.sampleRate*0.003),buf=c.createBuffer(1,bs,c.sampleRate),d=buf.getChannelData(0);
+            for(let i=0;i<bs;i++)d[i]=Math.random()*2-1;
+            const n=c.createBufferSource();n.buffer=buf;
+            const ng=c.createGain();ng.gain.setValueAtTime(vol,t);ng.gain.exponentialRampToValueAtTime(0.001,t+0.012);
+            n.connect(ng).connect(c.destination);n.start(t);
+            const o=c.createOscillator();o.type='sine';o.frequency.value=freq;
+            const og=c.createGain();og.gain.setValueAtTime(vol*0.5,t);og.gain.exponentialRampToValueAtTime(0.001,t+0.008);
+            o.connect(og).connect(c.destination);o.start(t);o.stop(t+0.015);
+        }
+        function playUndo(){
+            if(state.settings.muted)return;
+            const c=aud(),t=c.currentTime;
+            const o=c.createOscillator();o.type='sine';o.frequency.value=500;
+            const g=c.createGain();g.gain.setValueAtTime(0.04,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.02);
+            o.connect(g).connect(c.destination);o.start(t);o.stop(t+0.025);
+        }
+        function playSolve(){
+            if(state.settings.muted)return;
+            const c=aud(),t=c.currentTime;
+            [523.25,659.25,783.99,1046.5].forEach((f,i)=>{
+                const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+                const g=c.createGain();const s=t+i*0.07;
+                g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(0.1,s+0.01);g.gain.exponentialRampToValueAtTime(0.001,s+0.3);
+                o.connect(g).connect(c.destination);o.start(s);o.stop(s+0.35);
+            });
+        }
+        function playPB(){
+            if(state.settings.muted)return;
+            setTimeout(()=>{
+                const c=aud(),t=c.currentTime;
+                [783.99,987.77].forEach(f=>{
+                    const o=c.createOscillator();o.type='triangle';o.frequency.value=f;
+                    const g=c.createGain();g.gain.setValueAtTime(0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+                    o.connect(g).connect(c.destination);o.start(t);o.stop(t+0.3);
+                });
+            },500);
+        }
+        function playHintSound(){
+            if(state.settings.muted)return;
+            const c=aud(),t=c.currentTime;
+            [659.25,523.25].forEach((f,i)=>{
+                const o=c.createOscillator();o.type='sine';o.frequency.value=f;
+                const g=c.createGain();g.gain.setValueAtTime(0.05,t+i*0.07);g.gain.exponentialRampToValueAtTime(0.001,t+i*0.07+0.1);
+                o.connect(g).connect(c.destination);o.start(t+i*0.07);o.stop(t+i*0.07+0.12);
+            });
+        }
+
+// Three.js setup
+        const scene=new THREE.Scene();
+        const camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,100);
+        const renderer=new THREE.WebGLRenderer({antialias:true});
+        renderer.setSize(window.innerWidth,window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+        renderer.setClearColor(0x0F0F0F);
+        renderer.shadowMap.enabled=true;
+        renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+        document.body.prepend(renderer.domElement);
+
+        const ambientLight=new THREE.AmbientLight(0xB0B0C0,0.5);
+        scene.add(ambientLight);
+        const dirLight=new THREE.DirectionalLight(0xffffff,0.85);
+        dirLight.position.set(-4,6,5);dirLight.castShadow=true;
+        dirLight.shadow.mapSize.set(1024,1024);dirLight.shadow.camera.near=1;dirLight.shadow.camera.far=20;
+        dirLight.shadow.camera.left=-4;dirLight.shadow.camera.right=4;dirLight.shadow.camera.top=4;dirLight.shadow.camera.bottom=-4;
+        dirLight.shadow.radius=5;scene.add(dirLight);
+
+        const ground=new THREE.Mesh(new THREE.PlaneGeometry(20,20),new THREE.ShadowMaterial({opacity:0.12}));
+        ground.rotation.x=-Math.PI/2;ground.position.y=-2.8;ground.receiveShadow=true;scene.add(ground);
+
+        let camDist=CAM_DEFAULT_DIST,camTheta=CAM_DEFAULT_THETA,camPhi=CAM_DEFAULT_PHI;
+        let orbitVelTheta=0,orbitVelPhi=0;
+        function updateCamera(){
+            camera.position.set(camDist*Math.cos(camPhi)*Math.sin(camTheta),camDist*Math.sin(camPhi),camDist*Math.cos(camPhi)*Math.cos(camTheta));
+            camera.lookAt(0,0,0);
+        }
+        updateCamera();
+
+// Cube
+        const cubeGroup=new THREE.Group();scene.add(cubeGroup);
+        const allCubies=[];
+        const allStickerMeshes=[];
+        const allStickerMaterials=[];
+
+        function buildCube(){
+            while(cubeGroup.children.length)cubeGroup.remove(cubeGroup.children[0]);
+            allCubies.length=0;allStickerMeshes.length=0;allStickerMaterials.length=0;
+            const stickerGeo=new THREE.PlaneGeometry(CUBIE_SIZE*STICKER_INSET,CUBIE_SIZE*STICKER_INSET);
+            const bodyGeo=new THREE.BoxGeometry(CUBIE_SIZE,CUBIE_SIZE,CUBIE_SIZE);
+            const bodyMat=new THREE.MeshStandardMaterial({color:0x1A1A1A,roughness:0.85});
+            for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++){
+                if(x===0&&y===0&&z===0)continue;
+                const mesh=new THREE.Group();mesh.position.set(x*GAP,y*GAP,z*GAP);
+                const body=new THREE.Mesh(bodyGeo,bodyMat);body.castShadow=true;mesh.add(body);
+                const cubie={mesh,pos:{x,y,z},stickers:[]};
+                const off=CUBIE_SIZE/2+0.005;
+                const configs=[
+                    {face:'R',cond:x===1,px:off,py:0,pz:0,rx:0,ry:Math.PI/2,rz:0},
+                    {face:'L',cond:x===-1,px:-off,py:0,pz:0,rx:0,ry:-Math.PI/2,rz:0},
+                    {face:'U',cond:y===1,px:0,py:off,pz:0,rx:-Math.PI/2,ry:0,rz:0},
+                    {face:'D',cond:y===-1,px:0,py:-off,pz:0,rx:Math.PI/2,ry:0,rz:0},
+                    {face:'F',cond:z===1,px:0,py:0,pz:off,rx:0,ry:0,rz:0},
+                    {face:'B',cond:z===-1,px:0,py:0,pz:-off,rx:0,ry:Math.PI,rz:0},
+                ];
+                configs.forEach(c=>{
+                    if(!c.cond)return;
+                    const mat=new THREE.MeshStandardMaterial({color:COLORS[c.face],roughness:0.55,metalness:0.02,emissive:0x000000,emissiveIntensity:0});
+                    const sm=new THREE.Mesh(stickerGeo,mat);
+                    sm.position.set(c.px,c.py,c.pz);sm.rotation.set(c.rx,c.ry,c.rz);
+                    sm.userData={cubie,face:c.face};
+                    mesh.add(sm);
+                    cubie.stickers.push({mesh:sm,localFace:c.face});
+                    allStickerMeshes.push(sm);
+                    allStickerMaterials.push(mat);
+                });
+                cubeGroup.add(mesh);allCubies.push(cubie);
+            }
+        }
+        buildCube();
+
+// Pivot
+        const pivot=new THREE.Group();scene.add(pivot);
+        let rotationBusy=false;
+
+        function getCubiesForFace(face){return allCubies.filter(c=>c.pos[AXES[face]]===LAYERS[face]);}
+        function getCubiesForLayer(axis,val){return allCubies.filter(c=>c.pos[axis]===val);}
+
+        function attachToPivot(list){
+            pivot.rotation.set(0,0,0);pivot.updateMatrixWorld(true);
+            list.forEach(c=>{cubeGroup.remove(c.mesh);pivot.add(c.mesh);});
+        }
+        function detachFromPivot(list){
+            pivot.updateMatrixWorld(true);
+            list.forEach(c=>{
+                const wp=new THREE.Vector3();c.mesh.getWorldPosition(wp);
+                const wq=new THREE.Quaternion();c.mesh.getWorldQuaternion(wq);
+                pivot.remove(c.mesh);cubeGroup.add(c.mesh);
+                c.mesh.position.copy(wp);c.mesh.quaternion.copy(wq);
+                c.pos.x=Math.round(wp.x/GAP);c.pos.y=Math.round(wp.y/GAP);c.pos.z=Math.round(wp.z/GAP);
+                c.mesh.position.set(c.pos.x*GAP,c.pos.y*GAP,c.pos.z*GAP);
+            });
+            pivot.rotation.set(0,0,0);
+        }
+        function setPivotAngle(axis,angle){
+            pivot.rotation.set(0,0,0);
+            if(axis==='x')pivot.rotation.x=angle;
+            else if(axis==='y')pivot.rotation.y=angle;
+            else pivot.rotation.z=angle;
+        }
+        function applyMoveInstant(face,dir){
+            const cubieList=getCubiesForFace(face);
+            const axis=AXES[face];const angle=CW_SIGN[face]*dir*Math.PI/2;
+            attachToPivot(cubieList);setPivotAngle(axis,angle);detachFromPivot(cubieList);
+        }
+
+// Animation queue
+        const animQueue=[];
+        let currentAnim=null;
+        function enqueue(anim){animQueue.push(anim);}
+        function tickAnimations(dt){
+            if(currentAnim){
+                currentAnim.elapsed+=dt;
+                const t=Math.min(currentAnim.elapsed/currentAnim.duration,1);
+                currentAnim.update(t);
+                if(t>=1){if(currentAnim.complete)currentAnim.complete();currentAnim=null;}
+            }
+            if(!currentAnim&&animQueue.length>0){
+                currentAnim=animQueue.shift();currentAnim.elapsed=0;
+                if(currentAnim.start)currentAnim.start();
+            }
+        }
+        function isAnimBusy(){return currentAnim!==null||animQueue.length>0;}
+
+// Sticker flash system
+        const flashingStickers=[];
+        function flashStickers(face,intensity=0.3){
+            const cubieList=getCubiesForFace(face);
+            cubieList.forEach(c=>{
+                c.stickers.forEach(s=>{
+                    const sn=new THREE.Vector3(0,0,1);
+                    sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                    const fn=faceNormal(face);
+                    if(sn.dot(fn)>0.9){
+                        const entry={mat:s.mesh.material,intensity,elapsed:0,duration:0.15};
+                        s.mesh.material.emissiveIntensity=intensity;
+                        s.mesh.material.emissive.setHex(s.mesh.material.color.getHex());
+                        flashingStickers.push(entry);
+                    }
+                });
+            });
+        }
+        function tickFlashes(dt){
+            for(let i=flashingStickers.length-1;i>=0;i--){
+                const f=flashingStickers[i];
+                f.elapsed+=dt;
+                const t=Math.min(f.elapsed/f.duration,1);
+                const eased=1-Math.pow(1-t,3);
+                // lerp toward momentum baseline
+                const baseEmissive=state.momentum.value*0.06;
+                f.mat.emissiveIntensity=f.intensity*(1-eased)+baseEmissive*eased;
+                if(t>=1)flashingStickers.splice(i,1);
+            }
+        }
+
+// Cube bounce/shrink
+        let cubeScaleTarget=1,cubeScaleCurrent=1,cubeScalePhase=0,cubeScalePeak=1,cubeScaleTime=0,cubeScaleDurUp=0,cubeScaleDurDown=0;
+        function triggerBounce(peak=1.008,upMs=40,downMs=100){
+            cubeScalePeak=peak;cubeScalePhase=1;cubeScaleTime=0;cubeScaleDurUp=upMs/1000;cubeScaleDurDown=downMs/1000;
+        }
+        function tickCubeScale(dt){
+            if(cubeScalePhase===1){
+                cubeScaleTime+=dt;
+                const t=Math.min(cubeScaleTime/cubeScaleDurUp,1);
+                cubeScaleCurrent=1+(cubeScalePeak-1)*t;
+                if(t>=1){cubeScalePhase=2;cubeScaleTime=0;}
+            }else if(cubeScalePhase===2){
+                cubeScaleTime+=dt;
+                const t=Math.min(cubeScaleTime/cubeScaleDurDown,1);
+                const eased=1-Math.pow(1-t,3);
+                cubeScaleCurrent=cubeScalePeak+(1-cubeScalePeak)*eased;
+                if(t>=1){cubeScalePhase=0;cubeScaleCurrent=1;}
+            }
+            cubeGroup.scale.setScalar(cubeScaleCurrent);
+        }
+
+// Magnetic snap easing: cubic ease-out with acceleration in last 10%
+        function magneticEase(t){
+            if(t<0.9){return 1-Math.pow(1-t,3);}
+            const base=1-Math.pow(0.1,3);// value at t=0.9
+            const localT=(t-0.9)/0.1;
+            // steeper curve in last 10%: quadratic ease-in
+            return base+(1-base)*(localT*localT);
+        }
+
+        function animateMove(face,dir,duration,onDone,clickVol,clickFreq){
+            const axis=AXES[face];const targetAngle=CW_SIGN[face]*dir*Math.PI/2;
+            let cubieList;
+            enqueue({elapsed:0,duration:duration/1000,
+                start(){cubieList=getCubiesForFace(face);attachToPivot(cubieList);},
+                update(t){const e=magneticEase(t);setPivotAngle(axis,targetAngle*e);},
+                complete(){
+                    setPivotAngle(axis,targetAngle);detachFromPivot(cubieList);
+                    playClick(clickVol!==undefined?clickVol:0.08,clickFreq||800);
+                    if(onDone)onDone();
+                }
+            });
+        }
+        function parseMove(m){
+            const face=m[0];let dir=1,count=1;
+            if(m.includes("'")||m.includes('\u2019'))dir=-1;
+            if(m.includes('2'))count=2;
+            return{face,dir,count};
+        }
+        function invertNotation(m){
+            if(m.includes('2'))return m;
+            if(m.includes("'")||m.includes('\u2019'))return m[0];
+            return m[0]+"'";
+        }
+        function executeMoveAnimated(notation,duration,onDone,vol,freq){
+            const{face,dir,count}=parseMove(notation);
+            for(let i=0;i<count;i++)animateMove(face,dir,duration,i===count-1?onDone:null,vol,freq);
+        }
+        function executeMoveInstant(notation){
+            const{face,dir,count}=parseMove(notation);
+            for(let i=0;i<count;i++)applyMoveInstant(face,dir);
+        }
+
+// Solve detection
+        function isSolved(){
+            for(const face of FACES){
+                const normal=faceNormal(face);
+                const ax=AXES[face],val=LAYERS[face];
+                const faceCubies=allCubies.filter(c=>c.pos[ax]===val);
+                let faceColor=null;
+                for(const cubie of faceCubies){
+                    for(const s of cubie.stickers){
+                        const sn=new THREE.Vector3(0,0,1);
+                        sn.applyQuaternion(s.mesh.getWorldQuaternion(new THREE.Quaternion()));
+                        if(sn.dot(normal)>0.9){
+                            const col=s.mesh.material.color.getHex();
+                            if(faceColor===null)faceColor=col;
+                            else if(col!==faceColor)return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+// Scramble
+        function genScramble(difficulty){
+            const cfg=DIFFICULTY_CFG[difficulty];
+            const n=cfg.min+Math.floor(Math.random()*(cfg.max-cfg.min+1));
+            const faces=['U','D','R','L','F','B'];
+            const moves=[];let last='',last2='';
+            for(let i=0;i<n;i++){
+                let avail=faces.filter(f=>f!==last);
+                if(last&&last2&&AXES[last]===AXES[last2])avail=avail.filter(f=>AXES[f]!==AXES[last]);
+                const face=avail[Math.floor(Math.random()*avail.length)];
+                const suf=["","'","2"][Math.floor(Math.random()*3)];
+                moves.push(face+suf);last2=last;last=face;
+            }
+            return moves;
+        }
+
+// Input
+        const raycaster=new THREE.Raycaster();
+        let inputState='idle';
+        let dragInfo=null;
+        let orbitLast={x:0,y:0};
+        let activeDragCubies=null,activeDragAxis=null,activeDragAngleSign=1,activeDragLayerFace=null;
+        let dragAngle=0,hasDragDirection=false;
+        let lastClickTime=0,lastClickPos={x:0,y:0};
+        const dragPlane = new THREE.Plane();
+        let dragStartWorld = new THREE.Vector3();
+        let dragFaceNormalDir = new THREE.Vector3();
+
+        function screenToNDC(sx,sy){return new THREE.Vector2(sx/window.innerWidth*2-1,-(sy/window.innerHeight*2-1));}
+        function castSticker(sx,sy){
+            raycaster.setFromCamera(screenToNDC(sx,sy),camera);
+            const hits=raycaster.intersectObjects(allStickerMeshes);
+            return hits.length>0?hits[0]:null;
+        }
+        function faceNormal(f){
+            if(f==='R')return new THREE.Vector3(1,0,0);if(f==='L')return new THREE.Vector3(-1,0,0);
+            if(f==='U')return new THREE.Vector3(0,1,0);if(f==='D')return new THREE.Vector3(0,-1,0);
+            if(f==='F')return new THREE.Vector3(0,0,1);return new THREE.Vector3(0,0,-1);
+        }
+        function hitToFace(hit){
+            const sn=hit.face.normal.clone();sn.transformDirection(hit.object.matrixWorld);
+            let best=null,bestD=-1;
+            for(const f of FACES){const fn=faceNormal(f);const d=sn.dot(fn);if(d>bestD){bestD=d;best=f;}}
+            return best;
+        }
+        function faceTangents(face){
+            const ax=AXES[face];
+            if(ax==='x')return['y','z'];if(ax==='y')return['x','z'];return['x','y'];
+        }
+        function axisToScreen(axis){
+            const o=new THREE.Vector3(0,0,0).project(camera);
+            const v=new THREE.Vector3(axis==='x'?1:0,axis==='y'?1:0,axis==='z'?1:0).project(camera);
+            const dx=(v.x-o.x)*window.innerWidth/2;const dy=-(v.y-o.y)*window.innerHeight/2;
+            const len=Math.sqrt(dx*dx+dy*dy)||1;
+            return{x:dx/len,y:dy/len};
+        }
+        function determineDragRotation(face, cubie, screenDx, screenDy) {
+            const tangents = faceTangents(face);
+            const s0 = axisToScreen(tangents[0]);
+            const s1 = axisToScreen(tangents[1]);
+
+            const proj0 = screenDx * s0.x + screenDy * s0.y;
+            const proj1 = screenDx * s1.x + screenDy * s1.y;
+
+            let dragTang

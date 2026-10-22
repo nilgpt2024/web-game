@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Play Duck Hunt '26 Online - Free Arcade Game | AIGameHub</title>
+    <meta name="description"
+          content="Play Duck Hunt '26 online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="keywords"
+          content="duck hunt, browser game, retro game, arcade shooter, free online game, chiptune, pixel art, HTML5 game, AI game, gptgames">
+    <meta name="author" content="GPTGames.dev">
+    <meta name="theme-color" content="#0a0a14">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Duck-Hunt/">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GPTGames">
+    <meta property="og:title" content="Play Duck Hunt '26 Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description"
+          content="Play Duck Hunt '26 online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta property="og:url" content="https://www.gptgames.dev/games/duck_hunt.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_51.webp">
+    <!-- Twitter -->
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Duck-Hunt/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Duck-Hunt/preview.png">
+    <meta name="twitter:title" content="Play Duck Hunt '26 Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description"
+          content="Play Duck Hunt '26 online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_51.webp">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Duck Hunt '26","url":"https://www.gptgames.dev/games/duck_hunt.html","image":"https://www.gptgames.dev/screenshots/screenshot_51.webp","description":"A free retro arcade shooter played in the browser. Shoot ducks with limited shells, chain combos, collect power-ups and defeat the Boss Goose while the sky shifts from day to dusk.","genre":["Arcade","Shooter","Retro"],"gamePlatform":["Web Browser","Mobile Web"],"playMode":"SinglePlayer","applicationCategory":"Game","operatingSystem":"Any","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"GPTGames","url":"https://www.gptgames.dev"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦆</text></svg>">
+    <style>
+        @font-face {
+            font-family: 'px';
+            src: local('Courier New');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: #0a0a14;
+        }
+
+        #wrap {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #frame {
+            position: relative;
+            box-shadow: 0 0 0 6px #1a1a2e, 0 0 60px rgba(0, 0, 0, .8), inset 0 0 80px rgba(0, 0, 0, .35);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            cursor: none;
+        }
+
+        /* CRT overlay */
+        #crt {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            border-radius: 10px;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .14) 0px, rgba(0, 0, 0, .14) 1px, transparent 1px, transparent 3px);
+            mix-blend-mode: multiply;
+        }
+
+        #vignette {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            z-index: 6;
+            border-radius: 10px;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 10, .45) 100%);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #crt {
+                display: none;
+            }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Duck Hunt '26","item":"https://suipce.com/games/Arcade/Duck-Hunt/"}]}</script>
+</head>
+<body>
+<div id="wrap">
+    <div id="frame">
+        <canvas id="game"></canvas>
+        <div id="crt"></div>
+        <div id="vignette"></div>
+    </div>
+</div>
+<script>
+    "use strict";
+    /* ============================================================
+     DUCK HUNT '26 — a love letter to the NES Zapper.
+     Everything procedural: pixel art painted in code,
+     sound synthesized with WebAudio. Zero assets.
+     ============================================================ */
+
+    const W = 480, H = 300, SCALE_PAD = 0;
+    const cv = document.getElementById('game');
+    const cx = cv.getContext('2d');
+    cv.width = W;
+    cv.height = H;
+
+    function fit() {
+        const s = Math.min(innerWidth / W, innerHeight / H) * 0.96;
+        cv.style.width = (W * s) + 'px';
+        cv.style.height = (H * s) + 'px';
+    }
+
+    addEventListener('resize', fit);
+    fit();
+
+    /* ---------------- Audio: tiny NES-ish synth ---------------- */
+    let AC = null;
+
+    function ac() {
+        if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+        if (AC.state === 'suspended') AC.resume();
+        return AC;
+    }
+
+    function env(g, t, a, d, peak = 0.25) {
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(peak, t + a);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + a + d);
+    }
+
+    function blip(freq, type = 'square', a = 0.005, d = 0.12, peak = 0.2, slideTo = null, dur = null) {
+        const A = ac(), t = A.currentTime;
+        const o = A.createOscillator(), g = A.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, t);
+        if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + (dur || a + d));
+        env(g, t, a, d, peak);
+        o.connect(g).connect(A.destination);
+        o.start(t);
+        o.stop(t + a + d + 0.05);
+    }
+
+    function noise(d = 0.15, peak = 0.3, hp = 800) {
+        const A = ac(), t = A.currentTime;
+        const len = A.sampleRate * d, buf = A.createBuffer(1, len, A.sampleRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
+        const src = A.createBufferSource();
+        src.buffer = buf;
+        const f = A.createBiquadFilter();
+        f.type = 'highpass';
+        f.frequency.value = hp;
+        const g = A.createGain();
+        g.gain.value = peak;
+        src.connect(f).connect(g).connect(A.destination);
+        src.start(t);
+    }
+
+    const SFX = {
+        shot() {
+            noise(0.18, 0.35, 600);
+            blip(180, 'square', 0.002, 0.08, 0.18, 60, 0.09);
+        },
+        empty() {
+            blip(140, 'square', 0.002, 0.05, 0.12);
+        },
+        quack() {
+            blip(340, 'square', 0.01, 0.09, 0.14, 220, 0.1);
+        },
+        hit() {
+            blip(880, 'square', 0.002, 0.06, 0.18);
+            setTimeout(() => blip(1320, 'square', 0.002, 0.08, 0.16), 60);
+        },
+        fall() {
+            blip(1400, 'triangle', 0.01, 0.7, 0.12, 200, 0.7);
+        },
+        thud() {
+            noise(0.08, 0.25, 100);
+            blip(70, 'triangle', 0.002, 0.1, 0.2);
+        },
+        flyoff() {
+            blip(500, 'square', 0.01, 0.25, 0.1, 900, 0.25);
+        },
+        laugh() {
+            [420, 500, 420, 500, 420].forEach((f, i) => setTimeout(() => blip(f, 'square', 0.005, 0.08, 0.12), i * 110));
+        },
+        round() {
+            [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => blip(f, 'square', 0.004, 0.12, 0.15), i * 100));
+        },
+        perfect() {
+            [784, 988, 1175, 1568, 1976].forEach((f, i) => setTimeout(() => blip(f, 'square', 0.004, 0.14, 0.15), i * 80));
+        },
+        over() {
+            [392, 330, 262, 196].forEach((f, i) => setTimeout(() => blip(f, 'triangle', 0.005, 0.25, 0.16), i * 180));
+        },
+        honk() {
+            blip(190, 'sawtooth', 0.01, 0.22, 0.16, 150, 0.22);
+        },
+        power() {
+            [660, 880, 1320].forEach((f, i) => setTimeout(() => blip(f, 'square', 0.003, 0.09, 0.14), i * 60));
+        },
+        bossdie() {
+            [1046, 880, 1046, 1318, 1568].forEach((f, i) => setTimeout(() => blip(f, 'square', 0.004, 0.13, 0.16), i * 90));
+            noise(0.4, 0.25, 300);
+        },
+    };
+
+    /* ---------------- Music: 4-layer chiptune engine ----------------
+     Layers: LEAD (square w/ vibrato), HARM (arpeggiated square),
+             BASS (triangle), DRUMS (noise hat/snare + pitch-drop kick).
+     Pattern data is 16th-note steps; '.' = rest, '-' = tie/sustain.  */
+    const NOTE = (() => { // name -> freq
+        const N = {}, names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        for (let o = 1; o <= 7; o++) names.forEach((n, i) => N[n + o] = 440 * Math.pow(2, (o * 12 + i - 57) / 12));
+        return N;
+    })();
+
+    // --- The tune: "Open Season" — bouncy hunting romp, A(4 bars) + B(4 bars)
+    // 16 steps per bar. Uppercase entries are note names; null = rest; '-' = hold.
+    const q = '-';
+    const LEAD_A = [
+        'E5', q, 'G5', q, 'C6', q, 'G5', q, 'A5', q, 'G5', 'E5', q, 'D5', 'E5', q,
+        'F5', q, 'A5', q, 'C6', q, 'A5', q, 'B5', 'A5', 'G5', q, 'E5', q, null, null,
+        'E5', q, 'G5', q, 'C6', q, 'D6', q, 'E6', q, 'D6', 'C6', q, 'B5', 'C6', q,
+        'D6', 'C6', 'B5', 'A5', 'G5', q, 'E5', q, 'G5', q, q, q, null, null, null, null];
+    const LEAD_B = [
+        'C6', q, q, 'B5', 'C6', q, 'E6', q, 'D6', q, 'C6', 'B5', q, 'A5', q, null,
+        'A5', q, q, 'G5', 'A5', q, 'C6', q, 'B5', q, 'A5', 'G5', q, 'E5', q, null,
+        'F5', 'G5', 'A5', q, 'C6', q, 'A5', q, 'D6', q, 'C6', 'B5', q, 'C6', q, null,
+        'E6', q, 'D6', q, 'C6', q, 'G5', q, 'C6', q, q, q, q, q, null, null];
+    const HARM_A = [ // offbeat arps (root-5th-oct stabs)
+        null, 'C4', null, 'E4', null, 'G4', null, 'E4', null, 'C4', null, 'E4', null, 'G4', null, 'E4',
+        null, 'F4', null, 'A4', null, 'C5', null, 'A4', null, 'G4', null, 'B4', null, 'D5', null, 'B4',
+        null, 'C4', null, 'E4', null, 'G4', null, 'E4', null, 'A4', null, 'C5', null, 'E5', null, 'C5',
+        null, 'F4', null, 'A4', null, 'G4', null, 'B4', null, 'C5', null, 'E5', null, 'G5', null, null];
+    const HARM_B = [
+        null, 'A4', null, 'C5', null, 'E5', null, 'C5', null, 'A4', null, 'C5', null, 'E5', null, 'C5',
+        null, 'F4', null, 'A4', null, 'C5', null, 'A4', null, 'E4', null, 'G4', null, 'B4', null, 'G4',
+        null, 'F4', null, 'A4', null, 'D5', null, 'A4', null, 'G4', null, 'B4', null, 'D5', null, 'B4',
+        null, 'G4', null, 'B4', null, 'D5', null, 'B4', null, 'C5', null, 'E5', null, 'G5', null, null];
+    const BASS_A = [
+        'C3', q, q, q, 'C3', q, 'G2', q, 'C3', q, q, q, 'E3', q, 'G3', q,
+        'F2', q, q, q, 'F3', q, 'F2', q, 'G2', q, q, q, 'G3', q, 'B2', q,
+        'C3', q, q, q, 'C3', q, 'G2', q, 'A2', q, q, q, 'A3', q, 'E3', q,
+        'F2', q, 'F3', q, 'G2', q, 'G3', q, 'C3', q, 'G2', q, 'E2', q, 'C2', q];
+    const BASS_B = [
+        'A2', q, q, q, 'A2', q, 'E3', q, 'A2', q, q, q, 'C3', q, 'E3', q,
+        'F2', q, q, q, 'F3', q, 'C3', q, 'E2', q, q, q, 'E3', q, 'B2', q,
+        'D3', q, q, q, 'D3', q, 'A2', q, 'G2', q, q, q, 'G3', q, 'D3', q,
+        'G2', q, 'G3', q, 'B2', q, 'D3', q, 'C3', q, 'E3', q, 'G3', q, 'C3', q];
+    // drums: k=kick, s=snare, h=hat, H=open hat
+    const DRUM_A = 'k.h.s.hhk.h.s.hHk.h.s.hhk.hks.hH'.repeat(2).split('');
+    const DRUM_B = 'k.h.s.hhkkh.s.hHk.h.s.hhk.hks.sH'.repeat(2).split('');
+
+    const music = {
+        on: false, step: 0, section: 0, next: 0, bpm: 172, master: null, full: false,
+        gain(A) {
+            if (!this.master) {
+                this.master = A.createGain();
+                this.master.gain.value = 0.5;
+                this.master.connect(A.destination);
+            }
+            return this.master;
+        },
+    };
+
+    function mTone(A, when, freq, dur, type, vol, opts = {}) {
+        const o = A.createOscillator(), g = A.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, when);
+        if (opts.vibrato) {
+            const lfo = A.createOscillator(), lg = A.createGain();
+            lfo.frequency.value = 6;
+            lg.gain.value = freq * 0.012;
+            lfo.connect(lg).connect(o.frequency);
+            lfo.start(when);
+            lfo.stop(when + dur);
+        }
+        if (opts.slideTo) o.frequency.exponentialRampToValueAtTime(opts.slideTo, when + dur);
+        g.gain.setValueAtTime(0.0001, when);
+        g.gain.exponentialRampToValueAtTime(vol, when + 0.008);
+        g.gain.setValueAtTime(vol, when + dur * 0.7);
+        g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+        o.connect(g).connect(music.gain(A));
+        o.start(when);
+        o.stop(when + dur + 0.03);
+    }
+
+    function mNoise(A, when, dur, vol, hp) {
+        const len = Math.max(1, A.sampleRate * dur), buf = A.createBuffer(1, len, A.sampleRate);
+        const ch = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
+        const s = A.createBufferSource();
+        s.buffer = buf;
+        const f = A.createBiquadFilter();
+        f.type = 'highpass';
+        f.frequency.value = hp;
+        const g = A.createGain();
+        g.gain.value = vol;
+        s.connect(f).connect(g).connect(music.gain(A));
+        s.start(when);
+    }
+
+    function noteAt(pat, i) { // resolve note + sustained length in steps
+        const v = pat[i];
+        if (!v || v === q) return null;
+        let len = 1;
+        while (pat[(i + len) % pat.length] === q && len < 8) len++;
+        return {f: NOTE[v], len};
+    }
+
+    function scheduleStep(A, when, stepDur) {
+        const i = music.step % 64;
+        const A_sec = music.section % 2 === 0;
+        const lead = A_sec ? LEAD_A : LEAD_B, harm = A_sec ? HARM_A : HARM_B;
+        const bass = A_sec ? BASS_A : BASS_B, drum = A_sec ? DRUM_A : DRUM_B;
+        const n1 = noteAt(lead, i), n2 = noteAt(harm, i), n3 = noteAt(bass, i);
+        if (n1 && music.full) mTone(A, when, n1.f, n1.len * stepDur * 0.92, 'square', 0.13, {vibrato: n1.len > 2});
+        if (n2) mTone(A, when, n2.f, stepDur * 0.85, 'square', 0.05);
+        if (n3) mTone(A, when, n3.f, n3.len * stepDur * 0.95, 'triangle', 0.20);
+        const d = drum[i];
+        if (music.full) {
+            if (d === 'k') mTone(A, when, 130, 0.10, 'triangle', 0.32, {slideTo: 40});
+            if (d === 's') {
+                mNoise(A, when, 0.09, 0.16, 1200);
+                mTone(A, when, 190, 0.06, 'triangle', 0.10, {slideTo: 120});
+            }
+            if (d === 'h') mNoise(A, when, 0.03, 0.07, 6000);
+            if (d === 'H') mNoise(A, when, 0.10, 0.08, 5500);
+        } else if (d === 'h' || d === 'H') mNoise(A, when, 0.03, 0.04, 7000);
+        music.step++;
+        if (music.step % 64 === 0) music.section++;
+    }
+
+    function musicTick() {
+        if (!music.on || muted) return;
+        const A = ac();
+        const stepDur = 60 / music.bpm / 4;
+        while (music.next < A.currentTime + 0.12) {
+            if (music.next < A.currentTime) music.next = A.currentTime + 0.02;
+            scheduleStep(A, music.next, stepDur);
+            music.next += stepDur;
+        }
+    }
+
+    setInterval(musicTick, 30);
+
+    function startMusic(full) {
+        const A = ac();
+        music.full = full;
+        if (!music.on) {
+            music.on = true;
+            music.step = 0;
+            music.section = 0;
+            music.next = A.currentTime + 0.05;
+        }
+    }
+
+    function stopMusic() {
+        music.on = false;
+    }
+
+    /* ---------------- Helpers ---------------- */
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const irnd = (a, b) => Math.floor(rnd(a, b + 1));
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    function lerpColor(c1, c2, t) {
+        return `rgb(${Math.round(lerp(c1[0], c2[0], t))},${Math.round(lerp(c1[1], c2[1], t))},${Math.round(lerp(c1[2], c2[2], t))})`;
+    }
+
+    function px(x, y, w, h, color) {
+        cx.fillStyle = color;
+        cx.fillRect(Math.round(x), Math.round(y), w, h);
+    }
+
+    /* ---------------- Game state ---------------- */
+    const ST = {TITLE: 0, PLAY: 1, ROUNDCARD: 2, GAMEOVER: 3};
+    let state = ST.TITLE;
+    let mouse = {x: W / 2, y: H / 2, inside: false};
+    let shake = 0, flash = 0;
+    let score = 0, best = 0, round = 1, ammo = 3;
+    let wave = 0, wavesPerRound = 5, hitsThisRound = 0, ducksThisRound = 0;
+    let combo = 0, comboTimer = 0;
+    let ducks = [], feathers = [], popups = [], clouds = [], shells = [];
+    let pickups = [], fireflies = [];
+    let freezeT = 0, doubleT = 0;      // power-up timers
+    let bossWave = false;
+    let dog = null;           // {t, mode:'laugh'|'fetch', count}
+
+    /* best score persists on gptgames.dev; degrades gracefully where storage is blocked */
+    const store = {
+        get(k) {
+            try {
+                return localStorage.getItem(k);
+            } catch (e) {
+                return null;
+            }
+        },
+        set(k, v) {
+            try {
+                localStorage.setItem(k, v);
+            } catch (e) {
+            }
+        },
+    };
+    best = parseInt(store.get('duckhunt26_best') || '0', 10) || 0;
+    let waveTimer = 0;        // time left for current wave (flyaway)
+    let cardTimer = 0, cardText = '', cardSub = '';
+    let time = 0, frame = 0;
+    let muted = false;
+    let flashRing = null;     // muzzle ring {x,y,t}
+    let perfectRound = true;
+    let titlePulse = 0;
+
+    /* clouds */
+    for (let i = 0; i < 5; i++) clouds.push({x: rnd(0, W), y: rnd(15, 90), s: rnd(0.5, 1.2), v: rnd(2, 6)});
+
+    /* trees: fixed, varied layout so the horizon looks composed */
+    const TREES = [];
+    (function () {
+        let x = 14;
+        while (x < W - 10) {
+            TREES.push({x, s: rnd(0.7, 1.25)});
+            x += irnd(34, 62);
+        }
+    })();
+
+    /* ---------------- Sky / palette (day → dusk per round) ---------------- */
+    function skyT() {
+        return clamp((round - 1) / 6, 0, 1);
+    }  // 0=day, 1=dusk
+    const SKY_TOP = [[96, 168, 240], [46, 26, 74]];
+    const SKY_BOT = [[168, 216, 248], [214, 88, 64]];
+    const GRASS_A = [[64, 152, 56], [38, 72, 52]];
+    const GRASS_B = [[48, 120, 44], [28, 54, 42]];
+    const TREE_COL = [[34, 102, 38], [24, 48, 40]];
+
+    /* ---------------- Ducks ---------------- */
+    const DUCK_COLORS = [
+        {body: '#7a4a1e', head: '#1e6b2e', wing: '#5a3414', belly: '#d9c9a0', beak: '#f2a416'}, // mallard-ish
+        {body: '#333340', head: '#8a2020', wing: '#222230', belly: '#8888a0', beak: '#f2a416'}, // dark red-head
+        {body: '#3a6ea8', head: '#20304a', wing: '#2a5280', belly: '#bcd6ee', beak: '#f2c04a'}, // rare blue: bonus!
+    ];
+
+    function spawnDucks() {
+        bossWave = (round % 3 === 0 && wave >= wavesPerRound - 1);
+        if (bossWave) {
+            ammo = 6;
+            waveTimer = 14;
+            ducks.push({
+                x: W / 2, y: 90, vx: 70 + round * 8, vy: 0,
+                speed: 70 + round * 8, type: 0, rare: false,
+                boss: true, hp: 4 + Math.floor(round / 3) * 2, maxHp: 4 + Math.floor(round / 3) * 2,
+                stateT: 0, mode: 'fly', flap: 0, turnT: 0, quackT: 1, bobT: rnd(0, 6),
+            });
+            ducksThisRound++;
+            if (!muted) SFX.honk();
+            return;
+        }
+        ammo = 3;
+        waveTimer = Math.max(4.5, 8 - round * 0.5);
+        const n = round >= 3 ? 2 : (wave % 2 === 1 && round >= 2 ? 2 : 1);
+        for (let i = 0; i < n; i++) {
+            const rare = Math.random() < 0.08;
+            const type = rare ? 2 : irnd(0, 1);
+            const speed = (55 + round * 14 + rnd(-8, 8)) * (rare ? 1.5 : 1);
+            ducks.push({
+                x: rnd(60, W - 60), y: H - 60,
+                vx: rnd(-1, 1) < 0 ? -speed : speed,
+                vy: -rnd(speed * 0.5, speed * 0.9),
+                speed, type, rare,
+                stateT: 0, mode: 'fly',       // fly | hit | fall | gone | flyaway
+                flap: rnd(0, 6), turnT: rnd(0.4, 1.2),
+                quackT: rnd(1, 4),
+            });
+            ducksThisRound++;
+        }
+    }
+
+    function updateDucks(dt) {
+        const spd = freezeT > 0 ? 0.3 : 1;   // time freeze slows the flock
+        for (const d of ducks) {
+            d.flap += dt * (10 + d.speed / 20) * spd;
+            if (d.boss && d.mode === 'fly') {
+                d.bobT += dt * spd;
+                d.x += d.vx * dt * spd;
+                d.y = 90 + Math.sin(d.bobT * 2.2) * 46;
+                if (d.x < 50) {
+                    d.x = 50;
+                    d.vx = Math.abs(d.vx);
+                }
+                if (d.x > W - 50) {
+                    d.x = W - 50;
+                    d.vx = -Math.abs(d.vx);
+                }
+                d.quackT -= dt;
+                if (d.quackT <= 0) {
+                    if (!muted) SFX.honk();
+                    d.quackT = rnd(2.5, 4.5);
+                }
+                continue;
+            }
+            if (d.mode === 'fly' || d.mode === 'flyaway') {
+                d.quackT -= dt;
+                if (d.quackT <= 0 && d.mode === 'fly') {
+                    if (!muted) SFX.quack();
+                    d.quackT = rnd(2, 5);
+                }
+                if (d.mode === 'fly') {
+                    d.turnT -= dt * spd;
+                    if (d.turnT <= 0) {
+                        d.turnT = rnd(0.5, 1.4);
+                        const ang = rnd(0, Math.PI * 2);
+                        d.vx = Math.cos(ang) * d.speed;
+                        d.vy = Math.sin(ang) * d.speed * 0.8;
+                        if (d.y > H - 110 && d.vy > 0) d.vy = -Math.abs(d.vy);
+                    }
+                    d.x += d.vx * dt * spd;
+                    d.y += d.vy * dt * spd;
+                    if (d.x < 20) {
+                        d.x = 20;
+                        d.vx = Math.abs(d.vx);
+                    }
+                    if (d.x > W - 20) {
+                        d.x = W - 20;
+                        d.vx = -Math.abs(d.vx);
+                    }
+                    if (d.y < 24) {
+                        d.y = 24;
+                        d.vy = Math.abs(d.vy);
+                    }
+                    if (d.y > H - 80) {
+                        d.y = H - 80;
+                        d.vy = -Math.abs(d.vy);
+                    }
+                } else { // flyaway: soar up
+                    d.vy = -140;
+                    d.x += d.vx * dt * 0.6;
+                    d.y += d.vy * dt;
+                    if (d.y < -30) d.mode = 'gone';
+                }
+            } else if (d.mode === 'hit') {
+                d.stateT += dt;
+                if (d.stateT > 0.45) {
+                    d.mode = 'fall';
+                    if (!muted) SFX.fall();
+                }
+            } else if (d.mode === 'fall') {
+                d.y += 260 * dt;
+                d.flap += dt * 30;
+                if (d.y > H - 62) {
+                    d.mode = 'gone';
+                    if (!muted) SFX.thud();
+                    dog = {t: 0, mode: 'fetch', x: d.x, count: 1};
+                }
+            }
+        }
+        ducks = ducks.filter(d => d.mode !== 'gone');
+    }
+
+    function drawDuck(d) {
+        const c = d.boss
+            ? {body: '#9aa0a8', head: '#2a2a30', wing: '#6a7078', belly: '#e8e8ec', beak: '#f28030'}
+            : DUCK_COLORS[d.type];
+        const flap = d.mode === 'hit' ? 0 : Math.sin(d.flap);
+        const dir = d.vx >= 0 ? 1 : -1;
+        cx.save();
+        cx.translate(Math.round(d.x), Math.round(d.y));
+        if (shakeVal()) cx.translate(rnd(-1, 1), rnd(-1, 1));
+        if (d.boss) {
+            // HP pips above (drawn unscaled/unflipped)
+            if (d.mode === 'fly') {
+                for (let i = 0; i < d.maxHp; i++) {
+                    cx.fillStyle = i < d.hp ? '#ff5a3c' : 'rgba(0,0,0,0.35)';
+                    cx.fillRect(-d.maxHp * 4 + i * 8, -34, 6, 5);
+                }
+            }
+            cx.scale(2.2, 2.2);
+            if (d.hitFlash > 0) {
+                d.hitFlash -= 0.05;
+                cx.globalAlpha = 0.55;
+            }
+        }
+        cx.scale(dir, 1);
+        if (d.mode === 'hit') {
+            // stunned: flipped, X eyes
+            cx.rotate(Math.sin(d.stateT * 30) * 0.15);
+        }
+        if (d.mode === 'fall') cx.rotate(Math.PI);
+        // pixel duck ~26x18
+        const B = c.body, HD = c.head, WG = c.wing, BL = c.belly, BK = c.beak;
+        const p = (x, y, w, h, col) => {
+            cx.fillStyle = col;
+            cx.fillRect(x, y, w, h);
+        };
+        // body
+        p(-10, -4, 18, 9, B);
+        p(-8, 4, 14, 3, BL);
+        p(-13, -2, 4, 5, B);                    // tail
+        // head + neck
+        p(6, -9, 8, 7, HD);
+        p(5, -4, 5, 4, HD);
+        // beak
+        p(13, -7, 5, 3, BK);
+        // eye
+        if (d.mode === 'hit') {
+            p(9, -8, 1, 1, '#fff');
+            p(11, -6, 1, 1, '#fff');
+            p(10, -7, 1, 1, '#000');
+        } else p(10, -7, 2, 2, '#000');
+        // wing: 3-frame flap, always rooted at the shoulder (-4,-2)
+        // frame 0 = up, 1 = mid, 2 = down
+        const wf = d.mode === 'fall' ? 1 : (flap > 0.35 ? 0 : flap < -0.35 ? 2 : 1);
+        if (wf === 0) {          // raised: stacked upward from the shoulder
+            p(-6, -4, 9, 3, WG);   // root, overlaps body
+            p(-5, -7, 7, 3, WG);
+            p(-4, -10, 5, 3, WG);
+        } else if (wf === 1) {   // mid: flat along the back
+            p(-8, -4, 12, 3, WG);
+            p(-6, -6, 8, 2, WG);
+        } else {                 // down: folded over the flank, inside the body
+            p(-7, -2, 11, 4, WG);
+            p(-5, 2, 8, 2, WG);   // tip tucked against the belly line
+        }
+        // rare sparkle
+        if (d.rare && frame % 20 < 10) {
+            p(irnd(-10, 12), irnd(-10, 4), 1, 1, '#fff');
+        }
+        cx.restore();
+    }
+
+    /* ---------------- Shooting ---------------- */
+    function shoot(x, y) {
+        if (state !== ST.PLAY) return;
+        // collecting a power-up is free — check before spending a shell
+        for (const p of pickups) {
+            if (!p.taken && Math.hypot(p.x - x, p.y - y) < 16) {
+                p.taken = true;
+                applyPickup(p.kind, p.x, p.y);
+                return;
+            }
+        }
+        if (ammo <= 0) {
+            if (!muted) SFX.empty();
+            return;
+        }
+        ammo--;
+        if (!muted) SFX.shot();
+        shake = 5;
+        flash = 0.5;
+        flashRing = {x, y, t: 0};
+        let hitAny = false;
+        const live = ducks.filter(d => d.mode === 'fly' || d.mode === 'flyaway');
+        live.sort((a, b) => ((a.x - x) ** 2 + (a.y - y) ** 2) - ((b.x - x) ** 2 + (b.y - y) ** 2));
+        for (const d of live) {
+            const dist = Math.hypot(d.x - x, d.y - y);
+            const radius = d.boss ? 34 : 18;
+            if (dist < radius) {
+                hitAny = true;
+                combo++;
+                comboTimer = 3;
+                const mult = (doubleT > 0 ? 2 : 1);
+                if (d.boss) {
+                    d.hp--;
+                    d.hitFlash = 1;
+                    const pts = 150 * combo * mult;
+                    score += pts;
+                    popups.push({x: d.x, y: d.y - 40, t: 0, text: pts + '', rare: false});
+                    for (let i = 0; i < 8; i++) feathers.push({
+                        x: x,
+                        y: y,
+                        vx: rnd(-60, 60),
+                        vy: rnd(-80, 0),
+                        t: 0,
+                        col: i % 2 ? '#e8e8ec' : '#9aa0a8',
+                        r: rnd(0, Math.PI)
+                    });
+                    if (d.hp <= 0) {
+                        d.mode = 'hit';
+                        d.stateT = 0;
+                        hitsThisRound++;
+                        const bonus = 1000 * mult + round * 200;
+                        score += bonus;
+                        popups.push({x: d.x, y: d.y - 20, t: 0, text: 'GOOSE DOWN! +' + bonus, rare: true});
+                        if (!muted) SFX.bossdie();
+                        shake = 10;
+                        // the goose always drops a gift
+                        dropPickup(d.x, d.y, ['shell', 'freeze', 'double'][irnd(0, 2)]);
+                    } else if (!muted) SFX.hit();
+                } else {
+                    d.mode = 'hit';
+                    d.stateT = 0;
+                    const base = d.rare ? 500 : 100 + (round - 1) * 25;
+                    const pts = base * combo * mult;
+                    score += pts;
+                    hitsThisRound++;
+                    popups.push({
+                        x: d.x,
+                        y: d.y - 14,
+                        t: 0,
+                        text: pts + (combo > 1 ? `  x${combo}` : ''),
+                        rare: d.rare
+                    });
+                 

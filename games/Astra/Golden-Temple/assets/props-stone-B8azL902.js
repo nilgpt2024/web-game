@@ -1,1 +1,0 @@
-export{t as buildStoneLantern}from"./props-stone-B_aamZYP.js";

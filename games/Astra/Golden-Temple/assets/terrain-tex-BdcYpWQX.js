@@ -1,1 +1,0 @@
-export{t as fernTexture,n as leafAtlas}from"./terrain-tex-BVTBENPZ.js";

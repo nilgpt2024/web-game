@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Ball Pool Game Online - Free Billiards Game | GPT Games</title>
+    <meta name="description"
+          content="Play 8-Ball Pool online for free — against a friend or the house AI. Real billiards physics with spin, draw and follow, rolling 3D balls, full 8-ball rules. No downloads, no dependencies, one file.">
+    <meta name="keywords"
+          content="8-ball pool, pool game, billiards, online pool, free pool game, pool vs computer, browser game, HTML5 game, cue sports">
+    <meta name="author" content="Claude Fable 5 prompted by Tobias Müller">
+    <link rel="canonical" href="https://suipce.com/games/Board/8-Ball/">
+    <meta name="theme-color" content="#14110e">
+    <meta property="og:title" content="8-Ball Pool - Free Online Billiards Game">
+    <meta property="og:description"
+          content="Classic 8-ball with real spin physics, a scheming AI opponent and photoreal rolling balls. Play free in your browser.">
+    <meta property="og:image" content="https://gptgames.dev/screenshots/screenshot_215.webp">
+    <meta property="og:url" content="https://gptgames.dev/games/8-ball.html">
+    <meta property="og:type" content="website">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Board/8-Ball/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Board/8-Ball/preview.png">
+    <meta name="twitter:title" content="8-Ball Pool - Free Online Game">
+    <meta name="twitter:description"
+          content="Real billiards physics, spin control and an AI opponent — in one standalone file.">
+    <meta name="twitter:image" content="https://gptgames.dev/screenshots/screenshot_215.webp">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"8-Ball Pool Online","description":"Free online 8-ball pool with realistic spin physics, an AI opponent and full 8-ball rules","url":"https://gptgames.dev/games/8-ball.html","image":"https://gptgames.dev/screenshots/screenshot_215.webp","genre":"Sports","gamePlatform":"Web Browser","operatingSystem":"Any","playMode":["SinglePlayer","MultiPlayer"],"applicationCategory":"Game"}</script>
+    <style>
+        :root {
+            --bg: #14110e;
+            --bg2: #1e1813;
+            --ivory: #ece2cd;
+            --muted: #a3927a;
+            --faint: #6d5f4c;
+            --gold: #c9a24b;
+            --gold2: #e6c87e;
+            --card: rgba(30, 24, 18, .78);
+            --line: #3a2f22;
+            --danger: #d9584a;
+            --serif: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+            --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: var(--sans);
+            color: var(--ivory);
+            background: radial-gradient(1100px 640px at 50% 34%, #292117 0%, rgba(41, 33, 23, 0) 62%),
+            radial-gradient(1600px 1000px at 50% 120%, #1a1410 0%, rgba(26, 20, 16, 0) 60%),
+            var(--bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-x: hidden;
+        }
+
+        .stage {
+            width: 100%;
+            max-width: 1020px;
+            padding: 18px 16px 26px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* ---------- scoreboard ---------- */
+        .hud {
+            display: grid;
+            grid-template-columns: 1fr minmax(180px, auto) 1fr;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        .seat {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-height: 66px;
+            transition: border-color .3s, box-shadow .3s;
+        }
+
+        .seat.right {
+            text-align: right;
+            align-items: flex-end;
+        }
+
+        .seat.active {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 1px rgba(201, 162, 75, .35), 0 0 22px rgba(201, 162, 75, .18);
+        }
+
+        .pname {
+            font-family: var(--serif);
+            font-size: 17px;
+            letter-spacing: .04em;
+        }
+
+        .ptag {
+            font-size: 10.5px;
+            text-transform: uppercase;
+            letter-spacing: .22em;
+            color: var(--muted);
+        }
+
+        .seat.active .ptag {
+            color: var(--gold2);
+        }
+
+        .tray {
+            display: flex;
+            gap: 4px;
+            min-height: 17px;
+            flex-wrap: wrap;
+        }
+
+        .seat.right .tray {
+            justify-content: flex-end;
+        }
+
+        .mini-ball {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            box-shadow: inset -2px -3px 4px rgba(0, 0, 0, .5), inset 2px 2px 3px rgba(255, 255, 255, .28), 0 1px 2px rgba(0, 0, 0, .6);
+        }
+
+        .status {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 8px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 2px;
+        }
+
+        .msg {
+            font-family: var(--serif);
+            font-size: 17px;
+            letter-spacing: .03em;
+            color: var(--ivory);
+        }
+
+        .sub {
+            font-size: 11.5px;
+            letter-spacing: .06em;
+            color: var(--muted);
+            min-height: 15px;
+        }
+
+        .sub.flash {
+            color: var(--gold2);
+        }
+
+        .sub.foul {
+            color: var(--danger);
+        }
+
+        /* ---------- table ---------- */
+        .tableWrap {
+            position: relative;
+            line-height: 0;
+            filter: drop-shadow(0 26px 40px rgba(0, 0, 0, .55));
+        }
+
+        canvas#table {
+            width: 100%;
+            height: auto;
+            display: block;
+            touch-action: none;
+            cursor: crosshair;
+            border-radius: 18px;
+        }
+
+        .hint {
+            text-align: center;
+            font-size: 11.5px;
+            letter-spacing: .08em;
+            color: var(--faint);
+            min-height: 15px;
+            user-select: none;
+        }
+
+        /* ---------- dock ---------- */
+        .dock {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 16px;
+        }
+
+        .spinBox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        canvas#spin {
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            cursor: pointer;
+            touch-action: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, .5);
+        }
+
+        .spinCol {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-start;
+        }
+
+        .lbl {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .24em;
+            color: var(--muted);
+        }
+
+        .mid {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+        }
+
+        .power {
+            width: min(240px, 100%);
+            height: 10px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, .45);
+            border: 1px solid var(--line);
+            overflow: hidden;
+        }
+
+        .powerFill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #efe6d2, var(--gold), #c96b3a);
+            transition: width .04s linear;
+        }
+
+        .swatches {
+            display: flex;
+            gap: 8px;
+        }
+
+        .sw {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: inset 0 -3px 5px rgba(0, 0, 0, .45), 0 1px 3px rgba(0, 0, 0, .5);
+        }
+
+        .sw.on {
+            border-color: var(--gold2);
+        }
+
+        .btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        button.pill, .mini {
+            font-family: var(--sans);
+            background: transparent;
+            color: var(--ivory);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-size: 12px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: border-color .2s, color .2s, background .2s;
+        }
+
+        .mini {
+            padding: 3px 10px;
+            font-size: 9.5px;
+            letter-spacing: .14em;
+        }
+
+        button.pill:hover, .mini:hover {
+            border-color: var(--gold);
+            color: var(--gold2);
+        }
+
+        button:focus-visible, .sw:focus-visible {
+            outline: 2px solid var(--gold2);
+            outline-offset: 2px;
+        }
+
+        /* ---------- overlays ---------- */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(12, 9, 6, .72);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 50;
+            opacity: 1;
+            transition: opacity .35s;
+        }
+
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .cardBox {
+            background: linear-gradient(180deg, #201a13, #171310);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 40px 44px 34px;
+            max-width: 430px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+        }
+
+        .brand {
+            font-family: var(--serif);
+            font-size: 44px;
+            letter-spacing: .14em;
+            color: var(--ivory);
+            line-height: 1.05;
+        }
+
+        .brand .eight {
+            display: inline-block;
+            width: .82em;
+            height: .82em;
+            border-radius: 50%;
+            background: radial-gradient(circle at 34% 28%, #5a5f66, #16181c 62%);
+            box-shadow: inset -3px -5px 8px rgba(0, 0, 0, .7), inset 3px 3px 5px rgba(255, 255, 255, .15);
+            vertical-align: -0.1em;
+            position: relative;
+        }
+
+        .brand .eight::after {
+            content: "8";
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .34em;
+            letter-spacing: 0;
+            color: #1a1a1a;
+            background: radial-gradient(circle, #f2ead8 42%, transparent 44%);
+        }
+
+        .tagline {
+            margin-top: 8px;
+            font-size: 11px;
+            letter-spacing: .34em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .menuSec {
+            margin-top: 30px;
+        }
+
+        .menuLbl {
+            font-size: 10px;
+            letter-spacing: .28em;
+            text-transform: uppercase;
+            color: var(--faint);
+            margin-bottom: 10px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button.big {
+            font-family: var(--serif);
+            background: rgba(0, 0, 0, .25);
+            color: var(--ivory);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 15px;
+            letter-spacing: .05em;
+            cursor: pointer;
+            transition: border-color .2s, transform .15s, box-shadow .2s;
+        }
+
+        button.big:hover {
+            border-color: var(--gold);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+        }
+
+        button.big .diffSub {
+            display: block;
+            font-family: var(--sans);
+            font-size: 9.5px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+
+        .credit {
+            margin-top: 30px;
+            font-size: 10px;
+            letter-spacing: .12em;
+            color: var(--faint);
+        }
+
+        .endTitle {
+            font-family: var(--serif);
+            font-size: 34px;
+            letter-spacing: .06em;
+        }
+
+        .endSub {
+            margin-top: 10px;
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: .04em;
+        }
+
+        /* ---------- responsive ---------- */
+        @media (max-width: 680px) {
+            .stage {
+                padding: 10px 8px 18px;
+                gap: 9px;
+            }
+
+            .hud {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .status {
+                grid-column: 1 / -1;
+                order: -1;
+                padding: 6px 12px;
+            }
+
+            .seat {
+                min-height: 56px;
+                padding: 8px 11px;
+            }
+
+            .pname {
+                font-size: 14px;
+            }
+
+            .dock {
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 10px;
+            }
+
+            .mid {
+                order: 3;
+                width: 100%;
+            }
+
+            .brand {
+                font-size: 34px;
+            }
+
+            .cardBox {
+                padding: 28px 22px 24px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .overlay, .seat, button.pill, button.big {
+                transition: none;
+            }
+
+            .powerFill {
+                transition: none;
+            }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"棋牌策略游戏","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"8-Ball Pool Game Online","item":"https://suipce.com/games/Board/8-Ball/"}]}</script>
+</head>
+<body>
+<div class="stage">
+    <header class="hud">
+        <div class="seat" id="seat1">
+            <div class="pname" id="name1">Player one</div>
+            <div class="ptag" id="tag1">&mdash;</div>
+            <div class="tray" id="tray1"></div>
+        </div>
+        <div class="status">
+            <div class="msg" id="msg">Eight Ball</div>
+            <div class="sub" id="sub"></div>
+        </div>
+        <div class="seat right" id="seat2">
+            <div class="pname" id="name2">Player two</div>
+            <div class="ptag" id="tag2">&mdash;</div>
+            <div class="tray" id="tray2"></div>
+        </div>
+    </header>
+
+    <div class="tableWrap">
+        <canvas id="table" aria-label="Pool table" role="img"></canvas>
+    </div>
+    <div class="hint" id="hint"></div>
+
+    <footer class="dock">
+        <div class="spinBox">
+            <canvas id="spin" aria-label="Cue ball spin control"></canvas>
+            <div class="spinCol">
+                <div class="lbl">spin</div>
+                <button class="mini" id="spinReset" hidden>reset</button>
+            </div>
+        </div>
+        <div class="mid">
+            <div class="power" aria-hidden="true">
+                <div class="powerFill" id="powerFill"></div>
+            </div>
+            <div class="swatches" role="group" aria-label="Cloth colour">
+                <button class="sw on" data-felt="green" aria-label="Green cloth" style="background:#2e6b46"></button>
+                <button class="sw" data-felt="blue" aria-label="Blue cloth" style="background:#2c5d86"></button>
+                <button class="sw" data-felt="wine" aria-label="Wine cloth" style="background:#6e3140"></button>
+            </div>
+        </div>
+        <div class="btns">
+            <button class="pill" id="btnSound" aria-pressed="true">Sound on</button>
+            <button class="pill" id="btnMenu">New game</button>
+        </div>
+    </footer>
+</div>
+
+<div class="overlay" id="ovMenu">
+    <div class="cardBox">
+        <div class="brand">EIGHT&nbsp;<span class="eight" aria-hidden="true"></span>&nbsp;BALL</div>
+        <div class="tagline">a midnight billiards parlour</div>
+        <div class="menuSec">
+            <div class="menuLbl">Play the house</div>
+            <div class="row">
+                <button class="big" data-diff="casual">The Barfly<span class="diffSub">casual</span></button>
+                <button class="big" data-diff="steady">The Regular<span class="diffSub">steady</span></button>
+                <button class="big" data-diff="shark">The Shark<span class="diffSub">ruthless</span></button>
+            </div>
+        </div>
+        <div class="menuSec">
+            <div class="menuLbl">Or bring company</div>
+            <div class="row">
+                <button class="big" id="btnTwo">Two players, one table</button>
+            </div>
+        </div>
+        <div class="credit">rebuilt from scratch by Claude &middot; zero dependencies &middot; gptgames.dev</div>
+    </div>
+</div>
+
+<div class="overlay hidden" id="ovEnd">
+    <div class="cardBox">
+        <div class="endTitle" id="endTitle">Rack over</div>
+        <div class="endSub" id="endSub"></div>
+        <div class="menuSec">
+            <div class="row">
+                <button class="big" id="btnRematch">Rematch</button>
+                <button class="big" id="btnEndMenu">Back to the parlour</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    'use strict';
+    /* ================================================================== *
+     *  EIGHT BALL — a complete rebuild for gptgames.dev                  *
+     *  Custom physics (sliding/rolling friction, draw, follow, english), *
+     *  per-pixel rendered rolling balls, full 8-ball rules, and an AI    *
+     *  opponent. No libraries. One file.                                 *
+     * ================================================================== */
+
+    /* ---------------- tiny math ---------------- */
+    const TAU = Math.PI * 2;
+    const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const hyp = Math.hypot;
+    const smoothstep = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+
+    function angLerp(a, b, t) {
+        let d = (b - a) % TAU;
+        if (d > Math.PI) d -= TAU;
+        if (d < -Math.PI) d += TAU;
+        return a + d * t;
+    }
+
+    /* seeded RNG (mulberry32) so racks & AI are reproducible in tests */
+    let _seed = (Date.now() ^ 0x9e3779b9) >>> 0;
+
+    function srand(s) {
+        _seed = s >>> 0;
+    }
+
+    function rng() {
+        _seed |= 0;
+        _seed = _seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+
+    function gauss() {
+        let u = 0, v = 0;
+        while (u === 0) u = rng();
+        while (v === 0) v = rng();
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v);
+    }
+
+    /* 3x3 rotation matrices (row-major, local->world) for ball orientation */
+    function m3ident() {
+        return new Float64Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
+    }
+
+    function m3rot(ax, ay, az, ang) {
+        const c = Math.cos(ang), s = Math.sin(ang), t = 1 - c;
+        return [
+            t * ax * ax + c, t * ax * ay - s * az, t * ax * az + s * ay,
+            t * ax * ay + s * az, t * ay * ay + c, t * ay * az - s * ax,
+            t * ax * az - s * ay, t * ay * az + s * ax, t * az * az + c
+        ];
+    }
+
+    function m3mul(A, B, out) { // out = A * B  (out must not alias A or B)
+        for (let r = 0; r < 3; r++) {
+            const a0 = A[r * 3], a1 = A[r * 3 + 1], a2 = A[r * 3 + 2];
+            out[r * 3] = a0 * B[0] + a1 * B[3] + a2 * B[6];
+            out[r * 3 + 1] = a0 * B[1] + a1 * B[4] + a2 * B[7];
+            out[r * 3 + 2] = a0 * B[2] + a1 * B[5] + a2 * B[8];
+        }
+        return out;
+    }
+
+    function m3ortho(M) { // re-orthonormalise (Gram-Schmidt on rows)
+        let x0 = M[0], x1 = M[1], x2 = M[2];
+        let l = 1 / Math.sqrt(x0 * x0 + x1 * x1 + x2 * x2);
+        x0 *= l;
+        x1 *= l;
+        x2 *= l;
+        let y0 = M[3], y1 = M[4], y2 = M[5];
+        const d = x0 * y0 + x1 * y1 + x2 * y2;
+        y0 -= d * x0;
+        y1 -= d * x1;
+        y2 -= d * x2;
+        l = 1 / Math.sqrt(y0 * y0 + y1 * y1 + y2 * y2);
+        y0 *= l;
+        y1 *= l;
+        y2 *= l;
+        const z0 = x1 * y2 - x2 * y1, z1 = x2 * y0 - x0 * y2, z2 = x0 * y1 - x1 * y0;
+        M[0] = x0;
+        M[1] = x1;
+        M[2] = x2;
+        M[3] = y0;
+        M[4] = y1;
+        M[5] = y2;
+        M[6] = z0;
+        M[7] = z1;
+        M[8] = z2;
+    }
+
+    /* ---------------- board geometry ---------------- */
+    const W = 960, H = 540;
+    const R = 11;                                   // ball radius
+    const PX0 = 80, PY0 = 70, PX1 = 880, PY1 = 470; // cushion noses (playfield)
+    const MIDX = (PX0 + PX1) / 2, CY = (PY0 + PY1) / 2;
+    const HEADX = PX0 + (PX1 - PX0) * 0.25;         // head string (the "kitchen" line)
+    const FOOTX = PX0 + (PX1 - PX0) * 0.75;         // foot spot (rack apex)
+    const CW = 14, RW = 30;                         // cushion depth, rail wood width
+
+    /* pockets: centre, capture radius, and an aim point tucked inside the mouth */
+    function mkPocket(x, y, cap, ax, ay, side) {
+        return {x, y, cap, ax, ay, side: side || null};
+    }
+
+    const POCKETS = [
+        mkPocket(PX0 - 10, PY0 - 10, 21, PX0 - 4, PY0 - 4),
+        mkPocket(PX1 + 10, PY0 - 10, 21, PX1 + 4, PY0 - 4),
+        mkPocket(PX0 - 10, PY1 + 10, 21, PX0 - 4, PY1 + 4),
+        mkPocket(PX1 + 10, PY1 + 10, 21, PX1 + 4, PY1 + 4),
+        mkPocket(MIDX, PY0 - 11, 21, MIDX, PY0 - 3, 't'),
+        mkPocket(MIDX, PY1 + 11, 21, MIDX, PY1 + 3, 'b')
+    ];
+
+    /* cushion segments — rail faces, pocket jaws, and paranoid backstops */
+    const SEGS = [];
+
+    function addSeg(ax, ay, bx, by, refx, refy, kind) {
+        const ex = bx - ax, ey = by - ay;
+        const L = Math.hypot(ex, ey);
+        const ux = ex / L, uy = ey / L;
+        let nx = -uy, ny = ux;
+        const mx = (ax + bx) / 2, my = (ay + by) / 2;
+        if (nx * (refx - mx) + ny * (refy - my) < 0) {
+            nx = -nx;
+            ny = -ny;
+        }
+        SEGS.push({ax, ay, bx, by, ux, uy, nx, ny, L, kind: kind || 'rail'});
+    }
+
+    (function buildSegs() {
+        const cm = 30, sm = 26;         // corner / side mouth setbacks
+        const cx = MIDX, cy = CY;       // table centre (normal reference for rails)
+        // rail faces
+        addSeg(PX0 + cm, PY0, MIDX - sm, PY0, cx, cy);
+        addSeg(MIDX + sm, PY0, PX1 - cm, PY0, cx, cy);
+        addSeg(PX0 + cm, PY1, MIDX - sm, PY1, cx, cy);
+        addSeg(MIDX + sm, PY1, PX1 - cm, PY1, cx, cy);
+        addSeg(PX0, PY0 + cm, PX0, PY1 - cm, cx, cy);
+        addSeg(PX1, PY0 + cm, PX1, PY1 - cm, cx, cy);
+        // corner jaws (normals face their pocket throat)
+        const J = 19, K = 21;
+        const corners = [
+            [PX0, PY0, 1, 1, POCKETS[0]], [PX1, PY0, -1, 1, POCKETS[1]],
+            [PX0, PY1, 1, -1, POCKETS[2]], [PX1, PY1, -1, -1, POCKETS[3]]
+        ];
+        for (const [x, y, sx, sy, pk] of corners) {
+            addSeg(x + sx * cm, y, x + sx * (cm - J), y - sy * K, pk.x, pk.y, 'jaw');
+            addSeg(x, y + sy * cm, x - sx * K, y + sy * (cm - J), pk.x, pk.y, 'jaw');
+        }
+        // side pocket jaws
+        for (const [y, sy, pk] of [[PY0, 1, POCKETS[4]], [PY1, -1, POCKETS[5]]]) {
+            addSeg(MIDX - sm, y, MIDX - sm - 6, y - sy * 17, pk.x, pk.y, 'jaw');
+            addSeg(MIDX + sm, y, MIDX + sm + 6, y - sy * 17, pk.x, pk.y, 'jaw');
+        }
+        // backstops: invisible walls deep in each pocket so nothing ever escapes
+        addSeg(MIDX - 30, PY0 - 26, MIDX + 30, PY0 - 26, cx, cy, 'back');
+        addSeg(MIDX - 30, PY1 + 26, MIDX + 30, PY1 + 26, cx, cy, 'back');
+        addSeg(PX0 - 30, PY0 + 18, PX0 + 18, PY0 - 30, cx, cy, 'back');
+        addSeg(PX1 - 18, PY0 - 30, PX1 + 30, PY0 + 18, cx, cy, 'back');
+        addSeg(PX0 - 30, PY1 - 18, PX0 + 18, PY1 + 30, cx, cy, 'back');
+        addSeg(PX1 - 18, PY1 + 30, PX1 + 30, PY1 - 18, cx, cy, 'back');
+    })();
+
+    /* ---------------- physics constants ---------------- */
+    /* px scale: 800 px playfield =~ 2.54 m, so 1 m =~ 315 px */
+    const G_PX = 3100;          // gravity, px/s^2
+    const MU_SLIDE = 0.2;       // cloth sliding friction
+    const MU_ROLL = 0.025;      // rolling resistance
+    const SPIN_DEC = 16;        // side-spin decay, rad/s^2
+    const E_BALL = 0.94;        // ball-ball restitution
+    const MU_BB = 0.06;         // ball-ball throw friction
+    const E_CUSH = 0.78;        // cushion restitution
+    const STOPV = 4;            // px/s considered stopped
+    const SPEED_MIN = 140, SPEED_MAX = 1900;
+    const SIDE_SIGN = -1;       // widget-right = right english (verified in tests)
+
+    /* ---------------- audio (all procedural) ---------------- */
+    let AC = null, master = null, noiseBuf = null, muted = false;
+    const _sLast = {};
+
+    function audio() {
+        if (muted) return null;
+        if (!AC) {
+            try {
+                AC = new (window.AudioContext || window.webkitAudioContext)();
+                master = AC.createGain();
+                master.gain.value = 0.85;
+                master.connect(AC.destination);
+                const n = AC.sampleRate * 0.35 | 0;
+                noiseBuf = AC.createBuffer(1, n, AC.sampleRate);
+                const d = noiseBuf.getChannelData(0);
+                for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+            } catch (e) {
+                muted = true;
+                return null;
+            }
+        }
+        if (AC.state === 'suspended') AC.resume();
+        return AC;
+    }
+
+    function knock(freq, dur, vol, q) {
+        const ac = audio();
+        if (!ac) return;
+        const src = ac.createBufferSource();
+        src.buffer = noiseBuf;
+        const f = ac.createBiquadFilter();
+        f.type = 'bandpass';
+        f.frequency.value = freq;
+        f.Q.value = q || 1.2;
+        const g = ac.createGain();
+        const t = ac.currentTime;
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        src.connect(f);
+        f.connect(g);
+        g.connect(master);
+        src.start(t);
+        src.stop(t + dur + 0.02);
+    }
+
+    function blip(freq, dur, vol, type) {
+        const ac = audio();
+        if (!ac) return;
+        const o = ac.createOscillator();
+        o.type = type || 'sine';
+        o.frequency.value = freq;
+        const g = ac.createGain();
+        const t = ac.currentTime;
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        o.connect(g);
+        g.connect(master);
+        o.start(t);
+        o.stop(t + dur + 0.02);
+    }
+
+    function sfx(kind, a) {
+        const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        if (_sLast[kind] && now - _sLast[kind] < 28) return;
+        _sLast[kind] = now;
+        switch (kind) {
+            case 'clack': {
+                const v = clamp(a / 900, 0.04, 1);
+                knock(2100 + v * 1300, 0.05, 0.5 * v, 1.6);
+                blip(3400, 0.02, 0.10 * v, 'triangle');
+                break;
+            }
+            case 'rail': {
+                const v = clamp(a / 900, 0.05, 1);
+                knock(210, 0.08, 0.5 * v, 0.8);
+                break;
+            }
+            case 'pocket':
+                knock(165, 0.10, 0.5, 0.9);
+                setTimeout(() => knock(130, 0.14, 0.4, 0.8), 65);
+                setTimeout(() => knock(2600, 0.03, 0.12, 2), 40);
+                break;
+            case 'cue':
+                knock(1500, 0.035, 0.30, 2.2);
+                break;
+            case 'place':
+                knock(900, 0.05, 0.18, 1.5);
+                break;
+            case 'bad':
+                blip(180, 0.12, 0.14, 'square');
+                break;
+            case 'win':
+                [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => blip(f, 0.34, 0.16, 'triangle'), i * 110));
+                break;
+            case 'lose':
+                [330, 262, 208].forEach((f, i) => setTimeout(() => blip(f, 0.3, 0.13, 'sine'), i * 130));
+                break;
+        }
+    }
+
+    /* ---------------- balls & sprites ---------------- */
+    const COLORS = {
+        1: [244, 183, 22], 2: [30, 92, 190], 3: [214, 44, 38], 4: [106, 48, 152],
+        5: [238, 112, 30], 6: [22, 122, 82], 7: [130, 55, 38], 8: [28, 30, 34]
+    };
+    const SS = 3, SPRL = 2 * R + 2, SPR = SPRL * SS;   // sprite: logical 24px, backing 72px
+
+    /* static per-pixel tables shared by every ball (view-space normals + lighting) */
+    const SPIX = (() => {
+        const idx = [], nx = [], ny = [], nz = [], sh = [], sp = [], al = [];
+        const

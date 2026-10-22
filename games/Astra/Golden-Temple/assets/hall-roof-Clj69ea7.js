@@ -1,1 +1,0 @@
-export{t as TILE,n as buildEaves,r as buildIrimoyaGables,i as buildIrimoyaRidges,a as buildTiles,o as emitPan,s as emitRound,c as faceList,l as facePt,u as makeProfile,d as makeWarp,f as noshiProfile,p as ridgeAlong}from"./hall-roof-DVK5WqVT.js";

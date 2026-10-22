@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Emoji-Puzzle-Mania/">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Emoji Puzzle Mania Online - Free Puzzle Game | AIGameHub</title>
+<meta name="description" content="Play Emoji Puzzle Mania online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it n">
+<meta name="theme-color" content="#f4eee2">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦊</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+    --paper: #f4eee2;
+    --sheet: #fffdf8;
+    --collector: #fff3b3;
+    --pink: #ff48b0;
+    --blue: #0078bf;
+    --yellow: #ffe800;
+    --ink: #22201c;
+    --ink2: #6b645a;
+    --stamp: clamp(92px, min(23vh, 46vw), 190px);
+    --out: cubic-bezier(.2, .8, .25, 1);
+    --spring: cubic-bezier(.3, 1.45, .5, 1);
+    --emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", sans-serif;
+    --font: "Bricolage Grotesque", ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+    background-color: var(--paper);
+    background-image: radial-gradient(rgba(0, 120, 191, .09) 1.1px, transparent 1.4px);
+    background-size: 7px 7px;
+    color: var(--ink);
+    font-family: var(--font);
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 12px; }
+
+.app {
+    position: relative;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 640px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    grid-template-areas: "top" "find" "tape" "pad" "foot";
+    gap: 6px;
+    padding: max(14px, env(safe-area-inset-top)) 16px max(10px, env(safe-area-inset-bottom));
+}
+
+/* top bar: the wordmark on the title, the score in play */
+.top { grid-area: top; display: flex; justify-content: space-between; align-items: center; min-height: 60px; }
+.left { position: relative; height: 56px; flex: 1; }
+.brand, .score { position: absolute; left: 0; top: 50%; transform: translateY(-50%); transition: opacity .22s var(--out) .16s, transform .38s var(--out) .16s; white-space: nowrap; }
+.brand b { display: block; font-weight: 800; font-size: 34px; line-height: .95; letter-spacing: -.02em; color: var(--blue); text-shadow: 2px 2px 0 rgba(255, 72, 176, .85); }
+.brand b i { font-style: normal; color: var(--pink); text-shadow: 2px 2px 0 rgba(0, 120, 191, .35); }
+.brand small, .score small { display: block; font-weight: 500; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2); margin-top: 5px; }
+.score small { margin: 0 0 4px; }
+.score b { display: block; font-weight: 800; font-size: 40px; line-height: .9; letter-spacing: -.02em; color: var(--blue); text-shadow: 2px 2px 0 rgba(255, 72, 176, .85); font-variant-numeric: tabular-nums; }
+.app[data-state="title"] .score, .app:not([data-state="title"]) .brand { opacity: 0; transform: translateY(-30%); pointer-events: none; transition-duration: .14s; transition-delay: 0s; }
+
+.tools { display: flex; align-items: center; gap: 8px; }
+.streak {
+    position: relative;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--sheet); color: var(--ink2);
+    transition: background-color .2s, color .2s;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 23px; letter-spacing: -.02em;
+    transform: rotate(9deg);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .12), 0 6px 10px -6px rgba(0, 0, 0, .3);
+}
+.streak span { font-size: 15px; margin-right: 1px; }
+.streak.hot { background: var(--yellow); color: var(--ink); }
+.app[data-state="title"] .streak { visibility: hidden; }
+.ring3 { position: absolute; inset: -7px; width: calc(100% + 14px); height: calc(100% + 14px); overflow: visible; }
+.ring3 path { fill: none; stroke: rgba(34, 32, 28, .13); stroke-width: 5; stroke-linecap: round; transition: stroke .15s; }
+.ring3 path.on { stroke: var(--pink); }
+.icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--sheet);
+    display: grid; place-items: center;
+    box-shadow: 0 1.5px 0 rgba(0, 0, 0, .1), 0 4px 8px -4px rgba(0, 0, 0, .25);
+    transition: transform .15s var(--out);
+}
+.icon:active { transform: scale(.92); }
+.icon svg { width: 20px; height: 20px; }
+#pauseBtn { display: none; }
+.app[data-state="play"] #pauseBtn { display: grid; }
+#soundBtn .off { display: none; }
+#soundBtn.muted .on { display: none; }
+#soundBtn.muted .off { display: inline; }
+
+/* the target: a riso stamp, and the tape that is the clock */
+.find { grid-area: find; display: flex; flex-direction: column; align-items: center; padding-top: 2px; }
+.stampWrap { position: relative; }
+.stamp {
+    position: relative;
+    width: var(--stamp); height: var(--stamp);
+    border-radius: 50%;
+    background: var(--pink);
+    display: grid; place-items: center;
+    mix-blend-mode: multiply;
+}
+.stamp::before { content: ""; position: absolute; inset: 7%; border-radius: 50%; border: 2.5px dashed rgba(255, 255, 255, .75); }
+.stamp .e { font-family: var(--emoji); font-size: calc(var(--stamp) * .56); line-height: 1; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .16)); }
+.label {
+    position: absolute; left: calc(100% - 14px); top: 2%;
+    font-weight: 800; font-size: clamp(15px, calc(var(--stamp) * .11), 20px);
+    color: var(--blue); text-transform: uppercase; letter-spacing: .04em;
+    transform: rotate(9deg); transform-origin: left center; white-space: nowrap;
+}
+.count {
+    position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%) rotate(-3deg);
+    background: var(--blue); color: #fff; font-weight: 800; font-size: 15px;
+    padding: 3px 10px 4px; border-radius: 999px; font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; gap: 5px; min-height: 24px; white-space: nowrap;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .12);
+}
+.app[data-state="title"] .count { visibility: hidden; }
+.count i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .35); }
+.count i.on { background: #fff; }
+.count b { font-weight: 800; margin-right: 3px; letter-spacing: .02em; }
+.tape { grid-area: tape; justify-self: center; position: relative; z-index: 3; width: calc(var(--s, 300px) * .9); height: 26px; margin: 10px 0 -19px; transform: rotate(-1.2deg); }
+.tape::before { content: ""; position: absolute; inset: 0; background: rgba(0, 120, 191, .13); clip-path: polygon(0 14%, 2% 0, 98% 8%, 100% 34%, 99% 100%, 1% 90%); }
+.fill {
+    position: absolute; inset: 0;
+    background: var(--blue); opacity: .92; mix-blend-mode: multiply;
+    clip-path: polygon(0 14%, 2% 0, 100% 6%, 98.4% 32%, 100% 62%, 98.8% 100%, 1% 90%);
+    transform-origin: left center;
+    transition: background-color .3s;
+}
+.tape.low .fill { background: var(--pink); }
+.tape.low.shake { animation: flutter .22s linear infinite; }
+@keyframes flutter { 0%, 100% { transform: rotate(-1.2deg); } 25% { transform: rotate(-2deg); } 75% { transform: rotate(-.4deg); } }
+
+/* the sheet of stickers */
+.pad { grid-area: pad; position: relative; display: grid; place-items: start center; min-height: 0; }
+.sheet {
+    grid-area: 1 / 1;
+    position: relative;
+    width: var(--s, 300px); height: var(--s, 300px);
+    background: var(--sheet);
+    border-radius: 14px;
+    padding: var(--sp, 5%);
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-template-rows: repeat(var(--cols), 1fr);
+    gap: var(--sg, 3%);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .07), 0 18px 30px -18px rgba(60, 40, 20, .38);
+    transform: rotate(.6deg);
+    margin-bottom: 22px;
+    touch-action: none;
+}
+.sheet.collector { background: var(--collector); }
+.sheet::before {
+    content: ""; position: absolute; right: 0; top: 0; width: 34px; height: 34px;
+    border-top-right-radius: 14px;
+    background: linear-gradient(225deg, var(--paper) 0 50%, rgba(0, 0, 0, .06) 50%, #fff 58%, #efe8da 100%);
+    box-shadow: -2px 2px 4px -2px rgba(60, 40, 20, .25);
+}
+.sheet.collector::before { background: linear-gradient(225deg, var(--paper) 0 50%, rgba(0, 0, 0, .06) 50%, #fffbe0 58%, #efe3a6 100%); }
+.sheet::after {
+    content: none;
+    position: absolute; right: 12px; bottom: -24px;
+    font-weight: 500; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink2);
+}
+.st { position: relative; display: grid; min-width: 0; min-height: 0; }
+.body {
+    position: relative;
+    display: grid; place-items: center;
+    transition: transform .12s var(--out);
+}
+.face {
+    --ol: calc(var(--fs, 30px) * .05);
+    font-family: var(--emoji);
+    font-size: var(--fs, 30px);
+    line-height: 1;
+    transform: rotate(var(--r, 0deg));
+    filter: drop-shadow(var(--ol) 0 0 #fff) drop-shadow(calc(var(--ol) * -1) 0 0 #fff) drop-shadow(0 var(--ol) 0 #fff) drop-shadow(0 calc(var(--ol) * -1) 0 #fff)
+            drop-shadow(0 1px 0 rgba(60, 40, 20, .18)) drop-shadow(0 calc(var(--ol) * 1.4) calc(var(--ol) * 1.4) rgba(60, 40, 20, .22));
+    transition: opacity .18s;
+    will-change: transform;
+}
+.face { grid-area: 1 / 1; }
+.face.spin { animation: spin var(--spin, 6s) linear infinite; }
+.face.ccw { animation-direction: reverse; }
+@keyframes spin { from { transform: rotate(var(--r, 0deg)); } to { transform: rotate(calc(var(--r, 0deg) + 360deg)); } }
+.st:active .body { transform: scale(.93); }
+@media (hover: hover) {
+    .st:hover .body { transform: translateY(-2px) scale(1.04); }
+    .st:active .body { transform: scale(.93); }
+}
+.st.gone { pointer-events: none; }
+.st.gone .face { filter: brightness(0); opacity: .07; }
+.st.gone .face.spin { animation: none; }
+.pad.down .face { opacity: 0; }
+.pad.down .st { pointer-events: none; }
+
+.foot { grid-area: foot; min-height: 30px; display: flex; align-items: center; gap: 16px; padding-right: 46px; font-size: 14px; color: var(--ink2); transition: opacity .25s; }
+.foot b { color: var(--ink); font-weight: 800; font-variant-numeric: tabular-nums; }
+.link { font-weight: 800; color: var(--blue); padding: 6px 0; white-space: nowrap; }
+.app:not([data-state="title"]) .foot { opacity: 0; pointer-events: none; }
+
+/* effects: flying stickers, points, tape scraps, confetti */
+.fx { position: fixed; inset: 0; pointer-events: none; z-index: 20; overflow: hidden; }
+.fx > * { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
+.fly { display: grid; place-items: center; }
+.fly span { font-family: var(--emoji); line-height: 1; --ol: calc(var(--fs) * .05);
+    filter: drop-shadow(var(--ol) 0 0 #fff) drop-shadow(calc(var(--ol) * -1) 0 0 #fff) drop-shadow(0 var(--ol) 0 #fff) drop-shadow(0 calc(var(--ol) * -1) 0 #fff) drop-shadow(0 3px 2px rgba(60, 40, 20, .22)); }
+.chip { font-weight: 800; font-size: 17px; line-height: 1; color: #fff; background: var(--pink); padding: 5px 9px 6px; border-radius: 999px; white-space: nowrap; font-variant-numeric: tabular-nums; box-shadow: 0 2px 0 rgba(0, 0, 0, .12); }
+.chip.gain { background: var(--blue); font-size: 15px; }
+.chip.hot { background: var(--yellow); color: var(--ink); }
+.chip.big { font-size: 19px; padding: 7px 12px 8px; }
+.slap { position: absolute; z-index: 4; width: 96px; height: 86px; border-radius: 50%; background: var(--yellow); display: grid; place-items: center; font-weight: 800; font-size: 17px; text-transform: uppercase; box-shadow: 0 2px 0 rgba(0, 0, 0, .12), 0 10px 16px -8px rgba(0, 0, 0, .35); }
+.ring { border-radius: 50%; border: 7px solid var(--pink); box-shadow: 0 0 0 3px rgba(255, 255, 255, .8); }
+.cross { font-weight: 800; color: var(--pink); mix-blend-mode: multiply; line-height: 1; }
+.scrap { background: var(--blue); opacity: .9; mix-blend-mode: multiply; }
+.bit { width: 9px; height: 9px; mix-blend-mode: multiply; }
+
+/* the pause card and the results card */
+.veil { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px 16px max(58px, calc(env(safe-area-inset-bottom) + 50px)); background-color: var(--paper); background-image: radial-gradient(rgba(0, 120, 191, .09) 1.1px, transparent 1.4px); background-size: 7px 7px; visibility: hidden; opacity: 0; transition: opacity .3s var(--out), visibility 0s .3s; }
+.veil.show { visibility: visible; opacity: 1; transition: opacity .3s var(--out); }
+.card {
+    width: min(100%, 380px);
+    background: var(--sheet);
+    border-radius: 22px;
+    padding: 22px 22px 18px;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .06), 0 30px 50px -24px rgba(60, 40, 20, .5);
+    text-align: center;
+    position: relative;
+    transform: translateY(40px) rotate(-1deg);
+    transition: transform .5s var(--spring);
+}
+.veil.show .card { transform: none; }
+#overVeil .card { margin-top: 70px; padding-top: 74px; }
+.missed { position: absolute; left: 50%; top: -72px; transform: translateX(-50%) rotate(-5deg); display: flex; flex-direction: column; align-items: center; }
+.missed .stamp.small { --stamp: 132px; }
+.missed .note { position: absolute; left: calc(100% - 6px); top: 10px; transform: rotate(8deg); font-weight: 800; font-size: 16px; color: var(--blue); text-transform: uppercase; white-space: nowrap; }
+.card .k { font-weight: 800; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--pink); }
+.card .big { font-weight: 800; font-size: 68px; line-height: 1; letter-spacing: -.03em; color: var(--blue); text-shadow: 3px 3px 0 rgba(255, 72, 176, .85); margin: 10px 0 6px; font-variant-numeric: tabular-nums; }
+.newbest {
+    position: absolute; right: -8px; top: -18px;
+    width: 84px; height: 84px; border-radius: 50%;
+    background: var(--yellow);
+    display: grid; place-items: center;
+    font-weight: 800; font-size: 16px; line-height: 1.05; text-transform: uppercase; letter-spacing: .02em;
+    transform: rotate(12deg);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, .12), 0 8px 14px -8px rgba(0, 0, 0, .35);
+}
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0 18px; }
+.stats div { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.stats b { display: block; font-size: 26px; letter-spacing: -.01em; color: var(--ink); text-transform: none; font-variant-numeric: tabular-nums; }
+.again {
+    width: 100%; height: 58px; border-radius: 999px;
+    background: var(--pink); color: #fff;
+    font-weight: 800; font-size: 21px; letter-spacing: .01em;
+    box-shadow: 0 4px 0 #c42c83;
+    transition: transform .1s, box-shadow .1s;
+}
+.again:active { transform: translateY(3px); box-shadow: 0 1px 0 #c42c83; }
+.again:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; border-radius: 999px; }
+.card .row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 14px; color: var(--ink2); }
+.card .row b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.pausecard .big { font-size: 44px; margin: 4px 0 2px; }
+.pausecard p { margin: 0 0 16px; color: var(--ink2); }
+
+@media (min-aspect-ratio: 1/1) {
+    :root { --stamp: clamp(96px, min(42vh, 26vw), 340px); }
+    .brand b { font-size: clamp(40px, 5vw, 76px); }
+    .brand small, .score small { font-size: 14px; }
+    .score b { font-size: clamp(48px, 6vw, 88px); }
+    .top { min-height: 100px; }
+    .left { height: 100px; }
+    .icon { width: 48px; height: 48px; }
+    .icon svg { width: 24px; height: 24px; }
+    .tape { align-self: end; height: 30px; margin: 4px 0 -22px; }
+    .label { font-size: 22px; }
+    .count { font-size: 17px; padding: 4px 12px 5px; }
+    .count i { width: 11px; height: 11px; }
+    .streak { width: 72px; height: 72px; font-size: 30px; }
+    .tools { gap: 12px; }
+    .app {
+        max-width: 1320px;
+        grid-template-columns: clamp(230px, 30vw, 400px) minmax(0, 1fr);
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        grid-template-areas: "top top" "find tape" "find pad" "foot pad";
+        column-gap: clamp(24px, 5vw, 64px);
+        padding: max(22px, env(safe-area-inset-top)) clamp(18px, 4vw, 48px) max(16px, env(safe-area-inset-bottom));
+    }
+    .find { align-self: center; padding-bottom: 4vh; }
+    .foot { padding-right: 0; }
+    .veil { place-items: center; padding-bottom: 16px; }
+}
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+    .top { min-height: 48px; }
+    .brand b { font-size: 26px; }
+    .score b { font-size: 30px; }
+    .streak { width: 46px; height: 46px; font-size: 19px; }
+    .find { padding-bottom: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .face.spin { animation: none; }
+    .tape.low.shake { animation: none; }
+    .card { transition: none; transform: none; }
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Peel &amp; Seek","item":"https://suipce.com/games/Puzzle/Emoji-Puzzle-Mania/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Emoji-Puzzle-Mania/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Emoji-Puzzle-Mania/preview.png"></head>
+<body>
+<main class="app" id="app" data-state="title">
+    <header class="top">
+        <div class="left">
+            <div class="brand" id="brand"><b>Peel <i>&amp;</i> Seek</b><small id="brandSub">find the sticker</small></div>
+            <div class="score" id="score" aria-live="off"><small>Score</small><b id="scoreNum">0</b></div>
+        </div>
+        <div class="tools">
+            <div class="streak" id="streak" aria-hidden="true"><span>×</span><em id="multNum" style="font-style:normal">1</em><svg class="ring3" id="ring3" viewBox="0 0 70 70"></svg></div>
+            <button class="icon" id="pauseBtn" aria-label="Pause">
+                <svg viewBox="0 0 20 20"><rect x="4.5" y="3.5" width="4" height="13" rx="1.5" fill="#22201c"/><rect x="11.5" y="3.5" width="4" height="13" rx="1.5" fill="#22201c"/></svg>
+            </button>
+            <button class="icon" id="soundBtn" aria-label="Sound on" aria-pressed="true">
+                <svg viewBox="0 0 20 20"><path d="M3 7.5h3l4.5-3.5v12L6 12.5H3z" fill="#22201c"/>
+                    <path class="on" d="M13.2 7.2a4 4 0 0 1 0 5.6M15.4 5a7 7 0 0 1 0 10" stroke="#0078bf" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path class="off" d="M13 7.5l5 5M18 7.5l-5 5" stroke="#ff48b0" stroke-width="1.9" stroke-linecap="round"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <section class="find">
+        <div class="stampWrap">
+            <div class="stamp" id="stamp" role="img" aria-live="polite" aria-label="Find"><span class="e" id="stampEmoji"></span></div>
+            <div class="label" id="label">find!</div>
+            <div class="count" id="count"></div>
+        </div>
+    </section>
+
+    <div class="tape" id="tape"><div class="fill" id="fill"></div></div>
+
+    <section class="pad" id="pad" aria-label="Sticker sheet"></section>
+
+    <footer class="foot" id="foot">
+        <span id="bestLine"></span>
+        <button class="link" id="modeBtn">today's sheet →</button>
+    </footer>
+</main>
+
+<div class="fx" id="fx" aria-hidden="true"></div>
+
+<div class="veil" id="pauseVeil">
+    <div class="card pausecard">
+        <div class="k">paused</div>
+        <div class="big">The tape waits.</div>
+        <p>The sheet is face down until you come back.</p>
+        <button class="again" id="resumeBtn">Carry on</button>
+    </div>
+</div>
+
+<div class="veil" id="overVeil">
+    <div class="card" role="dialog" aria-labelledby="overKind">
+        <div class="missed" id="missed"><div class="stamp small"><span class="e" id="missedEmoji"></span></div><span class="note">you missed</span></div>
+        <div class="newbest" id="newBest">new<br>best!</div>
+        <div class="k" id="overKind">time's up</div>
+        <div class="big" id="overScore">0</div>
+        <div class="stats">
+            <div><b id="stFinds">0</b>finds</div>
+            <div><b id="stStreak">0</b>best run</div>
+            <div><b id="stSheet">1</b>round</div>
+        </div>
+        <button class="again" id="againBtn">Play again</button>
+        <div class="row"><span id="overBest"></span><button class="link" id="overMode">today's sheet →</button></div>
+    </div>
+</div>
+
+<script id="core">
+// The rules of Peel & Seek, with no DOM, so test/emoji_puzzle_mania.mjs can run them in Node.
+// A run is a seeded stream of sheets; every board, target and tilt comes from the seed, so the
+// same seed and the same taps at the same moments always give the same run. Time is passed in
+// (milliseconds, any clock) rather than read, so a test can play a whole run in a loop.
+const Peel = (() => {
+    // Families of lookalikes. Decoys come from the target's own family more and more often as
+    // the sheets go by: finding the fox among cats and tigers is the game. Emoji 11 or older, so
+    // no phone draws a target as an empty box. `still` families change meaning when turned (a
+    // moon's phase, a clock's time) and are never tilted.
+    const FAMILIES = [
+        {id: 'animals', tier: 1, items: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐺', '🦝']},
+        {id: 'fruit', tier: 1, items: ['🍎', '🍏', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅']},
+        {id: 'veg', tier: 1, items: ['🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🥒', '🥬', '🥦', '🍄', '🥜', '🌰']},
+        {id: 'sweets', tier: 1, items: ['🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍦', '🍧', '🍨']},
+        {id: 'sea', tier: 1, items: ['🐳', '🐋', '🐬', '🐟', '🐠', '🐡', '🦈', '🐙', '🦑', '🦐', '🦞', '🦀']},
+        {id: 'birds', tier: 1, items: ['🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦜', '🦚', '🦢']},
+        {id: 'bugs', tier: 1, items: ['🐛', '🦋', '🐌', '🐞', '🐜', '🦗', '🕷️', '🦂', '🦟', '🐝']},
+        {id: 'plants', tier: 1, items: ['🌵', '🎄', '🌲', '🌳', '🌴', '🌱', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃']},
+        {id: 'flowers', tier: 1, items: ['🌷', '🌹', '🥀', '🌺', '🌸', '🌼', '🌻', '💐', '🏵️']},
+        {id: 'balls', tier: 1, items: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🎱', '🥏', '🏓']},
+        {id: 'vehicles', tier: 1, items: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜']},
+        {id: 'smileys', tier: 2, items: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '🙂', '😊', '😇', '😉', '😌', '😍', '🥰', '😘', '😋', '😛']},
+        {id: 'faces', tier: 2, items: ['😐', '😑', '😶', '🙄', '😏', '😒', '😬', '🤐', '😯', '😮', '😲', '😳', '🥺', '😦', '😧', '😟']},
+        {id: 'cats', tier: 2, items: ['😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾']},
+        {id: 'weather', tier: 2, items: ['☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️', '❄️', '🌪️', '🌈']},
+        {id: 'hearts', tier: 2, items: ['💖', '💗', '💓', '💞', '💕', '💘', '💝', '💟', '❣️', '💔']},
+        {id: 'moons', tier: 3, still: true, items: ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘', '🌙', '🌚', '🌛', '🌜', '🌝']},
+        {id: 'clocks', tier: 3, still: true, items: ['🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛']},
+    ];
+
+    const START_MS = 15000;      // on the tape when the starter sticker is found
+    const MAX_MS = 20000;        // the tape is never longer than this
+    const MISS_MS = 3000;        // a wrong sticker tears this much off
+    const FINDS = 5;             // finds to a round; each round is a new sheet
+    const REFRESH_MS = 360;      // a find: the board flips over; the clock waits and taps wait
+    const SHEET_MS = 720;        // a finished sheet peels off and the next slides in
+    const COPY_MS = 700;         // each copy found on a collector sheet
+    const CLEAR_MS = 4000;       // clearing a collector sheet
+    const CLEAR_HOLD_MS = 1200;  // ... which shows its cleared sticker before it peels off
+    const FAST_MS = 2500;        // a find quicker than this pays up to double
+
+    // Rounds 1..12 by hand; after that the last row repeats with a collector every fourth.
+    //   cols, similar (share of decoys from the target's family), tilt (share turned well off
+    //   straight), spin (share that keep turning), copies (a collector sheet when > 0)
+    const SHEETS = [
+        [3, .3, 0, 0, 0],
+        [4, .25, 0, 0, 0],
+        [4, .5, 0, 0, 0],
+        [4, .5, 0, 0, 3],
+        [5, .55, 0, 0, 0],
+        [5, .7, .35, 0, 0],
+        [5, .8, .45, .12, 0],
+        [5, .8, .45, .12, 4],
+        [6, .8, .4, .1, 0],
+        [6, .9, .55, .18, 0],
+        [6, 1, .65, .25, 0],
+        [6, 1, .65, .25, 5],
+    ];
+
+    function sheetSpec(n) {
+        const row = SHEETS[Math.min(n, SHEETS.length) - 1].slice();
+        if (n > SHEETS.length) {
+            row[2] = Math.min(.85, .65 + (n - 12) * .03);
+            row[3] = Math.min(.45, .25 + (n - 12) * .03);
+            row[4] = n % 4 === 0 ? 5 : 0;
+        }
+        const [cols, similar, tilt, spin, copies] = row;
+        return {n, cols, cells: cols * cols, similar, tilt, spin, copies, tier: n <= 3 ? 1 : n <= 8 ? 2 : 3};
+    }
+
+    // Seconds a find puts back on the tape: generous early, a little under two at sheet ten.
+    const bonusMs = n => Math.max(1200, 2600 - 120 * (n - 1));
+    const multiplier = streak => Math.min(6, 1 + Math.floor(streak / 3));
+    const round5 = x => Math.round(x / 5) * 5;
+
+    function hash(str) {
+        let h = 2166136261;
+        for (const ch of String(str)) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
+        return h >>> 0;
+    }
+
+    function rng(seed) {
+        let a = seed >>> 0;
+        const next = () => {
+            a = a + 0x6D2B79F5 | 0;
+            let t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+        next.int = n => Math.floor(next() * n);
+        next.pick = arr => arr[Math.floor(next() * arr.length)];
+        return next;
+    }
+
+    // One board. `avoid` is the previous target, never repeated straight away.
+    function makeBoard(rand, spec, avoid) {
+        const pool = FAMILIES.filter(f => f.tier <= spec.tier);
+        let fam, target;
+        do {
+            fam = rand.pick(pool);
+            target = rand.pick(fam.items);
+        } while (target === avoid);
+        const others = pool.filter(f => f !== fam);
+        const cells = [];
+        const answers = [];
+        const spots = new Set();
+        const copies = Math.max(1, spec.copies);
+        while (spots.size < copies) spots.add(rand.int(spec.cells));
+        for (let i = 0; i < spec.cells; i++) {
+            let e;
+            if (spots.has(i)) {
+                e = target;
+                answers.push(i);
+            } else {
+                // A lookalike from the target's family, or anything else. Small boards try not
+                // to repeat a decoy, so a nine-sticker sheet shows nine different things.
+                const near = rand() < spec.similar;
+                for (let tries = 0; tries < 6; tries++) {
+                    if (near) do e = rand.pick(fam.items); while (e === target);
+                    else e = rand.pick(rand.pick(others).items);
+                    if (spec.cells > 16 || !cells.some(c => c.e === e)) break;
+                }
+            }
+            const still = fam.still || FAMILIES.find(f => f.items.includes(e)).still;
+            // Every sticker sits a little crooked, as stuck by hand; some are turned well off.
+            let tilt = (rand() - .5) * 14;
+            let spin = 0;
+            if (!still && rand() < spec.tilt) tilt = (rand() < .5 ? -1 : 1) * (35 + rand() * 145);
+            if (!still && rand() < spec.spin) spin = (rand() < .5 ? -1 : 1) * (35 + rand() * 55);
+            cells.push({e, tilt: Math.round(tilt), spin: Math.round(spin)});
+        }
+        return {target, family: fam.id, cols: spec.cols, cells, answers, left: answers.slice()};
+    }
+
+    // The starter: a small, easy board whose find starts the clock. On the title and after
+    // every run, so the first second of a run is never spent before the player is ready.
+    function starterBoard(rand, avoid) {
+        return makeBoard(rand, {cols: 3, cells: 9, similar: .25, tilt: 0, spin: 0, copies: 0, tier: 1}, avoid);
+    }
+
+    function newRun(seed) {
+        const rand = rng(seed);
+        const run = {
+            seed, rand, sheet: 0, found: 0, score: 0, streak: 0, bestStreak: 0,
+            finds: 0, misses: 0, fastest: Infinity, started: false, over: false,
+            deadline: 0, shownAt: 0, pausedAt: null, board: null,
+        };
+        run.board = starterBoard(rand);
+        return run;
+    }
+
+    function remaining(run, t) {
+        if (!run.started) return START_MS;
+        if (run.over) return 0;
+        const now = run.pausedAt ?? t;
+        return Math.max(0, run.deadline - now);
+    }
+
+    // Ends the run if the tape is empty. Returns true once it is.
+    function update(run, t) {
+        if (run.started && !run.over && run.pausedAt == null && run.deadline - t <= 0) run.over = true;
+        return run.over;
+    }
+
+    function pause(run, t) {
+        if (run.started && !run.over && run.pausedAt == null) run.pausedAt = t;
+    }
+
+    function resume(run, t) {
+        if (run.pausedAt == null) return;
+        const gone = t - run.pausedAt;
+        run.deadline += gone;
+        run.shownAt += gone;
+        run.pausedAt = null;
+    }
+
+    function nextSheet(run, t, hold) {
+        run.sheet++;
+        run.found = 0;
+        run.board = makeBoard(run.rand, sheetSpec(run.sheet), run.board.target);
+        run.s

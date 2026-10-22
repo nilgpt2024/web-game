@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Fathom/">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ece3cf">
+    <title>Play FATHOM Online - Free Puzzle Game | AIGameHub</title>
+    <meta name="description" content="Play FATHOM online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=EB+Garamond:ital,wght@0,400..700;1,400..700&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            --paper: #ece3cf;
+            --paper-hi: #f6efdd;
+            --card: #f1e8d3;
+            --ink: #2b2117;
+            --ink2: #6b5b45;
+            --rule: rgba(43, 33, 23, .55);
+            --rubric: #a32e22;
+            --gilt: #8a6414;
+            --gilt-hi: #c9a227;
+            --prus: #1f4d6e;
+            --graphite: #8b8478;
+            --serif: "EB Garamond", "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+            --fell: "IM Fell English", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+            --inset: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--serif);
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        button {
+            font-family: var(--serif);
+        }
+
+        *:focus-visible {
+            outline: 2px solid var(--prus);
+            outline-offset: 2px;
+        }
+
+        #game {
+            position: fixed;
+            inset: 0;
+            display: block;
+        }
+
+        /* ---------- The running head (folio cartouche) ---------- */
+        .runninghead {
+            position: fixed;
+            top: calc(var(--inset) - 7px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 6;
+            background: var(--paper);
+            padding: 0 18px;
+            color: var(--ink2);
+            font: 500 10.5px var(--serif);
+            letter-spacing: .44em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        /* ---------- HUD ---------- */
+        .hud {
+            position: fixed;
+            z-index: 5;
+            pointer-events: none;
+            font-size: 13px;
+        }
+
+        .hud .lbl {
+            color: var(--ink2);
+            font-size: 16px;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+        }
+
+        .hud .val {
+            font-size: 19px;
+            font-weight: 600;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        #hudWave {
+            top: calc(var(--inset) + 14px);
+            left: calc(var(--inset) + 16px);
+        }
+
+        #hudScore {
+            top: calc(var(--inset) + 14px);
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        #hudScore .val {
+            font-size: 26px;
+        }
+
+        #hudCombo {
+            margin-top: 1px;
+            font-size: 13.5px;
+            font-style: italic;
+            color: var(--gilt);
+            min-height: 17px;
+        }
+
+        #hudStats {
+            top: calc(var(--inset) + 14px);
+            right: calc(var(--inset) + 16px);
+            text-align: right;
+            transform: rotate(.6deg);
+        }
+
+        #hudStats .val {
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        #hudBoss .lbl {
+            color: var(--rubric);
+            letter-spacing: .42em;
+        }
+
+        #bossSeg {
+            font-size: 14px;
+            color: var(--rubric);
+            letter-spacing: .3em;
+            margin-top: 2px;
+        }
+
+        #hudHull {
+            bottom: calc(var(--inset) + 12px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(420px, 68vw);
+            text-align: center;
+        }
+
+        #hudHull .lbl b {
+            color: var(--ink);
+            font-weight: 600;
+            letter-spacing: .08em;
+        }
+
+        /* engraved scale-bar */
+        #hullBar {
+            height: 9px;
+            border: 1px solid var(--ink);
+            margin-top: 5px;
+            overflow: hidden;
+            position: relative;
+            background: var(--paper-hi);
+        }
+
+        #hullBar::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(90deg, transparent 0, transparent calc(10% - 1px), var(--rule) calc(10% - 1px), var(--rule) 10%);
+            pointer-events: none;
+        }
+
+        #hullFill {
+            height: 100%;
+            width: 100%;
+            background: var(--ink);
+            transition: width .25s ease;
+        }
+
+        #hullFill.warn {
+            background: var(--gilt);
+        }
+
+        #hullFill.crit {
+            background: var(--rubric);
+            animation: critPulse 1s steps(2, jump-none) infinite;
+        }
+
+        @keyframes critPulse {
+            50% {
+                opacity: .55;
+            }
+        }
+
+        #hudPowers {
+            bottom: calc(var(--inset) + 56px);
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .pow {
+            border: 1px solid var(--gilt);
+            padding: 3px 10px;
+            font-size: 11px;
+            letter-spacing: .18em;
+            color: var(--gilt);
+            background: var(--paper-hi);
+            text-transform: uppercase;
+        }
+
+        .pow.cold {
+            color: var(--prus);
+            border-color: var(--prus);
+        }
+
+        #hudHint {
+            bottom: calc(var(--inset) + 10px);
+            right: calc(var(--inset) + 14px);
+            color: var(--ink2);
+            font-size: 12px;
+            font-style: italic;
+            text-align: right;
+        }
+
+        #hudHint b {
+            font-style: normal;
+            font-weight: 500;
+            color: var(--ink);
+            letter-spacing: .08em;
+        }
+
+        #hudUpg {
+            bottom: calc(var(--inset) + 10px);
+            left: calc(var(--inset) + 14px);
+            font-size: 11px;
+            font-style: italic;
+            color: var(--ink2);
+            max-width: 230px;
+            line-height: 1.8;
+        }
+
+        #togCol {
+            position: fixed;
+            top: calc(var(--inset) + 116px);
+            right: calc(var(--inset) + 12px);
+            z-index: 8;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-end;
+        }
+
+        .tog {
+            pointer-events: auto;
+            background: transparent;
+            border: none;
+            color: var(--ink2);
+            font: 500 10.5px var(--serif);
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            padding: 3px 2px;
+            cursor: pointer;
+        }
+
+        .tog::before {
+            content: '[ ';
+            color: var(--rule);
+        }
+
+        .tog::after {
+            content: ' ]';
+            color: var(--rule);
+        }
+
+        .tog:hover {
+            color: var(--ink);
+            text-decoration: underline;
+        }
+
+        .tog.off {
+            color: #a4977f;
+            text-decoration: line-through;
+        }
+
+        /* ---------- Overlays ---------- */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at center, rgba(62, 48, 28, .22) 0%, rgba(40, 30, 17, .5) 100%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .35s ease;
+        }
+
+        .overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .card {
+            width: min(680px, 92vw);
+            max-height: 92vh;
+            overflow-y: auto;
+            background: var(--card);
+            border: 1px solid var(--ink);
+            box-shadow: inset 0 0 0 4px var(--card),
+            inset 0 0 0 5px var(--rule),
+            0 26px 70px rgba(40, 28, 14, .42);
+            padding: 38px 42px 32px;
+            text-align: center;
+            scrollbar-width: thin;
+            scrollbar-color: var(--ink2) transparent;
+        }
+
+        /* mourning card */
+        #gameover .card {
+            border: 7px solid var(--ink);
+            box-shadow: inset 0 0 0 2px var(--card),
+            inset 0 0 0 3px var(--rule),
+            0 26px 70px rgba(40, 28, 14, .45);
+        }
+
+        .eyebrow {
+            color: var(--ink2);
+            font-size: 10.5px;
+            letter-spacing: .4em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .orn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 12px auto 16px;
+            max-width: 330px;
+        }
+
+        .orn::before, .orn::after {
+            content: '';
+            height: 1px;
+            background: var(--rule);
+            flex: 1;
+        }
+
+        .orn i {
+            width: 7px;
+            height: 7px;
+            background: var(--ink);
+            transform: rotate(45deg);
+            flex: none;
+        }
+
+        h1.title {
+            font-family: var(--fell);
+            font-size: clamp(46px, 9vw, 78px);
+            font-weight: 400;
+            letter-spacing: .14em;
+            text-indent: .14em;
+            color: var(--ink);
+            margin-bottom: 2px;
+            line-height: 1.05;
+        }
+
+        h2.heading {
+            font-family: var(--fell);
+            font-weight: 400;
+            letter-spacing: .22em;
+            text-indent: .22em;
+            font-size: 25px;
+            color: var(--ink);
+        }
+
+        .subtitle {
+            font-style: italic;
+            color: var(--ink2);
+            font-size: 15px;
+            letter-spacing: .02em;
+            margin-bottom: 6px;
+        }
+
+        .howto {
+            color: var(--ink2);
+            font-size: 14.5px;
+            line-height: 1.85;
+            margin-bottom: 22px;
+        }
+
+        .howto b {
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        .howto .gold {
+            color: var(--gilt);
+            font-weight: 600;
+        }
+
+        .howto .k {
+            display: inline-block;
+            border: 1px solid var(--ink);
+            background: var(--paper-hi);
+            padding: 0 7px;
+            color: var(--ink);
+            font-size: 11.5px;
+            letter-spacing: .06em;
+            margin: 0 2px;
+        }
+
+        .diffrow {
+            display: flex;
+            gap: 9px;
+            justify-content: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .diff {
+            border: 1px solid var(--ink);
+            background: var(--paper-hi);
+            color: var(--ink);
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            padding: 9px 16px;
+            cursor: pointer;
+            transition: background .12s;
+        }
+
+        .diff:hover {
+            background: #e7dcc1;
+        }
+
+        .diff.sel {
+            color: var(--paper-hi);
+            background: var(--ink);
+            font-weight: 600;
+        }
+
+        .bigbtn {
+            display: inline-block;
+            border: 1px solid var(--ink);
+            background: var(--ink);
+            color: var(--paper-hi);
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: .3em;
+            text-indent: .3em;
+            text-transform: uppercase;
+            padding: 15px 42px;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 3px var(--ink), inset 0 0 0 4px rgba(246, 239, 221, .55);
+            transition: background .12s, transform .06s;
+        }
+
+        .bigbtn:hover {
+            background: #3c2e1f;
+            box-shadow: inset 0 0 0 3px #3c2e1f, inset 0 0 0 4px rgba(246, 239, 221, .55);
+        }
+
+        .bigbtn:active {
+            transform: translateY(1px);
+        }
+
+        .hiscore {
+            margin-top: 18px;
+            color: var(--ink2);
+            font-size: 11.5px;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+        }
+
+        .hiscore b {
+            color: var(--gilt);
+            font-size: 14px;
+            letter-spacing: .1em;
+        }
+
+        /* fittings (upgrade cards) */
+        .upgrid {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin: 22px 0 8px;
+            flex-wrap: wrap;
+        }
+
+        .upg {
+            flex: 1 1 165px;
+            max-width: 195px;
+            min-height: 172px;
+            border: 1px solid var(--ink);
+            background: var(--paper-hi);
+            padding: 15px 14px;
+            cursor: pointer;
+            text-align: left;
+            color: var(--ink);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform .12s, box-shadow .12s;
+        }
+
+        .upg:hover, .upg:focus-visible {
+            transform: translateY(-2px);
+            box-shadow: inset 0 0 0 1px var(--paper-hi), inset 0 0 0 2px var(--ink),
+            0 8px 22px rgba(40, 28, 14, .25);
+            outline: none;
+        }
+
+        .upg .key {
+            color: var(--gilt);
+            font-size: 11.5px;
+            font-style: italic;
+            letter-spacing: .12em;
+        }
+
+        .upg .nm {
+            font-size: 14.5px;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--ink);
+        }
+
+        .upg .ds {
+            font-size: 12.5px;
+            font-style: italic;
+            line-height: 1.6;
+            color: var(--ink2);
+            flex: 1;
+        }
+
+        .upg .pips {
+            font-size: 10px;
+            color: var(--gilt);
+            letter-spacing: .32em;
+        }
+
+        .bonusline {
+            color: var(--gilt);
+            font-size: 12.5px;
+            font-style: italic;
+            letter-spacing: .08em;
+            min-height: 17px;
+            margin-top: 4px;
+        }
+
+        /* the ledger (gameover stats) */
+        .statgrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px 10px;
+            margin: 22px 0;
+            border-top: 1px solid var(--rule);
+            border-bottom: 1px solid var(--rule);
+            padding: 18px 0;
+        }
+
+        .stat .lbl {
+            color: var(--ink2);
+            font-size: 10px;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+        }
+
+        .stat .val {
+            font-size: 21px;
+            color: var(--ink);
+            margin-top: 4px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .grade {
+            font-family: var(--fell);
+            font-size: 68px;
+            color: var(--gilt);
+            margin: 4px 0 0;
+            letter-spacing: .06em;
+            line-height: 1.1;
+        }
+
+        .gradeword {
+            color: var(--ink2);
+            font-size: 12px;
+            font-style: italic;
+            letter-spacing: .1em;
+            margin-bottom: 6px;
+        }
+
+        .newbest {
+            color: var(--gilt);
+            font-size: 12px;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            min-height: 15px;
+        }
+
+        #mobileInput {
+            position: fixed;
+            opacity: 0;
+            left: -9999px;
+            top: 0;
+            height: 1px;
+            width: 1px;
+        }
+
+        .smallnote {
+            margin-top: 18px;
+            color: var(--ink2);
+            font-size: 11px;
+            font-style: italic;
+            letter-spacing: .06em;
+        }
+
+        .smallnote b {
+            font-style: normal;
+            font-weight: 500;
+            color: var(--ink);
+            letter-spacing: .1em;
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 26px 18px 24px;
+            }
+
+            .runninghead {
+                font-size: 8px;
+                letter-spacing: .3em;
+            }
+
+            #hudStats .lbl, #hudWave .lbl {
+                font-size: 9px;
+            }
+
+            .hud .val {
+                font-size: 15px;
+            }
+
+            #hudScore .val {
+                font-size: 21px;
+            }
+
+            #hudUpg {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .overlay, .upg, .diff, .bigbtn {
+                transition: none;
+            }
+
+            #hullFill.crit {
+                animation: none;
+            }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"FATHOM","item":"https://suipce.com/games/Puzzle/Fathom/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Fathom/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Fathom/preview.png"></head>
+<body>
+<canvas id="game"></canvas>
+<input id="mobileInput" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"
+       aria-hidden="true" tabindex="-1">
+
+<div class="runninghead">Fathom · A Catalogue of Abyssal Specimens</div>
+
+<!-- HUD -->
+<div class="hud" id="hudWave">
+    <div class="lbl">Plate</div>
+    <div class="val" id="vWave">—</div>
+    <div class="lbl" style="margin-top:8px">At large</div>
+    <div class="val" id="vLeft">—</div>
+    <div class="lbl" id="vMode" style="margin-top:8px;color:var(--gilt)"></div>
+</div>
+<div class="hud" id="hudScore">
+    <div class="lbl">Score</div>
+    <div class="val" id="vScore">0</div>
+    <div id="hudCombo"></div>
+</div>
+<div class="hud" id="hudBoss"
+     style="top:calc(var(--inset) + 88px);left:50%;transform:translateX(-50%);text-align:center;display:none;">
+    <div class="lbl">The Leviathan</div>
+    <div id="bossSeg"></div>
+</div>
+<div class="hud" id="hudUpg"></div>
+<div class="hud" id="hudStats">
+    <div class="lbl">Words / min</div>
+    <div class="val" id="vWpm">0</div>
+    <div class="lbl" style="margin-top:8px">Accuracy</div>
+    <div class="val" id="vAcc">100%</div>
+</div>
+<div class="hud" id="hudPowers"></div>
+<div class="hud" id="hudHull">
+    <div class="lbl">Integrity of the bell — <b id="vHull">100</b></div>
+    <div id="hullBar">
+        <div id="hullFill"></div>
+    </div>
+</div>
+<div class="hud" id="hudHint">write a name to strike it · <b>TAB</b> lets it go · <b>ESC</b> to rest</div>
+<div id="togCol">
+    <button class="tog" id="muteBtn" title="Toggle sound (M)">Sound on</button>
+    <button class="tog" id="musBtn" title="Toggle music">Music on</button>
+    <button class="tog" id="fxBtn" title="Toggle tremors &amp; heavy flourish">Flourish on</button>
+</div>
+
+<!-- MENU · the title page -->
+<div class="overlay show" id="menu">
+    <div class="card">
+        <div class="eyebrow">Taken at a sounding of 3,812 fathoms</div>
+        <h1 class="title">FATHOM</h1>
+        <div class="subtitle">or, a faithful catalogue of the creatures of the abyss,<br>compiled at great peril by the
+            keeper of the bell
+        </div>
+        <div class="orn"><i></i></div>
+        <div class="howto">
+            Specimens rise toward the bell from every bearing, and each one carries its <b>name</b>.<br>
+            <b>Write the name</b>, letter by letter, and the creature is fixed to the plate.<br>
+            Claim the <span class="gold">gilded words</span> that drift past; unbroken work quickens the hand.<br>
+            <span class="k">a–z</span> write &nbsp;<span class="k">tab</span> release &nbsp;<span
+                class="k">esc</span> rest &nbsp;<span class="k">m</span> sound
+        </div>
+        <div class="diffrow" id="modeRow" style="margin-bottom:12px;">
+            <button class="diff sel" data-m="endless">Endless</button>
+            <button class="diff" data-m="daily">Daily Dive</button>
+        </div>
+        <div class="diffrow" id="diffRow">
+            <button class="diff" data-d="0">Calm Drift</button>
+            <button class="diff sel" data-d="1">Open Water</button>
+            <button class="diff" data-d="2">Riptide</button>
+            <button class="diff" data-d="3">Hadal Zone</button>
+        </div>
+        <button class="bigbtn" id="startBtn">Begin the Descent</button>
+        <div class="hiscore" id="menuHi"></div>
+        <div class="hiscore" id="dailyInfo" style="margin-top:8px;display:none;"></div>
+        <div class="hiscore" id="lifeLine" style="margin-top:8px;color:#9a8d76;"></div>
+        <div class="smallnote">press <b>ENTER</b> to descend · a keyboard is required</div>
+    </div>
+</div>
+
+<!-- UPGRADE · the crate -->
+<div class="overlay" id="upgrade">
+    <div class="card">
+        <div class="eyebrow">Lowered from the surface</div>
+        <h2 class="heading" id="upTitle">PLATE CLEARED</h2>
+        <div class="bonusline" id="upBonus"></div>
+        <div style="color:var(--ink2);font-size:13px;font-style:italic;margin-top:6px;">A crate settles against the
+            hull. Choose one fitting:
+        </div>
+        <div class="upgrid" id="upGrid"></div>
+        <div class="smallnote">strike <b>1 · 2 · 3</b> to fit it</div>
+    </div>
+</div>
+
+<!-- PAUSE -->
+<div class="overlay" id="pause">
+    <div class="card">
+        <div class="eyebrow">All stop</div>
+        <h2 class="heading">AT REST</h2>
+        <div id="pauseStats"
+             style="color:var(--ink2);font-size:13px;letter-spacing:.18em;text-transform:uppercase;margin-top:14px;"></div>
+        <div class="howto" style="margin-top:18px;">The creatures wait in the dark. They are patient.<br>
+            <span class="k">esc</span> resume &nbsp;<span class="k">m</span> sound &nbsp;<span class="k">q</span>
+            abandon the dive
+        </div>
+        <button class="bigbtn" id="resumeBtn">Resume the Watch</button>
+    </div>
+</div>
+
+<!-- GAME OVER · the mourning card -->
+<div class="overlay" id="gameover">
+    <div class="card">
+        <div class="eyebrow" id="goEyebrow">The last entry · station log</div>
+        <h2 class="heading" style="color:var(--rubric);">THE BELL IS LOST</h2>
+        <div class="grade" id="goGrade">B</div>
+        <div class="gradeword" id="goGradeWord">the Society's assessment</div>
+        <div class="newbest" id="goBest"></div>
+        <div class="statgrid">
+            <div class="stat">
+                <div class="lbl">Score</div>
+                <div class="val" id="goScore">0</div>
+            </div>
+            <div class="stat">
+                <div class="lbl">Plates</div>
+                <div class="val" id="goWaves">0</div>
+            </div>
+            <div class="stat">
+                <div class="lbl">Names written</div>
+                <div class="val" id="goWords">0</div>
+            </div>
+            <div class="stat">
+                <div class="lbl">Words / min</div>
+                <div class="val" id="goWpm">0</div>
+            </div>
+            <div class="stat">
+                <div class="lbl">Accuracy</div>
+                <div class="val" id="goAcc">0%</div>
+            </div>
+            <div class="stat">
+                <div class="lbl">Best streak</div>
+                <div class="val" id="goCombo">0</div>
+            </div>
+            <div class="stat">
+                <div class="lbl">Longest word</div>
+                <div class="val" id="goLong" style="font-size:15px;line-height:2;">—</div>
+            </div>
+            <div class="stat">
+                <div class="lbl">Swiftest hand</div>
+                <div class="val" id="goFast" style="font-size:15px;line-height:2;">—</div>
+            </div>
+        </div>
+        <button class="bigbtn" id="retryBtn">Descend Again</button>
+        <div class="smallnote">press <b>ENTER</b> to descend again</div>
+    </div>
+</div>
+
+<script>
+    "use strict";
+    /* ============================================================
+       FATHOM — a catalogue of abyssal specimens
+       One file. No dependencies. Write, or be devoured.
+
+       The plate is paper; the creatures are engravings; your pen
+       is Prussian blue; harm is rubric red; reward is gilt.
+       ============================================================ */
+
+    const TAU = Math.PI * 2;
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const randi = (a, b) => Math.floor(rand(a, b + 1));
+    const choice = a => a[Math.floor(Math.random() * a.length)];
+    const clamp = (v, a, b) => v < a ? a : (v > b ? b : v);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const fmt = n => Math.floor(n).toLocaleString("en-US");
+    const REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let FXON = !REDUCED;
+
+    const ROM = n => {
+        if (!(n > 0)) return "—";
+        const M = [[1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"],
+            [50, "L"], [40, "XL"], [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"]];
+        let s = "";
+        for (const [v, r] of M) while (n >= v) {
+            s += r;
+            n -= v;
+        }
+        return s;
+    };
+
+    /* ---------------- The plate's pigments ---------------- */
+    const PAPER = "#ece3cf", SLIP = "#f6efdd",
+        INK = "#2b2117", INK2 = "#6b5b45",
+        RUBRIC = "#a32e22", RUBDK = "#7e231a",
+        GILT = "#8a6414", GILT2 = "#c9a227",
+        PRUS = "#1f4d6e", PRUS2 = "#6e93ad",
+        GRAPH = "#8b8478", VERD = "#3f6358", SIENNA = "#7a4a1c";
+
+    const SERIF = '"EB Garamond","Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif';
+    const F = (w, s, it) => `${it ? "italic " : ""}${w} ${s}px ${SERIF}`;
+
+    /* Seedable RNG channel: gameplay (spawns, words) draws from RNG so Daily Dive
+       deals everyone the same hand; cosmetics keep using Math.random. */
+    function mulberry32(a) {
+        return function () {
+            a |= 0;
+            a = a + 0x6D2B79F5 | 0;
+            let t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+    }
+
+    let RNG = Math.random;
+    const grand = (a, b) => a + RNG() * (b - a);
+    const grandi = (a, b) => Math.floor(grand(a, b + 1));
+    const gchoice = a => a[Math.floor(RNG() * a.length)];
+
+    function todayKey() {
+        const d = new Date();
+        return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+
+    function todaySeed() {
+        const d = new Date();
+        return d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate();
+    }
+
+    /* ---------------- Word banks (by length) ---------------- */
+    const WORDS = {
+        3: ["sea", "ink", "fin", "ray", "eel", "jaw", "fog", "gem", "rig", "orb", "ice", "ash", "bay", "cod", "ebb", "gut", "hue", "jet", "keg", "lab", "map", "net", "oar", "pod", "rum", "sub", "tar", "urn", "vat", "wax", "yaw", "zip", "arc", "bit", "cog", "dew", "eye", "gel", "hum", "kin"],
+        4: ["kelp", "tide", "reef", "deep", "dark", "glow", "hull", "mast", "wave", "fish", "crab", "clam", "cove", "dive", "drip", "foam", "gill", "helm", "hook", "keel", "lure", "mist", "moss", "port", "prow", "sail", "salt", "sand", "silt", "soak", "swim", "vent", "weed", "bait", "bell", "bolt", "buoy", "cave", "coil", "cold", "dusk", "fang", "flow", "grit", "murk", "opal", "wake", "yarn"],
+        5: ["abyss", "brine", "coral", "squid", "shark", "whale", "siren", "sonar", "depth", "drift", "eerie", "frost", "ghost", "gleam", "gully", "hatch", "inlet", "krill", "lunar", "murky", "nadir", "ocean", "otter", "polyp", "prawn", "shoal", "shell", "spume", "storm", "surge", "swell", "tidal", "trawl", "vapor", "wreck", "blink", "cargo", "chasm", "conch", "creep", "pearl", "manta"],
+        6: ["anchor", "beacon", "bubble", "canyon", "cobalt", "copper", "diatom", "dredge", "fathom", "frigid", "geyser", "grotto", "harbor", "lagoon", "marine", "medusa", "mirage", "morsel", "nekton", "osprey", "oyster", "plunge", "quiver", "ripple", "seabed", "shadow", "shiver", "siphon", "sponge", "strait", "trench", "turtle", "urchin", "vessel", "voyage", "walrus", "sailor", "vortex", "zephyr", "jetsam", "angler"],
+        7: ["abyssal", "ballast", "benthic", "capsize", "cascade", "current", "cyclone", "dolphin", "drowned", "eclipse", "expanse", "fissure", "flotsam", "grouper", "gunwale", "halibut", "harpoon", "lanyard", "leeward", "lobster", "mariner", "monsoon", "narwhal", "octopus", "oarfish", "pelagic", "plummet", "pontoon", "riptide", "salvage", "seafoam", "seaweed", "sextant", "shallow", "shimmer", "specter", "tempest", "thermal", "torpedo", "trawler", "trident", "tsunami", "typhoon", "voyager", "anemone", "turbine"],
+        8: ["aquanaut", "barnacle", "cetacean", "darkness", "driftnet", "eelgrass", "filament", "flounder", "gigantic", "luminous", "mackerel", "midnight", "monolith", "moonpool", "nautilus", "overcast", "

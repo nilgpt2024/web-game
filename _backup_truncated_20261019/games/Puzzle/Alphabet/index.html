@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+          content="Play Alphabet Typing Speed Game online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. ">
+    <meta name="keywords"
+          content="typing game, alphabet game, typing speed, keyboard practice, typing test, abcdefghijklmnqoprstuvwxyz, abcdefghijklmnqoprstuvwxyz game, abcdefghijklmnopqrstuvwxyz, abcdefghijklmnopqrstuvwxyz game">
+    <meta name="author" content="Typing Speed Trainer">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+    <link rel="canonical" href="https://suipce.com/games/Puzzle/Alphabet/">
+    <meta property="og:title" content="Play Alphabet Typing Speed Game Online - Free Puzzle Game | AIGameHub">
+    <meta property="og:description"
+          content="Play Alphabet Typing Speed Game online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. ">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.gptgames.dev/games/alphabet.html">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Alphabet/preview.png"><meta name="twitter:card" content="summary"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Alphabet/preview.png">
+    <meta name="twitter:title" content="Play Alphabet Typing Speed Game Online - Free Puzzle Game | AIGameHub">
+    <meta name="twitter:description"
+          content="Play Alphabet Typing Speed Game online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. ">
+    <title>Play Alphabet Typing Speed Game Online - Free Puzzle Game | AIGameHub</title>
+    <script src="https://cdn.tailwindcss.com/"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --panel-2: #182234;
+            --border: #334155;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            --idle: #64748b;
+            --done: #f1f5f9;
+            --accent: #fbbf24;
+            --accent-dim: #b45309;
+            --error: #ef4444;
+            --best: #22d3ee;
+            --good: #34d399;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text)
+        }
+
+        #alphabet {
+            font-family: 'JetBrains Mono', monospace;
+            position: relative;
+            text-align: center;
+            color: var(--idle)
+        }
+
+        .alphabet-row {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 0.5rem
+        }
+
+        #alphabet span {
+            position: relative;
+            transition: color 0.12s ease, transform 0.12s ease;
+            display: inline-block;
+            width: 1.5em;
+            text-align: center;
+            color: var(--idle)
+        }
+
+        #alphabet span.done {
+            color: var(--done)
+        }
+
+        #alphabet span.current {
+            color: var(--accent)
+        }
+
+        #alphabet span.errored {
+            color: var(--error)
+        }
+
+        #alphabet span.current::after {
+            content: '';
+            position: absolute;
+            width: 3px;
+            height: 0.5rem;
+            background-color: var(--accent);
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: blink 1s steps(1) infinite
+        }
+
+        .letter-typed {
+            animation: pop 0.12s ease-out
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1)
+            }
+            50% {
+                transform: scale(1.35)
+            }
+            100% {
+                transform: scale(1)
+            }
+        }
+
+        .progress-bar {
+            height: 4px;
+            background-color: #0b1220;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 1rem
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent);
+            width: 0%;
+            transition: width 0.12s ease-out, background-color 0.12s ease-out
+        }
+
+        .progress-fill.ahead {
+            background-color: var(--good)
+        }
+
+        .progress-fill.behind {
+            background-color: var(--accent-dim)
+        }
+
+        .metric-card {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: transform 0.15s ease, border-color 0.15s ease
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--idle)
+        }
+
+        .typing-area {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            transition: box-shadow 0.15s ease, border-color 0.15s ease;
+            position: relative;
+            overflow: hidden
+        }
+
+        .typing-area:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.25)
+        }
+
+        .typing-area.complete-pulse {
+            animation: completePulse 0.45s ease-out
+        }
+
+        @keyframes completePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.0)
+            }
+            40% {
+                box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.65)
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.0)
+            }
+        }
+
+        .typing-area.best-flash {
+            animation: bestFlash 0.6s ease-out
+        }
+
+        @keyframes bestFlash {
+            0% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.0)
+            }
+            30% {
+                box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.85)
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.0)
+            }
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            transition: background-color 0.12s ease;
+            cursor: pointer
+        }
+
+        .button-primary {
+            background-color: var(--accent);
+            color: #1f2937
+        }
+
+        .button-primary:hover {
+            background-color: #f0b418
+        }
+
+        .button-secondary {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text)
+        }
+
+        .button-secondary:hover {
+            background-color: #243349
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns:repeat(auto-fill, minmax(70px, 1fr));
+            gap: 0.5rem
+        }
+
+        .letter-stat {
+            padding: 0.5rem;
+            text-align: center;
+            border-radius: 0.375rem;
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            transition: transform 0.15s ease;
+            position: relative
+        }
+
+        .letter-stat:hover {
+            transform: translateY(-2px)
+        }
+
+        .letter-stat-slow {
+            background-color: #3b1d1d;
+            border-color: #7f1d1d
+        }
+
+        .letter-stat-fast {
+            background-color: #143329;
+            border-color: #166534
+        }
+
+        .letter-stat-average {
+            background-color: var(--panel-2)
+        }
+
+        .letter-stat-trigger {
+            background-color: #0b1220
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #020617;
+            color: var(--text);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.2s
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #020617 transparent transparent transparent
+        }
+
+        .error-shake {
+            animation: shake 0.45s cubic-bezier(.36, .07, .19, .97) both
+        }
+
+        @keyframes shake {
+            10%, 90% {
+                transform: translate3d(-1px, 0, 0)
+            }
+            20%, 80% {
+                transform: translate3d(2px, 0, 0)
+            }
+            30%, 50%, 70% {
+                transform: translate3d(-4px, 0, 0)
+            }
+            40%, 60% {
+                transform: translate3d(4px, 0, 0)
+            }
+        }
+
+        .stat-bar {
+            height: 8px;
+            background-color: #0b1220;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .stat-bar-fill {
+            position: absolute;
+            height: 100%;
+            left: 0;
+            top: 0;
+            background-color: var(--accent);
+            min-width: 2px
+        }
+
+        .letter-history-chart {
+            height: 200px;
+            position: relative;
+            margin-top: 1rem
+        }
+
+        .chart-column {
+            position: absolute;
+            bottom: 0;
+            width: calc(100% / 26 - 4px);
+            background-color: #1d4ed8;
+            border-radius: 2px 2px 0 0;
+            transition: height 0.3s ease
+        }
+
+        .chart-label {
+            position: absolute;
+            bottom: -20px;
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .keyboard-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #0b1220
+        }
+
+        .ghost-delta {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: #0b1220;
+            display: none
+        }
+
+        .ghost-delta.ahead {
+            color: var(--good)
+        }
+
+        .ghost-delta.behind {
+            color: var(--accent)
+        }
+
+        .combo-badge {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--muted);
+            display: none
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            font-weight: 600;
+            color: var(--muted)
+        }
+
+        .history-table td {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border)
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none
+        }
+
+        .history-table .best-time {
+            color: var(--good);
+            font-weight: 600
+        }
+
+        .progress-chart {
+            height: 200px;
+            width: 100%;
+            position: relative;
+            margin-top: 1rem;
+            border-bottom: 1px solid var(--border);
+            border-left: 1px solid var(--border)
+        }
+
+        .progress-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2
+        }
+
+        .progress-line {
+            position: absolute;
+            height: 2px;
+            background-color: #1d4ed8;
+            z-index: 1
+        }
+
+        .chart-axis-label {
+            position: absolute;
+            font-size: 10px;
+            color: var(--muted)
+        }
+
+        .progress-improvement {
+            position: absolute;
+            font-size: 10px;
+            color: var(--good);
+            font-weight: 600
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1rem
+        }
+
+        .tab-button {
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            color: var(--muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer
+        }
+
+        .tab-button.active {
+            border-color: var(--accent);
+            color: var(--accent)
+        }
+
+        .tab-content {
+            display: none
+        }
+
+        .tab-content.active {
+            display: block
+        }
+
+        .average-time {
+            color: var(--accent);
+            font-weight: 600
+        }
+
+        .data-card {
+            background-color: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem
+        }
+
+        @keyframes blink {
+            0%, 49% {
+                opacity: 1
+            }
+            50%, 100% {
+                opacity: 0
+            }
+        }
+
+        .options-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem
+        }
+
+        .seg {
+            display: inline-flex;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            overflow: hidden
+        }
+
+        .seg button {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--muted);
+            padding: 0.4rem 0.75rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.12s ease, color 0.12s ease
+        }
+
+        .seg button.active {
+            background-color: var(--accent);
+            color: #1f2937
+        }
+
+        .seg button:not(.active):hover {
+            color: var(--text)
+        }
+
+        .seg-label {
+            font-size: 0.7rem;
+            color: var(--idle);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 0.25rem
+        }
+
+        .icon-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 0.8rem
+        }
+
+        .icon-toggle:hover {
+            color: var(--text)
+        }
+
+        #celebration {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5
+        }
+
+        .particle {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            will-change: transform, opacity
+        }
+
+        @media (max-width: 640px) {
+            #alphabet {
+                font-size: 2.5rem !important
+            }
+
+            #alphabet span {
+                width: 1.2em
+            }
+
+            .alphabet-row {
+                flex-wrap: wrap
+            }
+
+            .typing-area {
+                padding: 6px !important
+            }
+
+            section.grid {
+                grid-template-columns:repeat(2, 1fr)
+            }
+
+            .metric-card {
+                padding: 0.75rem
+            }
+
+            .button {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.875rem
+            }
+
+            .stats-grid {
+                grid-template-columns:repeat(auto-fill, minmax(50px, 1fr))
+            }
+
+            .letter-history-chart, .progress-chart {
+                height: 150px
+            }
+
+            .history-table {
+                font-size: 0.75rem
+            }
+
+            .history-table th, .history-table td {
+                padding: 0.375rem
+            }
+
+            .tab-buttons {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none
+            }
+
+            .tab-buttons::-webkit-scrollbar {
+                display: none
+            }
+
+            .tab-button {
+                padding: 0.5rem 0.75rem;
+                white-space: nowrap;
+                font-size: 0.875rem
+            }
+        }
+
+        @media (max-width: 480px) {
+            #alphabet {
+                font-size: 1.75rem !important
+            }
+
+            #alphabet span {
+                width: 1.1em
+            }
+
+            #alphabet span.current::after {
+                height: 0.4rem;
+                bottom: -2px
+            }
+
+            .data-card {
+                width: 100% !important
+            }
+        }
+
+        @media (max-width: 360px) {
+            #alphabet {
+                font-size: 1.5rem !important
+            }
+
+            #alphabet span {
+                width: 1em
+            }
+        }
+
+        .mobile-keyboard-note {
+            display: none
+        }
+
+        @media (max-width: 767px) {
+            .mobile-keyboard-note {
+                display: block;
+                text-align: center;
+                margin-top: 0.5rem;
+                font-size: 0.875rem;
+                color: var(--muted)
+            }
+
+            .virtual-keyboard {display: grid;}
+        }
+
+        .typing-area.keyboard-focused {
+            border: 2px solid var(--accent)
+        }
+
+        .virtual-keyboard {
+            display: none;
+            grid-template-columns:repeat(9, 1fr);
+            gap: 0.25rem;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0.5rem
+        }
+
+        .vk-key {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 3rem;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--text);
+            user-select: none;
+            touch-action: manipulation
+        }
+
+        .vk-key:active {
+            background-color: #243349
+        }
+
+        .vk-key.current {
+            background-color: var(--accent);
+            color: #1f2937
+        }
+
+        @media (max-width: 400px) {
+            .virtual-keyboard {
+                grid-template-columns:repeat(7, 1fr)
+            }
+
+            .vk-key {
+                height: 2.5rem;
+                font-size: 1rem
+            }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Alphabet Typing Speed Game","item":"https://suipce.com/games/Puzzle/Alphabet/"}]}</script>
+</head>
+<body class="min-h-screen py-12 px-4 sm:px-6">
+<div class="max-w-3xl mx-auto">
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-bold mb-2" style="color:var(--done)">Alphabet Typing Speed Game</h1>
+        <p class="max-w-lg mx-auto" style="color:var(--muted)">Type the alphabet from A to Z as quickly as you can. Press 'A' to
+            start. Track your performance for each letter to focus on improving your weak spots!</p>
+    </header>
+
+    <main>
+        <div class="options-bar">
+            <div class="seg" id="mode-seg" role="group" aria-label="Sequence mode">
+                <span class="seg-label" style="align-self:center;padding-left:0.5rem">Mode</span>
+                <button data-mode="az" class="active">A→Z</button>
+                <button data-mode="reverse">Z→A</button>
+                <button data-mode="shuffled">Shuffled</button>
+                <button data-mode="weak">Weak letters</button>
+            </div>
+            <div class="seg" id="strict-seg" role="group" aria-label="Strictness">
+                <button data-strict="strict" class="active">Strict</button>
+                <button data-strict="practice">Practice</button>
+            </div>
+            <button class="icon-toggle" id="mute-toggle" aria-label="Toggle sound">
+                <span id="mute-icon">🔊</span><span id="mute-label">Sound</span>
+            </button>
+        </div>
+
+        <section class="typing-area p-4 sm:p-8 mb-8 relative" id="game-area" tabindex="0">
+            <div class="keyboard-info" id="keyboard-info">Press 'A' to start</div>
+            <div class="ghost-delta" id="ghost-delta"></div>
+            <div class="combo-badge" id="combo-badge"></div>
+            <div id="alphabet"
+                 class="text-3xl sm:text-5xl md:text-6xl font-mono tracking-wide py-4"></div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+
+            <div id="game-message" class="mt-4 text-center text-lg font-medium">Press 'A' to start typing</div>
+            <p class="mobile-keyboard-note">Use the keyboard below to type</p>
+            <div id="celebration"></div>
+        </section>
+
+        <!-- Virtual Keyboard for Mobile -->
+        <section id="virtual-keyboard" class="mb-8 virtual-keyboard"></section>
+
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)">Current Time</div>
+                <div id="result" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">0 ms</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)"><span id="highscore-label">High Score</span></div>
+                <div id="highscore" class="text-xl sm:text-2xl font-bold" style="color:var(--accent)">--</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)">Letters/Sec</div>
+                <div id="letters-per-second" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">0.0</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="text-sm mb-1" style="color:var(--muted)">Attempts</div>
+                <div id="attempts" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">0</div>
+            </div>
+        </section>
+
+        <section id="stats-section" class="rounded-lg p-4 sm:p-6 mb-8 hidden" style="background-color:var(--panel);border:1px solid var(--border)">
+            <div class="tab-buttons">
+                <div class="tab-button active" data-tab="progress">Training Progress</div>
+                <div class="tab-button" data-tab="history">History</div>
+                <div class="tab-button" data-tab="letters">Letter Timing</div>
+            </div>
+
+            <div id="progress-tab" class="tab-content active">
+                <div class="flex flex-wrap justify-between mb-4">
+                    <div class="data-card w-full sm:w-[32%]">
+                        <div class="text-sm mb-1" style="color:var(--muted)">Average Time</div>
+                        <div id="average-time" class="text-xl sm:text-2xl font-bold average-time">--</div>
+                    </div>
+                    <div class="data-card w-full sm:w-[32%]">
+                        <div class="text-sm mb-1" style="color:var(--muted)">Best Time</div>
+                        <div id="best-time" class="text-xl sm:text-2xl font-bold" style="color:var(--good)">--</div>
+                    </div>
+                    <div class="data-card w-full sm:w-[32%]">
+                        <div class="text-sm mb-1" style="color:var(--muted)">Recent Improvement</div>
+                        <div id="improvement" class="text-xl sm:text-2xl font-bold" style="color:var(--done)">--</div>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Training Progress</h3>
+                <p class="text-sm mb-4" style="color:var(--muted)">Your typing speed over time (last 10 attempts, A→Z)</p>
+                <div id="progress-chart" class="progress-chart"></div>
+            </div>
+
+            <div id="history-tab" class="tab-content">
+                <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Attempt History</h3>
+                <p class="text-sm mb-4" style="color:var(--muted)">Your recent typing sessions (A→Z)</p>
+                <div class="overflow-x-auto">
+                    <table class="history-table">
+                        <thead>
+                        <tr>
+                            <th>Attempt #</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Letters/Sec</th>
+                        </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="letters-tab" class="tab-content">
+                <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Letter Timing Statistics</h3>
+                <div class="flex flex-wrap justify-between items-center mb-4 text-xs sm:text-sm">
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:#7f1d1d"></span>
+                        <span style="color:var(--muted)">Slow</span>
+                    </div>
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:var(--border)"></span>
+                        <span style="color:var(--muted)">Average</span>
+                    </div>
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:#166534"></span>
+                        <span style="color:var(--muted)">Fast</span>
+                    </div>
+                    <div>
+                        <span class="inline-block w-3 h-3 rounded-sm mr-1" style="background-color:#0b1220"></span>
+                        <span style="color:var(--muted)">Game Trigger</span>
+                    </div>
+                </div>
+                <div id="letter-stats" class="stats-grid"></div>
+
+                <div class="mt-8">
+                    <h3 class="text-lg font-medium mb-2" style="color:var(--done)">Letter Performance</h3>
+                    <p class="text-sm mb-4" style="color:var(--muted)">Your average time per letter (last 5 attempts, A→Z)</p>
+                    <div id="letter-history-chart" class="letter-history-chart"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="flex flex-wrap justify-center gap-2 sm:gap-4">
+            <button id="restart-button" class="button button-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                          clip-rule="evenodd"/>
+                </svg>
+                Restart
+            </button>
+
+            <button id="toggle-stats-button" class="button button-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                </svg>
+                Stats
+            </button>
+
+            <button id="reset-highscore" class="button button-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clip-rule="evenodd"/>
+                </svg

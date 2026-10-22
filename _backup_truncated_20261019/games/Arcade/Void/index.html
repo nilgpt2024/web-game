@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Play VOID Online - Free Arcade Game | AIGameHub</title>
+    <meta name="description" content="Play VOID online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="keywords" content="void, black hole game, hole.io clone, arcade game, browser game, html5 game, infinite scale, canvas game, single page game, gptgames">
+    <meta name="author" content="Claude Opus 4.8 prompted by Tobias Müller">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Void/">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.gptgames.dev/games/void.html">
+    <meta property="og:title" content="Play VOID Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description" content="Play VOID online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_271.webp">
+    <meta property="og:image:alt" content="VOID gameplay — a black hole swallowing a procedurally generated city">
+    <meta property="og:site_name" content="GPTGames.dev">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Void/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Void/preview.png">
+    <meta name="twitter:url" content="https://www.gptgames.dev/games/void.html">
+    <meta name="twitter:title" content="Play VOID Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description" content="Play VOID online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_271.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #1A1A2E;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        #game {
+            position: fixed;
+            inset: 0;
+            display: block;
+            touch-action: none;
+            cursor: crosshair;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .overlay.active {
+            pointer-events: auto;
+        }
+
+        #hud {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #score {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        #scoreNum {
+            font-size: clamp(34px, 7vw, 64px);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 18px rgba(0, 217, 255, .35);
+            line-height: 1;
+        }
+
+        #scoreLbl {
+            font-size: 11px;
+            font-weight: 500;
+            color: #00D9FF;
+            letter-spacing: 5px;
+            margin-top: 2px;
+            opacity: .8;
+        }
+
+        #best {
+            position: absolute;
+            top: 22px;
+            right: 20px;
+            text-align: right;
+            font-size: 13px;
+            color: #00D9FF;
+            letter-spacing: 2px;
+            opacity: .85;
+        }
+
+        #best b {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        #chapterTag {
+            position: absolute;
+            top: 48px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            letter-spacing: 4px;
+            font-weight: 700;
+            opacity: .85;
+        }
+
+        #newbest {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            font-size: clamp(16px, 3.4vw, 24px);
+            font-weight: 900;
+            color: #00D9FF;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(0, 217, 255, .8);
+        }
+
+        #tier {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
+
+        #tierLbl {
+            font-size: 11px;
+            font-weight: 500;
+            color: #00D9FF;
+            letter-spacing: 4px;
+            opacity: .7;
+        }
+
+        #tierName {
+            font-size: clamp(15px, 3vw, 22px);
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            margin-top: 1px;
+        }
+
+        #sizeNum {
+            font-size: 12px;
+            color: #9B59B6;
+            letter-spacing: 2px;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        #rankTag {
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-top: 2px;
+            font-weight: 700;
+        }
+
+        #leader {
+            position: absolute;
+            top: 74px;
+            right: 20px;
+            text-align: right;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        #leader div {
+            margin-top: 3px;
+        }
+
+        /* chapter progress bar */
+        #chapWrap {
+            position: absolute;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(280px, 60vw);
+            text-align: center;
+        }
+
+        #chapBar {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, .08);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        #chapFill {
+            height: 100%;
+            width: 0%;
+            background: #00D9FF;
+            border-radius: 3px;
+            transition: width .2s ease;
+        }
+
+        #chapNext {
+            font-size: 9px;
+            letter-spacing: 3px;
+            color: #9B59B6;
+            margin-top: 5px;
+            opacity: .8;
+        }
+
+        .topbtn {
+            position: fixed;
+            top: 16px;
+            z-index: 6;
+            pointer-events: auto;
+            background: rgba(83, 52, 131, .22);
+            border: 1.5px solid #533483;
+            border-radius: 10px;
+            cursor: pointer;
+            color: #00D9FF;
+            font-family: 'Orbitron';
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 9px 14px;
+            transition: background .15s, border-color .15s;
+        }
+
+        .topbtn:hover {
+            background: rgba(83, 52, 131, .45);
+            border-color: #00D9FF;
+        }
+
+        #endbtn {
+            left: 16px;
+        }
+
+        #setbtn {
+            left: 120px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #setbtn svg {
+            width: 14px;
+            height: 14px;
+            fill: #00D9FF;
+        }
+
+        #mute {
+            position: fixed;
+            bottom: 18px;
+            right: 18px;
+            width: 46px;
+            height: 46px;
+            z-index: 6;
+            pointer-events: auto;
+            background: rgba(83, 52, 131, .25);
+            border: 1.5px solid #533483;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s, border-color .15s;
+        }
+
+        #mute:hover {
+            background: rgba(83, 52, 131, .5);
+            border-color: #00D9FF;
+        }
+
+        #mute svg {
+            width: 22px;
+            height: 22px;
+            fill: #00D9FF;
+        }
+
+        /* CHAPTER TITLE CARD */
+        #chapCard {
+            position: fixed;
+            inset: 0;
+            z-index: 14;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        #chapCard .cnum {
+            font-size: 14px;
+            letter-spacing: 10px;
+            font-weight: 700;
+            color: #00D9FF;
+            opacity: .9;
+            margin-bottom: 10px;
+        }
+
+        #chapCard .cname {
+            font-size: clamp(40px, 10vw, 92px);
+            font-weight: 900;
+            letter-spacing: 8px;
+            color: #fff;
+            text-shadow: 0 0 50px rgba(0, 217, 255, .5);
+        }
+
+        #chapCard .cdesc {
+            font-size: clamp(11px, 2.2vw, 14px);
+            letter-spacing: 4px;
+            color: #9B59B6;
+            margin-top: 14px;
+        }
+
+        /* SETTINGS PANEL */
+        #settings {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 10, 22, .72);
+            backdrop-filter: blur(4px);
+            pointer-events: auto;
+        }
+
+        #settings.open {
+            display: flex;
+        }
+
+        .panel {
+            width: min(440px, 92vw);
+            max-height: 88vh;
+            overflow-y: auto;
+            background: #1A1A2E;
+            border: 1.5px solid #533483;
+            border-radius: 18px;
+            padding: 26px 26px 20px;
+            box-shadow: 0 0 60px rgba(83, 52, 131, .5);
+        }
+
+        .panel h2 {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin-bottom: 4px;
+        }
+
+        .panel .sub {
+            color: #00D9FF;
+            font-size: 10px;
+            letter-spacing: 3px;
+            opacity: .7;
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 0;
+            border-top: 1px solid rgba(83, 52, 131, .3);
+        }
+
+        .row:first-of-type {
+            border-top: none;
+        }
+
+        .row label {
+            color: #fff;
+            font-size: 13px;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .row .desc {
+            color: #9B59B6;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .lwrap {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tg {
+            width: 48px;
+            height: 26px;
+            border-radius: 13px;
+            background: #16213E;
+            border: 1.5px solid #533483;
+            position: relative;
+            cursor: pointer;
+            flex: none;
+            transition: background .15s;
+        }
+
+        .tg::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #533483;
+            transition: left .15s, background .15s;
+        }
+
+        .tg.on {
+            background: rgba(0, 217, 255, .15);
+            border-color: #00D9FF;
+        }
+
+        .tg.on::after {
+            left: 24px;
+            background: #00D9FF;
+        }
+
+        .sld {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 150px;
+            height: 6px;
+            border-radius: 3px;
+            background: #16213E;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .sld::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00D9FF;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(0, 217, 255, .6);
+        }
+
+        .sld::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: #00D9FF;
+            cursor: pointer;
+        }
+
+        .seg {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .seg button {
+            font-family: 'Orbitron';
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #9B59B6;
+            background: #16213E;
+            border: 1.5px solid #533483;
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: .12s;
+        }
+
+        .seg button.sel {
+            color: #1A1A2E;
+            background: #00D9FF;
+            border-color: #00D9FF;
+        }
+
+        .panel .note {
+            color: #9B59B6;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 14px;
+            line-height: 1.6;
+            opacity: .8;
+        }
+
+        .closebtn {
+            margin-top: 18px;
+            width: 100%;
+            font-family: 'Orbitron';
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #1A1A2E;
+            background: #00D9FF;
+            border: none;
+            padding: 13px;
+            border-radius: 11px;
+            cursor: pointer;
+            box-shadow: 0 0 24px rgba(0, 217, 255, .4);
+        }
+
+        #menu {
+            background: radial-gradient(circle at 50% 42%, rgba(83, 52, 131, .22), rgba(26, 26, 46, .96) 60%);
+        }
+
+        .title {
+            font-size: clamp(58px, 16vw, 150px);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: clamp(6px, 2vw, 18px);
+            line-height: .9;
+            text-shadow: 0 0 50px rgba(83, 52, 131, .9), 0 0 90px rgba(0, 217, 255, .2);
+        }
+
+        .title .o {
+            color: #000;
+            -webkit-text-stroke: clamp(2px, .7vw, 5px) #533483;
+            text-shadow: 0 0 40px rgba(83, 52, 131, 1);
+        }
+
+        .tagline {
+            font-size: clamp(11px, 2.4vw, 15px);
+            color: #00D9FF;
+            letter-spacing: clamp(4px, 1.4vw, 9px);
+            margin-top: 14px;
+            font-weight: 500;
+            opacity: .85;
+            text-align: center;
+        }
+
+        .hint {
+            font-size: 11px;
+            color: #9B59B6;
+            letter-spacing: 2px;
+            margin-top: 28px;
+            opacity: .7;
+            text-align: center;
+            line-height: 1.7;
+        }
+
+        .chapters-preview {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .chapters-preview span {
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: #533483;
+            border: 1px solid #533483;
+            border-radius: 20px;
+            padding: 4px 11px;
+        }
+
+        #ascBadge {
+            margin-top: 14px;
+            font-size: 13px;
+            letter-spacing: 4px;
+            font-weight: 700;
+            color: #FFD24A;
+            text-shadow: 0 0 22px rgba(255, 210, 74, .7);
+        }
+
+        #ascBadge b {
+            color: #fff;
+        }
+
+        .btn {
+            margin-top: 34px;
+            pointer-events: auto;
+            font-family: 'Orbitron';
+            font-size: clamp(20px, 4vw, 28px);
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: #1A1A2E;
+            background: #00D9FF;
+            border: none;
+            padding: 18px 64px;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 0 34px rgba(0, 217, 255, .5);
+            transition: transform .12s, box-shadow .15s;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 217, 255, .8);
+        }
+
+        .btn:active {
+            transform: scale(.97);
+        }
+
+        .menubtns {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-top: 34px;
+        }
+
+        .btn.ghost {
+            background: transparent;
+            color: #00D9FF;
+            border: 1.5px solid #533483;
+            box-shadow: none;
+            font-size: clamp(13px, 2.4vw, 16px);
+            padding: 16px 26px;
+            letter-spacing: 3px;
+        }
+
+        .btn.ghost:hover {
+            border-color: #00D9FF;
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(0, 217, 255, .3);
+        }
+
+        #over {
+            background: radial-gradient(circle at 50% 50%, rgba(233, 69, 96, .16), rgba(26, 26, 46, .97) 65%);
+        }
+
+        #over.died {
+            background: radial-gradient(circle at 50% 50%, rgba(255, 23, 68, .3), rgba(26, 26, 46, .97) 65%);
+        }
+
+        .ovTitle {
+            font-size: clamp(28px, 7vw, 56px);
+            font-weight: 900;
+            color: #fff;
+            letter-spacing: 6px;
+            margin-bottom: 6px;
+        }
+
+        .ovSub {
+            font-size: 13px;
+            color: #9B59B6;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .stats {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat .v {
+            font-size: clamp(30px, 7vw, 52px);
+            font-weight: 900;
+            color: #00D9FF;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+
+        .stat .l {
+            font-size: 11px;
+            color: #fff;
+            letter-spacing: 4px;
+            opacity: .6;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .statrow {
+            display: flex;
+            gap: clamp(20px, 6vw, 54px);
+        }
+
+        .statrow .v {
+            font-size: clamp(20px, 4.5vw, 32px);
+            color: #fff;
+        }
+
+        .ovNewbest {
+            font-size: clamp(20px, 4.5vw, 30px);
+            font-weight: 900;
+            color: #00D9FF;
+            letter-spacing: 5px;
+            margin: 8px 0 4px;
+            text-shadow: 0 0 24px rgba(0, 217, 255, .8);
+            animation: nbpulse 1s ease-in-out infinite;
+        }
+
+        @keyframes nbpulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.06);
+                opacity: .85;
+            }
+        }
+
+        .delta {
+            font-size: 14px;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+
+        .delta.down {
+            color: #E94560;
+        }
+
+        /* objective */
+        #objective {
+            position: absolute;
+            top: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            width: min(300px, 70vw);
+        }
+
+        #objLbl {
+            font-size: 9px;
+            letter-spacing: 4px;
+            color: #FFD24A;
+            opacity: .8;
+        }
+
+        #objText {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        #objProg {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, .1);
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        #objFill {
+            height: 100%;
+            width: 0%;
+            background: #FFD24A;
+            border-radius: 2px;
+            transition: width .25s;
+        }
+
+        /* abilities */
+        #abilities {
+            position: absolute;
+            bottom: 84px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+
+        .abChip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            border: 1.5px solid;
+            background: rgba(0, 0, 0, .35);
+        }
+
+        .abChip .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* boost meter */
+        #boostWrap {
+            position: absolute;
+            bottom: 54px;
+            left: 20px;
+            width: 160px;
+        }
+
+        #boostLbl {
+            font-size: 8px;
+            letter-spacing: 2px;
+            color: #9B59B6;
+            opacity: .75;
+            margin-bottom: 3px;
+        }
+
+        #boostBar {
+            width: 100%;
+            height: 7px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, .08);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, .12);
+        }
+
+        #boostFill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #00D9FF, #9B59B6);
+            border-radius: 4px;
+        }
+
+        /* kill-feed */
+        #feed {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-end;
+        }
+
+        .feedItem {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            padding: 3px 9px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, .4);
+        }
+
+        /* vignette */
+        #vignette {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 4;
+            opacity: 0;
+            box-shadow: inset 0 0 200px 40px rgba(255, 23, 68, .55);
+            transition: opacity .15s;
+        }
+
+        /* gameplay-only HUD hidden unless playing */
+        #objective, #abilities, #boostWrap, #feed, #tier, #chapWrap, #score, #best, #chapterTag, #leader {
+            opacity: 0;
+            transition: opacity .3s;
+        }
+
+        body.playing #objective, body.playing #abilities, body.playing #boostWrap, body.playing #feed,
+        body.playing #tier, body.playing #chapWrap, body.playing #score, body.playing #best,
+        body.playing #chapterTag, body.playing #leader {
+            opacity: 1;
+        }
+
+        /* victory screen */
+        #win {
+            background: radial-gradient(circle at 50% 45%, rgba(255, 210, 120, .18), rgba(20, 16, 40, .98) 62%);
+            overflow: hidden;
+        }
+
+        #win > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        #win .winGlow {
+            position: absolute;
+            width: 140vw;
+            height: 140vw;
+            left: 50%;
+            top: 42%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 220, 140, .16), rgba(255, 220, 140, 0) 60%);
+            animation: winpulse 4s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes winpulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: .7;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.12);
+                opacity: 1;
+            }
+        }
+
+        .winCrown {
+            font-size: clamp(40px, 9vw, 72px);
+            color: #FFD24A;
+            text-shadow: 0 0 40px rgba(255, 210, 74, .9);
+            animation: nbpulse 2.4s ease-in-out infinite;
+        }
+
+        .winTitle {
+            font-size: clamp(40px, 11vw, 96px);
+            font-weight: 900;
+            letter-spacing: clamp(6px, 2vw, 16px);
+            color: #fff;
+            text-shadow: 0 0 60px rgba(255, 210, 120, .6);
+            margin-top: 6px;
+        }
+
+        .winSub {
+            font-size: clamp(12px, 2.6vw, 17px);
+            letter-spacing: clamp(3px, 1vw, 7px);
+            color: #FFD24A;
+            margin-top: 10px;
+        }
+
+        .winFlavor {
+            font-size: clamp(11px, 2.2vw, 14px);
+            color: #c9b8e8;
+            letter-spacing: 1px;
+            margin-top: 18px;
+            max-width: min(440px, 86vw);
+            text-align: center;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        #win .stats {
+            margin-top: 24px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"VOID","item":"https://suipce.com/games/Arcade/Void/"}]}</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="hud">
+    <div id="score">
+        <div id="scoreNum">0</div>
+        <div id="scoreLbl">SCORE</div>
+    </div>
+    <div id="best">BEST <b>0</b></div>
+    <div id="chapterTag"></div>
+    <div id="leader"></div>
+    <div id="newbest">NEW BEST!</div>
+    <div id="tier">
+        <div id="tierLbl">TIER</div>
+        <div id="tierName">SPECK</div>
+        <div id="sizeNum">⌀ 0</div>
+        <div id="rankTag"></div>
+    </div>
+    <div id="chapWrap">
+        <div id="chapBar">
+            <div id="chapFill"></div>
+        </div>
+        <div id="chapNext"></div>
+    </div>
+    <div id="objective">
+        <div id="objLbl">CONTRACT</div>
+        <div id="objText">—</div>
+        <div id="objProg">
+            <div id="objFill"></div>
+        </div>
+    </div>
+    <div id="abilities"></div>
+    <div id="boostWrap">
+        <div id="boostLbl">BOOST · SPACE / RIGHT-CLICK</div>
+        <div id="boostBar">
+            <div id="boostFill"></div>
+        </div>
+    </div>
+    <div id="feed"></div>
+</div>
+<div id="vignette"></div>
+
+<button id="endbtn" class="topbtn">END RUN</button>
+<button id="setbtn" class="topbtn">
+    <svg viewBox="0 0 24 24">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.49.49 0 00.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.13.22.39.31.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.25.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.09.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.03-1.58zM12 15.6A3.6 3.6 0 1112 8.4a3.6 3.6 0 010 7.2z"/>
+    </svg>
+    SETTINGS
+</button>
+<button id="mute" aria-label="mute">
+    <svg id="muteIcon" viewBox="0 0 24 24">
+        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4zM14 3.2v2.06a7 7 0 010 13.48v2.06A9 9 0 0014 3.2z"/>
+    </svg>
+</button>
+
+<div id="chapCard">
+    <div class="cnum"></div>
+    <div class="cname"></div>
+    <div class="cdesc"></div>
+</div>
+
+<div id="settings">
+    <div class="panel">
+        <h2>SETTINGS</h2>
+        <div class="sub">TUNE YOUR VOID</div>
+        <div class="row">
+            <div class="lwrap"><label>Music</label>
+                <div class="desc">procedural ambient score</div>
+            </div>
+            <div class="tg" id="t_music"></div>
+        </div>
+        <div class="row">
+            <div class="lwrap"><label>Sound Effects</label>
+                <div class="desc">consume · tier · combo</div>
+            </div>
+            <div class="tg" id="t_sfx"></div>
+        </div>
+        <div class="row">
+            <div class="lwrap"><label>Screen Shake</label>
+                <div class="desc">impact feedback</div>
+            </div>
+            <div class="tg" id="t_shake"></div>
+        </div>
+        <div class="row">
+            <div class="lwrap"><label>Threat Arrow</label>
+                <div class="desc">points to the nearest bigger rival</div>
+            </div>
+            <div class="tg" id="t_arrow"></div>
+        </div>
+        <div class="row">
+            <div class="lwrap"><label>Daylight</label>
+                <div class="desc">brighter, sunlit palette</div>
+            </div>
+            <div class="tg" id="t_daylight"></div>
+        </div>
+        <div class="row">
+            <div class="lwrap"><label>Shadows</label>
+                <div class="desc">cast shadows &amp; depth · may cost FPS</div>
+            </div>
+            <div class="tg" id="t_shadows"></div>
+        </div>
+        <div class="row">
+            <div class="lwrap"><label>Atmosphere</label>
+                <div class="desc">color grade &amp; vignette</div>
+            </div>
+            <div class="tg" id="t_grade"></div>
+        </div>
+        <div class="row">
+            <div class="lwrap"><label>Object Height</label>
+                <div class="desc">pseudo-3D extrusion</div>
+            </div>
+            <input type="range" class="sld" id="s_height

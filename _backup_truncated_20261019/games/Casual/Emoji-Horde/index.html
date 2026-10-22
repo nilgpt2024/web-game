@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Casual/Emoji-Horde/">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+    <title>Play Emoji Horde Online - Free Casual Game | AIGameHub</title>
+    <meta name="description" content="Play Emoji Horde online for free — a casual game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            background: #08080e;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #d8d8e0;
+            touch-action: none
+        }
+
+        canvas {
+            display: block;
+            cursor: none;
+            touch-action: none
+        }
+
+        #upgradeScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0c0c18 0%, #08081a 50%, #0a0a12 100%);
+            z-index: 100;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        #upgradeScreen.active {
+            display: flex
+        }
+
+        #upgradeTopBar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: linear-gradient(180deg, #16162a, #111120);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 10
+        }
+
+        #upgradeTopBar .currency {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            backdrop-filter: blur(4px)
+        }
+
+        #upgradeTopBar .currency span {
+            margin-left: 2px;
+            font-variant-numeric: tabular-nums
+        }
+
+        #synergyBar {
+            display: flex;
+            gap: 6px;
+            padding: 10px 16px;
+            background: #0c0c16;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            flex-shrink: 0;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 50
+        }
+
+        .synergy-diamond {
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            background: rgba(20, 20, 31, 0.32);
+            border: 1px solid rgba(42, 42, 58, 0.32);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.32);
+            cursor: pointer;
+            transition: all .3s;
+            position: relative
+        }
+
+        .synergy-diamond.active {
+            border-color: #c9a020;
+            background: #1a1a10;
+            color: #fff;
+            box-shadow: 0 0 14px rgba(201, 160, 32, 0.25), inset 0 0 12px rgba(201, 160, 32, 0.06)
+        }
+
+        .synergy-tooltip {
+            display: none;
+            position: absolute;
+            top: 42px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2a;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 12px;
+            line-height: 1.5;
+            z-index: 200;
+            color: #bbb;
+            pointer-events: none;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
+            min-width: 180px;
+            max-width: 240px;
+            text-align: left;
+            white-space: normal
+        }
+
+        .synergy-tooltip .st-title {
+            font-weight: 700;
+            color: #fff;
+            font-size: 13px;
+            margin-bottom: 4px
+        }
+
+        .synergy-tooltip .st-label {
+            color: #666;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-top: 6px;
+            margin-bottom: 2px
+        }
+
+        .synergy-tooltip .st-effect {
+            color: #5bb89a
+        }
+
+        .synergy-tooltip .st-req {
+            color: #ccc;
+            padding-left: 4px
+        }
+
+        .synergy-diamond.active .synergy-tooltip .st-title {
+            color: #ffdd66
+        }
+
+        .synergy-diamond:hover {
+            background: rgba(20, 20, 31, 0.55);
+            border-color: rgba(42, 42, 58, 0.55);
+            color: rgba(255, 255, 255, 0.55)
+        }
+
+        .synergy-diamond.active:hover {
+            background: #1a1a10;
+            color: #fff
+        }
+
+        .synergy-diamond:hover .synergy-tooltip, .synergy-diamond:active .synergy-tooltip {
+            display: block
+        }
+
+        #tabBar {
+            display: flex;
+            background: #0e0e18;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+            overflow-x: auto;
+            gap: 2px;
+            padding: 0 8px
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            color: #4a4a5a;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all .25s;
+            white-space: nowrap;
+            letter-spacing: .3px;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px
+        }
+
+        .tab-btn:hover {
+            color: #888
+        }
+
+        .tab-btn.active {
+            color: #e8e8f0;
+            border-bottom-color: #5bb89a;
+            text-shadow: 0 0 20px rgba(91, 184, 154, 0.3)
+        }
+
+        .tab-pill {
+            display: inline-block;
+            background: #3a9a6f;
+            color: #fff;
+            border-radius: 10px;
+            padding: 2px 7px;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            line-height: 1.2;
+            letter-spacing: 0
+        }
+
+        .tab-pill.star-pill {
+            background: #7b5fb0
+        }
+
+        #upgradeContent {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch
+        }
+
+        #upgradeContent::-webkit-scrollbar {
+            width: 5px
+        }
+
+        #upgradeContent::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        #upgradeContent::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 3px
+        }
+
+        #upgradeGrid {
+            display: grid;
+            grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px
+        }
+
+        .upgrade-card {
+            background: linear-gradient(150deg, #171730 0%, #111122 50%, #0e0e1c 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 14px 16px;
+            transition: all .3s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35)
+        }
+
+        .upgrade-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 5%, rgba(255, 255, 255, 0.07) 50%, transparent 95%)
+        }
+
+        .upgrade-card.affordable {
+            border-color: rgba(58, 154, 95, 0.45);
+            box-shadow: 0 2px 14px rgba(42, 122, 79, 0.12), inset 0 0 40px rgba(42, 122, 79, 0.03)
+        }
+
+        .upgrade-card.affordable:hover {
+            transform: translateY(-2px);
+            border-color: rgba(58, 154, 95, 0.7);
+            box-shadow: 0 6px 24px rgba(42, 122, 79, 0.2), inset 0 0 40px rgba(42, 122, 79, 0.04)
+        }
+
+        .upgrade-card.maxed {
+            border-color: rgba(255, 255, 255, 0.08);
+            opacity: 0.55
+        }
+
+        .upgrade-card.locked {
+            opacity: 0.35
+        }
+
+        .upgrade-card.star-card {
+            border-color: rgba(107, 79, 160, 0.25)
+        }
+
+        .upgrade-card.star-card.affordable {
+            border-color: rgba(107, 79, 160, 0.55);
+            box-shadow: 0 2px 14px rgba(107, 79, 160, 0.15), inset 0 0 40px rgba(107, 79, 160, 0.03)
+        }
+
+        .upgrade-card.star-card.affordable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(107, 79, 160, 0.25)
+        }
+
+        .uc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px
+        }
+
+        .uc-name {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .2px
+        }
+
+        .uc-level {
+            font-size: 11px;
+            color: #555;
+            font-weight: 600;
+            letter-spacing: .5px;
+            text-transform: uppercase
+        }
+
+        .uc-desc {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            line-height: 1.5
+        }
+
+        .uc-btn {
+            width: 100%;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            position: relative
+        }
+
+        .uc-btn.gold-btn {
+            background: linear-gradient(180deg, #3a9a6f, #2a7a4f);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(42, 122, 79, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3)
+        }
+
+        .uc-btn.gold-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #44b07f, #349a5f);
+            box-shadow: 0 4px 14px rgba(42, 122, 79, 0.4);
+            transform: translateY(-1px)
+        }
+
+        .uc-btn.gold-btn:active:not(:disabled) {
+            transform: translateY(1px);
+            box-shadow: 0 1px 4px rgba(42, 122, 79, 0.3)
+        }
+
+        .uc-btn.gold-btn:disabled {
+            background: linear-gradient(180deg, #1a3a2a, #152a20);
+            color: #3a4a40;
+            box-shadow: none;
+            cursor: default;
+            text-shadow: none
+        }
+
+        .uc-btn.star-btn {
+            background: linear-gradient(180deg, #7b5fb0, #6b4fa0);
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(107, 79, 160, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3)
+        }
+
+        .uc-btn.star-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, #8b6fc0, #7b5fb0);
+            transform: translateY(-1px)
+        }
+
+        .uc-btn.star-btn:disabled {
+            background: linear-gradient(180deg, #2a1a3a, #201530);
+            color: #3a3a4a;
+            box-shadow: none;
+            cursor: default
+        }
+
+        .uc-btn.maxed-btn {
+            background: linear-gradient(180deg, #252530, #1e1e28);
+            color: #555;
+            cursor: default;
+            letter-spacing: 1.5px;
+            font-size: 11px
+        }
+
+        .uc-btn.locked-btn {
+            background: linear-gradient(180deg, #1a1a25, #151520);
+            color: #444;
+            cursor: default
+        }
+
+        #upgradeBottomBar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: linear-gradient(0deg, #16162a, #111120);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            flex-shrink: 0;
+            gap: 10px;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4)
+        }
+
+        #stageSelect {
+            background: linear-gradient(180deg, #1e1e30, #18182a);
+            color: #d8d8e0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            min-width: 150px;
+            font-weight: 600
+        }
+
+        #resetBtn {
+            background: none;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #4a4a5a;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        #resetBtn:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #888
+        }
+
+        #startRunBtn {
+            background: linear-gradient(180deg, #3aaa7f 0%, #2a8a5f 50%, #2a7a4f 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            min-height: 50px;
+            white-space: nowrap;
+            box-shadow: 0 4px 18px rgba(42, 138, 95, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all .2s
+        }
+
+        #startRunBtn:hover {
+            background: linear-gradient(180deg, #44bb8f, #34aa6f, #2a9a5f);
+            box-shadow: 0 6px 28px rgba(42, 138, 95, 0.5);
+            transform: translateY(-2px)
+        }
+
+        #startRunBtn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 8px rgba(42, 138, 95, 0.3)
+        }
+
+        #milestonePanel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 4, 10, 0.96);
+            z-index: 200;
+            overflow-y: auto;
+            padding: 20px;
+            backdrop-filter: blur(6px)
+        }
+
+        #milestonePanel.active {
+            display: block
+        }
+
+        #milestonePanel h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-family: 'Cinzel', Georgia, serif;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(184, 134, 11, 0.25)
+        }
+
+        .milestone-item {
+            background: linear-gradient(145deg, #16162a, #111120);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            transition: all .3s
+        }
+
+        .milestone-item.completed {
+            border-color: rgba(184, 134, 11, 0.35);
+            background: linear-gradient(145deg, #221e10, #1a1810);
+            box-shadow: 0 0 18px rgba(184, 134, 11, 0.08)
+        }
+
+        .mi-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px
+        }
+
+        .mi-desc {
+            font-size: 12px;
+            color: #777
+        }
+
+        .mi-progress {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden
+        }
+
+        .mi-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3a9a6f, #5bb89a);
+            border-radius: 2px;
+            transition: width .3s;
+            box-shadow: 0 0 8px rgba(91, 184, 154, 0.3)
+        }
+
+        #closeMilestones {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d8d8e0;
+            font-size: 18px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 210;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s
+        }
+
+        #closeMilestones:hover {
+            background: rgba(255, 255, 255, 0.12)
+        }
+
+        .toast {
+            position: fixed;
+            right: -340px;
+            top: 70px;
+            background: linear-gradient(145deg, #2a2510, #1a1810);
+            border: 1px solid rgba(184, 134, 11, 0.45);
+            border-radius: 10px;
+            padding: 14px 18px;
+            z-index: 300;
+            transition: right .4s ease;
+            font-size: 13px;
+            font-weight: 600;
+            max-width: 320px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5), 0 0 18px rgba(184, 134, 11, 0.08)
+        }
+
+        .toast.show {
+            right: 20px
+        }
+
+        #pauseBtn {
+            display: none;
+            position: fixed;
+            top: 44px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #c8c8d8;
+            font-size: 16px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 90;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            line-height: 1;
+            transition: background .15s, transform .15s
+        }
+
+        #pauseBtn.visible {
+            display: flex
+        }
+
+        #pauseBtn:hover {
+            background: rgba(0, 0, 0, 0.65);
+            transform: scale(1.05)
+        }
+
+        #settingsOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 4, 10, 0.88);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 250;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-y: auto
+        }
+
+        #settingsOverlay.active {
+            display: flex
+        }
+
+        .settings-panel {
+            background: linear-gradient(180deg, #16162a, #111120);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 22px 22px 18px;
+            width: 100%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6)
+        }
+
+        .settings-panel h2 {
+            text-align: center;
+            margin-bottom: 14px;
+            font-size: 20px;
+            font-family: 'Cinzel', Georgia, serif;
+            letter-spacing: 1.5px;
+            color: #e8e8f0
+        }
+
+        .settings-panel h3 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #5bb89a;
+            margin: 14px 0 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid rgba(91, 184, 154, 0.18)
+        }
+
+        .settings-section {
+            margin-bottom: 6px
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 0;
+            font-size: 13px;
+            color: #c8c8d8;
+            cursor: pointer
+        }
+
+        .settings-row > .settings-label {
+            flex: 0 0 auto;
+            min-width: 100px
+        }
+
+        .settings-row input[type="range"] {
+            flex: 1;
+            accent-color: #5bb89a;
+            min-width: 0
+        }
+
+        .settings-row .settings-value {
+            min-width: 40px;
+            text-align: right;
+            color: #888;
+            font-size: 12px;
+            font-variant-numeric: tabular-nums
+        }
+
+        .settings-row.checkbox-row {
+            align-items: flex-start
+        }
+
+        .settings-row.checkbox-row input {
+            margin-top: 3px;
+            accent-color: #5bb89a;
+            flex-shrink: 0
+        }
+
+        .settings-row.checkbox-row > .settings-text {
+            flex: 1
+        }
+
+        .settings-hint {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+            line-height: 1.4
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-direction: column
+        }
+
+        .settings-primary-btn {
+            background: linear-gradient(180deg, #3aaa7f, #2a8a5f);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            box-shadow: 0 3px 14px rgba(42, 138, 95, 0.3);
+            transition: all .15s
+        }
+
+        .settings-primary-btn:hover {
+            background: linear-gradient(180deg, #44bb8f, #34aa6f);
+            transform: translateY(-1px)
+        }
+
+        .settings-secondary-btn {
+            background: none;
+            border: 1px solid rgba(255, 80, 80, 0.3);
+            color: #ff7777;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .15s
+        }
+
+        .settings-secondary-btn:hover {
+            background: rgba(255, 80, 80, 0.08)
+        }
+
+        #closeSettings {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d8d8e0;
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        #closeSettings:hover {
+            background: rgba(255, 255, 255, 0.12)
+        }
+
+        .uc-disable-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 1px solid rgba(91, 184, 154, 0.35);
+            color: #5bb89a;
+            background: rgba(91, 184, 154, 0.05);
+            margin-left: 8px;
+            user-select: none;
+            transition: all .15s
+        }
+
+        .uc-disable-toggle:hover {
+            background: rgba(91, 184, 154, 0.12)
+        }
+
+        .uc-disable-toggle.disabled {
+            color: #888;
+            border-color: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03)
+        }
+
+        .uc-disable-toggle.disabled:hover {
+            background: rgba(255, 255, 255, 0.06)
+        }</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"Emoji Horde","item":"https://suipce.com/games/Casual/Emoji-Horde/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/Emoji-Horde/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Casual/Emoji-Horde/preview.png"></head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<button id="pauseBtn" title="Pause &amp; Settings">⚙️</button>
+<div id="settingsOverlay">
+    <div class="settings-panel">
+        <button id="closeSettings" title="Close">✕</button>
+        <h2>⚙️ Settings</h2>
+        <div class="settings-section">
+            <h3>Audio</h3>
+            <label class="settings-row checkbox-row">
+                <input type="checkbox" id="muteAll">
+                <span class="settings-text">Mute All Sound</span>
+            </label>
+            <label class="settings-row">
+                <span class="settings-label">SFX Volume</span>
+                <input type="range" id="sfxVolume" min="0" max="100" value="100">
+                <span class="settings-value" id="sfxVolumeVal">100%</span>
+            </label>
+            <label class="settings-row">
+                <span class="settings-label">Music Volume</span>
+                <input type="range" id="musicVolume" min="0" max="100" value="50">
+                <span class="settings-value" id="musicVolumeVal">50%</span>
+            </label>
+            <label class="settings-row checkbox-row">
+                <input type="checkbox" id="heartbeatToggle" checked>
+                <span class="settings-text">Heartbeat sound<span class="settings-hint">Pulses faster as your HP drops</span></span>
+            </label>
+        </div>
+        <div class="settings-section">
+            <h3>Gameplay</h3>
+            <label class="settings-row checkbox-row">
+                <input type="checkbox" id="disable_autoSwing">
+                <span class="settings-text">Disable Auto-Swing<span class="settings-hint">Sword stops auto-oscillating around the cursor.</span></span>
+            </label>
+            <label class="settings-row checkbox-row">
+                <input type="checkbox" id="disable_vortexPull">
+                <span class="settings-text">Disable Vortex Pull<span class="settings-hint">Stops pulling enemies toward your cursor.</span></span>
+            </label>
+        </div>
+        <div class="settings-actions" id="pauseActions" style="display:none">
+            <button id="resumeBtn" class="settings-primary-btn">▶ Resume</button>
+            <button id="quitRunBtn" class="settings-secondary-btn">Quit Run</button>
+        </div>
+    </div>
+</div>
+<div id="upgradeScreen">
+    <div id="upgradeTopBar">
+        <div class="currency" id="goldDisplay">🪙<span>0</span></div>
+        <div class="currency" id="starDisplay">⭐<span>0</span></div>
+        <div style="display:flex;gap:6px">
+            <button id="settingsBtn" title="Settings"
+                    style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#d8d8e0;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s">
+                ⚙️
+            </button>
+            <button id="milestoneBtn"
+                    style="background:linear-gradient(180deg,#2a2510,#1a1810);border:1px solid rgba(184,134,11,0.4);color:#d8d8e0;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 2px 10px rgba(184,134,11,0.12);transition:all .2s">
+                🏆 Milestones
+            </button>
+        </div>
+    </div>
+    <div id="synergyBar"></div>
+    <div id="tabBar"></div>
+    <div id="upgradeContent">
+        <div id="upgradeGrid"></div>
+    </div>
+    <div id="upgradeBottomBar"><select id="stageSelect"></select>
+        <button id="resetBtn" title="Reset Progress">⚙️ Reset</button>
+        <button id="startRunBtn">▶ Start Run</button>
+    </div>
+</div>
+<div id="milestonePanel">
+    <button id="closeMilestones">✕</button>
+    <h2>🏆 Milestones</h2>
+    <div id="milestoneList"></div>
+</div>
+<script>
+    // ============================================================
+    // BALANCE TUNING
+    // ============================================================
+    const BALANCE = {
+        enemyHpMult: 3.6,
+        enemySpeedMult: 2.45,
+        spawnRateMult: 0.55,
+        bossHpMult: 2.5,
+        playerDamageMult: 1.0,
+        abilityDamageMult: 1.0,
+        goldIncomeMult: 0.8,
+        upgradeCostMult: 1.15
+    };
+
+    // ============================================================
+    // GAME CONFIG
+    // ============================================================
+    const CFG = {
+        baseAttackRadius: 30,
+        atkRadiusPerLevel: 8,
+        baseHP: 3,
+        baseDamage: 1,
+        swingAngleThreshold: Math.PI / 2,
+        minVelocity: 0.5,
+        cursorSize: 40,
+        heartSize: 36,
+        heartY: 0.92,
+        maxParticles: 150,
+        goldArcDuration: 0.5,
+        wallWidthRatio: 0.6,
+        wallYOffset: 80,
+
+        stages: [
+            // Stage 0 - Meadow: longer round, beefier boss (~1000 HP)
+            {
+                name: "The Meadow", emoji: "🌿", bg: "#1a2e1a",
+                ambient: ["🌿", "🌱", "🌼", "🦋", "🍄"],
+                enemyPool: {bug: 50, hopper: 30, flutter: 20},
+                totalEnemies: 200,
+                hpMult: 1, spdMult: 1,
+                bossGoldBase: 80,
+                spawnCurve: [[0, 1.6], [10, 1.0], [22, 0.7], [40, 0.5], [65, 0.35], [95, 0.22]],
+                boss: {
+                    emoji: "👹",
+                    name: "Ogre King",
+                    hp: 400,
+                    speed: 30,
+                    size: 64,
+                    behavior: "charge",
+                    chargeInterval: 7,
+                    chargeSpeedMult: 2.2,
+                    chargeDuration: 2
+                }
+            },
+            // Stage 1 - Cavern: doubled enemies, steeper difficulty
+            {
+                name: "The Cavern", emoji: "🪨", bg: "#1a1a2e",
+                ambient: ["🪨", "💎", "🦇", "🕸️"],
+  

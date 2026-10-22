@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="description"
+          content="Blobby Volley in the browser, with the original game's physics: the ball always leaves a blob at the same speed, so you aim by where you touch it, not how hard. Play a friend on one keyboard or a three-level computer opponent.">
+    <meta name="author" content="Claude prompted by Tobias Müller">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Blobby-Volley/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Play Blobby Volley Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description"
+          content="Two blobs, one net, the original physics: the ball always leaves you at the same speed, so placement is everything.">
+    <meta property="og:url" content="https://www.gptgames.dev/games/blobby_volley.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_309.webp">
+    <meta property="og:site_name" content="GPT Games">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Blobby-Volley/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Blobby-Volley/preview.png">
+    <meta name="twitter:title" content="Play Blobby Volley Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description"
+          content="Two blobs, one net, the original physics: the ball always leaves you at the same speed, so placement is everything.">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_309.webp">
+    <title>Play Blobby Volley Online - Free Arcade Game | AIGameHub</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box }
+
+        body {
+            background: #10151c;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #e8eef6;
+            overflow: hidden;
+            height: 100vh;
+            user-select: none;
+            touch-action: none;
+        }
+
+        #stage {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            image-rendering: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            background: rgba(8, 12, 18, .82);
+            backdrop-filter: blur(6px);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .overlay[hidden] { display: none }
+
+        .panel {
+            margin: auto;
+            width: min(560px, 100%);
+            background: #172232;
+            border: 1px solid #2b3a50;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+        }
+
+        h1 {
+            font-size: 30px;
+            letter-spacing: .5px;
+            margin-bottom: 4px;
+        }
+
+        h1 span { color: #ffcf5c }
+
+        .sub {
+            color: #9db0c8;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
+        .group { margin-bottom: 16px }
+
+        .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #7f95b0;
+            margin-bottom: 7px;
+        }
+
+        .row { display: flex; gap: 8px; flex-wrap: wrap }
+
+        button {
+            font: inherit;
+            cursor: pointer;
+            border-radius: 9px;
+            border: 1px solid #33455f;
+            background: #1f2c40;
+            color: #cfdcec;
+            padding: 9px 14px;
+            transition: background .12s, border-color .12s, color .12s;
+        }
+
+        button:hover { background: #27374f; border-color: #46daed }
+
+        button.sel {
+            background: #2f8ef4;
+            border-color: #2f8ef4;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        button.primary {
+            background: #ffcf5c;
+            border-color: #ffcf5c;
+            color: #221a05;
+            font-weight: 700;
+            padding: 12px 20px;
+            width: 100%;
+            font-size: 17px;
+        }
+
+        button.primary:hover { background: #ffdd8a; border-color: #ffdd8a }
+
+        .keys {
+            font-size: 13px;
+            color: #9db0c8;
+            line-height: 1.7;
+            background: #121b28;
+            border: 1px solid #24324a;
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+
+        kbd {
+            background: #26364e;
+            border: 1px solid #3d5171;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 1px 6px;
+            font-family: inherit;
+            font-size: 12px;
+            color: #e8eef6;
+        }
+
+        .note { font-size: 12px; color: #6f86a3; margin-top: 12px; line-height: 1.6 }
+
+        /* on-screen controls: only for touch devices */
+        #pad {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            gap: 10px;
+            padding: 10px max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-bottom));
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #pad[hidden] { display: none }
+
+        .pad-side {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            align-items: flex-end;
+        }
+
+        .pad-side[hidden] { display: none }
+
+        .pad-side[data-player="1"] { flex-direction: row-reverse }
+
+        .pb {
+            pointer-events: auto;
+            flex: 0 0 auto;
+            width: 76px;
+            height: 66px;
+            font-size: 24px;
+            font-weight: 700;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .25);
+            background: rgba(16, 28, 44, .55);
+            color: rgba(255, 255, 255, .85);
+            backdrop-filter: blur(3px);
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+
+        .pb.down { background: rgba(47, 142, 244, .8); border-color: #7bc0ff }
+
+        .pb.jump {
+            width: 104px;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+
+        /* one player has the whole width: arrows in one corner, jump in the other */
+        #pad.solo .pb.jump { margin-left: auto }
+
+        .pb.p1 { background: rgba(64, 26, 12, .55) }
+
+        .pb.p1.down { background: rgba(255, 143, 94, .8); border-color: #ffb287 }
+
+        body.touch { background: linear-gradient(180deg, #0d1a28 0%, #132437 55%, #17202c 100%) }
+
+        body.touch #stage { align-items: center; bottom: var(--pad-h, 0px) }
+
+        /* portrait phones: the court is a wide strip, so say that turning helps */
+        #rotate {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(var(--pad-h, 0px) + 8px);
+            font-size: 12px;
+            white-space: nowrap;
+            color: #8ea5c0;
+            background: rgba(10, 16, 24, .6);
+            padding: 5px 12px;
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #rotate[hidden] { display: none }
+
+        body.touch #hint { display: none }
+
+        #hint {
+            position: fixed;
+            left: 50%;
+            bottom: 14px;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #6f86a3;
+            background: rgba(10, 16, 24, .7);
+            padding: 5px 12px;
+            border-radius: 20px;
+            pointer-events: none;
+        }
+
+        @media (max-width: 560px) {
+            h1 { font-size: 24px }
+            .panel { padding: 18px }
+            /* on-screen controls: only for touch devices */
+        #pad {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            gap: 10px;
+            padding: 10px max(10px, env(safe-area-inset-left)) max(10px, env(safe-area-inset-bottom));
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        #pad[hidden] { display: none }
+
+        .pad-side {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            align-items: flex-end;
+        }
+
+        .pad-side[hidden] { display: none }
+
+        .pad-side[data-player="1"] { flex-direction: row-reverse }
+
+        .pb {
+            pointer-events: auto;
+            flex: 0 0 auto;
+            width: 76px;
+            height: 66px;
+            font-size: 24px;
+            font-weight: 700;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, .25);
+            background: rgba(16, 28, 44, .55);
+            color: rgba(255, 255, 255, .85);
+            backdrop-filter: blur(3px);
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none;
+        }
+
+        .pb.down { background: rgba(47, 142, 244, .8); border-color: #7bc0ff }
+
+        .pb.jump {
+            width: 104px;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+
+        /* one player has the whole width: arrows in one corner, jump in the other */
+        #pad.solo .pb.jump { margin-left: auto }
+
+        .pb.p1 { background: rgba(64, 26, 12, .55) }
+
+        .pb.p1.down { background: rgba(255, 143, 94, .8); border-color: #ffb287 }
+
+        body.touch { background: linear-gradient(180deg, #0d1a28 0%, #132437 55%, #17202c 100%) }
+
+        body.touch #stage { align-items: center; bottom: var(--pad-h, 0px) }
+
+        /* portrait phones: the court is a wide strip, so say that turning helps */
+        #rotate {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(var(--pad-h, 0px) + 8px);
+            font-size: 12px;
+            white-space: nowrap;
+            color: #8ea5c0;
+            background: rgba(10, 16, 24, .6);
+            padding: 5px 12px;
+            border-radius: 20px;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        #rotate[hidden] { display: none }
+
+        body.touch #hint { display: none }
+
+        #hint { display: none }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Blobby Volley","item":"https://suipce.com/games/Arcade/Blobby-Volley/"}]}</script>
+</head>
+<body>
+<div id="stage"><canvas id="c" width="800" height="600"></canvas></div>
+<div id="rotate" hidden>Turn sideways for a bigger court</div>
+<div id="pad" hidden>
+    <div class="pad-side" data-player="0">
+        <button class="pb" data-p="0" data-a="left" aria-label="left blob: move left">&#9664;</button>
+        <button class="pb" data-p="0" data-a="right" aria-label="left blob: move right">&#9654;</button>
+        <button class="pb jump" data-p="0" data-a="up" aria-label="left blob: jump">JUMP</button>
+    </div>
+    <div class="pad-side" data-player="1" hidden>
+        <button class="pb p1" data-p="1" data-a="right" aria-label="right blob: move right">&#9654;</button>
+        <button class="pb p1" data-p="1" data-a="left" aria-label="right blob: move left">&#9664;</button>
+        <button class="pb p1 jump" data-p="1" data-a="up" aria-label="right blob: jump">JUMP</button>
+    </div>
+</div>
+<div id="hint">Esc / P — pause · M — sound · F — fullscreen</div>
+
+<div class="overlay" id="menu">
+    <div class="panel">
+        <h1>Blobby <span>Volley</span></h1>
+        <p class="sub">The ball leaves a blob at the same speed every single time — only the direction
+            changes, and that is decided by which part of you it hits. Serve-side scoring to 15, two clear
+            points, three touches a side.</p>
+
+        <div class="group">
+            <div class="label">Opponent</div>
+            <div class="row" id="modeRow">
+                <button data-mode="cpu" class="sel">Vs. computer</button>
+                <button data-mode="pvp">Two players</button>
+            </div>
+        </div>
+
+        <div class="group" id="diffGroup">
+            <div class="label">Computer strength</div>
+            <div class="row" id="diffRow">
+                <button data-diff="0">Casual</button>
+                <button data-diff="1" class="sel">Club</button>
+                <button data-diff="2">Merciless</button>
+            </div>
+        </div>
+
+        <div class="group">
+            <div class="label">Left blob</div>
+            <div class="row" id="p1Row">
+                <button data-ctl="wad" class="sel">W A D</button>
+                <button data-ctl="arrows">Arrow keys</button>
+                <button data-ctl="mouse">Mouse</button>
+            </div>
+        </div>
+
+        <div class="group" id="p2Group">
+            <div class="label">Right blob</div>
+            <div class="row" id="p2Row">
+                <button data-ctl="arrows" class="sel">Arrow keys</button>
+                <button data-ctl="wad">W A D</button>
+                <button data-ctl="mouse">Mouse</button>
+            </div>
+        </div>
+
+        <div class="group">
+            <div class="label">Graphics</div>
+            <div class="row" id="gfxRow">
+                <button data-gfx="auto" class="sel">Auto</button>
+                <button data-gfx="full">Full</button>
+                <button data-gfx="lite">Lite</button>
+            </div>
+            <div class="note" style="margin-top:8px">Auto watches the frame rate for a few seconds and
+                drops the trimmings — spray, trails, vignette — if this device cannot hold 60fps.</div>
+        </div>
+
+        <div class="group">
+            <div class="label">Scoring</div>
+            <div class="row" id="scoreRow">
+                <button data-score="sideout" class="sel">Classic (server only)</button>
+                <button data-score="rally">Rally point</button>
+            </div>
+        </div>
+
+        <button class="primary" id="startBtn">Play</button>
+        <button id="fsBtn" hidden style="width:100%;margin-top:8px">Fullscreen</button>
+        <div class="keys" style="margin-top:16px">
+            Move with left/right, jump with up — hold the jump key to go higher.<br>
+            <kbd>Mouse</kbd> steers the blob towards the pointer; hold the left button to jump.<br>
+            On a phone you get buttons for each blob — and the court itself still works:
+            drag your half to walk there, tap it to jump. Turn the phone sideways for a bigger court.
+        </div>
+        <p class="note">Physics ported from the open-source Blobby&nbsp;Volley&nbsp;2 constants: blob speed
+            4.5, jump 15.1, ball gravity 0.287, bounce 13.12.</p>
+    </div>
+</div>
+
+<div class="overlay" id="pause" hidden>
+    <div class="panel">
+        <h1>Paused</h1>
+        <p class="sub" id="pauseScore"></p>
+        <div class="row">
+            <button class="primary" id="resumeBtn" style="width:auto;flex:1">Resume</button>
+            <button id="quitBtn" style="padding:12px 20px">Back to menu</button>
+        </div>
+    </div>
+</div>
+
+<div class="overlay" id="over" hidden>
+    <div class="panel">
+        <h1 id="overTitle">Match over</h1>
+        <p class="sub" id="overText"></p>
+        <div class="row">
+            <button class="primary" id="againBtn" style="width:auto;flex:1">Rematch</button>
+            <button id="menuBtn" style="padding:12px 20px">Menu</button>
+        </div>
+    </div>
+</div>
+
+<script src="../logo.js" data-position="top-left"></script>
+<script>
+    'use strict';
+
+    // ---------------------------------------------------------------- constants
+    // Straight out of blobbyvolley2/src/GameConstants.h, so the timing and the
+    // arcs are the ones people spent the 2000s learning.
+    const LEFT_PLANE = 0, RIGHT_PLANE = 800;
+    const BLOBBY_HEIGHT = 89;
+    const BLOBBY_UPPER_SPHERE = 19, BLOBBY_UPPER_RADIUS = 25;
+    const BLOBBY_LOWER_SPHERE = 13, BLOBBY_LOWER_RADIUS = 33;
+    const GROUND_PLANE_HEIGHT_MAX = 500;
+    const GROUND_Y = GROUND_PLANE_HEIGHT_MAX - BLOBBY_HEIGHT / 2;      // 455.5
+    const BLOBBY_MAX_JUMP_HEIGHT = GROUND_Y - 206.375;
+    const BLOBBY_JUMP_ACCELERATION = 15.1;
+    const GRAVITATION = BLOBBY_JUMP_ACCELERATION * BLOBBY_JUMP_ACCELERATION / BLOBBY_MAX_JUMP_HEIGHT;
+    const BLOBBY_JUMP_BUFFER = GRAVITATION / 2;
+    const BLOBBY_SPEED = 4.5;
+    const BALL_RADIUS = 31.5;
+    const BALL_GRAVITATION = 0.287;
+    const BALL_COLLISION_VELOCITY = Math.sqrt(0.75 * RIGHT_PLANE * BALL_GRAVITATION);
+    const NET_POSITION_X = RIGHT_PLANE / 2;
+    const NET_POSITION_Y = 438;
+    const NET_RADIUS = 7;
+    const NET_SPHERE_POSITION = 284;
+    const STANDARD_BALL_HEIGHT = 269 + BALL_RADIUS;
+    const STANDARD_BALL_ANGULAR_VELOCITY = 0.1;
+
+    const W = 800, H = 600;
+    const LEFT = 0, RIGHT = 1;
+    const STEP = 1000 / 60;
+    const POINT_TO_WIN = 15, MAX_TOUCHES = 3;
+
+    // ---------------------------------------------------------------- state
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+
+    const settings = {mode: 'cpu', diff: 1, p1: 'wad', p2: 'arrows', scoring: 'sideout', gfx: 'auto'};
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let muted = false;
+    try { muted = localStorage.getItem('blobby-muted') === '1'; } catch (e) { /* private mode */ }
+    try {
+        const g = localStorage.getItem('blobby-gfx');
+        if (g === 'auto' || g === 'full' || g === 'lite') settings.gfx = g;
+    } catch (e) { /* private mode */ }
+
+    // `lite` drops the trimmings — the vignette, the sand it kicks up, the ball's
+    // trail and the second pass of light on the blobs. The court, the blobs and
+    // the ball are drawn the same either way, so the game never looks broken.
+    // On `auto` the first seconds of play decide: a device that cannot hold the
+    // frame rate gets the cheaper picture without anybody having to ask for it.
+    let lite = false;
+    let autoLite = false;
+    const meter = {samples: [], done: false};
+
+    function applyGfx() {
+        lite = settings.gfx === 'lite' || (settings.gfx === 'auto' && autoLite);
+    }
+
+    function measureFrame(dt) {
+        if (meter.done || settings.gfx !== 'auto' || !game.running || game.paused) return;
+        meter.samples.push(dt);
+        if (meter.samples.length < 90) return;
+        const sorted = meter.samples.slice().sort((a, b) => a - b);
+        // a median frame over 20ms means this device is not holding 60fps
+        if (sorted[45] > 20) {
+            autoLite = true;
+            applyGfx();
+        }
+        meter.done = true;
+    }
+
+    applyGfx();
+
+    const game = {
+        running: false,
+        paused: false,
+        over: false,
+        blob: [{x: 200, y: GROUND_Y, vy: 0, vx: 0, squish: 0}, {x: 600, y: GROUND_Y, vy: 0, vx: 0, squish: 0}],
+        ball: {x: 200, y: STANDARD_BALL_HEIGHT, vx: 0, vy: 0, rot: 0},
+        ballValid: true,      // false once the rally is decided; the ball keeps bouncing
+        ballActive: false,    // true once somebody has touched the serve
+        serving: LEFT,
+        score: [0, 0],
+        touches: [0, 0],
+        lastHitter: -1,
+        contact: [false, false],
+        deadTimer: 0,
+        serveTimer: 0,
+        message: '',
+        messageTimer: 0,
+        winner: -1,
+        trail: [],
+        shake: 0,
+    };
+
+    const input = [
+        {left: false, right: false, up: false},
+        {left: false, right: false, up: false},
+    ];
+
+    // ---------------------------------------------------------------- audio
+    let actx = null;
+
+    function audio() {
+        if (!actx) {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) actx = new AC();
+        }
+        if (actx && actx.state === 'suspended') actx.resume();
+        return actx;
+    }
+
+    // A ball hitting a hand is a burst of noise with a short low body under it —
+    // a pitch-swept oscillator on its own is a ray gun, which is what this was.
+    let noiseBuf = null;
+
+    function noise(a) {
+        if (!noiseBuf) {
+            noiseBuf = a.createBuffer(1, Math.floor(a.sampleRate * 0.4), a.sampleRate);
+            const d = noiseBuf.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        }
+        return noiseBuf;
+    }
+
+    // `to` is where the pitch lands; leave it out and the note holds.
+    function tone(freq, dur, type, gain, to) {
+        if (muted) return;
+        const a = audio();
+        if (!a) return;
+        const o = a.createOscillator(), g = a.createGain();
+        o.type = type || 'sine';
+        o.frequency.setValueAtTime(freq, a.currentTime);
+        if (to) o.frequency.exponentialRampToValueAtTime(Math.max(30, to), a.currentTime + dur);
+        g.gain.setValueAtTime(0.0001, a.currentTime);
+        g.gain.exponentialRampToValueAtTime(gain || 0.12, a.currentTime + 0.008);
+        g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+        o.connect(g).connect(a.destination);
+        o.start();
+        o.stop(a.currentTime + dur + 0.02);
+    }
+
+    // a filtered noise burst: the slap of the contact itself
+    function thock(freq, dur, gain, q) {
+        if (muted) return;
+        const a = audio();
+        if (!a) return;
+        const src = a.createBufferSource();
+        src.buffer = noise(a);
+        const bp = a.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.Q.value = q || 1;
+        bp.frequency.setValueAtTime(freq, a.currentTime);
+        bp.frequency.exponentialRampToValueAtTime(freq * 0.45, a.currentTime + dur);
+        const g = a.createGain();
+        g.gain.setValueAtTime(gain, a.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+        src.connect(bp).connect(g).connect(a.destination);
+        src.start();
+        src.stop(a.currentTime + dur + 0.02);
+    }
+
+    // the two blobs sound slightly apart, so you can hear whose touch it was
+    const sndHit = i => {
+        thock(1350 + i * 420, 0.07, 0.2, 1.1);
+        tone(210 + i * 45, 0.085, 'sine', 0.1, (210 + i * 45) * 0.7);
+    };
+    const sndNet = () => { thock(620, 0.15, 0.13, 0.7); tone(120, 0.13, 'triangle', 0.06, 88); };
+    const sndPoint = () => { tone(660, 0.15, 'sine', 0.1); setTimeout(() => tone(990, 0.24, 'sine', 0.09), 105); };
+    const sndFault = () => { thock(300, 0.2, 0.1, 0.6); tone(155, 0.24, 'sine', 0.07, 104); };
+
+    // ---------------------------------------------------------------- helpers
+    const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by);
+
+    function reset(server) {
+        game.serving = server;
+        game.ball.x = server === LEFT ? 200 : 600;
+        game.ball.y = STANDARD_BALL_HEIGHT;
+        game.ball.vx = 0;
+        game.ball.vy = 0;
+        game.ball.rot = 0;
+        game.ballValid = true;
+        game.ballActive = false;
+        game.touches = [0, 0];
+        game.lastHitter = -1;
+        game.contact = [false, false];
+        game.deadTimer = 0;
+        game.serveTimer = 8;
+        game.trail.length = 0;
+        particles.length = 0;
+        game.blob[LEFT].x = 200;
+        game.blob[RIGHT].x = 600;
+        game.blob[LEFT].y = game.blob[RIGHT].y = GROUND_Y;
+        game.blob[LEFT].vy = game.blob[RIGHT].vy = 0;
+        ai.target = 200;
+        ai.thinkTimer = 0;
+    }
+
+    function newMatch() {
+        meter.samples.length = 0;
+        meter.done = false;
+        game.score = [0, 0];
+        game.over = false;
+        game.winner = -1;
+        game.message = '';
+        game.messageTimer = 0;
+        reset(LEFT);
+        game.running = true;
+        game.paused = false;
+    }
+
+    function say(text) {
+        game.message = text;
+        game.messageTimer = 1.6;
+    }
+
+    // A rally ends: `winner` wins the exchange, but under classic scoring only the
+    // serving side actually banks a point — the other side just wins the serve.
+    function endRally(winner, reason) {
+        if (!game.ballValid) return;
+        game.ballValid = false;
+        game.deadTimer = 1.5;
+        game.shake = reducedMotion ? 0 : 6;
+        if (settings.scoring === 'rally' || winner === game.serving) {
+            game.score[winner]++;
+            sndPoint();
+        } else {
+            sndFault();
+        }
+        game.serving = winner;
+        say(reason);
+        const s = game.score;
+        if ((s[winner] >= POINT_TO_WIN) && (s[winner] - s[1 - winner] >= 2)) {
+            game.winner = winner;
+            game.over = true;
+            game.deadTimer = 1.4;
+        }
+    }
+
+    // ---------------------------------------------------------------- physics
+    function handleBlob(p) {
+        const b = game.blob[p], inp = input[p];
+        if (inp.up) {
+            if (b.y >= GROUND_Y) {
+                b.vy = -BLOBBY_JUMP_ACCELERATION;
+                b.squish = 0.55;
+            }
+            b.vy -= BLOBBY_JUMP_BUFFER;   // holding jump keeps you up longer
+        }
+        b.vx = (inp.right ? BLOBBY_SPEED : 0) - (inp.left ? BLOBBY_SPEED : 0);
+        b.vy += GRAVITATION;
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.y > GROUND_Y) {
+            if (b.vy > 3.5) {
+                b.squish = Math.min(1, b.vy / 14);
+                sandPuff(b.x, Math.min(1, b.vy / 16));
+            }
+            b.y = GROUND_Y;
+            b.vy = 0;
+        }
+        b.squish *= 0.86;
+    }
+
+    function bounceOffBlob(p, cx, cy) {
+        const ball = game.ball;
+        let nx = ball.x - cx, ny = ball.y - cy;
+        const len = Math.hypot(nx, ny) || 1;
+        nx /= len;
+        ny /= len;
+        ball.vx = nx * BALL_COLLISION_VELOCITY;
+        ball.vy = ny * BALL_COLLISION_VELOCITY;
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        hitBurst(cx + nx * BLOBBY_LOWER_RADIUS * 0.8, cy + ny * BLOBBY_LOWER_RADIUS * 0.8, SKIN[p].rgb);
+        registerTouch(p);
+        sndHit(p);
+    }
+
+    function registerTouch(p) {
+        game.ballActive = true;
+        if (game.contact[p]) return;      // still the same touch, not a new one
+        if (game.lastHitter !== p) game.touches[p] = 0;
+        game.touches[p]++;
+        game.touches[1 - p] = 0;
+        game.lastHitter = p;
+        if (game.touches[p] > MAX_TOUCHES) endRally(1 - p, (p === LEFT ? 'Left' : 'Right') + ' side: four touches');
+    }
+
+    function checkBlobBall(p) {
+        const b = game.blob[p], ball = game.ball;
+        let hit = true;
+        if (dist(ball.x, ball.y, b.x, b.y + BLOBBY_LOWER_SPHERE) <= BALL_RADIUS + BLOBBY_LOWER_RADIUS) {
+            bounceOffBlob(p, b.x, b.y + BLOBBY_LOWER_SPHERE);
+        } else if (dist(ball.x, ball.y, b.x, b.y - BLOBBY_UPPER_SPHERE) <= BALL_RADIUS + BLOBBY_UPPER_RADIUS) {
+            bounceOffBlob(p, b.x, b.y - BLOBBY_UPPER_SPHERE);
+        } else {
+            hit = false;
+        }
+        game.contact[p] = hit;
+    }
+
+    function physicsStep() {
+        const ball = game.ball;
+
+        handleBlob(LEFT);
+        handleBlob(RIGHT);
+
+        if (game.ballActive) ball.vy += BALL_GRAVITATION;
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+
+        if (game.ballValid) {
+            checkBlobBall(LEFT);
+            checkBlobBall(RIGHT);
+            if (ball.y + BALL_RADIUS > GROUND_PLANE_HEIGHT_MAX) {
+                const side = ball.x < NET_POSITION_X ? LEFT : RIGHT;
+                endRally(1 - side, ball.x < NET_POSITION_X ? 'Down on the left' : 'Down on the right');
+                sandPuff(ball.x, Math.min(1, Math.abs(ball.vy) / 14));
+                ball.vy = -ball.vy * 0.5;
+                ball.vx *= 0.55;
+                ball.y = GROUND_PLANE_HEIGHT_MAX - BALL_RADIUS;
+            }
+        } else if (ball.y + BALL_RADIUS > GROUND_PLANE_HEIGHT_MAX) {
+            if (Math.abs(ball.vy) > 2) sandPuff(ball.x, Math.min(0.7, Math.abs(ball.vy) / 16));
+            ball.vy = -ball.vy * 0.5;
+            ball.vx *= 0.55;
+            ball.y = GROUND_PLANE_HEIGHT_MAX - BALL_RADIUS;
+        }
+
+        // side walls, net post, net band
+        if (ball.x - BALL_RADIUS <= LEFT_PLANE && ball.vx < 0) {
+            ball.vx = -ball.vx;
+            ball.x = LEFT_PLANE + BALL_RADIUS;
+        } else if (ball.x + BALL_RADIUS >= RIGHT_PLANE && ball.vx > 0) {
+            ball.vx = -ball.vx;
+            ball.x = RIGHT_PLANE - BALL_RADIUS;
+        } else if (ball.y > NET_SPHERE_POSITION && Math.abs(ball.x - NET_POSITION_X) < BALL_RADIUS + NET_RADIUS) {
+            ball.vx = -ball.vx;
+            ball.x = NET_POSITION_X + (ball.x - NET_POSITION_X > 0 ? BALL_RADIUS + NET_RADIUS : -BALL_RADIUS - NET_RADIUS);
+            sndNet();
+        } else {
+            const d = dist(ball.x, ball.y, NET_POSITION_X, NET_SPHERE_POSITION);
+            if (d < NET_RADIUS + BALL_RADIUS) {
+                const nx = (ball.x - NET_POSITION_X) / (d || 1), ny = (ball.y - NET_SPHERE_POSITION) / (d || 1);
+                let perp = nx * ball.vx + ny * ball.vy;
+                perp *= perp;
+                let para = ball.vx * ball.vx + ball.vy * ball.vy - perp;
+                perp *= 0.7;   // the post eats more of the head-on component
+                para *= 0.9;
+                const nspeed = Math.sqrt(perp + para);
+                const dot = ball.vx * nx + ball.vy * ny;
+                let rx = ball.vx - 2 * dot * nx, ry = ball.vy - 2 * dot * ny;
+                const rl = Math.hypot(rx, ry) || 1;
+                ball.vx = rx / rl * nspeed;
+                ball.vy = ry / rl * nspeed;
+                ball.x = NET_POSITION_X -

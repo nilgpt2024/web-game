@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Escape-the-Maze/">
+
+    <meta charset="UTF-8">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕯️</text></svg>">
+    <title>Play The Hollow Online - Free Puzzle Game | AIGameHub</title>
+    <meta name="description" content="Play The Hollow online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden
+        }
+
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: #000;
+            color: #e8e2d4;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        #game {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: #000
+        }
+
+        canvas {
+            display: block
+        }
+
+        #vignette {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 4;
+            box-shadow: inset 0 0 200px 60px rgba(0, 0, 0, 0.9), inset 0 0 60px 10px rgba(0, 0, 0, 0.7);
+            mix-blend-mode: multiply;
+            transition: opacity .4s
+        }
+
+        #redpulse {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            box-shadow: inset 0 0 220px 80px rgba(140, 0, 0, 0.9);
+            transition: opacity .25s
+        }
+
+        #grain {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 6;
+            opacity: .05;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")
+        }
+
+        #hud {
+            position: absolute;
+            inset: 0;
+            z-index: 7;
+            pointer-events: none
+        }
+
+        #hud.hidden {
+            display: none
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 14px;
+            height: 14px;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(232, 226, 212, .35);
+            border-radius: 50%;
+            opacity: .6
+        }
+
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2px;
+            height: 2px;
+            background: rgba(232, 226, 212, .7);
+            transform: translate(-50%, -50%);
+            border-radius: 50%
+        }
+
+        #topbar {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 22px;
+            align-items: center;
+            font-size: .78rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: #9c9580;
+            text-shadow: 0 2px 8px #000;
+            white-space: nowrap
+        }
+
+        #topbar .v {
+            color: #e8e2d4;
+            font-weight: bold
+        }
+
+        #depth-num {
+            color: #cdb88a
+        }
+
+        #biome-name {
+            color: #cda45f;
+            font-style: italic;
+            text-transform: none;
+            letter-spacing: .04em
+        }
+
+        #sanitywrap {
+            position: absolute;
+            bottom: 26px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(46vw, 340px)
+        }
+
+        #sanitylabel {
+            display: flex;
+            justify-content: space-between;
+            font-size: .7rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: #8a8472;
+            margin-bottom: 6px;
+            text-shadow: 0 2px 6px #000
+        }
+
+        #sanitybar {
+            height: 7px;
+            border: 1px solid rgba(205, 184, 138, .35);
+            border-radius: 4px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, .5)
+        }
+
+        #sanityfill {
+            height: 100%;
+            width: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #caa45f, #e9d49a);
+            box-shadow: 0 0 14px rgba(233, 212, 154, .6);
+            transition: width .15s linear
+        }
+
+        #sanitybar.low #sanityfill {
+            background: linear-gradient(90deg, #7a1d1d, #c0392b);
+            box-shadow: 0 0 16px rgba(192, 57, 43, .7)
+        }
+
+        #hearts {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            display: flex;
+            gap: 7px;
+            font-size: 1.35rem;
+            filter: drop-shadow(0 2px 6px #000)
+        }
+
+        #status-pips {
+            position: absolute;
+            top: 48px;
+            left: 20px;
+            display: flex;
+            gap: 12px;
+            font-size: .82rem;
+            letter-spacing: .06em;
+            filter: drop-shadow(0 2px 6px #000)
+        }
+
+        #relics {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            font-size: .78rem;
+            letter-spacing: .08em;
+            color: #9c9580;
+            text-shadow: 0 2px 8px #000
+        }
+
+        #relics .r-count {
+            font-size: 1.05rem;
+            color: #e9d49a;
+            font-weight: bold
+        }
+
+        #relics .r-sub {
+            font-size: .66rem;
+            color: #7d7765;
+            text-transform: uppercase;
+            letter-spacing: .14em
+        }
+
+        #compass {
+            position: absolute;
+            bottom: 64px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .72rem;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: #7fd6a8;
+            text-shadow: 0 0 12px rgba(46, 213, 115, .6);
+            opacity: 0;
+            transition: opacity .6s
+        }
+
+        #hide-prompt {
+            position: absolute;
+            bottom: 92px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .74rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: #9c9580;
+            text-shadow: 0 0 10px rgba(0, 0, 0, .8);
+            opacity: 0;
+            transition: opacity .3s
+        }
+
+        #minimap {
+            position: absolute;
+            bottom: 22px;
+            right: 22px;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 24px rgba(0, 0, 0, .8), inset 0 0 30px rgba(0, 0, 0, .9);
+            background: #05070a;
+            opacity: .94
+        }
+
+        #minimap canvas {
+            width: 100%;
+            height: 100%
+        }
+
+        #minimap.hidden {
+            display: none
+        }
+
+        #maphint {
+            position: absolute;
+            bottom: 6px;
+            right: 24px;
+            font-size: .6rem;
+            letter-spacing: .14em;
+            color: #6a6456;
+            text-transform: uppercase;
+            text-shadow: 0 2px 6px #000
+        }
+
+        #maphint.hidden {
+            display: none
+        }
+
+        #whisper {
+            position: absolute;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 80vw;
+            text-align: center;
+            font-style: italic;
+            font-size: 1rem;
+            color: #bfb89f;
+            text-shadow: 0 2px 10px #000;
+            opacity: 0;
+            transition: opacity .5s;
+            letter-spacing: .02em
+        }
+
+        #bigflash {
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.2rem;
+            font-weight: bold;
+            letter-spacing: .05em;
+            color: #e8e2d4;
+            text-shadow: 0 0 24px rgba(0, 0, 0, .9);
+            opacity: 0;
+            pointer-events: none;
+            text-align: center
+        }
+
+        /* full-screen map */
+        #mapscreen {
+            position: absolute;
+            inset: 0;
+            z-index: 15;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at center, rgba(8, 7, 6, .92), rgba(0, 0, 0, .98))
+        }
+
+        #mapscreen.hidden {
+            display: none
+        }
+
+        #mapscreen h2 {
+            font-size: 1.4rem;
+            color: #cda45f;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            font-weight: normal
+        }
+
+        #fullmap-canvas {
+            width: min(78vmin, 720px);
+            height: min(78vmin, 720px);
+            border: 1px solid rgba(205, 184, 138, .3);
+            border-radius: 6px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, .8), inset 0 0 40px rgba(0, 0, 0, .9);
+            background: #05070d
+        }
+
+        #maplegend {
+            margin-top: 16px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-size: .74rem;
+            color: #9c9580;
+            letter-spacing: .04em
+        }
+
+        #maplegend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        #maplegend i {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            text-align: center;
+            padding: 24px;
+            background: radial-gradient(ellipse at center, rgba(10, 9, 7, .86), rgba(0, 0, 0, .97))
+        }
+
+        .overlay.hidden {
+            display: none
+        }
+
+        .title {
+            font-size: clamp(2.4rem, 8vw, 4.6rem);
+            letter-spacing: .04em;
+            line-height: 1;
+            margin-bottom: .3em;
+            color: #e9d49a;
+            text-shadow: 0 0 40px rgba(202, 164, 95, .35), 0 4px 20px #000
+        }
+
+        .title .small {
+            display: block;
+            font-size: .3em;
+            letter-spacing: .5em;
+            color: #8a8472;
+            margin-bottom: .6em;
+            text-transform: uppercase
+        }
+
+        .flavor {
+            max-width: 560px;
+            font-size: 1.02rem;
+            line-height: 1.7;
+            color: #b3ac96;
+            margin-bottom: 2em;
+            font-style: italic
+        }
+
+        .flavor.tight {
+            margin-bottom: 1.4em
+        }
+
+        .btn {
+            pointer-events: auto;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid rgba(205, 184, 138, .4);
+            background: rgba(28, 24, 18, .6);
+            color: #e9d49a;
+            padding: .85em 2.4em;
+            font-size: 1rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            border-radius: 3px;
+            margin: .4em;
+            transition: all .2s;
+            backdrop-filter: blur(4px)
+        }
+
+        .btn:hover {
+            background: rgba(202, 164, 95, .16);
+            border-color: #cda45f;
+            color: #fbecc2;
+            box-shadow: 0 0 26px rgba(202, 164, 95, .25)
+        }
+
+        .btn:active {
+            transform: translateY(1px)
+        }
+
+        .btn.ghost {
+            border-color: rgba(140, 134, 116, .3);
+            color: #9c9580;
+            background: transparent
+        }
+
+        .btn.ghost:hover {
+            color: #cdc6ad;
+            border-color: rgba(180, 174, 156, .5);
+            box-shadow: none
+        }
+
+        .btn.small {
+            padding: .6em 1.6em;
+            font-size: .82rem
+        }
+
+        .controls {
+            margin-top: 2.2em;
+            display: flex;
+            gap: 26px;
+            flex-wrap: wrap;
+            justify-content: center;
+            color: #8a8472;
+            font-size: .82rem;
+            letter-spacing: .04em
+        }
+
+        .controls .ck {
+            display: inline-block;
+            min-width: 22px;
+            padding: 1px 7px;
+            margin: 0 1px;
+            border: 1px solid rgba(140, 134, 116, .4);
+            border-radius: 3px;
+            color: #cdc6ad;
+            font-size: .78rem
+        }
+
+        .controls .grp {
+            display: flex;
+            flex-direction: column;
+            gap: .5em;
+            align-items: center
+        }
+
+        .controls .grp strong {
+            color: #9c9580;
+            font-weight: normal;
+            letter-spacing: .18em;
+            font-size: .7rem
+        }
+
+        .statgrid {
+            display: flex;
+            gap: 34px;
+            margin: 1.4em 0 2em;
+            flex-wrap: wrap;
+            justify-content: center
+        }
+
+        .stat {
+            min-width: 120px
+        }
+
+        .stat .sv {
+            font-size: 2.4rem;
+            color: #e9d49a;
+            line-height: 1
+        }
+
+        .stat .sl {
+            font-size: .72rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: #7d7765;
+            margin-top: .5em
+        }
+
+        .lore {
+            max-width: 580px;
+            font-size: .95rem;
+            line-height: 1.7;
+            color: #a59e88;
+            font-style: italic;
+            margin-bottom: 1.6em;
+            border-left: 1px solid rgba(205, 184, 138, .3);
+            padding-left: 1.4em;
+            text-align: left
+        }
+
+        .biomelist {
+            max-width: 580px;
+            text-align: left;
+            margin-bottom: 2em;
+            font-size: .86rem;
+            color: #9c9580;
+            line-height: 1.6
+        }
+
+        .biomelist b {
+            color: #cda45f;
+            font-weight: normal
+        }
+
+        #touch {
+            position: absolute;
+            inset: 0;
+            z-index: 8;
+            display: none
+        }
+
+        #touch.on {
+            display: block
+        }
+
+        #stick {
+            position: absolute;
+            bottom: 34px;
+            left: 34px;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 1px solid rgba(205, 184, 138, .25);
+            background: rgba(0, 0, 0, .3);
+            pointer-events: auto
+        }
+
+        #stick .nub {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: rgba(205, 184, 138, .3);
+            border: 1px solid rgba(205, 184, 138, .5);
+            transform: translate(-50%, -50%)
+        }
+
+        #lookpad {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 55%;
+            height: 100%;
+            pointer-events: auto
+        }
+
+        #sticklabel {
+            position: absolute;
+            bottom: 18px;
+            left: 34px;
+            width: 130px;
+            text-align: center;
+            font-size: .62rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: #8a8472;
+            pointer-events: none;
+            text-shadow: 0 2px 6px #000;
+            animation: tlabel 6s forwards
+        }
+
+        #looklabel {
+            position: absolute;
+            top: 50%;
+            right: 8%;
+            font-size: .62rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #7d7765;
+            pointer-events: none;
+            text-shadow: 0 2px 6px #000;
+            animation: tlabel 6s forwards
+        }
+
+        @keyframes tlabel {
+            0%, 60% {
+                opacity: .75
+            }
+            100% {
+                opacity: 0
+            }
+        }
+
+        #sprintbtn {
+            position: absolute;
+            bottom: 60px;
+            right: 34px;
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            border: 1px solid rgba(205, 184, 138, .3);
+            background: rgba(0, 0, 0, .3);
+            color: #cdc6ad;
+            font-size: .7rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        #mapbtn {
+            position: absolute;
+            top: 34px;
+            right: 34px;
+            width: 56px;
+            height: 56px;
+            border-radius: 10px;
+            border: 1px solid rgba(205, 184, 138, .3);
+            background: rgba(0, 0, 0, .35);
+            color: #cdc6ad;
+            font-size: .62rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .hintfade {
+            animation: hf 3.2s forwards
+        }
+
+        @keyframes hf {
+            0%, 70% {
+                opacity: 1
+            }
+            100% {
+                opacity: 0
+            }
+        }
+
+        #clickhint {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: .8rem;
+            color: #7d7765;
+            letter-spacing: .12em;
+            z-index: 9;
+            text-transform: uppercase;
+            text-shadow: 0 2px 8px #000
+        }
+
+        #clickhint.hidden {
+            display: none
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"The Hollow","item":"https://suipce.com/games/Puzzle/Escape-the-Maze/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Escape-the-Maze/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Escape-the-Maze/preview.png"></head>
+<body>
+<div id="game">
+    <div id="vignette"></div>
+    <div id="redpulse"></div>
+    <div id="grain"></div>
+
+    <div id="hud" class="hidden">
+        <div class="crosshair"></div>
+        <div id="topbar">
+            <span>Depth <span class="v" id="depth-num">1</span></span>
+            <span id="depth-title" style="color:#9a86c8;font-style:italic;text-transform:none;letter-spacing:.04em">The First Descent</span>
+            <span id="biome-name">The Cisterns</span>
+            <span id="huntstate" class="v">— calm —</span>
+        </div>
+        <div id="hearts"></div>
+        <div id="status-pips"></div>
+        <div id="relics">
+            <div><span class="r-count" id="relic-count">0</span> / <span id="relic-total">3</span></div>
+            <div class="r-sub">embers gathered</div>
+        </div>
+        <div id="sanitywrap">
+            <div id="sanitylabel"><span>Lantern Oil</span><span id="sanity-pct">100%</span></div>
+            <div id="sanitybar">
+                <div id="sanityfill"></div>
+            </div>
+        </div>
+        <div id="compass">▲ the gate has opened ▲</div>
+        <div id="hide-prompt"></div>
+        <div id="minimap">
+            <canvas id="minimap-canvas"></canvas>
+        </div>
+        <div id="maphint">tab / m — map</div>
+        <div id="whisper"></div>
+        <div id="bigflash"></div>
+    </div>
+
+    <div id="clickhint" class="hidden">click to look · WASD move · shift run · tab map · esc pause</div>
+
+    <!-- full-screen map -->
+    <div id="mapscreen" class="hidden">
+        <h2>The Hollow — Layer Map</h2>
+        <canvas id="fullmap-canvas"></canvas>
+        <div id="maplegend">
+            <span><i style="background:#e9d49a"></i>you</span>
+            <span><i style="background:#ffd27a"></i>ember</span>
+            <span><i style="background:#2ed573"></i>gate</span>
+            <span><i style="background:#ff8a3c"></i>torch</span>
+            <span><i style="background:#ff2b2b"></i>warden</span>
+            <span style="color:#6a6456">unlit areas stay hidden</span>
+        </div>
+        <button class="btn ghost small" id="closemapBtn" style="margin-top:18px">Close Map</button>
+    </div>
+
+    <!-- touch -->
+    <div id="touch">
+        <div id="stick">
+            <div class="nub"></div>
+        </div>
+        <div id="sticklabel">move · turn</div>
+        <div id="lookpad"></div>
+        <div id="looklabel">drag to look ↑↓</div>
+        <div id="sprintbtn">run</div>
+        <div id="mapbtn">map</div>
+    </div>
+
+    <!-- MENU -->
+    <div id="menu" class="overlay">
+        <h1 class="title"><span class="small">you are lost in</span>The Hollow</h1>
+        <p class="flavor">The lantern is nearly spent. Somewhere in the dark, things remember your footsteps.
+            Gather the three embers, open the gate, and descend — through cisterns and frozen lattices and the drowned
+            deep —
+            before your light dies, or before they find you.</p>
+        <button class="btn" id="startBtn">Light the Lantern</button>
+        <button class="btn ghost" id="loreBtn">What is this place?</button>
+        <div class="controls">
+            <div class="grp"><strong>MOVE</strong><span><span class="ck">W</span><span class="ck">A</span><span
+                    class="ck">S</span><span class="ck">D</span></span></div>
+            <div class="grp"><strong>LOOK</strong><span>mouse</span></div>
+            <div class="grp"><strong>RUN</strong><span><span class="ck">shift</span> · burns oil</span></div>
+            <div class="grp"><strong>MAP</strong><span><span class="ck">tab</span> / <span class="ck">M</span></span>
+            </div>
+            <div class="grp"><strong>PAUSE</strong><span><span class="ck">esc</span></span></div>
+        </div>
+    </div>
+
+    <!-- LORE -->
+    <div id="lore" class="overlay hidden">
+        <h1 class="title" style="font-size:clamp(1.8rem,6vw,3rem)">The Hollow</h1>
+        <p class="lore">They say the maze breathes — that its walls shift when no light touches them, that the warden
+            was once
+            a wanderer like you who let their lantern gutter out and was unmade into hunger.<br><br>
+            Keep your lantern fed by the torches bracketed to the walls; between their pools the dark is absolute and
+            the cold
+            gnaws your light away. Three embers burn in every layer. Gather them and the gate to the deeper Hollow
+            opens.
+            Each descent is a different place, and a different cruelty.</p>
+        <div class="biomelist">
+            <b>The Cisterns</b> — old waterworks, where it all begins.<br>
+            <b>The Ember Vaults</b> — bright torches, but the warden runs fast and hungry.<br>
+            <b>The Drowned Deep</b> — near-total darkness; seek the Seer Eyes that reveal the way.<br>
+            <b>The Whispering Warren</b> — more than one set of eyes. Hush Charms hide you.<br>
+            <b>The Cold Lattice</b> — freezing; your oil burns away quickly. Hoard the flasks.
+        </div>
+        <button class="btn ghost" id="backBtn">Back</button>
+    </div>
+
+    <!-- DESCEND -->
+    <div id="descend" class="overlay hidden">
+        <h1 class="title" style="color:#7fd6a8;text-shadow:0 0 40px rgba(46,213,115,.4)"><span class="small">the gate closes behind you</span>Descend
+        </h1>
+        <div id="descend-depth-title"
+             style="font-size:1.3rem;font-style:italic;color:#9a86c8;letter-spacing:.06em;margin-bottom:.4em">The
+            Threshold
+        </div>
+        <p class="flavor tight" id="descend-flavor">You slip through into colder air. The dark here is older.</p>
+        <div id="descend-fathoms" style="font-size:.95rem;color:#cda45f;letter-spacing:.08em;margin-bottom:1.4em">— 13
+            fathoms below the surface —
+        </div>
+        <div class="statgrid">
+            <div class="stat">
+                <div class="sv" id="d-depth">1</div>
+                <div class="sl">layers survived</div>
+            </div>
+            <div class="stat">
+                <div class="sv" id="d-hearts">3</div>
+                <div class="sl">hearts remaining</div>
+            </div>
+            <div class="stat">
+                <div class="sv" id="d-time">0:00</div>
+                <div class="sl">time below</div>
+            </div>
+        </div>
+        <div id="descend-tally"
+             style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin-bottom:1.8em;font-size:.82rem;color:#9c9580;letter-spacing:.04em"></div>
+        <button class="btn" id="descendBtn">Go Deeper</button>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="over" class="overlay hidden">
+        <h1 class="title" style="color:#c0392b;text-shadow:0 0 40px rgba(192,57,43,.4)" id="over-title">The Light
+            Died</h1>
+        <div id="over-depth-title"
+             style="font-size:1.2rem;font-style:italic;color:#9a86c8;letter-spacing:.06em;margin-bottom:.4em">The
+            Threshold
+        </div>
+        <p class="flavor tight" id="over-flavor">The cold took you. You are part of the Hollow now.</p>
+        <div class="statgrid">
+            <div class="stat">
+                <div class="sv" id="o-depth">1</div>
+                <div class="sl">deepest layer</div>
+            </div>
+            <div class="stat">
+                <div class="sv" id="o-embers">0</div>
+                <div class="sl">embers gathered</div>
+            </div>
+            <div class="stat">
+                <div class="sv" id="o-time">0:00</div>
+                <div class="sl">time in the dark</div>
+            </div>
+        </div>
+        <div id="over-tally"
+             style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin-bottom:1.8em;font-size:.82rem;color:#9c9580;letter-spacing:.04em"></div>
+        <button class="btn" id="retryBtn">Try Again</button>
+        <button class="btn ghost" id="menuBtn">Main Menu</button>
+    </div>
+
+    <!-- PAUSE -->
+    <div id="pause" class="overlay hidden">
+        <h1 class="title" style="font-size:clamp(2rem,7vw,3.4rem)">Stillness</h1>
+        <p class="flavor tight">The Hollow waits. It is patient.</p>
+        <button class="btn" id="resumeBtn">Resume</button>
+        <button class="btn ghost" id="quitBtn">Abandon Descent</button>
+    </div>
+</div>
+<script>
+    /* ============================================================================
+       THE HOLLOW — a first-person maze horror  (v2)
+       Single-file, three.js r128.
+       Coordinate system: world position = gridCoord * CELL.
+       Cell (gx,gy) spans world [gx*CELL, (gx+1)*CELL]; center = (gx+0.5)*CELL.
+       ========================================================================== */
+    /* ============================================================================
+       THE HOLLOW — a first-person maze horror  (v2)
+       Single-file, three.js r128.
+       Coordinate system: world position = gridCoord * CELL.
+       Cell (gx,gy) spans world [gx*CELL, (gx+1)*CELL]; center = (gx+0.5)*CELL.
+       ========================================================================== */
+    (() => {
+        'use strict';
+
+        const TWO_PI = Math.PI * 2;
+        const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+        const lerp = (a, b, t) => a + (b - a) * t;
+        const dist2 = (ax, az, bx, bz) => {
+            const dx = ax - bx, dz = az - bz;
+            return dx * dx + dz * dz;
+        };
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const pick = arr => arr[(Math.random() * arr.length) | 0];
+
+        /* ---- world scale: 3 world-units per maze cell => wide corridors ---- */
+        const CELL = 3.0;        // world units per grid cell (was effectively 1)
+        const WALL_H = 4.2;        // wall height (scaled up a touch for the wider halls)
+        const EYE = 1.7;        // eye height
+// convert grid <-> world
+        const gx2w = gx => (gx + 0.5) * CELL;       // cell center in world
+        const w2gx = wx => Math.floor(wx / CELL); // world -> grid cell index
+
+        /* ---------------------------------------------------------------------------
+           PROCEDURAL TEXTURES — generated on a canvas so the file stays standalone.
+           ------------------------------------------------------------------------- */
+        const Tex = {
+            cache: {},
+            // rough stone-block wall with mortar lines, subtle per-tile noise & cracks
+            wall(tint) {
+                const key = 'wall_' + tint;
+                if (this.cache[key]) return this.cache[key];
+                const S = 256, c = document.createElement('canvas');
+                c.width = c.height = S;
+                const g = c.getContext('2d');
+                // base
+                const base = this.hex(tint);
+                g.fillStyle = `rgb(${base.r},${base.g},${base.b})`;
+                g.fillRe

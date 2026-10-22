@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Arcade/Fresh-Oil/">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Fresh Oil Online - Free Arcade Game | AIGameHub</title>
+<meta name="description" content="Ten frames of tenpin with the physics actually simulated: a ball with a real inertia tensor that hooks because of friction, a drilling layout that decides how it flares, and forty feet of oil that three other bowlers are wearing away while you play. The line that struck in the first frame will not strike in the ninth. Read the lane and move.">
+<meta name="theme-color" content="#06080d">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎳</text></svg>">
+<style>
+  :root{
+    --bg:#06080d; --panel:#0e131c; --panel2:#141a26; --line:#232c3d;
+    --ink:#e8edf6; --dim:#94a1b8; --faint:#5d6a80;
+    --amber:#f0a63c; --hot:#e2603c; --cool:#5fb4c8; --good:#77c78a;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+    font-family:var(--sans);overscroll-behavior:none;touch-action:none}
+  #gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .hud{position:fixed;pointer-events:none;z-index:5}
+
+  /* ---- scoresheet ---- */
+  #sheet{top:0;left:0;right:0;display:flex;justify-content:center;padding:6px 8px 0}
+  #sheetInner{display:flex;gap:1px;background:var(--line);border:1px solid var(--line);
+    border-radius:5px;overflow:hidden;box-shadow:0 6px 24px #000a;max-width:100%}
+  .fr{background:#0d121b;min-width:40px;flex:1 1 0}
+  .fr.now{background:#1b2436}
+  .fr .no{font:600 9px/1.6 var(--mono);color:var(--faint);text-align:center;letter-spacing:.08em}
+  .fr .balls{display:flex;height:17px;border-top:1px solid var(--line)}
+  .fr .b{flex:1;border-left:1px solid var(--line);font:600 11px/17px var(--mono);
+    text-align:center;color:var(--ink)}
+  .fr .b:first-child{border-left:0}
+  .fr .tot{font:700 13px/20px var(--mono);text-align:center;color:var(--amber);
+    border-top:1px solid var(--line)}
+  #who{display:flex;align-items:center;font:600 10px/1 var(--mono);color:var(--dim);
+    padding:0 8px;letter-spacing:.1em;writing-mode:vertical-rl;transform:rotate(180deg);
+    background:#0d121b}
+
+  /* ---- left readout ---- */
+  #read{top:78px;left:10px;font:500 11px/1.55 var(--mono);color:var(--dim);
+    background:#080c13d9;border:1px solid var(--line);border-radius:6px;padding:8px 10px;
+    min-width:158px;backdrop-filter:blur(6px)}
+  #read b{color:var(--ink);font-weight:600}
+  #read .say{font:500 12px/1.45 var(--sans);color:var(--dim);margin-top:2px;max-width:168px}
+  #read .say b{color:var(--ink)}
+  #read .k{color:var(--faint)}
+  #read hr{border:0;border-top:1px solid var(--line);margin:6px 0}
+  .warn{color:var(--hot)}
+
+  /* ---- opponents ---- */
+  #board{top:78px;right:10px;background:#080c13d9;border:1px solid var(--line);
+    border-radius:6px;padding:8px 10px;font:500 11px/1.7 var(--mono);min-width:120px;
+    backdrop-filter:blur(6px)}
+  #board .row{display:flex;justify-content:space-between;gap:12px;color:var(--dim)}
+  #board .row.me{color:var(--amber)}
+  #board .row.up{color:var(--ink)}
+  #board h4{margin:0 0 4px;font:600 9px/1 var(--mono);color:var(--faint);letter-spacing:.12em}
+
+  /* ---- bottom controls ---- */
+  #ctl{bottom:0;left:0;right:0;padding:0 10px 10px;display:flex;flex-direction:column;
+    align-items:center;gap:8px;pointer-events:none}
+  #say{font:500 13px/1.45 var(--sans);color:var(--ink);text-align:center;max-width:min(560px,94vw);
+    background:#080c13e0;border:1px solid var(--line);border-left:2px solid var(--amber);
+    border-radius:4px;padding:7px 12px;min-height:0;backdrop-filter:blur(6px);
+    opacity:0;transition:opacity .25s}
+  #say.on{opacity:1}
+  /* mid-swing the ball is down among the controls and the words are noise */
+  body.swinging #say, body.swinging #padHint{opacity:0}
+  #say i{color:var(--amber);font-style:normal;font-weight:600}
+  #bar{display:flex;gap:6px;align-items:stretch;pointer-events:auto;flex-wrap:wrap;
+    justify-content:center;max-width:100%}
+  .grp{display:flex;align-items:center;gap:2px;background:#0b1017d9;border:1px solid var(--line);
+    border-radius:7px;padding:4px;backdrop-filter:blur(6px)}
+  .grp .lab{font:600 9px/1 var(--mono);color:var(--faint);letter-spacing:.1em;padding:0 6px 0 4px}
+  button{font:600 12px/1 var(--mono);color:var(--ink);background:var(--panel2);border:1px solid var(--line);
+    border-radius:5px;padding:8px 10px;cursor:pointer;min-width:30px}
+  button:hover{background:#1d2738}
+  button:active{transform:translateY(1px)}
+  .grp.shot{gap:9px;padding:6px 10px 6px 4px}
+  .grp.shot .ro{font:600 12px/1 var(--mono);color:var(--dim);white-space:nowrap}
+  .grp.shot .ro b{color:var(--amber);font-weight:700}
+  button.val{min-width:42px;background:transparent;border-color:transparent;color:var(--amber);
+    cursor:default;font-weight:700}
+  button.val:hover{background:transparent}
+  #throw{background:#22304a;border-color:#3a4c6e;padding:8px 18px}
+
+  /* ---- gesture hint ---- */
+  /* the verdict on the shot you have drawn: in the bottom stack, above the
+     commentary and the bar, so it can never collide with either */
+  #padHint{font:500 13px/1.4 var(--sans);color:var(--dim);pointer-events:none;text-align:center;
+    max-width:min(440px,92vw);transition:opacity .2s;background:#080c13cf;border:1px solid var(--line);
+    border-radius:14px;padding:5px 13px;backdrop-filter:blur(6px)}
+  #padHint:empty{display:none}
+  #padHint b{color:var(--ink);font-weight:600}
+  #padHint .warn{color:var(--hot)}
+
+  /* ---- overlays ---- */
+  #veil{position:fixed;inset:0;z-index:20;background:#04060ae6;display:none;align-items:center;
+    justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+  #veil.on{display:flex}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:20px 22px;max-width:min(520px,94vw);max-height:88vh;overflow:auto;
+    box-shadow:0 20px 60px #000c}
+  .card h1{margin:0 0 2px;font:700 26px/1.1 var(--sans);letter-spacing:-.02em}
+  .card h1 span{color:var(--amber)}
+  .card .sub{margin:0 0 14px;font:500 12px/1.5 var(--mono);color:var(--faint);letter-spacing:.02em}
+  .card p{margin:0 0 10px;font:400 13.5px/1.6 var(--sans);color:var(--dim)}
+  .card p b{color:var(--ink);font-weight:600}
+  .card ul{margin:0 0 12px;padding-left:18px;font:400 13px/1.65 var(--sans);color:var(--dim)}
+  .card li{margin-bottom:3px}
+  .card li b{color:var(--ink)}
+  .card .go{display:block;width:100%;margin-top:6px;padding:12px;font:700 13px/1 var(--mono);
+    background:#22304a;border-color:#3a4c6e;letter-spacing:.06em}
+  .pick{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+  .pick button{flex:1 1 0;min-width:120px;text-align:left;padding:9px 11px;font:600 12px/1.3 var(--sans)}
+  .pick button.sel{border-color:var(--amber);background:#1e2433}
+  .pick button small{display:block;font:500 10px/1.4 var(--mono);color:var(--faint);
+    margin-top:3px;font-weight:500}
+  .pick button.sel small{color:var(--dim)}
+
+  @media (max-width:700px){
+    /* keep the throw button clear of the floating logo in the corner */
+    #ctl{padding:0 46px 6px 4px;gap:5px}
+    #bar{gap:4px}
+    .grp{padding:3px;border-radius:6px}
+    .grp .lab{padding:0 3px 0 2px;font-size:8px;letter-spacing:.04em}
+    button{padding:7px 8px;font-size:11px;min-width:26px}
+    button.val{min-width:34px;font-size:11px}
+    #throw{padding:7px 14px}
+    /* the lane picture eats half a phone screen, so it is off until asked for */
+    #read{display:none;top:auto;bottom:108px;left:6px;font-size:10px;min-width:0;padding:5px 7px;line-height:1.4}
+    #read.on{display:block}
+    #board{top:auto;bottom:108px;right:6px;left:auto;font-size:10px;min-width:0;padding:5px 7px;line-height:1.5}
+    #sheet{padding:4px 3px 0}
+    #sheetInner{width:100%}
+    .fr{min-width:0}
+    .fr .no{font-size:8px;line-height:1.4}
+    .fr .balls{height:14px}
+    .fr .b{font-size:9px;line-height:14px}
+    .fr .tot{font-size:10px;line-height:16px}
+    #who{padding:0 4px;font-size:8px}
+    #say{font-size:11.5px;padding:5px 9px;line-height:1.35}
+    #padHint{font-size:11.5px;max-width:90vw;padding:4px 10px}
+  }
+  @media (max-height:560px){ #read .k, #read hr{display:none} }
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Fresh Oil","item":"https://suipce.com/games/Arcade/Fresh-Oil/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Fresh-Oil/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Fresh-Oil/preview.png"></head>
+<body>
+<canvas id="gl"></canvas>
+
+<div class="hud" id="sheet"><div id="sheetInner"></div></div>
+<div class="hud" id="read"></div>
+<div class="hud" id="board"></div>
+<div class="hud" id="ctl">
+  <div id="padHint"></div>
+  <div id="say"></div>
+  <div id="bar"></div>
+</div>
+<div id="veil"></div>
+
+
+<script>
+"use strict";
+
+// ===== PHYSICS =====
+// ---------------------------------------------------------------------------
+// Tenpin physics. Lane frame: +x right (bowler's view), +y down the lane,
+// +z up. Foul line at y=0, headpin spot at y=18.288 (60 ft).
+// ---------------------------------------------------------------------------
+const G = 9.80665;
+const IN = 0.0254;
+const LANE_W = 41.5 * IN;            // 1.0541 m
+const LANE_HALF = LANE_W / 2;
+const BOARD = LANE_W / 39;           // 0.027028 m
+const FOUL_TO_HEAD = 60 * 0.3048;    // 18.288 m
+const PIN_SPACING = 12 * IN;         // 0.3048 m
+const ROW_DY = PIN_SPACING * Math.sin(Math.PI / 3);
+const GUTTER_EDGE = LANE_HALF;
+
+// board number (1 = right edge) -> x
+const boardX = b => LANE_HALF - (b - 0.5) * BOARD;
+const xBoard = x => (LANE_HALF - x) / BOARD + 0.5;
+
+// ---------------------------------------------------------------------------
+// tiny vec3 / mat3 / quat
+// ---------------------------------------------------------------------------
+const v3 = (x = 0, y = 0, z = 0) => ({ x, y, z });
+const vadd = (a, b) => v3(a.x + b.x, a.y + b.y, a.z + b.z);
+const vsub = (a, b) => v3(a.x - b.x, a.y - b.y, a.z - b.z);
+const vmul = (a, s) => v3(a.x * s, a.y * s, a.z * s);
+const vdot = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
+const vcross = (a, b) => v3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+const vlen = a => Math.hypot(a.x, a.y, a.z);
+const vnorm = a => { const l = vlen(a) || 1; return v3(a.x / l, a.y / l, a.z / l); };
+
+// quaternion {x,y,z,w}
+const qmul = (a, b) => ({
+  w: a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+  x: a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+  y: a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+  z: a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w,
+});
+function qnorm(q) {
+  const l = Math.hypot(q.x, q.y, q.z, q.w) || 1;
+  return { x: q.x / l, y: q.y / l, z: q.z / l, w: q.w / l };
+}
+// integrate orientation by angular velocity w for dt
+function qIntegrate(q, w, dt) {
+  const dq = qmul({ w: 0, x: w.x, y: w.y, z: w.z }, q);
+  return qnorm({ w: q.w + 0.5 * dq.w * dt, x: q.x + 0.5 * dq.x * dt,
+                 y: q.y + 0.5 * dq.y * dt, z: q.z + 0.5 * dq.z * dt });
+}
+// rotation matrix (row-major 9) from quaternion
+function qMat(q) {
+  const { x, y, z, w } = q;
+  const x2 = x + x, y2 = y + y, z2 = z + z;
+  const xx = x * x2, xy = x * y2, xz = x * z2;
+  const yy = y * y2, yz = y * z2, zz = z * z2;
+  const wx = w * x2, wy = w * y2, wz = w * z2;
+  return [1 - (yy + zz), xy - wz, xz + wy,
+          xy + wz, 1 - (xx + zz), yz - wx,
+          xz - wy, yz + wx, 1 - (xx + yy)];
+}
+const mvec = (m, v) => v3(m[0] * v.x + m[1] * v.y + m[2] * v.z,
+                          m[3] * v.x + m[4] * v.y + m[5] * v.z,
+                          m[6] * v.x + m[7] * v.y + m[8] * v.z);
+// world inverse inertia = R * Ibody^-1 * R^T  (Ibody diagonal)
+function worldInvI(m, inv) {
+  const o = new Array(9);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    o[i * 3 + j] = m[i * 3] * inv[0] * m[j * 3] + m[i * 3 + 1] * inv[1] * m[j * 3 + 1]
+                 + m[i * 3 + 2] * inv[2] * m[j * 3 + 2];
+  }
+  return o;
+}
+
+// ---------------------------------------------------------------------------
+// Lane / oil
+// ---------------------------------------------------------------------------
+let MU_OIL = 0.04, MU_DRY = 0.21;
+const setMu = (o, d) => { MU_OIL = o; MU_DRY = d; };
+// Friction saturates with oil volume: even a thin film does most of the work,
+// so the map from volume to mu is concave, not linear.
+const OIL_GAMMA = 0.40;
+const muFor = f => MU_DRY - (MU_DRY - MU_OIL) * Math.pow(Math.min(1, Math.max(0, f)), OIL_GAMMA);
+const OIL_SLICE = 0.3048;            // 1 ft slices
+const WEAR_RATE = 0.035;
+
+// A pattern is described the way a lane machine lays one: a length, a ratio of
+// centre volume to outside volume, and a total volume.
+function makePattern(opts = {}) {
+  const lengthFt = opts.lengthFt ?? 40;
+  const ratio = opts.ratio ?? 8;      // centre : outside
+  const volume = opts.volume ?? 1;    // overall scale
+  const ny = Math.ceil((lengthFt * 0.3048) / OIL_SLICE) + 2;
+  const f = new Float32Array(39 * ny);
+  const len = lengthFt * 0.3048;
+  for (let b = 0; b < 39; b++) {
+    const fromEdge = Math.min(b + 1, 39 - b);        // 1..20
+    // crown: full volume inside board 10, tapering to 1/ratio at the edge
+    const t = Math.min(1, Math.max(0, (fromEdge - 2) / 8));
+    const side = (1 / ratio) + (1 - 1 / ratio) * Math.pow(t, 1.35);
+    for (let s = 0; s < ny; s++) {
+      const y = (s + 0.5) * OIL_SLICE;
+      // the machine buffs out over the last 5 ft, and lays a short "reverse" too
+      const head = y < 1.2 ? 0.55 + 0.45 * (y / 1.2) : 1;
+      const taper = y < len - 1.524 ? 1 : Math.max(0, (len - y) / 1.524);
+      f[s * 39 + b] = side * head * taper * volume;
+    }
+  }
+  return { f, ny, len, lengthFt, ratio, volume };
+}
+function oilAt(P, x, y) {
+  if (y < 0 || y >= P.ny * OIL_SLICE) return 0;
+  const b = Math.floor((LANE_HALF - x) / BOARD);
+  if (b < 0 || b > 38) return 0;
+  const s = Math.floor(y / OIL_SLICE);
+  if (s < 0 || s >= P.ny) return 0;
+  return P.f[s * 39 + b];
+}
+// a ball passing leaves a track: it picks oil up and puts some of it down lane
+function wearPattern(P, x, y, dt, speed) {
+  if (y < 0 || y >= P.ny * OIL_SLICE) return;
+  const s = Math.floor(y / OIL_SLICE);
+  if (s < 0 || s >= P.ny) return;
+  const half = 0.055;                                  // contact track half-width
+  const b0 = Math.max(0, Math.floor((LANE_HALF - x - half) / BOARD));
+  const b1 = Math.min(38, Math.floor((LANE_HALF - x + half) / BOARD));
+  // WEAR_RATE is the fraction of the film a single pass lifts out of its own
+  // track. Integrated over a slice it comes to 1-exp(-WEAR_RATE), so this is
+  // about three per cent a ball — a night of league takes most of it.
+  const take = Math.min(0.4, WEAR_RATE * speed * dt / OIL_SLICE);
+  for (let b = b0; b <= b1; b++) {
+    const i = s * 39 + b;
+    const t = P.f[i] * take;
+    P.f[i] -= t;
+    if (s + 1 < P.ny) P.f[(s + 1) * 39 + b] += t * 0.55;   // carrydown
+    else if (s + 1 >= P.ny) { /* beyond the pattern it is simply lost */ }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ball
+// ---------------------------------------------------------------------------
+const BALL_R = 0.1085;
+// The cover soaks up oil where it touches the lane. A ball that flares puts a
+// fresh, dry ring down every revolution; one that does not rolls over its own
+// oil-soaked track and gives up most of its friction. COV_NU/COV_NV is a coarse
+// lat/long grid over the ball surface holding how saturated each patch is.
+const COV_NU = 48, COV_NV = 24;
+const coverIndex = d => {
+  const u = Math.floor(((Math.atan2(d.y, d.x) + Math.PI) / (2 * Math.PI)) * COV_NU) % COV_NU;
+  const v = Math.min(COV_NV - 1, Math.floor((Math.acos(Math.max(-1, Math.min(1, d.z))) / Math.PI) * COV_NV));
+  return v * COV_NU + (u < 0 ? u + COV_NU : u);
+};
+function makeBall(spec = {}) {
+  const m = spec.mass ?? 6.804;                 // 15 lb
+  const rgMin = (spec.rgMin ?? 2.50) * IN;      // low RG axis
+  const rgMax = (spec.rgMax ?? 2.55) * IN;      // high RG axis (diff = rgMax-rgMin)
+  // principal moments: the low-RG axis is the core's preferred spin axis
+  const I = [m * rgMin * rgMin, m * rgMax * rgMax, m * rgMax * rgMax];
+  return { m, R: BALL_R, I, invI: I.map(v => 1 / v),
+           soakRate: spec.soakRate ?? 1.0,
+           surface: spec.surface ?? 1.0,        // coverstock friction multiplier
+           rgMin: spec.rgMin ?? 2.50, rgMax: spec.rgMax ?? 2.55 };
+}
+
+// shortest-arc quaternion taking body +x onto the world direction d
+function quatFromXTo(d) {
+  const a = v3(1, 0, 0), b = vnorm(d);
+  const c = vcross(a, b), dp = vdot(a, b);
+  if (dp < -0.999999) return { x: 0, y: 0, z: 1, w: 0 };
+  const s = Math.sqrt((1 + dp) * 2);
+  return qnorm({ x: c.x / s, y: c.y / s, z: c.z / s, w: s / 2 });
+}
+// place the low-RG axis at `phi` from the spin axis
+function layoutQuat(spinAxis, phi) {
+  const s = vnorm(spinAxis);
+  let up = Math.abs(s.z) > 0.9 ? v3(1, 0, 0) : v3(0, 0, 1);
+  const perp = vnorm(vcross(s, up));
+  const target = vadd(vmul(s, Math.cos(phi)), vmul(perp, Math.sin(phi)));
+  return quatFromXTo(target);
+}
+// spin axis expressed in the ball's own frame (this is what migrates)
+function axisInBody(q, w) {
+  const M = qMat(q), a = vnorm(w);
+  return v3(M[0] * a.x + M[3] * a.y + M[6] * a.z,
+            M[1] * a.x + M[4] * a.y + M[7] * a.z,
+            M[2] * a.x + M[5] * a.y + M[8] * a.z);
+}
+
+// Release: board at the foul line, launch angle, speed, rev rate,
+// axis rotation (how much of the spin is side rotation) and axis tilt.
+function release(ball, r) {
+  const th = (r.angleDeg ?? 0) * Math.PI / 180;
+  const p = v3(boardX(r.board ?? 20), 0, BALL_R);
+  const v = v3(Math.sin(th) * r.speed, Math.cos(th) * r.speed, 0);
+  const hand = r.hand === 'L' ? -1 : 1;
+  const rot = (r.axisRotDeg ?? 45) * Math.PI / 180;
+  const tilt = (r.axisTiltDeg ?? 18) * Math.PI / 180;
+  const wMag = (r.rev ?? 350) * 2 * Math.PI / 60;
+  // Spin axis: mostly the -x axis (forward roll) rotated by axis rotation
+  // about z and lifted by axis tilt.
+  const ax = vnorm(v3(
+    -Math.cos(rot) * Math.cos(tilt),
+    -hand * Math.sin(rot) * Math.cos(tilt),
+    hand * Math.sin(tilt)));
+  const w = vmul(ax, wMag);
+  // Drilling layout: the pin (the low-RG axis of the core) is placed this far
+  // from the player's axis. At 0 deg the ball spins about a principal axis and
+  // never migrates; the further out it is, the more the axis wanders and the
+  // more fresh cover the ball puts down each revolution.
+  const q = layoutQuat(ax, (r.layoutDeg ?? 45) * Math.PI / 180);
+  const Iw = worldInvI(qMat(q), ball.I);
+  const L = mvec(Iw, w);
+  const axis0 = axisInBody(q, w);
+  return { p, v, q, L, w, m: ball.m, R: ball.R, ball, invI: ball.invI, I: ball.I, isBall: true,
+           track: [], axisTrack: [axis0], path: [],
+           cover: new Float32Array(COV_NU * COV_NV),
+           down: false, t: 0, gutter: false, rolledAt: null, revs: 0 };
+}
+
+function ballStep(b, P, dt, opts = {}) {
+  const M = qMat(b.q);
+  const iw = worldInvI(M, b.ball.invI);
+  b.w = mvec(iw, b.L);
+  const rc = v3(0, 0, -b.R);                       // contact offset
+  const u = vadd(b.v, vcross(b.w, rc));            // contact point velocity
+  const us = Math.hypot(u.x, u.y);
+  const oil = oilAt(P, b.p.x, b.p.y);
+  // which patch of cover is touching the lane right now
+  const Mi = qMat(b.q);
+  const cd = v3(-Mi[6], -Mi[7], -Mi[8]);          // world -z in body coordinates
+  const ci = coverIndex(cd);
+  const soaked = b.cover[ci];
+  // a saturated patch loses most of its grip; a dry one keeps all of it
+  const mu = muFor(oil) * b.ball.surface * (1 - 0.55 * soaked);
+  b.cover[ci] = Math.min(1, soaked + oil * b.ball.soakRate * dt * 26);
+  for (let k = 0; k < b.cover.length; k++) if (b.cover[k] > 0) b.cover[k] *= 0.99994;
+  const N = b.m * G;
+  if (us > 0.02) {
+    const f = vmul(v3(u.x / us, u.y / us, 0), -mu * N);
+    b.v = vadd(b.v, vmul(f, dt / b.m));
+    const tq = vcross(rc, f);
+    b.L = vadd(b.L, vmul(tq, dt));
+    if (b.rolledAt === null && us < 0.25) b.rolledAt = b.p.y;
+  } else {
+    if (b.rolledAt === null) b.rolledAt = b.p.y;
+    // rolling: only rolling resistance
+    const sp = Math.hypot(b.v.x, b.v.y) || 1;
+    const f = vmul(v3(b.v.x / sp, b.v.y / sp, 0), -0.015 * N);
+    b.v = vadd(b.v, vmul(f, dt / b.m));
+    b.L = vadd(b.L, vmul(vcross(rc, f), dt));
+  }
+  if (opts.wear !== false) wearPattern(P, b.p.x, b.p.y, dt, Math.hypot(b.v.x, b.v.y));
+  b.p = vadd(b.p, vmul(b.v, dt));
+  b.q = qIntegrate(b.q, b.w, dt);
+  b.t += dt;
+  // where the lane touched the ball, in the ball's own frame -> track flare
+  if (opts.track !== false) {
+    const Mi = qMat(b.q);
+    const cw = v3(0, 0, -1);
+    b.track.push(v3(Mi[0] * cw.x + Mi[3] * cw.y + Mi[6] * cw.z,
+                    Mi[1] * cw.x + Mi[4] * cw.y + Mi[7] * cw.z,
+                    Mi[2] * cw.x + Mi[5] * cw.y + Mi[8] * cw.z));
+  }
+  if (opts.track !== false && b.axisTrack) b.axisTrack.push(axisInBody(b.q, b.w));
+  if (Math.abs(b.p.x) > GUTTER_EDGE - b.R * 0.35) b.gutter = true;
+  return b;
+}
+
+// roll the ball from the foul line to the pin deck; returns arrival state
+function rollToPins(ball, rel, P, opts = {}) {
+  const b = release(ball, rel);
+  const dt = opts.dt ?? 1 / 500;
+  const path = [];
+  let guard = 0;
+  while (b.p.y < FOUL_TO_HEAD - 0.35 && !b.gutter && guard++ < 12000) {
+    ballStep(b, P, dt, opts);
+    if (!path.length || b.p.y - path[path.length - 1][1] > 0.15) path.push([b.p.x, b.p.y]);
+  }
+  b.path = path;
+  b.entryBoard = xBoard(b.p.x);
+  b.entryAngle = Math.atan2(-b.v.x, b.v.y) * 180 / Math.PI;
+  b.entrySpeed = Math.hypot(b.v.x, b.v.y);
+  let bp = 99, bpy = 0;
+  for (const [x, y] of path) { const bd = xBoard(x); if (bd < bp) { bp = bd; bpy = y; } }
+  b.breakBoard = bp; b.breakY = bpy;
+  return b;
+}
+
+// ---------------------------------------------------------------------------
+// Pins — rigid bodies built from a stack of spheres
+// ---------------------------------------------------------------------------
+const PIN_M = 1.531;                 // 3 lb 6 oz
+const PIN_H = 15 * IN;               // 0.381 m
+// profile: (height above base, radius) — base, belly, waist, neck, head
+const PIN_SPH = [
+  { z: 0.030, r: 0.0315 },
+  { z: 0.104, r: 0.0605 },
+  { z: 0.180, r: 0.0455 },
+  { z: 0.263, r: 0.0250 },
+  { z: 0.318, r: 0.0390 },
+];
+const PIN_COM = 0.1397;              // 5.5 in from base (USBC spec)
+
+function pinInertia() {
+  // weight the spheres so the centre of mass lands on the spec value
+  const n = PIN_SPH.length;
+  let w = PIN_SPH.map(s => s.r * s.r * s.r);
+  let tot = w.reduce((a, b) => a + b, 0);
+  w = w.map(v => v / tot);
+  let com = w.reduce((a, s, i) => a + s * PIN_SPH[i].z, 0);
+  // shift mass toward the base until the com matches
+  for (let it = 0; it < 60; it++) {
+    const err = com - PIN_COM;
+    if (Math.abs(err) < 1e-5) break;
+    w = w.map((v, i) => Math.max(1e-4, v * (1 - err * 6 * (PIN_SPH[i].z - PIN_COM))));
+    const t = w.reduce((a, b) => a + b, 0); w = w.map(v => v / t);
+    com = w.reduce((a, s, i) => a + s * PIN_SPH[i].z, 0);
+  }
+  let Ixx = 0, Izz = 0;
+  PIN_SPH.forEach((s, i) => {
+    const m = w[i] * PIN_M, d = s.z - PIN_COM;
+    Ixx += 0.4 * m * s.r * s.r + m * d * d;
+    Izz += 0.4 * m * s.r * s.r;
+  });
+  return { w, Ixx, Izz, com: PIN_COM };
+}
+const PIN_INERTIA = pinInertia();
+
+const PIN_SPOTS = [
+  [0, 0], [-6 * IN, ROW_DY], [6 * IN, ROW_DY],
+  [-12 * IN, 2 * ROW_DY], [0, 2 * ROW_DY], [12 * IN, 2 * ROW_DY],
+  [-18 * IN, 3 * ROW_DY], [-6 * IN, 3 * ROW_DY], [6 * IN, 3 * ROW_DY], [18 * IN, 3 * ROW_DY],
+];
+
+function makePins(standing = [1,2,3,4,5,6,7,8,9,10]) {
+  return standing.map(n => {
+    const [sx, sy] = PIN_SPOTS[n - 1];
+    return {
+      n, p: v3(sx, FOUL_TO_HEAD + sy, PIN_INERTIA.com),
+      v: v3(), q: { x: 0, y: 0, z: 0, w: 1 }, L: v3(), w: v3(),
+      m: PIN_M, invI: [1 / PIN_INERTIA.Ixx, 1 / PIN_INERTIA.Ixx, 1 / PIN_INERTIA.Izz],
+      I: [PIN_INERTIA.Ixx, PIN_INERTIA.Ixx, PIN_INERTIA.Izz],
+      asleep: true, down: false, hitBy: null, offDeck: false,
+      home: v3(sx, FOUL_TO_HEAD + sy, PIN_INERTIA.com),
+    };
+  });
+}
+
+const DECK_BACK = FOUL_TO_HEAD + 3 * ROW_DY + 0.28;   // pit edge
+// deck constants — fitted against published carry data
+// Fitted against the published carry-versus-entry-angle data: these values put
+// the sim at 58/69/81 per cent carry at 2/4/6 degrees of entry angle.
+const DK = { ballPin: 0.578, ballPinMu: 0.085, pinPin: 0.743, pinPinMu: 0.124,
+             floor: 0.083, floorMu: 0.071, kick: 0.45, kickMu: 0.062,
+             pit: 0.16,                                // the curtain, which is there to kill pins
+             tiltDown: 44, moveDown: 0.075 };
+const PIT_BACK = DECK_BACK + 0.62;                     // where the curtain hangs
+const PIT_FLOOR = -1.15;                               // below this nobody can see it
+const KICK_X = LANE_HALF;                              // kickback boards
+
+function pinSpheresWorld(p) {
+  const M = qMat(p.q);
+  return PIN_SPH.map((s, i) => {
+    const local = v3(0, 0, s.z - PIN_INERTIA.com);
+    const w = mvec(M, local);
+    return { c: vadd(p.p, w), r: s.r, i };
+  });
+}
+
+function applyImpulse(body, J, r) {
+  body.v = vadd(body.v, vmul(J, 1 / body.m));
+  body.L = vadd(body.L, vcross(r, J));
+  body.w = mvec(worldInvI(qMat(body.q), body.invI), body.L);
+}
+const pointVel = (body, r) => vadd(body.v, vcross(body.w, r));
+
+// ---------------------------------------------------------------------------
+// Sequential-impulse contact solver with accumulated impulses. Restitution is
+// taken from the velocity at the start of the step, so a pin touched by several
+// spheres at once is not kicked several times over.
+// ---------------------------------------------------------------------------
+function makeContact(A, B, cp, n, pen, e, mu, fresh) {
+  const ra = vsub(cp, A.p), rb = B ? vsub(cp, B.p) : null;
+  const invIa = worldInvI(qMat(A.q), A.invI);
+  let km = 1 / A.m + vdot(vcross(mvec(invIa, vcross(ra, n)), ra), n);
+  let invIb = null;
+  if (B) {
+    invIb = worldInvI(qMat(B.q), B.invI);
+    km += 1 / B.m + vdot(vcross(mvec(invIb, vcross(rb, n)), rb), n);
+  }
+  const rv = vsub(B ? pointVel(B, rb) : v3(), pointVel(A, ra));
+  const vn = vdot(rv, n);
+  const k = km > 1e-9 ? km : 1e-9;
+  // Restitution belongs to the moment two bodies meet. A contact that was
+  // already live last step is a resting/persistent one: bouncing it again every
+  // step is how a solver launches pins into orbit.
+  return { A, B, ra, rb, n, invIa, invIb, km: k, pen, mu,
+           bias: (fresh && vn < -0.35) ? -e * vn : 0,
+           // no contact may deliver more than the closing speed physically
+           // implies, however many other contacts are fighting over the body
+           cap: (1 + e) * Math.max(0, -vn) / k + 0.9 * PIN_M,
+           jn: 0, jt: 0 };
+}
+function solveContact(c) {
+  const rv = vsub(c.B ? pointVel(c.B, c.rb) : v3(), pointVel(c.A, c.ra));
+  const vn = vdot(rv, c.n);
+  let dj = (-vn + c.bias) / c.km;
+  const old = c.jn;
+  c.jn = Math.max(0, Math.min(c.cap, old + dj));
+  dj = c.jn - old;
+  if (dj !== 0) {
+    const J = vmul(c.n, dj);
+    applyImpulse(c.A, vmul(J, -1), c.ra);
+    if (c.B) applyImpulse(c.B, J, c.rb);
+  }
+  // Coulomb friction against the accumulated normal impulse
+  const rv2 = vsub(c.B ? pointVel(c.B, c.rb) : v3(), pointVel(c.A, c.ra));
+  const tv = vsub(rv2, vmul(c.n, vdot(rv2, c.n)));
+  const ts = vlen(tv);
+  if (ts > 1e-5 && c.jn > 0) {
+    const t = vmul(tv, 1 / ts);
+    let kt = 1 / c.A.m + vdot(vcross(mvec(c.invIa, vcross(c.ra, t)), c.ra), t);
+    if (c.B) kt += 1 / c.B.m + vdot(vcross(mvec(c.invIb, vcross(c.rb, t)), c.rb), t);
+    const jt = Math.min(ts / Math.max(kt, 1e-9), c.mu * c.jn);
+    const Jt = vmul(t, jt);
+    // t is the direction of (vB - vA), so friction on A acts along +t and on B
+    // along -t: it opposes the sliding, it does not feed it
+    applyImpulse(c.A, Jt, c.ra);
+    if (c.B) applyImpulse(c.B, vmul(Jt, -1), c.rb);
+  }
+}
+// Separate, purely geometric de-penetration. Moving bodies apart cannot add
+// energy, so overlapping contacts can never pump a pin up to absurd speeds.
+function separate(c) {
+  const SLOP = 0.0012;
+  const d = Math.max(0, c.pen - SLOP) * 0.35;
+  if (d <= 0) return;
+  if (c.B) {
+    const wa = (1 / c.A.m) / (1 / c.A.m + 1 / c.B.m);
+    c.A.p = vsub(c.A.p, vmul(c.n, d * wa));
+    c.B.p = vadd(c.B.p, vmul(c.n, d * (1 - wa)));
+  } else c.A.p = vsub(c.A.p, vmul(c.n, d));
+}
+
+// A pin struck by a 7 m/s ball leaves at 8-9 m/s and tumbles at a few
+// revolutions a second. Holding it to that keeps the solver inside the range
+// where a 1/900 s step still resolves the geometry: at ten times the spin a
+// sphere sweeps further in one step than the contact tolerance, which is how a
+// deck full of pins turns into a firework.
+function clampBody(b) {
+  // A pin caught on its edge helicopters — ten, fifteen turns a second — and the
+  // old cap of 52 rad/s was quietly ironing that out of every shot.
+  const vcap = b.isBall ? 12 : 11, wcap = b.isBall ? 120 : 96;
+  const s = vlen(b.v);
+  if (s > vcap) b.v = vmul(b.v, vcap / s);
+  const ws = vlen(b.w);
+  if (ws > wcap) {
+    b.w = vmul(b.w, wcap / ws);
+    b.L = mvec(worldInvI(qMat(b.q), b.I), b.w);
+  }
+  if (!isFinite(b.p.x + b.p.y + b.p.z)) { b.p = v3(0, DECK_BACK + 1, -2); b.v = v3(); b.L = v3(); b.w = v3(); }
+}
+
+const ckey = (a, b) => (a.n ?? 0) * 100 + (b ? (b.n ?? 0) : 90) + (b === null ? 0 : 0);
+function deckStep(state, dt) {
+  const pins = state.pins, ball = state.ball;
+  if (!state.live) state.live = new Set();
+  const nowLive = new Set();

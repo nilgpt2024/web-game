@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Arcade/Block-Drop/">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Play Block Drop Online - Free Arcade Game | AIGameHub</title>
+<meta name="description" content="Boogie Woogie is a falling-block puzzle in Mondrian's Broadway Boogie Woogie: modern rules with hold, five previews, T-spins and combos, a boogie-woogie band that plays your moves, a two-minute daily, a Watch mode where the band plays the game itself in time, and a phone you play by dragging, tapping and flicking.">
+<meta name="theme-color" content="#ECE8DE">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Broadway Boogie Woogie (1943): yellow streets on a white ground, little red, blue and grey
+   squares along them, a few blocks; no black. Text is the one thing in a darker ink. */
+:root{
+  --ground:#ECE8DE; --well:#FBFAF6; --ink:#2B2926; --muted:#6E685E;
+  --red:#C9302C; --yellow:#EFC12B; --blue:#21499C; --grey:#7D7468; --street:#EFC12B;
+  --track:#B3A890; --dot:rgba(43,41,38,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--ground);overflow:hidden;overscroll-behavior:none}
+body{font-family:Jost,"Futura","Century Gothic",system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased;
+  touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;position:absolute}
+#paint{position:fixed;left:0;top:0}
+#ui{position:fixed;inset:0}
+.cell>*{transition:opacity .3s ease-out}
+body.menu .cell:not(.menupanel)>*{opacity:0;pointer-events:none}
+.cell{position:absolute;overflow:hidden;background:var(--ground)}
+.lab{font-weight:600;font-size:14px;letter-spacing:.18em;text-transform:uppercase;line-height:1}
+.num{font-weight:500;font-variant-numeric:tabular-nums lining-nums;line-height:1;white-space:nowrap}
+.cell .lab{position:absolute;left:14px;top:12px}
+.phone .cell .lab{left:7px;top:6px;font-size:9px}
+#well{position:absolute;background:var(--well);overflow:hidden;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+#wellUI{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+body.hung .cell{opacity:0;transition:opacity .5s ease-out}
+.cell{transition:opacity .4s ease-out}
+.menupanel{background:var(--ground)}
+.overcard .labelcard{box-shadow:none}
+.phone .overcard .labelcard{padding:14px 14px 12px}
+.phone .overcard dl{gap:3px 12px;margin-top:8px}
+.phone .overcard .labelcard{padding:12px}
+.phone .overcard dd{font-size:16px}
+.phone .overcard .lt{font-size:18px}
+.phone .overcard .blk{padding:11px 14px}
+#board{left:0;top:0}
+#wellUI{position:absolute;overflow:hidden;pointer-events:none}
+#wellUI>*{pointer-events:auto}
+.row2{position:absolute;left:14px;right:14px;display:flex;justify-content:space-between;align-items:baseline}
+.row2 .lab{position:static;font-size:13px}
+.sq{position:absolute;box-shadow:inset 0 0 0 2px var(--track);transition:background-color .25s ease-out,box-shadow .25s ease-out}
+.sq.on{background:var(--yellow);box-shadow:none}
+.flash .sq{background:var(--yellow);box-shadow:none;transition:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.pausebtn{position:absolute;display:flex;align-items:center;justify-content:center}
+.pausebtn i{display:block;width:6px;height:20px;background:var(--blue);margin:0 3px}
+.hot{cursor:pointer}
+.hint{animation:hint 1.2s ease-in-out infinite}
+@keyframes hint{50%{box-shadow:inset 0 0 0 4px var(--yellow)}}
+.deny{animation:deny .3s ease-out}
+@keyframes deny{30%{box-shadow:inset 0 0 0 4px var(--red)}}
+
+/* cards inside the well: menu, pause, the label at the end */
+.card{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:stretch;padding:0 8%;
+  transition:opacity .22s ease-out,transform .22s ease-out}
+.card.off{opacity:0;transform:translateY(10px);pointer-events:none}
+.title{font-weight:700;text-transform:uppercase;letter-spacing:.2em;line-height:.95;color:var(--ink)}
+.title span{display:block}
+.sub{font-weight:500;color:var(--muted);letter-spacing:.02em}
+.blk{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:100%;padding:14px 16px 13px;margin-top:10px;
+  transition:transform .12s ease-out,filter .12s ease-out}
+.blk:hover{filter:brightness(1.04)}
+.blk:active{transform:scale(.985)}
+.blk b{font-weight:700;text-transform:uppercase;letter-spacing:.16em;font-size:20px;line-height:1}
+.blk span{font-weight:500;font-size:13px;margin-top:7px;line-height:1.2}
+.blk.y{background:var(--yellow);color:var(--ink)}
+.blk.b{background:var(--blue);color:#fff}
+.blk.r{background:var(--red);color:#fff}
+.blk.g{background:var(--ground);color:var(--ink)}
+.blk.small{padding:11px 14px;flex-direction:row;justify-content:space-between;align-items:center}
+.blk.small b{font-size:14px}
+.blk.small span{margin:0;font-size:13px}
+.toggles{display:flex;gap:10px;margin-top:10px}
+.toggles .blk{margin:0}
+.keys{margin-top:14px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;align-items:center}
+.kc{display:inline-block;min-width:24px;padding:3px 6px;text-align:center;box-shadow:inset 0 0 0 2px var(--ink);font-weight:600;font-size:12px;margin-right:4px}
+.labelcard{background:var(--well);padding:18px 18px 16px}
+.labelcard .lt{font-weight:700;font-size:20px;line-height:1.1}
+.labelcard .ls{font-style:italic;color:var(--muted);margin-top:4px;font-size:14px}
+.labelcard dl{display:grid;grid-template-columns:auto auto;justify-content:start;gap:4px 18px;margin-top:12px}
+.labelcard dt{font-weight:600;font-size:11px;letter-spacing:.18em;text-transform:uppercase;align-self:center}
+.labelcard dd{font-variant-numeric:tabular-nums;font-size:18px}
+.labelcard .nb{color:var(--red);font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-size:13px;margin-top:10px}
+.btnrow{display:flex;gap:10px}
+.btnrow .blk{flex:1}
+.callout{position:absolute;left:0;right:0;text-align:center;pointer-events:none;padding:8px 0;background:rgba(251,250,246,.92);
+  animation:callout 1.5s ease-out forwards}
+.callout{background:none;padding:0}
+.callout .cn{font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ink);background:var(--street);white-space:nowrap}
+.callout .cs,.callout .cp{background:rgba(251,250,246,.92);padding-top:4px}
+.callout .cs{color:var(--red)}
+.callout .cs{font-weight:600;text-transform:uppercase;letter-spacing:.18em;margin-top:6px}
+.callout .cp{font-variant-numeric:tabular-nums;margin-top:4px}
+@keyframes callout{0%{opacity:0;transform:translateY(8px)}12%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+.pop{position:absolute;left:0;right:0;text-align:center;font-variant-numeric:tabular-nums;font-weight:600;pointer-events:none;
+  animation:pop .9s ease-out forwards}
+@keyframes pop{0%{opacity:0;transform:translateY(4px)}15%{opacity:1}100%{opacity:0;transform:translateY(-28px)}}
+.lesson{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;pointer-events:none;transition:opacity .2s ease-out}
+.lesson.off{opacity:0}
+.pips{display:flex;gap:6px;margin-top:18px}
+.pips i{width:22px;height:5px;background:#D5CDBC}
+.pips i.done{background:var(--blue)}
+.pips i.now{background:var(--blue);animation:hint2 1s ease-in-out infinite}
+@keyframes hint2{50%{opacity:.35}}
+/* the player's fingertip: the one round thing on the page, because it is not part of the painting */
+.finger{position:absolute;left:0;top:0;width:46px;height:46px;border-radius:50%;background:#6E685E;box-shadow:0 0 0 8px #D9D1C1}
+.finger .streak{display:none;position:absolute;left:17px;width:12px;height:70px}
+.finger[data-g=drop] .streak{display:block;bottom:40px;background:linear-gradient(to bottom,rgba(110,104,94,0),#6E685E)}
+.finger[data-g=hold] .streak{display:block;top:40px;background:linear-gradient(to top,rgba(110,104,94,0),#6E685E)}
+.keyrow{display:flex;gap:8px;align-items:center}
+.keycap{min-width:40px;height:40px;padding:0 10px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;
+  box-shadow:inset 0 0 0 3px var(--blue);color:var(--blue);background:var(--well)}
+.keycap.wide{min-width:120px}
+.keyrow .or{font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.press{animation:press .9s ease-in-out infinite}
+@keyframes press{0%,100%{transform:none}40%{transform:translateY(3px)}}
+.count{position:absolute;left:0;right:0;display:grid;justify-items:center;pointer-events:none}
+.count i{grid-area:1/1}
+.count i{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-style:normal;width:34px;height:34px;opacity:0;transform:scale(.6);transition:opacity .12s ease-out,transform .18s ease-out}
+.count i.on{opacity:1;transform:none}
+.share-ok{color:var(--blue)}
+.textbtn{margin-top:12px;align-self:flex-start;font-size:14px;font-weight:600;letter-spacing:.06em;color:var(--ink);padding:8px 14px;box-shadow:inset 0 0 0 2px var(--track)}
+.textbtn:hover{box-shadow:inset 0 0 0 2px var(--ink)}
+.menukeys{margin-top:28px;color:var(--muted)}
+.wallbtns{margin-top:12px}
+.phone .overcard .btnrow{flex-direction:column;gap:8px}
+.phone .overcard .btnrow .blk{margin:0}
+.textbtn span{color:var(--muted);font-weight:500}
+.credit{margin-top:14px;font-size:12px;color:var(--muted);text-decoration:none;letter-spacing:.04em;align-self:flex-start}
+.credit:hover{color:var(--blue)}
+@media (prefers-reduced-motion:reduce){
+  .callout,.pop{animation-duration:1.2s}
+  .hint,.press{animation:none}
+  .card{transition:opacity .15s linear}
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"方块掉落","item":"https://suipce.com/games/Arcade/Block-Drop/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Block-Drop/preview.webp"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Block-Drop/preview.webp"></head>
+<body>
+<canvas id="paint"></canvas>
+<div id="ui"></div>
+<script id="core">
+// The rules, and nothing that draws or sounds. test/blockdrop.mjs runs this block in Node.
+// Board: 10 wide, 40 tall, row 0 at the top; rows 20..39 are the visible well. SRS rotation
+// with the guideline kick tables, a 7-bag from a seeded generator, hold, lock delay with move
+// reset (15 resets per lowest row), guideline scoring with T-spins, back-to-back, combo and
+// all-clear. The page drains `events` after every call and draws or plays what happened.
+const BW = (() => {
+    const W = 10, H = 40, TOP = 20, KINDS = 'IJLOSTZ';
+    const BOX = {
+        I: ['....', 'XXXX', '....', '....'],
+        J: ['X..', 'XXX', '...'],
+        L: ['..X', 'XXX', '...'],
+        O: ['.XX.', '.XX.', '....'],
+        S: ['.XX', 'XX.', '...'],
+        T: ['.X.', 'XXX', '...'],
+        Z: ['XX.', '.XX', '...'],
+    };
+    // Which cell of a piece carries the small inner square (index into its state-0 cells).
+    const MARK = {I: 1, J: 2, L: 2, O: 2, S: 3, T: 2, Z: 2};
+    // SHAPES[k][r] = cells [x, y] in the piece's box, for rotation states 0, R, 2, L.
+    const SHAPES = {};
+    for (const k of KINDS) {
+        const rows = BOX[k], n = rows[0].length;
+        let cells = [];
+        rows.forEach((row, y) => [...row].forEach((ch, x) => ch === 'X' && cells.push([x, y])));
+        const states = [cells];
+        for (let r = 1; r < 4; r++) {
+            // clockwise in a box of side n (O keeps its cells: it does not turn)
+            cells = k === 'O' ? cells : cells.map(([x, y]) => [n - 1 - y, x]);
+            states.push(cells);
+        }
+        SHAPES[k] = states;
+    }
+    // Guideline SRS kicks, written as the guideline prints them (y up); applied with y flipped.
+    const K3 = {
+        '0>1': [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+        '1>0': [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+        '1>2': [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+        '2>1': [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+        '2>3': [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+        '3>2': [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
+        '3>0': [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
+        '0>3': [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+    };
+    const KI = {
+        '0>1': [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
+        '1>0': [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],
+        '1>2': [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
+        '2>1': [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]],
+        '2>3': [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],
+        '3>2': [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
+        '3>0': [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]],
+        '0>3': [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
+    };
+    // T corners in its 3x3 box, and the two that face where the T points, per state.
+    const CORNERS = [[0, 0], [2, 0], [0, 2], [2, 2]];
+    const FRONT = [[[0, 0], [2, 0]], [[2, 0], [2, 2]], [[0, 2], [2, 2]], [[0, 0], [0, 2]]];
+
+    const LOCK_DELAY = 500, MAX_RESETS = 15, CLEAR_DELAY = 200, SOFT_FACTOR = 20, LINES_PER_LEVEL = 10;
+    const LINE_POINTS = [0, 100, 300, 500, 800];
+    const SPIN_POINTS = {full: [400, 800, 1200, 1600], mini: [100, 200, 400, 400]};
+    const PC_POINTS = [0, 800, 1200, 1800, 2000];
+
+    // Seconds per row from the guideline formula; at level 20 and above a piece falls instantly.
+    function gravity(level) {
+        if (level >= 20) return 0;
+        return Math.pow(0.8 - (level - 1) * 0.007, level - 1);
+    }
+    // mulberry32: one 32-bit state, so a game can be saved and resumed mid-bag.
+    function rand(state) {
+        let a = (state + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return [((t ^ (t >>> 14)) >>> 0) / 4294967296, a];
+    }
+    function hashSeed(str) {
+        let h = 2166136261;
+        for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+        return h | 0;
+    }
+
+    // A cell is 0 when empty, else kind index + 1 (1..7), + 8 when it carries the inner square,
+    // + 16 * the piece's serial, so the page can tell one piece from its neighbour.
+    const cellKind = v => KINDS[(v & 7) - 1];
+    const cellMark = v => (v & 8) !== 0;
+    const cellPiece = v => v >>> 4;
+
+    function create(opt = {}) {
+        const g = {
+            board: new Array(W * H).fill(0),
+            seed: opt.seed == null ? (Math.random() * 2 ** 32) | 0 : opt.seed | 0,
+            rng: 0, queue: [], cur: null, hold: null, holdUsed: false,
+            score: 0, lines: 0, level: opt.level || 1, startLevel: opt.level || 1,
+            combo: -1, b2b: false, pieces: 0, serial: 0,
+            timeLimit: opt.timeLimit || 0, elapsed: 0,
+            over: false, overReason: null,
+            are: 0, irs: 0, ihs: false, soft: false,
+            fall: 0, lockTimer: 0, resets: 0, lowest: 0, grounded: false, lastRot: null,
+            stats: {quads: 0, tspins: 0, maxCombo: 0, allClears: 0, b2bMax: 0, b2bRun: 0},
+            events: [],
+        };
+        g.rng = g.seed;
+        refill(g);
+        g.started = false;
+        return g;
+    }
+    function refill(g) {
+        while (g.queue.length < 7) {
+            const bag = KINDS.split('');
+            for (let i = bag.length - 1; i > 0; i--) {
+                const [r, s] = rand(g.rng);
+                g.rng = s;
+                const j = Math.floor(r * (i + 1));
+                [bag[i], bag[j]] = [bag[j], bag[i]];
+            }
+            g.queue.push(...bag);
+        }
+    }
+    const cellsOf = (p, r = p.r, x = p.x, y = p.y) => SHAPES[p.k][r].map(([cx, cy]) => [x + cx, y + cy]);
+    function fits(g, k, r, x, y) {
+        for (const [cx, cy] of SHAPES[k][r]) {
+            const bx = x + cx, by = y + cy;
+            if (bx < 0 || bx >= W || by < 0 || by >= H) return false;
+            if (g.board[by * W + bx]) return false;
+        }
+        return true;
+    }
+    const occupied = (g, x, y) => x < 0 || x >= W || y < 0 || y >= H || g.board[y * W + x] !== 0;
+    const canFall = g => g.cur && fits(g, g.cur.k, g.cur.r, g.cur.x, g.cur.y + 1);
+
+    function start(g) {
+        if (g.started) return;
+        g.started = true;
+        spawn(g);
+    }
+    function spawn(g, kind) {
+        const k = kind || g.queue.shift();
+        if (!kind) refill(g);
+        g.cur = {k, r: 0, x: 3, y: 18};
+        g.holdUsed = kind ? g.holdUsed : false;
+        g.lastRot = null;
+        g.fall = 0; g.lockTimer = 0; g.resets = 0; g.grounded = false;
+        if (g.irs) { // rotation pressed before the piece appeared
+            const r = (4 + g.irs) % 4;
+            if (fits(g, k, r, 3, 18)) g.cur.r = r;
+            g.irs = 0;
+        }
+        if (!fits(g, k, g.cur.r, 3, 18)) {
+            g.events.push({t: 'spawn', k});
+            return gameOver(g, 'block');
+        }
+        if (fits(g, k, g.cur.r, 3, 19)) g.cur.y = 19;
+        g.lowest = g.cur.y;
+        g.events.push({t: 'spawn', k});
+        if (g.ihs && !kind) { g.ihs = false; hold(g); return; }
+        if (gravity(g.level) === 0) sink(g);
+    }
+    function sink(g) { // 20G: straight to the floor
+        while (canFall(g)) g.cur.y++;
+        newLowest(g);
+    }
+    function newLowest(g) {
+        if (g.cur.y > g.lowest) { g.lowest = g.cur.y; g.resets = 0; g.lockTimer = 0; }
+        if (!canFall(g)) {
+            if (!g.grounded) g.events.push({t: 'land'});
+            g.grounded = true;
+        } else g.grounded = false;
+    }
+    function moved(g) { // move reset: a successful shift or turn buys back the lock delay
+        if (g.resets < MAX_RESETS) {
+            if (!canFall(g) || g.lockTimer > 0) { g.lockTimer = 0; g.resets++; }
+        }
+        if (gravity(g.level) === 0) sink(g); else newLowest(g);
+    }
+    function playable(g) { return g.started && !g.over && g.cur && g.are <= 0; }
+
+    function move(g, dx) {
+        if (!playable(g)) return false;
+        const c = g.cur;
+        if (!fits(g, c.k, c.r, c.x + dx, c.y)) { g.events.push({t: 'bump', dx}); return false; }
+        c.x += dx;
+        g.lastRot = null;
+        g.events.push({t: 'move', dx});
+        moved(g);
+        return true;
+    }
+    function rotate(g, dir) {
+        if (g.started && !g.over && g.are > 0) { g.irs = dir; return false; }
+        if (!playable(g)) return false;
+        const c = g.cur;
+        if (c.k === 'O') { g.events.push({t: 'rotate', dir, kick: 0, k: 'O'}); return true; }
+        const to = (c.r + dir + 4) % 4;
+        const table = c.k === 'I' ? KI : K3;
+        const kicks = table[c.r + '>' + to];
+        for (let i = 0; i < kicks.length; i++) {
+            const nx = c.x + kicks[i][0], ny = c.y - kicks[i][1];
+            if (fits(g, c.k, to, nx, ny)) {
+                c.x = nx; c.y = ny; c.r = to;
+                g.lastRot = {kick: i};
+                const spin = c.k === 'T' ? tspin(g) : null;
+                g.events.push({t: 'rotate', dir, kick: i, k: c.k, spin});
+                moved(g);
+                return true;
+            }
+        }
+        g.events.push({t: 'rotate-fail', dir});
+        return false;
+    }
+    // Three-corner rule; a mini unless both corners the T faces are filled, or the turn used
+    // the last kick (the one that makes a T-spin triple possible).
+    function tspin(g) {
+        const c = g.cur;
+        if (c.k !== 'T' || !g.lastRot) return null;
+        let n = 0;
+        for (const [cx, cy] of CORNERS) if (occupied(g, c.x + cx, c.y + cy)) n++;
+        if (n < 3) return null;
+        const front = FRONT[c.r].filter(([cx, cy]) => occupied(g, c.x + cx, c.y + cy)).length;
+        return front === 2 || g.lastRot.kick === 4 ? 'full' : 'mini';
+    }
+    function setSoft(g, on) { g.soft = !!on; }
+    function hardDrop(g) {
+        if (!playable(g)) return false;
+        const from = g.cur.y;
+        while (canFall(g)) g.cur.y++;
+        const dist = g.cur.y - from;
+        if (dist) g.lastRot = null;
+        g.score += 2 * dist;
+        lock(g, {hard: true, dist, from});
+        return true;
+    }
+    // Soft drop straight to the floor without locking - a point a row, as a held soft drop scores -
+    // so the piece can still be tucked or turned into a slot. Returns the rows it fell.
+    function sink(g) {
+        if (!playable(g)) return -1;
+        const from = g.cur.y;
+        while (canFall(g)) g.cur.y++;
+        const dist = g.cur.y - from;
+        if (dist) { g.lastRot = null; g.score += dist; g.events.push({t: 'sink', dist}); }
+        newLowest(g);
+        return dist;
+    }
+    function hold(g) {
+        if (g.started && !g.over && g.are > 0) { g.ihs = true; return false; }
+        if (!playable(g) || g.holdUsed) { g.events.push({t: 'hold-fail'}); return false; }
+        const k = g.cur.k, back = g.hold;
+        g.hold = k;
+        g.holdUsed = true;
+        g.events.push({t: 'hold', k, back});
+        if (back) spawn(g, back);
+        else spawn(g);
+        g.holdUsed = true;
+        return true;
+    }
+    function ghostY(g) {
+        if (!g.cur) return 0;
+        let y = g.cur.y;
+        while (fits(g, g.cur.k, g.cur.r, g.cur.x, y + 1)) y++;
+        return y;
+    }
+
+    function lock(g, how = {}) {
+        const c = g.cur, spin = tspin(g);
+        const cells = cellsOf(c);
+        g.serial = (g.serial + 1) % 0x8000000;
+        const mark = SHAPES[c.k][c.r][MARK[c.k]];
+        const base = (KINDS.indexOf(c.k) + 1) + 16 * g.serial;
+        for (const [x, y] of cells) {
+            const isMark = x === c.x + mark[0] && y === c.y + mark[1];
+            g.board[y * W + x] = base + (isMark ? 8 : 0);
+        }
+        g.cur = null;
+        g.pieces++;
+        g.events.push({t: 'lock', k: c.k, r: c.r, cells, hard: !!how.hard, dist: how.dist || 0, from: how.from, spin, serial: g.serial});
+        if (cells.every(([, y]) => y < TOP)) return gameOver(g, 'lock');
+
+        const rows = [];
+        for (let y = 0; y < H; y++) {
+            let full = true;
+            for (let x = 0; x < W; x++) if (!g.board[y * W + x]) { full = false; break; }
+            if (full) rows.push(y);
+        }
+        const removed = rows.map(y => g.board.slice(y * W, y * W + W));
+        for (const y of rows) {
+            g.board.splice(y * W, W);
+            g.board.unshift(...new Array(W).fill(0));
+        }
+        const n = rows.length;
+        const lvl = g.level;
+        let points = 0, b2bBonus = false;
+        const difficult = n === 4 || (spin && n > 0);
+        const ni = Math.min(n, 4);
+        if (spin) points = SPIN_POINTS[spin][Math.min(ni, 3)];
+        else points = LINE_POINTS[ni];
+        if (n > 0) {
+            if (difficult) {
+                if (g.b2b) { points = points * 1.5; b2bBonus = true; g.stats.b2bRun++; }
+                else g.stats.b2bRun = 0;
+                g.b2b = true;
+                g.stats.b2bMax = Math.max(g.stats.b2bMax, g.stats.b2bRun);
+            } else { g.b2b = false; g.stats.b2bRun = 0; }
+            g.combo++;
+            g.stats.maxCombo = Math.max(g.stats.maxCombo, g.combo);
+        } else g.combo = -1;
+        points *= lvl;
+        const comboPoints = n > 0 && g.combo > 0 ? 50 * g.combo * lvl : 0;
+        const allClear = n > 0 && g.board.every(v => v === 0);
+        let pcPoints = 0;
+        if (allClear) {
+            pcPoints = (n === 4 && b2bBonus ? 3200 : PC_POINTS[ni]) * lvl;
+            g.stats.allClears++;
+        }
+        if (n === 4) g.stats.quads++;
+        if (spin && n > 0) g.stats.tspins++;
+        const total = Math.round(points + comboPoints + pcPoints);
+        g.score += total;
+        g.lines += n;
+        if (n > 0 || spin) {
+            g.events.push({t: 'clear', rows, removed, n, spin, b2b: b2bBonus, combo: n > 0 ? g.combo : -1,
+                allClear, points: total, level: lvl});
+        }
+        const newLevel = Math.max(g.startLevel, 1 + Math.floor(g.lines / LINES_PER_LEVEL));
+        if (newLevel !== g.level) { g.level = newLevel; g.events.push({t: 'level', level: newLevel}); }
+        if (n > 0) g.are = CLEAR_DELAY;
+        else spawn(g);
+    }
+    function gameOver(g, reason) {
+        g.over = true;
+        g.overReason = reason;
+        g.events.push({t: 'over', reason});
+    }
+
+    // Advance the clock by ms (the page calls this every frame, never more than 100 ms at once).
+    function tick(g, ms) {
+        if (!g.started || g.over) return;
+        if (g.timeLimit) {
+            g.elapsed += ms;
+            if (g.elapsed >= g.timeLimit) { g.elapsed = g.timeLimit; return gameOver(g, 'time'); }
+        } else g.elapsed += ms;
+        if (g.are > 0) {
+            g.are -= ms;
+            if (g.are <= 0) { g.are = 0; spawn(g); }
+            return;
+        }
+        if (!g.cur) return;
+        const sec = gravity(g.level);
+        if (sec === 0) sink(g);
+        else {
+            let rate = 1 / (sec * 1000); // rows per ms
+            const softly = g.soft && canFall(g);
+            if (softly) rate = Math.max(rate * SOFT_FACTOR, 1 / 50);
+            g.fall += rate * ms;
+            while (g.fall >= 1) {
+                g.fall -= 1;
+                if (!canFall(g)) { g.fall = 0; break; }
+                g.cur.y++;
+                g.lastRot = null;
+                if (softly) g.score += 1;
+                g.events.push({t: 'fall', soft: softly});
+                newLowest(g);
+            }
+        }
+        if (!canFall(g)) {
+            g.fall = 0;
+            if (!g.grounded) { g.grounded = true; g.events.push({t: 'land'}); }
+            g.lockTimer += ms;
+            if (g.lockTimer >= LOCK_DELAY || g.resets >= MAX_RESETS) lock(g);
+        } else g.grounded = false;
+    }
+
+    // Everything a game is, as plain data: a game cut off by a closed tab resumes exactly.
+    const SAVED = ['board', 'seed', 'rng', 'queue', 'cur', 'hold', 'holdUsed', 'score', 'lines', 'level',
+        'startLevel', 'combo', 'b2b', 'pieces', 'serial', 'timeLimit', 'elapsed', 'over', 'overReason', 'are',
+        'fall', 'lockTimer', 'resets', 'lowest', 'grounded', 'lastRot', 'stats', 'started'];
+    function save(g) {
+        const o = {v: 1};
+        for (const k of SAVED) o[k] = JSON.parse(JSON.stringify(g[k]));
+        return o;
+    }
+    function load(o) {
+        if (!o || o.v !== 1 || !Array.isArray(o.board) || o.board.length !== W * H) return null;
+        const g = create({seed: o.seed});
+        for (const k of SAVED) if (k in o) g[k] = JSON.parse(JSON.stringify(o[k]));
+        g.events = [];
+        g.irs = 0; g.ihs = false; g.soft = false;
+        return g;
+    }
+
+    // A copy to try moves on: everything a game is, nothing shared with the original.
+    function clone(g) {
+        return {...g, board: g.board.slice(), queue: g.queue.slice(), cur: g.cur && {...g.cur},
+            lastRot: g.lastRot && {...g.lastRot}, stats: {...g.stats}, events: []};
+    }
+
+    return {W, H, TOP, KINDS, SHAPES, MARK, LOCK_DELAY, MAX_RESETS, CLEAR_DELAY, LINES_PER_LEVEL,
+        gravity, rand, hashSeed, create, start, move, rotate, hardDrop, hold, setSoft, sink, tick, ghostY,
+        fits, cellsOf, cellKind, cellMark, cellPiece, save, load, clone, tspin};
+})();
+</script>
+<script id="auto">
+// The band's own player, for Watch: it decides where each piece goes and which keys take it there,
+// and the page presses those keys one to an eighth note. DOM-free like the rules it plays by;
+// test/blockdrop.mjs makes it play hundreds of rows. It plays the way a quad player does: a flat
+// stack with the right-hand column kept open as a well, an I saved in hold for it, T-spins taken
+// when a slot is there, and any clear at all once the stack climbs.
+const AUTO = (() => {
+    const W = BW.W, H = BW.H, WELL = W - 1;
+    function shape(b) {
+        const heights = [];
+        let holes = 0, covered = 0;
+        for (let x = 0; x < W; x++) {
+            let top = H;
+            for (let y = 0; y < H; y++) if (b[y * W + x]) { top = y; break; }
+            heights.push(H - top);
+            let above = 0;
+            for (let y = top; y < H; y++) {
+                if (b[y * W + x]) above++;
+                else { holes++; covered += above; }
+            }
+        }
+        let bump = 0;
+        for (let x = 0; x < WELL - 1; x++) bump += Math.abs(heights[x] - heights[x + 1]);
+        let ready = 0; // rows full but for the well: what the next I will take
+        for (let y = H - 1; y >= 0; y--) {
+            let n = 0;
+            for (let x = 0; x < WELL; x++) if (b[y * W + x]) n++;
+            if (n === WELL && !b[y * W + WELL]) ready++; else break;
+        }
+        const stack = heights.slice(0, WELL);
+        return {heights, holes, covered, bump, ready, max: Math.max(...heights), min: Math.min(...stack), sum: stack.reduce((a, v) => a + v, 0)};
+    }
+    // Dellacherie's features (the ones that keep a stack alive indefinitely), and on top of them a
+    // quad player's taste while the stack is low: keep the well open and save the rows for an I.
+    function transitions(b) {
+        let row = 0, col = 0, wells = 0;
+        for (let y = 0; y < H; y++) {
+            let prev = 1;
+            for (let x = 0; x < W; x++) { const f = b[y * W + x] ? 1 : 0; if (f !== prev) row++; prev = f; }
+            if (!prev) row++;
+        }
+        for (let x = 0; x < W; x++) {
+            let prev = 0;
+            for (let y = 0; y < H; y++) { const f = b[y * W + x] ? 1 : 0; if (f !== prev) col++; prev = f; }
+            if (!prev) col++;
+        }
+        for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) {
+            if (b[y * W + x]) break;
+            const l = x === 0 || b[y * W + x - 1], r = x === W - 1 || b[y * W + x + 1];
+            if (l && r) { let d = 0; for (let k = y; k < H && !b[k * W + x]; k++) d++; if (x !== WELL) wells += d * (d + 1) / 2; }
+        }
+        

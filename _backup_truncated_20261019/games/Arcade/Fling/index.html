@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <title>Play Fling Online - Free Arcade Game | AIGameHub</title>
+    <meta name="description"
+          content="Play Fling online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="keywords"
+          content="fling,slingshot game,physics game,browser game,bird game,angry birds style,free online game,HTML5 game,GPT Games">
+    <meta name="author" content="Claude Opus 4.7 prompted by Tobias Müller">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#c8dceb">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Fling/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="GPT Games">
+    <meta property="og:title" content="Play Fling Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description"
+          content="Play Fling online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta property="og:url" content="https://www.gptgames.dev/games/fling.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_262.webp">
+    <meta property="og:image:alt"
+          content="Fling gameplay screenshot showing a slingshot,bird,and a tower of blocks with pigs.">
+    <meta property="og:locale" content="en_US">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Fling/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Fling/preview.png">
+    <meta name="twitter:title" content="Play Fling Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description"
+          content="Play Fling online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_262.webp">
+    <meta name="twitter:image:alt"
+          content="Fling gameplay screenshot showing a slingshot,bird,and a tower of blocks with pigs.">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Fling","description":"A free browser-based physics slingshot game. Launch birds,topple towers of wood,stone and ice,chain combos,and earn three stars across 20+ handcrafted levels.","url":"https://www.gptgames.dev/games/fling.html","image":"https://www.gptgames.dev/screenshots/screenshot_262.webp","author":{"@type":"Person","name":"Claude Opus 4.7 prompted by Tobias Müller"},"genre":["Physics","Puzzle","Arcade"],"gamePlatform":["Web Browser"],"operatingSystem":"Any (HTML5)","applicationCategory":"Game","inLanguage":"en","isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@type":"Organization","name":"GPT Games","url":"https://www.gptgames.dev/"}}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;700;800&display=swap"
+          rel="stylesheet">
+    <style>* {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        background: #1a1a1a;
+        color: #1a1a1a;
+        font-family: 'Inter', system-ui, sans-serif;
+        user-select: none;
+        -webkit-user-select: none;
+        overscroll-behavior: none;
+        touch-action: none;
+    }
+
+    #root {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1a1a1a;
+    }
+
+    .stage {
+        position: relative;
+        width: min(100vw, calc(100vh * 1.5));
+        height: min(100vh, calc(100vw / 1.5));
+        background: #c8dceb;
+        overflow: hidden;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        position: absolute;
+        inset: 0;
+    }
+
+    .hud {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 18px 22px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        pointer-events: none;
+        z-index: 10;
+        transition: opacity 150ms cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .hud.dim {
+        opacity: 0.3;
+    }
+
+    .hud-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        pointer-events: auto;
+    }
+
+    .hud-level-num {
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #5a5a5a;
+    }
+
+    .hud-level-name {
+        font-family: 'Fraunces';
+        font-weight: 500;
+        font-size: 22px;
+        color: #1a1a1a;
+        line-height: 1.1;
+    }
+
+    .hud-center {
+        text-align: center;
+    }
+
+    .hud-score-label {
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #5a5a5a;
+    }
+
+    .hud-score {
+        font-family: 'Inter';
+        font-weight: 800;
+        font-size: 28px;
+        color: #1a1a1a;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .hud-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        pointer-events: auto;
+    }
+
+    .hud-birds {
+        display: flex;
+        gap: 3px;
+        font-size: 22px;
+        line-height: 1;
+        min-height: 28px;
+        align-items: center;
+        flex-wrap: wrap;
+        max-width: 160px;
+        justify-content: flex-end;
+    }
+
+    .hud-birds span {
+        transition: transform 200ms cubic-bezier(.34, 1.56, .64, 1), opacity 200ms;
+        display: inline-block;
+    }
+
+    .hud-birds span.gone {
+        transform: scale(0) rotate(120deg);
+        opacity: 0;
+    }
+
+    .icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255, 255, 255, 0.9);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 16px;
+        color: #1a1a1a;
+        transition: transform 150ms cubic-bezier(.4, 0, .2, 1), background 150ms;
+    }
+
+    .icon-btn:hover {
+        transform: scale(1.06);
+        background: #fff;
+    }
+
+    .icon-btn:active {
+        transform: scale(0.96);
+    }
+
+    .icon-btn svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .zoom-controls {
+        position: absolute;
+        bottom: 18px;
+        right: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        z-index: 11;
+        pointer-events: auto;
+        opacity: 0;
+        transition: opacity 200ms cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .zoom-controls.visible {
+        opacity: 1;
+    }
+
+    .zoom-controls .icon-btn {
+        width: 34px;
+        height: 34px;
+    }
+
+    .combo-flash {
+        position: absolute;
+        left: 50%;
+        top: 34%;
+        transform: translate(-50%, -50%) scale(0.8);
+        font-family: 'Fraunces';
+        font-weight: 900;
+        font-size: 48px;
+        color: #d9402b;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 20;
+        letter-spacing: -0.02em;
+    }
+
+    .combo-flash.active {
+        animation: comboPop 700ms cubic-bezier(.34, 1.56, .64, 1) forwards;
+    }
+
+    @keyframes comboPop {
+        0% {
+            opacity: 0;
+            transform: translate(-50%, -20%) scale(0.6) rotate(-4deg);
+        }
+        20% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.1) rotate(2deg);
+        }
+        40% {
+            transform: translate(-50%, -50%) scale(0.95) rotate(-1deg);
+        }
+        70% {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1) rotate(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translate(-50%, -80%) scale(0.9);
+        }
+    }
+
+    .screen {
+        position: absolute;
+        inset: 0;
+        background: #c8dceb;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 24px;
+        z-index: 50;
+        transition: opacity 300ms cubic-bezier(.4, 0, .2, 1), transform 300ms cubic-bezier(.4, 0, .2, 1);
+        overflow-y: auto;
+    }
+
+    .screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+    }
+
+    .title {
+        font-family: 'Fraunces';
+        font-weight: 900;
+        font-size: clamp(64px, 12vw, 128px);
+        color: #1a1a1a;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+        font-variation-settings: "opsz" 144;
+    }
+
+    .title-sub {
+        font-family: 'Inter';
+        font-weight: 500;
+        font-size: 13px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #5a5a5a;
+        margin-top: 12px;
+    }
+
+    .title-emoji {
+        font-size: clamp(40px, 8vw, 64px);
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+
+    .btn {
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 15px;
+        letter-spacing: 0.02em;
+        padding: 14px 34px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: #1a1a1a;
+        color: #fff;
+        transition: transform 150ms cubic-bezier(.4, 0, .2, 1), background 150ms;
+        min-height: 48px;
+    }
+
+    .btn:hover {
+        transform: scale(1.04);
+        background: #2a2a2a;
+    }
+
+    .btn:active {
+        transform: scale(0.97);
+    }
+
+    .btn.primary {
+        background: #f4a93a;
+        color: #1a1a1a;
+    }
+
+    .btn.primary:hover {
+        background: #f7b84f;
+    }
+
+    .btn.ghost {
+        background: transparent;
+        color: #1a1a1a;
+        padding: 10px 18px;
+    }
+
+    .btn.ghost:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .total-stars {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 14px;
+        color: #5a5a5a;
+        letter-spacing: 0.04em;
+    }
+
+    .select-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 720px;
+        margin-bottom: 24px;
+    }
+
+    .select-title {
+        font-family: 'Fraunces';
+        font-weight: 700;
+        font-size: 32px;
+        color: #1a1a1a;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        max-width: 720px;
+        width: 100%;
+    }
+
+    .tile {
+        aspect-ratio: 1/1;
+        background: rgba(255, 255, 255, 0.94);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        cursor: pointer;
+        border: none;
+        transition: transform 150ms cubic-bezier(.4, 0, .2, 1), background 150ms;
+        font: inherit;
+        text-align: left;
+        color: #1a1a1a;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .tile:not(:disabled):hover {
+        transform: scale(1.04);
+        background: #fff;
+    }
+
+    .tile:not(:disabled):active {
+        transform: scale(0.98);
+    }
+
+    .tile:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        background: rgba(255, 255, 255, 0.6);
+    }
+
+    .tile-num {
+        font-family: 'Inter';
+        font-weight: 800;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        color: #5a5a5a;
+    }
+
+    .tile-name {
+        font-family: 'Fraunces';
+        font-weight: 500;
+        font-size: 14px;
+        line-height: 1.15;
+        margin-top: 4px;
+        color: #1a1a1a;
+    }
+
+    .tile-stars {
+        display: flex;
+        gap: 2px;
+        margin-top: 6px;
+    }
+
+    .tile-score {
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 10px;
+        color: #5a5a5a;
+        font-variant-numeric: tabular-nums;
+        margin-top: 2px;
+    }
+
+    .tile-lock {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 22px;
+        opacity: 0.5;
+    }
+
+    .end-overlay {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        padding: 28px 24px 24px;
+        border-radius: 20px 20px 0 0;
+        z-index: 40;
+        transform: translateY(100%);
+        transition: transform 500ms cubic-bezier(.34, 1.56, .64, 1);
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.12);
+    }
+
+    .end-overlay.visible {
+        transform: translateY(0);
+    }
+
+    .end-inner {
+        max-width: 520px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .end-kicker {
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #5a5a5a;
+    }
+
+    .end-title {
+        font-family: 'Fraunces';
+        font-weight: 700;
+        font-size: 36px;
+        color: #1a1a1a;
+        line-height: 1;
+        margin-top: 2px;
+        letter-spacing: -0.02em;
+    }
+
+    .end-stars {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 18px;
+    }
+
+    .end-stars svg {
+        width: 44px;
+        height: 44px;
+        transform: scale(0) rotate(-30deg);
+        opacity: 0;
+        transition: transform 400ms cubic-bezier(.34, 1.56, .64, 1), opacity 200ms;
+    }
+
+    .end-stars svg.show {
+        transform: scale(1) rotate(0);
+        opacity: 1;
+    }
+
+    .end-birds-bonus {
+        margin-top: 14px;
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        gap: 10px;
+        font-family: 'Inter';
+    }
+
+    .end-birds-bonus .bb-label {
+        font-weight: 700;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #5a5a5a;
+    }
+
+    .end-birds-bonus .bb-value {
+        font-weight: 800;
+        font-size: 14px;
+        color: #1a1a1a;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .end-birds-bonus .bb-plus {
+        font-weight: 800;
+        font-size: 14px;
+        color: #f4a93a;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .end-score-block {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        flex-wrap: wrap;
+    }
+
+    .stat-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .stat-label {
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #5a5a5a;
+    }
+
+    .stat-value {
+        font-family: 'Inter';
+        font-weight: 800;
+        font-size: 24px;
+        color: #1a1a1a;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .new-best {
+        display: inline-block;
+        background: #f4a93a;
+        color: #1a1a1a;
+        font-family: 'Inter';
+        font-weight: 800;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        padding: 4px 10px;
+        border-radius: 6px;
+        margin-top: 10px;
+        animation: newBest 600ms cubic-bezier(.34, 1.56, .64, 1);
+    }
+
+    @keyframes newBest {
+        0% {
+            transform: scale(0);
+        }
+        60% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .pause-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(200, 220, 235, 0.88);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 45;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .pause-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .pause-title {
+        font-family: 'Fraunces';
+        font-weight: 700;
+        font-size: 48px;
+        color: #1a1a1a;
+    }
+
+    .pan-hint {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: 'Inter';
+        font-weight: 700;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(26, 26, 26, 0.55);
+        pointer-events: none;
+        z-index: 9;
+        opacity: 0;
+        transition: opacity 300ms;
+        text-align: center;
+        max-width: 90%;
+    }
+
+    .pan-hint.visible {
+        opacity: 1;
+    }
+
+    .rotate-prompt {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: #1a1a1a;
+        color: #fff;
+        z-index: 999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        gap: 16px;
+        font-family: 'Inter';
+    }
+
+    .rotate-prompt .rot-icon {
+        font-size: 48px;
+    }
+
+    @media (max-aspect-ratio: 5/6) and (max-width: 600px) {
+        .rotate-prompt {
+            display: flex;
+        }
+    }
+
+    .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Fling","item":"https://suipce.com/games/Arcade/Fling/"}]}</script>
+</head>
+<body><h1 class="visually-hidden">Fling — a physics slingshot browser game</h1>
+<p class="visually-hidden">Fling is a free HTML5 slingshot physics game. Pull back the slingshot,launch birds,and topple
+    towers of wood,stone,and ice to take out every pig. 20+ handcrafted levels with three-star scoring and satisfying
+    combo chains. Created by Claude Opus 4.7 prompted by Tobias Müller.</p>
+<div id="root">
+    <div class="stage" id="stage">
+        <canvas id="game" aria-label="Fling game canvas"></canvas>
+        <div class="hud" id="hud">
+            <div class="hud-left">
+                <div class="hud-level-num" id="levelNum">LEVEL 1</div>
+                <div class="hud-level-name" id="levelName">Warm-up</div>
+            </div>
+            <div class="hud-center">
+                <div class="hud-score-label">Score</div>
+                <div class="hud-score" id="scoreDisplay">0</div>
+            </div>
+            <div class="hud-right">
+                <div class="hud-birds" id="birdsDisplay"></div>
+                <button class="icon-btn" id="muteBtn" aria-label="Mute">
+                    <svg viewBox="0 0 24 24" id="muteIcon">
+                        <path fill="currentColor"
+                              d="M3 10v4a1 1 0 0 0 1 1h3l4.5 4a1 1 0 0 0 1.5-.87V5.87A1 1 0 0 0 11.5 5L7 9H4a1 1 0 0 0-1 1zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="fullscreenBtn" aria-label="Fullscreen">
+                    <svg viewBox="0 0 24 24" id="fullscreenIcon">
+                        <path fill="currentColor"
+                              d="M5 5h5V3H3v7h2V5zm9-2v2h5v5h2V3h-7zm5 16h-5v2h7v-7h-2v5zM5 14H3v7h7v-2H5v-5z"/>
+                    </svg>
+                </button>
+                <button class="icon-btn" id="pauseBtn" aria-label="Pause">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M6 4h4v16H6zM14 4h4v16h-4z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="zoom-controls" id="zoomControls">
+            <button class="icon-btn" id="zoomInBtn" aria-label="Zoom in">
+                <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M11 5v6H5v2h6v6h2v-6h6v-2h-6V5z"/>
+                </svg>
+            </button>
+            <button class="icon-btn" id="zoomOutBtn" aria-label="Zoom out">
+                <svg viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M5 11h14v2H5z"/>
+                </svg>
+            </button>
+        </div>
+        <div class="combo-flash" id="comboFlash"></div>
+        <div class="pan-hint" id="panHint">Drag background to pan · Scroll / pinch to zoom</div>
+        <div class="screen hidden" id="titleScreen">
+            <div class="title-emoji">🐦</div>
+            <div class="title">Fling</div>
+            <div class="title-sub">A slingshot game</div>
+            <div class="btn-row">
+                <button class="btn primary" id="playBtn">Play</button>
+                <button class="btn ghost" id="levelSelectBtn">Level Select</button>
+            </div>
+            <div class="total-stars" id="titleStars" style="margin-top:20px"></div>
+        </div>
+        <div class="screen hidden" id="selectScreen">
+            <div class="select-header">
+                <div class="select-title">Levels</div>
+                <div class="total-stars" id="selectStars"></div>
+            </div>
+            <div class="grid" id="levelGrid"></div>
+            <div class="btn-row">
+                <button class="btn ghost" id="backToTitleBtn">← Back</button>
+            </div>
+        </div>
+        <div class="end-overlay" id="endOverlay">
+            <div class="end-inner">
+                <div class="end-kicker" id="endKicker">LEVEL COMPLETE</div>
+                <div class="end-title" id="endTitle">Nice shot.</div>
+                <div class="end-stars" id="endStars"></div>
+                <div id="birdsBonusContainer"></div>
+                <div id="newBestContainer"></div>
+                <div class="end-score-block">
+                    <div class="stat-box">
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value" id="endScore">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Best</div>
+                        <div class="stat-value" id="endBest">0</div>
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn ghost" id="endReplayBtn">Replay</button>
+                    <button class="btn ghost" id="endSelectBtn">Levels</button>
+                    <button class="btn primary" id="endNextBtn">Next</button>
+                </div>
+            </div>
+        </div>
+        <div class="pause-overlay" id="pauseOverlay">
+            <div class="pause-title">Paused</div>
+            <div class="btn-row">
+                <button class="btn primary" id="resumeBtn">Resume</button>
+                <button class="btn ghost" id="pauseRestartBtn">Restart</button>
+                <button class="btn ghost" id="pauseSelectBtn">Levels</button>
+            </div>
+        </div>
+        <div class="rotate-prompt">
+            <div class="rot-icon">📱</div>
+            <div>Please rotate your device to landscape.</div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.20.0/matter.min.js"></script>
+<script>(() => {
+    'use strict';
+    const {Engine, World, Bodies, Body, Composite, Constraint, Events, Sleeping} = Matter;
+    const VIEW_W = 1200, VIEW_H = 800;
+    const GROUND_Y = 720;
+    const ANCHOR = {x: 200, y: 560};
+    const MAX_PULL = 140;
+    const STIFFNESS = 0.045;
+    const DAMPING = 0.001;
+    const STORAGE_KEY = 'fling.progress.v2';
+    const PAN_HINT_KEY = 'fling.panHintSeen';
+    const COLORS = {
+        sky: '#c8dceb',
+        ground: '#7fa669',
+        groundDark: '#5d8249',
+        wood: '#a97142',
+        woodDark: '#6b4423',
+        woodCrack: '#3c2817',
+        stone: '#8a8e91',
+        stoneDark: '#5d6165',
+        ice: '#a8d8e8',
+        sling: '#4a2f1a',
+        slingTight: '#2d1a0a',
+        text: '#1a1a1a',
+        accent: '#f4a93a',
+        danger: '#e04848',
+        combo: '#d9402b',
+        cloud: '#e8f0f5',
+        hill: '#9bbfd4',
+    };
+    const LEVELS = [{
+        name: 'Warm-up',
+        birds: 3,
+        starThresholds: [0, 1500, 2500],
+        worldW: 1200,
+        blocks: [{type: 'wood', x: 800, y: 700}, {type: 'wood', x: 800, y: 660}, {
+            type: 'plank',
+            x: 840,
+            y: 638,
+            w: 120,
+            h: 18
+        },],
+        pigs: [{x: 760, y: 702, hp: 1}, {x: 900, y: 702, hp: 1}],
+    }, {
+        name: 'Lookout',
+        birds: 3,
+        starThresholds: [0, 2000, 3500],
+        worldW: 1200,
+        blocks: [{type: 'wood', x: 800, y: 700}, {type: 'wood', x: 800, y: 660}, {
+            type: 'wood',
+            x: 800,
+            y: 620
+        }, {type: 'plank', x: 830, y: 598, w: 140, h: 18}, {type: 'wood', x: 900, y: 700}, {
+            type: 'wood',
+            x: 900,
+            y: 660
+        },],
+        pigs: [{x: 860, y: 572, hp: 1}, {x: 900, y: 622, hp: 1}, {x: 740, y: 702, hp: 1}],
+    }, {
+        name: 'On Ice',
+        birds: 3,
+        starThresholds: [0, 2500, 4200],
+        worldW: 1200,
+        blocks: [{type: 'ice', x: 780, y: 695}, {type: 'ice', x: 780, y: 655}, {
+            type: 'ice',
+            x: 780,
+            y: 615
+        }, {type: 'ice', x: 780, y: 575}, {type: 'plank', x: 840, y: 548, w: 160, h: 18}, {
+            type: 'wood',
+            x: 900,
+            y: 520
+        }, {type: 'wood', x: 900, y: 480}, {type: 'ice', x: 1000, y: 695}, {type: 'ice', x: 1000, y: 655},],
+        pigs: [{x: 720, y: 702, hp: 1}, {x: 900, y: 452, hp: 1}, {x: 1000, y: 620, hp: 1}],
+    }, {
+        name: 'Bridge',
+        birds: 3,
+        starThresholds: [0, 2800, 4500],
+        worldW: 1200,
+        blocks: [{type: 'stone', x: 720, y: 695}, {type: 'stone', x: 720, y: 645}, {
+            type: 'stone',
+            x: 720,
+            y: 595
+        }, {type: 'stone', x: 1000, y: 695}, {type: 'stone', x: 1000, y: 645}, {
+            type: 'stone',
+            x: 1000,
+            y: 595
+        }, {type: 'plank', x: 860, y: 560, w: 320, h: 20}, {type: 'wood', x: 820, y: 528}, {
+            type: 'wood',
+            x: 900,
+            y: 528
+        }, {type: 'plank', x: 860, y: 502, w: 180, h: 16},],
+        pigs: [{x: 860, y: 702, hp: 1}, {x: 860, y: 476, hp: 2}, {x: 780, y: 702, hp: 1}, {x: 940, y: 702, hp: 1}],
+    }, {
+        name: 'Double Trouble',
+        birds: 4,
+        starThresholds: [0, 3500, 5500],
+        worldW: 1200,
+        blocks: [{type: 'wood', x: 680, y: 700}, {type: 'wood', x: 680, y: 660}, {
+            type: 'wood',
+            x: 680,
+            y: 620
+        }, {type: 'wood', x: 800, y: 700}, {type: 'wood', x: 800, y: 660}, {
+            type: 'wood',
+            x: 800,
+            y: 620
+        }, {type: 'plank', x: 740, y: 598, w: 160, h: 18}, {type: 'stone', x: 920, y: 695}, {
+            type: 'stone',
+            x: 920,
+            y: 645
+        }, {type: 'ice', x: 920, y: 600}, {type: 'stone', x: 1040, y: 695}, {
+            type: 'stone',
+            x: 1040,
+            y: 645
+        }, {type: 'ice', x: 1040, y: 600}, {type: 'plank', x: 980, y: 571, w: 160, h: 18}, {
+            type: 'wood',
+            x: 980,
+            y: 540
+        },],
+        pigs: [{x: 740, y: 702, hp: 1}, {x: 740, y: 572, hp: 1}, {x: 980, y: 702, hp: 2}, {x: 980, y: 512, hp: 1}],
+    }, {
+        name: 'Keystone',
+        birds: 4,
+        starThresholds: [0, 4000, 6500],
+        worldW: 1200,
+        blocks: [{type: 'stone', x: 700, y: 695}, {type: 'stone', x: 1000, y: 695}, {
+            type: 'wood',
+            x: 760,
+            y: 700
+        }, {type: 'wood', x: 800, y: 700}, {type: 'wood', x: 900, y: 700}, {
+            type: 'wood',
+            x: 940,
+            y: 700
+        }, {type: 'plank', x: 850, y: 670, w: 440, h: 22}, {type: 'wood', x: 780, y: 640}, {
+            type: 'wood',
+            x: 820,
+            y: 640
+        }, {type: 'wood', x: 880, y: 640}, {type: 'wood', x: 920, y: 640}, {
+            type: 'plank',
+            x: 850,
+            y: 612,
+            w: 220,
+            h: 18
+        }, {type: 'ice', x: 820, y: 580}, {type: 'ice', x: 880, y: 580}, {
+            type: 'plank',
+            x: 850,
+            y: 557,
+            w: 100,
+            h: 14
+        },],
+        pigs: [{x: 700, y: 658, hp: 1}, {x: 1000, y: 658, hp: 1}, {x: 850, y: 702, hp: 1}, {
+            x: 850,
+            y: 612,
+            hp: 1
+        }, {x: 850, y: 535, hp: 1}],
+    }, {
+        name: 'Long Road',
+        birds: 4,
+        starThresholds: [0, 4200, 6800],
+        worldW: 1500,
+        blocks: [{type: 'wood', x: 720, y: 700}, {type: 'wood', x: 720, y: 660}, {
+            type: 'plank',
+            x: 760,
+            y: 638,
+            w: 140,
+            h: 18
+        }, {type: 'stone', x: 1000, y: 695}, {type: 'stone', x: 1000, y: 645},

@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Casual/Interactive-Buddy/">
+
+    <meta charset="UTF-8">
+    <title>Play Interactive Buddy Online - Free Casual Game | AIGameHub</title>
+    <meta name="description"
+          content="Play Interactive Buddy online for free — a casual game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it no">
+    <meta name="author" content="Claude Opus 4.8 prompted by Tobias Müller">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+    <meta name="theme-color" content="#11a36b">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Play Interactive Buddy Online - Free Casual Game | AIGameHub">
+    <meta property="og:description"
+          content="Play Interactive Buddy online for free — a casual game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it no">
+    <meta property="og:site_name" content="GPTGames.dev">
+    <style>
+        :root {
+            --bg: #eceef2;
+            --panel: #ffffff;
+            --panel-2: #f5f7f9;
+            --panel-3: #eef1f4;
+            --ink: #1b2330;
+            --muted: #69737f;
+            --faint: #9aa3ad;
+            --line: #e0e4ea;
+            --line-2: #d3d9e0;
+            --accent: #11a36b;
+            --accent-press: #0d8a5b;
+            --accent-soft: #e4f4ec;
+            --danger: #e0483e;
+            --danger-soft: #fbe9e7;
+            --warn: #e08a1e;
+            --ice: #3fa9d6;
+            --ice-soft: #e2f2fa;
+            --radius: 14px;
+            --radius-sm: 10px;
+            --shadow: 0 1px 2px rgba(20, 25, 35, .05), 0 10px 30px rgba(20, 25, 35, .10);
+            --mono: 'SF Mono', 'Roboto Mono', 'DejaVu Sans Mono', ui-monospace, Consolas, monospace;
+            --sans: 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        html, body {
+            margin: 0;
+            height: 100%
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: var(--sans);
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+            font-size: 15px;
+            line-height: 1.45
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 16px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+            flex: 0 0 auto;
+            z-index: 6
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0
+        }
+
+        .brand .mark {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            background: var(--accent);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            flex: 0 0 auto
+        }
+
+        .brand .name {
+            font-weight: 700;
+            letter-spacing: .2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .brand .name small {
+            display: block;
+            font-weight: 500;
+            font-size: 11px;
+            color: var(--faint);
+            letter-spacing: .6px;
+            text-transform: uppercase
+        }
+
+        .cash {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin-left: 6px;
+            padding: 6px 12px;
+            background: var(--accent-soft);
+            border-radius: 999px;
+            border: 1px solid #cdeadd;
+            flex: 0 0 auto
+        }
+
+        .cash .sym {
+            color: var(--accent);
+            font-weight: 800;
+            font-size: 14px
+        }
+
+        .cash .val {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent-press);
+            font-variant-numeric: tabular-nums
+        }
+
+        .spacer {
+            flex: 1 1 auto
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            flex: 0 0 auto
+        }
+
+        .nav button {
+            appearance: none;
+            border: 1px solid var(--line-2);
+            background: var(--panel);
+            color: var(--ink);
+            font: inherit;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: .12s
+        }
+
+        .nav button:hover {
+            background: var(--panel-2);
+            border-color: #c2c9d2
+        }
+
+        .nav button:active {
+            transform: translateY(1px)
+        }
+
+        .stage {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 0;
+            background: #dfe3ea;
+            overflow: hidden
+        }
+
+        #game {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            cursor: grab
+        }
+
+        #game.cursor-hit {
+            cursor: crosshair
+        }
+
+        #game.cursor-grabbing {
+            cursor: grabbing
+        }
+
+        .mood {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 4;
+            background: rgba(255, 255, 255, .92);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 8px 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            backdrop-filter: blur(4px)
+        }
+
+        .mood .lbl {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .6px
+        }
+
+        .mood .track {
+            position: relative;
+            width: 120px;
+            height: 8px;
+            background: var(--panel-3);
+            border-radius: 6px;
+            overflow: hidden
+        }
+
+        .mood .mid {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--line-2)
+        }
+
+        .mood .fill {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            background: var(--accent);
+            border-radius: 6px;
+            transition: width .15s, background .25s, left .15s
+        }
+
+        .mood .emoji {
+            font-size: 16px;
+            width: 18px;
+            text-align: center
+        }
+
+        .hint {
+            position: absolute;
+            left: 50%;
+            bottom: 16px;
+            transform: translateX(-50%);
+            z-index: 4;
+            background: rgba(27, 35, 48, .85);
+            color: #fff;
+            font-size: 13px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            white-space: nowrap;
+            transition: opacity .5s;
+            pointer-events: none
+        }
+
+        .hint.gone {
+            opacity: 0
+        }
+
+        .toolbar {
+            flex: 0 0 auto;
+            background: var(--panel);
+            border-top: 1px solid var(--line);
+            padding: 10px 12px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            z-index: 5
+        }
+
+        .toolbar::-webkit-scrollbar {
+            height: 6px
+        }
+
+        .toolbar::-webkit-scrollbar-thumb {
+            background: var(--line-2);
+            border-radius: 6px
+        }
+
+        .tool {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            min-width: 64px;
+            padding: 8px 6px 6px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--panel);
+            cursor: pointer;
+            transition: .12s;
+            color: var(--ink)
+        }
+
+        .tool:hover {
+            background: var(--panel-2);
+            border-color: var(--line-2)
+        }
+
+        .tool:active {
+            transform: translateY(1px)
+        }
+
+        .tool.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(17, 163, 107, .32)
+        }
+
+        .tool .ico {
+            font-size: 22px;
+            line-height: 1;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .tool .badge {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            background: var(--panel-3);
+            color: var(--ink);
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .tool.active .badge {
+            background: rgba(255, 255, 255, .22);
+            color: #fff
+        }
+
+        .tool .nm {
+            font-size: 10.5px;
+            font-weight: 600;
+            line-height: 1.1;
+            max-width: 62px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            background: rgba(20, 25, 35, .42);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s
+        }
+
+        .overlay.open {
+            opacity: 1;
+            pointer-events: auto
+        }
+
+        .modal {
+            width: min(680px, 100%);
+            max-height: 88vh;
+            background: var(--panel);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(8px) scale(.99);
+            transition: transform .18s
+        }
+
+        .overlay.open .modal {
+            transform: none
+        }
+
+        .modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .modal-head h2 {
+            margin: 0;
+            font-size: 19px;
+            font-weight: 750;
+            letter-spacing: .2px
+        }
+
+        .modal-head .x {
+            appearance: none;
+            border: none;
+            background: var(--panel-3);
+            color: var(--muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            font-size: 20px;
+            cursor: pointer;
+            line-height: 1;
+            transition: .12s
+        }
+
+        .modal-head .x:hover {
+            background: var(--line-2);
+            color: var(--ink)
+        }
+
+        .modal-body {
+            padding: 18px 20px 22px;
+            overflow: auto
+        }
+
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            background: var(--panel-3);
+            padding: 4px;
+            border-radius: 11px
+        }
+
+        .tabs button {
+            flex: 1;
+            appearance: none;
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: .12s
+        }
+
+        .tabs button.on {
+            background: var(--panel);
+            color: var(--ink);
+            box-shadow: 0 1px 3px rgba(20, 25, 35, .10)
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns:repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px
+        }
+
+        .card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .card .top {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .card .ci {
+            font-size: 24px;
+            width: 30px;
+            text-align: center
+        }
+
+        .card .ci .badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: var(--panel-3);
+            color: var(--ink);
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto
+        }
+
+        .card .tt {
+            font-weight: 700;
+            font-size: 13.5px
+        }
+
+        .card .ds {
+            font-size: 11.5px;
+            color: var(--muted);
+            line-height: 1.35;
+            min-height: 31px
+        }
+
+        .card .act {
+            margin-top: 2px
+        }
+
+        .btn {
+            appearance: none;
+            border: none;
+            font: inherit;
+            font-weight: 650;
+            font-size: 12.5px;
+            padding: 8px 10px;
+            border-radius: 9px;
+            cursor: pointer;
+            width: 100%;
+            transition: .12s
+        }
+
+        .btn.buy {
+            background: var(--accent);
+            color: #fff
+        }
+
+        .btn.buy:hover {
+            background: var(--accent-press)
+        }
+
+        .btn.buy:disabled {
+            background: var(--panel-3);
+            color: var(--faint);
+            cursor: not-allowed
+        }
+
+        .btn.owned {
+            background: var(--panel-3);
+            color: var(--muted);
+            cursor: default
+        }
+
+        .btn.sel {
+            background: var(--ink);
+            color: #fff
+        }
+
+        .btn.equip {
+            background: var(--accent-soft);
+            color: var(--accent-press);
+            border: 1px solid #cdeadd
+        }
+
+        .btn.equip:hover {
+            background: #d8efe3
+        }
+
+        .price {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-family: var(--mono);
+            font-weight: 700
+        }
+
+        .swatch {
+            width: 100%;
+            height: 46px;
+            border-radius: 9px;
+            border: 1px solid var(--line-2);
+            display: flex;
+            overflow: hidden
+        }
+
+        .swatch span {
+            flex: 1
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .row:last-child {
+            border-bottom: none
+        }
+
+        .row .info {
+            min-width: 0
+        }
+
+        .row .info .t {
+            font-weight: 650;
+            font-size: 14px
+        }
+
+        .row .info .s {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .row .ctl {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        input[type=range] {
+            width: 150px;
+            accent-color: var(--accent)
+        }
+
+        .rv {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 13px;
+            min-width: 34px;
+            text-align: right
+        }
+
+        .switch {
+            position: relative;
+            width: 46px;
+            height: 26px;
+            flex: 0 0 auto
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0
+        }
+
+        .switch .sl {
+            position: absolute;
+            inset: 0;
+            background: var(--line-2);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: .16s
+        }
+
+        .switch .sl:before {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 3px;
+            top: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: .16s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .2)
+        }
+
+        .switch input:checked + .sl {
+            background: var(--accent)
+        }
+
+        .switch input:checked + .sl:before {
+            transform: translateX(20px)
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns:1fr 1fr;
+            gap: 10px
+        }
+
+        .stat {
+            background: var(--panel-2);
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            padding: 12px 14px
+        }
+
+        .stat .v {
+            font-family: var(--mono);
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--ink)
+        }
+
+        .stat .k {
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: .4px
+        }
+
+        .color-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--line)
+        }
+
+        .color-row label {
+            font-weight: 600;
+            font-size: 13px
+        }
+
+        .color-row input[type=color] {
+            width: 46px;
+            height: 30px;
+            border: 1px solid var(--line-2);
+            border-radius: 8px;
+            background: none;
+            cursor: pointer;
+            padding: 2px
+        }
+
+        .note {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0 0 14px
+        }
+
+        .section-title {
+            font-weight: 700;
+            margin: 20px 0 4px
+        }
+
+        .danger-link {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+            margin-top: 8px
+        }
+
+        @media (max-width: 560px) {
+            .brand .name {
+                display: none
+            }
+
+            .cash {
+                margin-left: 0
+            }
+
+            .nav button {
+                padding: 8px 10px
+            }
+
+            .mood .track {
+                width: 84px
+            }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"Interactive Buddy","item":"https://suipce.com/games/Casual/Interactive-Buddy/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/Interactive-Buddy/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Casual/Interactive-Buddy/preview.png"></head>
+<body>
+<div id="app">
+    <header class="topbar">
+        <div class="brand">
+            <div class="mark">IB</div>
+            <div class="name">Interactive Buddy<small>GPTGames.dev</small></div>
+        </div>
+        <div class="cash"><span class="sym">$</span><span class="val" id="cashValue">0</span></div>
+        <div class="spacer"></div>
+        <nav class="nav">
+            <button data-panel="shop">Shop</button>
+            <button data-panel="stats">Stats</button>
+            <button data-panel="settings">Settings</button>
+        </nav>
+    </header>
+    <main class="stage" id="stage">
+        <canvas id="game"></canvas>
+        <div class="mood"><span class="lbl">Mood</span>
+            <div class="track">
+                <div class="mid"></div>
+                <div class="fill" id="moodFill"></div>
+            </div>
+            <span class="emoji" id="moodEmoji">🙂</span></div>
+        <div class="hint" id="hint">Drag the buddy to fling him — pick tools below</div>
+    </main>
+    <footer class="toolbar" id="toolbar"></footer>
+</div>
+<div class="overlay" id="overlay">
+    <div class="modal">
+        <div class="modal-head"><h2 id="modalTitle">Shop</h2>
+            <button class="x" id="modalClose" aria-label="Close">×</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+    </div>
+</div>
+<script>
+    (function () {
+        'use strict';
+
+        /* ============================================================
+           Interactive Buddy — rebuilt physics core
+           Key fixes vs. the original:
+           - Muscle/stand controller is orientation-aware, fades out in
+             the air and at speed, and is capped below gravity so the
+             buddy can never lock upside-down.
+           - collideWorld uses consistent restitution + tangential
+             friction on ALL four boundaries with positional "slop",
+             so no energy is injected at walls/ceiling (no more
+             "magnetic walls") and resting jitter is killed.
+           - Non-crossing constraints stop legs/arms locking inverted.
+           - Constraint solving is split: stiff structural pass +
+             soft pose pass, so the two stop juggling each other
+             (kills the standing "dance").
+           - New ice-cream tool: freezes the buddy, extinguishes fire.
+           ============================================================ */
+
+        const STEP = 1000 / 60;
+        const FLOOR_MARGIN = 38;
+        const GRAVITY = 0.42;
+        const DAMPING = 0.99;
+        const SAVE_KEY = 'gptgames_interactive_buddy_v2';
+
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const stage = document.getElementById('stage');
+        const cashValueEl = document.getElementById('cashValue');
+        const moodFillEl = document.getElementById('moodFill');
+        const moodEmojiEl = document.getElementById('moodEmoji');
+        const hintEl = document.getElementById('hint');
+        const toolbarEl = document.getElementById('toolbar');
+        const overlayEl = document.getElementById('overlay');
+        const modalTitleEl = document.getElementById('modalTitle');
+        const modalBodyEl = document.getElementById('modalBody');
+
+        let W = 800, H = 500, floorY = 462, DPR = 1;
+
+        const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+        const lerp = (a, b, t) => a + (b - a) * t;
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const randInt = (a, b) => Math.floor(rand(a, b + 1));
+        const choose = arr => arr[(Math.random() * arr.length) | 0];
+        const len = (x, y) => Math.sqrt(x * x + y * y) || 0.0001;
+
+        /* ---------------- persistent state ---------------- */
+        const S = {
+            cash: 0, totalCash: 0,
+            unlocked: {}, ownedSkins: {}, selectedSkin: 'default',
+            customSkin: {head: '#7aa2d6', torso: '#34507a', limb: '#7aa2d6', eye: '#15202e', detail: '#15202e'},
+            modes: {lowGravity: false, heavyHitter: false}, modesOwned: {},
+            settings: {iterations: 14, objectCap: 40, trails: false, sound: true},
+            stats: {playMs: 0, itemsThrown: 0, punches: 0, explosions: 0, fires: 0, knockdowns: 0, shots: 0, freezes: 0}
+        };
+        const DEFAULT_UNLOCKED = ['grab', 'fist', 'baseball'];
+        const DEFAULT_OWNED_SKINS = ['default', 'classic'];
+
+        let saveTimer = null;
+
+        function save() {
+            if (saveTimer) return;
+            saveTimer = setTimeout(() => {
+                saveTimer = null;
+                saveNow();
+            }, 350);
+        }
+
+        function saveNow() {
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(S));
+            } catch (e) {
+            }
+        }
+
+        function loadSave() {
+            let data = null;
+            try {
+                data = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+            } catch (e) {
+                data = null;
+            }
+            if (data && typeof data === 'object') {
+                S.cash = +data.cash || 0;
+                S.totalCash = +data.totalCash || 0;
+                if (data.unlocked) S.unlocked = data.unlocked;
+                if (data.ownedSkins) S.ownedSkins = data.ownedSkins;
+                if (typeof data.selectedSkin === 'string') S.selectedSkin = data.selectedSkin;
+                if (data.customSkin) Object.assign(S.customSkin, data.customSkin);
+                if (data.modes) Object.assign(S.modes, data.modes);
+                if (data.modesOwned) S.modesOwned = data.modesOwned;
+                if (data.settings) Object.assign(S.settings, data.settings);
+                if (data.stats) Object.assign(S.stats, data.stats);
+            }
+            DEFAULT_UNLOCKED.forEach(id => S.unlocked[id] = true);
+            DEFAULT_OWNED_SKINS.forEach(id => S.ownedSkins[id] = true);
+            S.settings.iterations = clamp(S.settings.iterations | 0, 6, 24);
+            S.settings.objectCap = clamp(S.settings.objectCap | 0, 10, 1200);
+        }
+
+        /* ---------------- audio ---------------- */
+        const Audio2 = (() => {
+            let ac = null, noise = null;
+
+            function ensure() {
+                if (ac) return;
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                ac = new AC();
+                const n = 0.5 * ac.sampleRate | 0;
+                noise = ac.createBuffer(1, n, ac.sampleRate);
+                const d = noise.getChannelData(0);
+                for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+            }
+
+            function on() {
+                return S.settings.sound && ac;
+            }
+
+            function tone(freq, dur, type, gain, slideTo) {
+                if (!on()) return;
+                const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+                o.type = type || 'sine';
+                o.frequency.setValueAtTime(freq, t);
+                if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(1, slideTo), t + dur);
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(gain, t + 0.005);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                o.connect(g).connect(ac.destination);
+                o.start(t);
+                o.stop(t + dur + 0.02);
+            }
+
+            function burst(dur, gain, lp, hp) {
+                if (!on()) return;
+                const t = ac.currentTime, src = ac.createBufferSource(), g = ac.createGain();
+                src.buffer = noise;
+                let node = src;
+                if (lp) {
+                    const f = ac.createBiquadFilter();
+                    f.type = 'lowpass';
+                    f.frequency.setValueAtTime(lp, t);
+                    f.frequency.exponentialRampToValueAtTime(Math.max(80, lp * 0.4), t + dur);
+                    node.connect(f);
+                    node = f;
+                }
+                if (hp) {
+                    const f = ac.createBiquadFilter();
+                    f.type = 'highpass';
+                    f.frequency.value = hp;
+                    node.connect(f);
+                    node = f;
+                }
+                g.gain.setValueAtTime(gain, t);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+                node.connect(g).connect(ac.destination);
+                src.start(t);
+                src.stop(t + dur + 0.02);
+            }
+
+            return {
+                resume() {
+                    ensure();
+                    if (ac && ac.state === 'suspended') ac.resume();
+                },
+                punch(v) {
+                    ensure();
+                    const s = clamp(v || 1, 0.4, 2);
+                    burst(0.10, 0.32 * s, 1400);
+                    tone(150, 0.12, 'sine', 0.30 * s, 60);
+                },
+                bounce(v) {
+                    ensure();
+                    tone(520 + 220 * clamp(v || 0.5, 0, 1), 0.06, 'triangle', 0.10);
+                },
+                boom(v) {
+                    ensure();
+                    const s = clamp(v || 1, 0.6, 1.8);
+                    burst(0.45 * s, 0.5, 1600);
+                    tone(110, 0.5 * s, 'sine', 0.4, 30);
+                    tone(70, 0.6 * s, 'sine', 0.3, 28);
+                },
+                shot() {
+                    ensure();
+                    burst(0.07, 0.42, 5000, 600);
+                    tone(220, 0.05, 'square', 0.12, 90);
+                },
+                shotgun() {
+                    ensure();
+                    burst(0.18, 0.55, 3000);
+                    tone(120, 0.22, 'sine', 0.32, 40);
+                },
+                whoosh() {
+                    ensure();
+                    burst(0.22, 0.10, 900);
+                },
+                ignite() {
+                    ensure();
+                    burst(0.30, 0.18, 2600, 700);
+                },
+                freeze() {
+                    ensure();
+                 

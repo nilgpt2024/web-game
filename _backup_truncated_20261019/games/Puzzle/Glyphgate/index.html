@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Play Glyphgate Online - Free Puzzle Game | AIGameHub</title>
+<meta name="description" content="Play Glyphgate online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="keywords" content="deduction game, rule induction, zendo, logic puzzle, hypothesis game, science game, browser puzzle, free online logic game, html5 deduction, daily puzzle, inductive reasoning">
+<meta name="author" content="gptgames.dev">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#0a0910">
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Glyphgate/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="gptgames.dev">
+<meta property="og:title" content="Play Glyphgate Online - Free Puzzle Game | AIGameHub">
+<meta property="og:description" content="Play Glyphgate online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta property="og:url" content="https://www.gptgames.dev/games/glyphgate.html">
+<meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_288.webp">
+<meta property="og:image:alt" content="A dark stone gate above two columns of glyph rows, one marked admitted and one refused">
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Glyphgate/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Glyphgate/preview.png">
+<meta name="twitter:title" content="Play Glyphgate Online - Free Puzzle Game | AIGameHub">
+<meta name="twitter:description" content="Play Glyphgate online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_288.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Glyphgate","url":"https://www.gptgames.dev/games/glyphgate.html","image":"https://www.gptgames.dev/screenshots/screenshot_288.webp","description":"A game of rule induction. Each gate holds a secret law about rows of glyphs; you submit rows, see which are admitted, and state the law. Answers are judged by meaning over all 66,429 possible rows, so any equivalent wording wins, and a wrong answer returns the shortest row on which you and the gate disagree. Thirteen gates introduce a new kind of law each, with a daily gate and an endless deep.","genre":["Puzzle","Logic","Strategy"],"gamePlatform":"Web Browser","playMode":"SinglePlayer","applicationCategory":"Game","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"publisher":{"@type":"Organization","name":"gptgames.dev","url":"https://www.gptgames.dev/"}}</script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --bg:#08070d; --bg2:#0d0b14; --panel:#131120; --panel2:#191627; --edge:#282338; --edge2:#3a3350;
+  --text:#ece8f6; --dim:#9a92b3; --dim2:#6b6484;
+  --gold:#e8c07a; --gold2:#8a6f3e;
+  --crimson:#ff5064; --azure:#4fa2ff; --amber:#ffc043;
+  --yes:#4ce0a5; --no:#8d7fa8;
+  --shadow:0 10px 34px rgba(0,0,0,.55);
+  --r:12px;
+  --sat:1;
+}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:
+    radial-gradient(1200px 700px at 50% -12%, #191430 0%, transparent 62%),
+    radial-gradient(900px 500px at 50% 108%, #14101f 0%, transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.45;
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.serif{font-family:"Cormorant Garamond",Georgia,serif}
+
+/* ---------------------------------------------------------------- shell */
+#app{position:fixed;inset:0;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top)}
+header{
+  display:flex;align-items:center;gap:14px;padding:9px 16px;
+  border-bottom:1px solid var(--edge);background:linear-gradient(180deg,rgba(24,20,38,.9),rgba(12,10,20,.75));
+  backdrop-filter:blur(8px);flex:none;z-index:20
+}
+.brand{font-family:"Cormorant Garamond",serif;font-weight:700;font-size:23px;letter-spacing:.14em;
+  background:linear-gradient(180deg,#f6e4bd,#c79a52);-webkit-background-clip:text;background-clip:text;color:transparent;flex:none}
+.gate-id{display:flex;flex-direction:column;line-height:1.15;min-width:0;flex:1}
+.gate-id b{font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:700;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gate-id span{font-size:11px;color:var(--dim2);letter-spacing:.11em;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hstats{display:flex;gap:8px;align-items:center;flex:none}
+.chip{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:56px;padding:4px 9px;
+  border:1px solid var(--edge);border-radius:9px;background:rgba(255,255,255,.02)}
+.chip b{font-size:16px;font-variant-numeric:tabular-nums;line-height:1.1}
+.chip span{font-size:9px;color:var(--dim2);letter-spacing:.1em;text-transform:uppercase}
+.chip.lit{border-color:rgba(76,224,165,.55);background:rgba(76,224,165,.09);box-shadow:0 0 16px rgba(76,224,165,.16)}
+.chip.lit b{color:var(--yes)}
+.hmeter.lit i{background:var(--yes);box-shadow:0 0 12px rgba(76,224,165,.6)}
+.iconbtn{width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--edge);border-radius:9px;
+  color:var(--dim);background:rgba(255,255,255,.02);transition:.16s;flex:none}
+.iconbtn:hover{color:var(--text);border-color:var(--edge2);background:rgba(255,255,255,.05)}
+.iconbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+main{flex:1;display:flex;min-height:0;gap:0}
+
+/* ---------------------------------------------------------------- bench */
+.bench{flex:1;display:flex;min-width:0;min-height:0}
+.col{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0}
+.col+.col{border-left:1px solid var(--edge2)}
+.col-head{display:flex;align-items:center;gap:8px;padding:8px 14px;flex:none;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);
+  border-bottom:1px solid var(--edge)}
+.col.yes .col-head{background:linear-gradient(180deg,rgba(76,224,165,.09),rgba(76,224,165,.02))}
+.col.no .col-head{background:linear-gradient(180deg,rgba(141,127,168,.09),rgba(141,127,168,.02))}
+.col.yes .col-head{color:#8fe8c4}
+.col.no .col-head{color:#b7abcd}
+.col-head .mark{width:17px;height:17px;border-radius:50%;display:grid;place-items:center;flex:none}
+.col.yes .col-head .mark{background:rgba(76,224,165,.16);color:var(--yes)}
+.col.no .col-head .mark{background:rgba(141,127,168,.16);color:var(--no)}
+.col-head .mark svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.col-head b{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--dim);font-size:12px;letter-spacing:.04em}
+.col-body{flex:1;overflow-y:auto;overflow-x:hidden;padding:9px 10px 14px;display:flex;flex-wrap:wrap;gap:6px;
+  align-content:flex-start;align-items:flex-start;
+  scrollbar-width:thin;scrollbar-color:var(--edge2) transparent}
+.col-body::-webkit-scrollbar{width:8px}
+.col-body::-webkit-scrollbar-thumb{background:var(--edge2);border-radius:4px}
+.empty{color:var(--dim2);font-size:12.5px;text-align:center;padding:22px 12px;line-height:1.6}
+
+.rowcard{display:flex;align-items:center;gap:7px;padding:6px 9px 6px 8px;border:1px solid var(--edge);border-radius:10px;
+  background:var(--panel);cursor:pointer;transition:.14s;position:relative;flex:0 0 auto;max-width:100%}
+.rowcard:hover{border-color:var(--edge2);background:var(--panel2);transform:translateY(-2px)}
+.rowcard.fresh{animation:land .5s cubic-bezier(.2,.9,.3,1.3)}
+@keyframes land{0%{opacity:0;transform:translateY(-14px) scale(.94)}100%{opacity:1;transform:none}}
+.rowcard .glyphs{display:flex;gap:4px;flex-wrap:wrap}
+.rowcard .tagn{font-size:9.5px;color:var(--dim2);font-variant-numeric:tabular-nums;flex:none;padding-left:2px;opacity:.75}
+.rowcard .why{position:absolute;inset:-1px;border-radius:10px;border:1px solid var(--gold);opacity:0;pointer-events:none}
+.rowcard.hi .why{opacity:1;animation:pulse 1.5s ease-out 2}
+@keyframes pulse{0%,100%{opacity:.15}50%{opacity:.9}}
+.col.yes .rowcard{border-left:2px solid rgba(76,224,165,.5)}
+.col.no .rowcard{border-left:2px solid rgba(141,127,168,.45)}
+
+/* ---------------------------------------------------------------- glyphs */
+.g{--c:var(--crimson);width:26px;height:26px;flex:none;position:relative;display:inline-block;vertical-align:middle}
+.g svg{width:100%;height:100%;display:block;overflow:visible}
+.g .fillp{fill:var(--c);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--c) 55%,transparent))}
+.g .strokep{fill:none;stroke:rgba(0,0,0,.5);stroke-width:1}
+.g.c0{--c:var(--crimson)} .g.c1{--c:var(--azure)} .g.c2{--c:var(--amber)}
+.g .lbl{font-size:10px;font-weight:700;fill:#000;opacity:.62;text-anchor:middle;font-family:Inter,sans-serif}
+body:not(.labels) .g .lbl{display:none}
+.g.sm{width:20px;height:20px}
+.g.lg{width:40px;height:40px}
+
+/* ---------------------------------------------------------------- panel */
+.panel{width:400px;flex:none;border-left:1px solid var(--edge);background:linear-gradient(180deg,var(--bg2),#0b0912);
+  display:flex;flex-direction:column;min-height:0}
+.panel-head{padding:11px 16px 9px;border-bottom:1px solid var(--edge);flex:none}
+.panel-head h2{margin:0;font-family:"Cormorant Garamond",serif;font-size:20px;font-weight:700;letter-spacing:.02em}
+.panel-head p{margin:3px 0 0;font-size:11.5px;color:var(--dim2);line-height:1.5}
+.panel-body{flex:1;overflow-y:auto;padding:13px 16px 18px;scrollbar-width:thin;scrollbar-color:var(--edge2) transparent}
+.panel-body::-webkit-scrollbar{width:8px}.panel-body::-webkit-scrollbar-thumb{background:var(--edge2);border-radius:4px}
+
+.knowledge{border:1px solid var(--edge);border-radius:var(--r);padding:11px 13px;background:rgba(255,255,255,.02);margin-bottom:13px}
+.knowledge h3{margin:0 0 6px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);font-weight:600}
+.knowledge p{margin:0;font-size:12.5px;color:var(--dim);line-height:1.55}
+.knowledge .newvocab{color:var(--gold);font-weight:500}
+.meter{height:5px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:9px}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,#6b5aa8,var(--yes));width:0;transition:width .5s cubic-bezier(.3,1,.4,1)}
+.meterlbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim2);margin-top:5px;letter-spacing:.03em}
+.decisive{margin-top:9px;padding:8px 10px;border-radius:9px;border:1px solid rgba(76,224,165,.4);
+  background:rgba(76,224,165,.08);color:var(--yes);font-size:12px;line-height:1.45;display:none}
+.decisive.on{display:block;animation:land .45s ease-out}
+
+/* law builder */
+.clause{border:1px solid var(--edge);border-radius:var(--r);padding:10px 11px;background:var(--panel);margin-bottom:9px;position:relative}
+.clause-lbl{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim2);margin-bottom:8px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+select.sel.fam{font-size:11.5px;letter-spacing:.03em;text-transform:none;padding:2px 20px 2px 8px;background-color:rgba(255,255,255,.04);border-color:var(--edge2);color:var(--dim)}
+select.sel.fam:hover{color:var(--text);border-color:var(--gold2)}
+.notbtn{margin-left:auto;padding:2px 8px;border:1px solid var(--edge2);border-radius:99px;font-size:9.5px;letter-spacing:.12em;color:var(--dim2);transition:.15s}
+.notbtn.on{background:rgba(255,80,100,.16);border-color:rgba(255,80,100,.55);color:#ff8a97}
+.sentence{display:flex;flex-wrap:wrap;align-items:center;gap:5px;font-size:13.5px;line-height:2.05}
+.sentence .w{color:var(--dim)}
+select.sel{appearance:none;-webkit-appearance:none;background:rgba(232,192,122,.09);border:1px solid rgba(232,192,122,.35);
+  color:var(--gold);border-radius:7px;padding:3px 22px 3px 9px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'><path d='M1 1l4 4 4-4' fill='none' stroke='%23e8c07a' stroke-width='1.6' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 7px center;max-width:100%}
+select.sel:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,192,122,.12)}
+select.sel option{background:#171423;color:var(--text)}
+.joiner{display:flex;align-items:center;gap:8px;margin:0 0 9px}
+.joiner::before,.joiner::after{content:"";flex:1;height:1px;background:var(--edge)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;border-radius:10px;
+  border:1px solid var(--edge2);background:var(--panel2);font-weight:600;font-size:14px;transition:.16s;letter-spacing:.01em}
+.btn:hover{background:#221d35;border-color:#4a4268}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.gold{border-color:rgba(232,192,122,.5);background:linear-gradient(180deg,rgba(232,192,122,.18),rgba(232,192,122,.07));color:#f7e3bb}
+.btn.gold:hover{background:linear-gradient(180deg,rgba(232,192,122,.28),rgba(232,192,122,.12))}
+.btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn .cost{margin-left:auto;font-size:11px;color:var(--dim2);font-weight:500}
+.verdictnote{margin-top:10px;padding:10px 12px;border-radius:10px;font-size:12.5px;line-height:1.55;display:none}
+.verdictnote.on{display:block;animation:land .4s ease-out}
+.verdictnote.bad{border:1px solid rgba(255,80,100,.35);background:rgba(255,80,100,.07);color:#ffb3bc}
+.verdictnote.bad b{color:#fff}
+
+/* ---------------------------------------------------------------- tray */
+.tray{flex:none;border-top:1px solid var(--edge);background:linear-gradient(180deg,#0f0d18,#08070d);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:16px;justify-content:center;z-index:15}
+.hall{flex:none;width:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  border-left:1px solid var(--edge);border-right:1px solid var(--edge);position:relative;overflow:hidden;
+  background:linear-gradient(180deg,rgba(232,192,122,.045),transparent 42%,rgba(232,192,122,.03))}
+.hall .beam{position:absolute;left:50%;top:0;bottom:0;width:118px;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse 60% 42% at 50% 46%,rgba(232,192,122,.13),transparent 72%);
+  transition:opacity .5s;opacity:.75}
+.gateviz{width:132px;height:225px;position:relative;display:grid;place-items:center;z-index:1}
+.gateviz svg{width:100%;height:100%;overflow:visible}
+.gateviz .inner{fill:#04030a}
+.gateviz .arch{fill:none;stroke:var(--gold2);stroke-width:2.4;stroke-linecap:round}
+.gateviz .arch.thin{stroke:rgba(138,111,62,.42);stroke-width:1.2}
+.gateviz .sill{stroke:var(--gold2);stroke-width:2.4;stroke-linecap:round}
+.gateviz .rune{opacity:.55;fill:none;stroke:var(--gold2);stroke-width:1.4}
+.gateviz .glow{fill:none;stroke:var(--gold);stroke-width:3;opacity:0}
+.gateviz.yes .glow{stroke:var(--yes);animation:flash 1s ease-out}
+.gateviz.no .glow{stroke:#ff5064;animation:flash 1s ease-out}
+.gateviz.yes .rune,.gateviz.no .rune{animation:runeflash 1s ease-out}
+@keyframes flash{0%{opacity:1;filter:drop-shadow(0 0 20px currentColor)}100%{opacity:0}}
+@keyframes runeflash{0%{opacity:1;stroke:#fff}100%{opacity:.55}}
+.halllabel{font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim2);z-index:1}
+
+.traymid{display:flex;flex-direction:column;gap:8px;align-items:center;flex:none}
+.slots{display:flex;gap:7px;align-items:center;padding:8px;border:1px dashed var(--edge2);border-radius:var(--r);
+  background:rgba(255,255,255,.015);min-height:60px}
+.slot{width:42px;height:42px;border-radius:9px;display:grid;place-items:center;position:relative;flex:none}
+.slot.hole{border:1px dashed rgba(255,255,255,.09)}
+.slot.filled{background:rgba(255,255,255,.035);border:1px solid var(--edge2);cursor:pointer;transition:.14s}
+.slot.filled:hover{border-color:var(--gold2)}
+.slot.filled.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,192,122,.16)}
+.slot .x{position:absolute;top:-6px;right:-6px;width:17px;height:17px;border-radius:50%;background:#2b2440;border:1px solid var(--edge2);
+  color:var(--dim);display:grid;place-items:center;font-size:11px;line-height:1;opacity:0;transition:.14s}
+.slot.filled:hover .x,.slot.filled.sel .x{opacity:1}
+.slot .x:hover{background:#4a2030;color:#ff8a97;border-color:#7a3446}
+.trayactions{display:flex;gap:7px}
+.tbtn{padding:6px 12px;border:1px solid var(--edge);border-radius:8px;font-size:12px;color:var(--dim);transition:.15s;white-space:nowrap}
+.tbtn:hover{color:var(--text);border-color:var(--edge2);background:rgba(255,255,255,.04)}
+.tbtn.primary{border-color:rgba(76,224,165,.45);background:rgba(76,224,165,.1);color:var(--yes);font-weight:600}
+.tbtn.primary:hover{background:rgba(76,224,165,.18)}
+.tbtn:disabled{opacity:.35;cursor:not-allowed}
+
+.palette{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex:none}
+.pg{width:38px;height:38px;border-radius:9px;border:1px solid var(--edge);background:var(--panel);display:grid;place-items:center;transition:.13s}
+.pg:hover{border-color:var(--gold2);background:var(--panel2);transform:translateY(-2px)}
+.pg:active{transform:translateY(0)}
+
+/* ---------------------------------------------------------------- modal */
+#overlay{position:fixed;inset:0;background:rgba(4,3,8,.82);backdrop-filter:blur(9px);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#overlay.on{display:flex}
+.modal{width:min(560px,100%);max-height:92vh;overflow-y:auto;border:1px solid var(--edge2);border-radius:16px;
+  background:linear-gradient(180deg,#161324,#0c0a14);box-shadow:var(--shadow);padding:26px 28px;animation:pop .35s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes pop{0%{opacity:0;transform:translateY(18px) scale(.97)}100%{opacity:1;transform:none}}
+.modal h1{margin:0 0 4px;font-family:"Cormorant Garamond",serif;font-size:34px;font-weight:700;letter-spacing:.03em;line-height:1.1}
+.modal h2{margin:0 0 10px;font-family:"Cormorant Garamond",serif;font-size:25px;font-weight:700}
+.modal h3{margin:20px 0 7px;font-size:10.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.modal p{margin:0 0 11px;color:var(--dim);font-size:13.5px;line-height:1.65}
+.modal p b,.modal li b{color:var(--text);font-weight:600}
+.modal ul{margin:0 0 11px;padding-left:17px;color:var(--dim);font-size:13.5px;line-height:1.65}
+.modal li{margin-bottom:5px}
+.modal .lede{color:var(--text);font-size:15px}
+.lawbox{border:1px solid rgba(232,192,122,.35);background:rgba(232,192,122,.07);border-radius:12px;padding:13px 15px;margin:12px 0}
+.lawbox .k{font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--gold2);margin-bottom:5px}
+.lawbox .v{font-family:"Cormorant Garamond",serif;font-size:20px;line-height:1.35;color:#f7e3bb}
+.lawbox.alt{border-color:var(--edge2);background:rgba(255,255,255,.03)}
+.lawbox.alt .v{color:var(--text)}
+.lawstack .lit{padding:1px 0}
+.lawstack .op{font-family:Inter,sans-serif;font-size:10px;letter-spacing:.19em;text-transform:uppercase;
+  color:var(--gold2);margin:5px 0 4px;padding-left:1px}
+.lawstack .kw{font-family:Inter,sans-serif;font-style:normal;font-size:10px;letter-spacing:.17em;
+  text-transform:uppercase;color:var(--gold2);margin-right:5px;vertical-align:.14em}
+.lawstack .kw.neg{color:#ff8a97}
+.scorerow{display:flex;gap:9px;margin:15px 0}
+.scorebox{flex:1;border:1px solid var(--edge);border-radius:11px;padding:10px;text-align:center;background:rgba(255,255,255,.02)}
+.scorebox b{display:block;font-size:25px;font-variant-numeric:tabular-nums;line-height:1.15}
+.scorebox span{font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim2)}
+.modalbtns{display:flex;gap:9px;margin-top:17px;flex-wrap:wrap}
+.modalbtns .btn{flex:1;min-width:130px;width:auto}
+.legend{display:grid;grid-template-columns:auto repeat(3,1fr);gap:5px;align-items:center;justify-items:center;
+  margin:10px 0 14px;padding:12px 14px;border:1px solid var(--edge);border-radius:12px;background:rgba(255,255,255,.02)}
+.legend b{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim2);font-weight:600}
+.legend i{font-style:normal;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim2);justify-self:end;padding-right:6px}
+.demo{display:flex;gap:10px;align-items:center;margin:9px 0;padding:9px 11px;border:1px solid var(--edge);border-radius:10px;background:rgba(255,255,255,.02)}
+.demo .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-left:auto;flex:none}
+.demo.y .lab{color:var(--yes)} .demo.n .lab{color:var(--no)}
+
+.gatemap{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:8px;margin-top:6px}
+.gcard{border:1px solid var(--edge);border-radius:11px;padding:10px 12px;text-align:left;transition:.15s;background:rgba(255,255,255,.02)}
+.gcard:hover:not(:disabled){border-color:var(--gold2);background:rgba(232,192,122,.06)}
+.gcard:disabled{opacity:.34;cursor:not-allowed}
+.gcard .n{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim2)}
+.gcard .t{font-family:"Cormorant Garamond",serif;font-size:16.5px;font-weight:700;line-height:1.2;margin:1px 0 3px}
+.gcard .s{font-size:11px;color:var(--yes)}
+.gcard .s.none{color:var(--dim2)}
+.toastwrap{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(190px + env(safe-area-inset-bottom));z-index:60;
+  display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none;width:max-content;max-width:92vw}
+.toast{padding:8px 15px;border-radius:99px;border:1px solid var(--edge2);background:rgba(24,20,38,.96);
+  font-size:12.5px;color:var(--text);box-shadow:var(--shadow);animation:toastin .3s ease-out}
+@keyframes toastin{0%{opacity:0;transform:translateY(9px)}100%{opacity:1;transform:none}}
+.toast.gold{border-color:rgba(232,192,122,.55);color:var(--gold)}
+.toast.bad{border-color:rgba(255,80,100,.5);color:#ffb3bc}
+
+.sealwrap{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;
+  background:rgba(6,5,12,.7);backdrop-filter:blur(3px)}
+body.sealing .sealwrap{display:flex}
+body.sealing #app{filter:saturate(.4)}
+.sealbox{display:flex;flex-direction:column;align-items:center;gap:13px;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold2)}
+.sealring{width:34px;height:34px;border-radius:50%;border:2px solid rgba(232,192,122,.2);border-top-color:var(--gold);
+  animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sheetbtn{display:none}
+.hidden{display:none !important}
+.narrow{display:none}
+.credit{margin:16px 0 0 !important;padding-top:13px;border-top:1px solid var(--edge);text-align:center;font-size:11.5px;color:var(--dim2) !important}
+.credit a{color:var(--gold2);text-decoration:none}
+.credit a:hover{color:var(--gold);text-decoration:underline}
+
+/* ---------------------------------------------------------------- mobile */
+@media (max-width:860px){
+  main{flex-direction:column}
+  .panel{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;max-height:76vh;z-index:40;
+    border-left:none;border-top:1px solid var(--edge2);border-radius:18px 18px 0 0;
+    transform:translateY(102%);transition:transform .3s cubic-bezier(.3,1,.4,1);box-shadow:0 -16px 40px rgba(0,0,0,.6)}
+  .panel.open{transform:none}
+  .panel-head{padding-top:16px;position:relative}
+  .panel-head::before{content:"";position:absolute;top:6px;left:50%;transform:translateX(-50%);width:36px;height:4px;
+    border-radius:2px;background:var(--edge2)}
+  .panel-body{padding-bottom:26px}
+  .sheetbtn{display:flex}
+  .tray{flex-direction:column;align-items:stretch;gap:7px;padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+  .hall{display:none}
+  .traymid{display:contents}
+  .slots{order:1;gap:5px;padding:6px;min-height:52px;justify-content:center;max-width:520px;width:100%;margin:0 auto}
+  .slot{width:36px;height:36px}
+  .palette{order:2;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;width:100%;max-width:520px;margin:0 auto}
+  .pg{width:auto;min-width:0;height:38px}
+  .trayactions{order:3;display:flex;gap:6px;max-width:520px;width:100%;margin:0 auto}
+  .tbtn{flex:1;text-align:center;padding:8px 4px;font-size:12.5px}
+  .wide{display:none} .narrow{display:inline}
+  .brand{display:none}
+  .gate-id b{font-size:16px}
+  #chipPar{display:none}
+  .iconbtn{width:32px;height:32px;border-radius:8px}
+  .iconbtn svg{width:15px;height:15px}
+  header{padding:7px 11px;gap:9px}
+  .chip{min-width:44px;padding:3px 6px}
+  .chip b{font-size:14px}
+  .modal{padding:20px 19px}
+  .modal h1{font-size:27px}
+  .toastwrap{bottom:calc(160px + env(safe-area-inset-bottom))}
+  .g{width:22px;height:22px}
+  .rowcard{padding:5px 7px;gap:5px}
+  .col-head{padding:6px 10px;font-size:10px}
+}
+@media (max-width:400px){
+  .slot{width:32px;height:32px}
+  .pg{height:32px}
+  .slots{gap:4px;padding:5px;min-height:46px}
+  .g{width:20px;height:20px}
+  .tbtn{padding:7px 3px;font-size:11.5px}
+}
+@media (min-width:620px) and (max-width:860px){
+  .brand{display:block;font-size:18px} #chipPar{display:flex}
+  .hall{display:flex;width:142px} .gateviz{width:104px;height:178px}
+}
+@media (max-width:1040px) and (min-width:861px){ .hall{width:132px} .gateviz{width:104px;height:178px} }
+@media (max-height:640px) and (min-width:861px){ .gateviz{height:170px;width:100px} }
+/* a phone cannot spare room for the arch, so the meter lives under the header instead */
+.hmeter{display:none;height:3px;background:rgba(255,255,255,.06);flex:none}
+.hmeter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#6b5aa8,var(--yes));transition:width .5s cubic-bezier(.3,1,.4,1)}
+@media (max-width:860px){ .hmeter{display:block} #parText{display:block} }
+@media (min-width:861px){ #parText{display:none} }
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Glyphgate","item":"https://suipce.com/games/Puzzle/Glyphgate/"}]}</script>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand serif">GLYPHGATE</div>
+    <div class="gate-id">
+      <b id="gateName">The First Gate</b>
+      <span id="gateNo">Gate 1 of 13</span>
+    </div>
+    <div class="hstats">
+      <div class="chip" title="Experiments spent at this gate"><b id="statTests">0</b><span>Tests</span></div>
+      <div class="chip" id="chipPar" title="Experiments a machine experimenter needed to force this law, probing as efficiently as it could"><b id="statPar">—</b><span>Par</span></div>
+    </div>
+    <button class="iconbtn sheetbtn" id="btnSheet" title="State the law" aria-label="State the law">
+      <svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2.4"/></svg>
+    </button>
+    <button class="iconbtn" id="btnMap" title="Choose a gate" aria-label="Choose a gate">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    </button>
+    <button class="iconbtn" id="btnSound" title="Sound" aria-label="Sound">
+      <svg viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path id="wave1" d="M15.5 8.5a5 5 0 010 7"/></svg>
+    </button>
+    <button class="iconbtn" id="btnHelp" title="How to play" aria-label="How to play">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.2a2.8 2.8 0 015.4.9c0 1.9-2.7 2.3-2.7 4"/><circle cx="12" cy="17.4" r=".9" fill="currentColor" stroke="none"/></svg>
+    </button>
+  </header>
+
+  <div class="hmeter"><i id="hmeterFill"></i></div>
+  <main>
+    <div class="bench">
+      <div class="col yes">
+        <div class="col-head">
+          <span class="mark"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span>
+          Admitted <b id="cntYes">0</b>
+        </div>
+        <div class="col-body" id="benchYes"></div>
+      </div>
+      <div class="hall" aria-hidden="true">
+        <div class="beam"></div>
+        <div class="gateviz" id="gateViz">
+          <svg viewBox="0 0 120 210">
+            <path class="inner" d="M22 205V78a38 38 0 0176 0v127z"/>
+            <path class="arch" d="M22 205V78a38 38 0 0176 0v127"/>
+            <path class="arch thin" d="M32 205V80a28 28 0 0156 0v125"/>
+            <path class="glow" d="M22 205V78a38 38 0 0176 0v127"/>
+            <g class="rune"><circle cx="60" cy="80" r="12"/><path d="M60 56v48M36 80h48"/>
+              <circle cx="60" cy="80" r="4.5"/></g>
+            <path class="sill" d="M10 205h100"/>
+          </svg>
+        </div>
+    

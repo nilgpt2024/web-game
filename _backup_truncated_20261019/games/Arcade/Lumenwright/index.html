@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Play Lumenwright Online - Free Arcade Game | AIGameHub</title>
+    <meta name="description" content="Play Lumenwright online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="keywords" content="laser puzzle, light puzzle game, mirror puzzle, prism game, colour mixing puzzle, browser puzzle game, free online puzzle, html5 logic game, beam splitter, dichroic mirror, daily puzzle">
+    <meta name="author" content="gptgames.dev">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#06070d">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Lumenwright/">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="gptgames.dev">
+    <meta property="og:title" content="Play Lumenwright Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description" content="Play Lumenwright online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta property="og:url" content="https://www.gptgames.dev/games/lumenwright.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_287.webp">
+    <meta property="og:image:alt" content="A dark grid crossed by glowing red, green, blue and magenta laser beams bouncing off mirrors into ring-shaped detectors">
+    <!-- Twitter Card -->
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Lumenwright/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Lumenwright/preview.png">
+    <meta name="twitter:title" content="Play Lumenwright Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description" content="Play Lumenwright online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_287.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Lumenwright","url":"https://www.gptgames.dev/games/lumenwright.html","image":"https://www.gptgames.dev/screenshots/screenshot_287.webp","description":"A generated optics puzzle. Rotate mirrors, beam splitters, prisms and dichroic mirrors to route laser light so that every detector receives exactly the colour it requires. Additive colour mixing, an endless journey that keeps changing the shape of the board, a daily puzzle and an exact par proven by search.","genre":["Puzzle","Logic","Strategy"],"gamePlatform":"Web Browser","playMode":"SinglePlayer","applicationCategory":"Game","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"publisher":{"@type":"Organization","name":"gptgames.dev","url":"https://www.gptgames.dev/"}}</script>
+    <style>
+        :root {
+            --void: #06070d;
+            --void-2: #0a0c16;
+            --panel: #0f1220;
+            --panel-2: #151a2c;
+            --edge: #212840;
+            --edge-2: #2f3855;
+            --text: #e9edfa;
+            --dim: #838ead;
+            --dim-2: #5c6684;
+            --r: #ff4552;
+            --g: #3ff09a;
+            --b: #4f92ff;
+            --y: #ffd23f;
+            --m: #ff5ce0;
+            --c: #48e8ff;
+            --w: #ffffff;
+            --ok: #3ff09a;
+            --bad: #ff4552;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overscroll-behavior: none;
+        }
+
+        body {
+            background: var(--void);
+            color: var(--text);
+            font-family: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(1100px 700px at 18% -10%, rgba(79, 146, 255, .10), transparent 62%),
+                radial-gradient(900px 620px at 88% 8%, rgba(255, 92, 224, .08), transparent 60%),
+                radial-gradient(800px 800px at 50% 120%, rgba(63, 240, 154, .06), transparent 62%);
+        }
+
+        #app {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+        }
+
+        /* ── top bar ───────────────────────────── */
+        header.top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--edge);
+            background: linear-gradient(180deg, rgba(21, 26, 44, .85), rgba(10, 12, 22, .6));
+            backdrop-filter: blur(6px);
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            font-weight: 700;
+            letter-spacing: .16em;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        .brand b {
+            background: linear-gradient(92deg, var(--r), var(--y) 26%, var(--g) 52%, var(--c) 74%, var(--m));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 700;
+        }
+
+        .brand b.short { display: none; }
+
+        .brand span {
+            font-size: 10px;
+            letter-spacing: .22em;
+            color: var(--dim-2);
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        nav.modes {
+            display: flex;
+            gap: 4px;
+            padding: 3px;
+            border: 1px solid var(--edge);
+            border-radius: 10px;
+            background: rgba(6, 7, 13, .6);
+        }
+
+        nav.modes button {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            color: var(--dim);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .06em;
+            padding: 6px 13px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background .15s, color .15s;
+        }
+
+        nav.modes button:hover { color: var(--text); }
+
+        nav.modes button[aria-pressed="true"] {
+            background: var(--panel-2);
+            color: var(--text);
+            box-shadow: inset 0 0 0 1px var(--edge-2);
+        }
+
+        .spacer { flex: 1; }
+
+        .icon-btn {
+            appearance: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            border: 1px solid var(--edge);
+            background: var(--panel);
+            color: var(--dim);
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: color .15s, border-color .15s, background .15s;
+            padding: 0;
+        }
+
+        .icon-btn:hover { color: var(--text); border-color: var(--edge-2); }
+        .icon-btn[aria-pressed="true"] { color: var(--c); border-color: rgba(72, 232, 255, .45); }
+        .icon-btn svg { width: 17px; height: 17px; }
+
+        /* ── main ──────────────────────────────── */
+        main {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            gap: 0;
+        }
+
+        .stage {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            display: grid;
+            place-items: center;
+            padding: 14px;
+        }
+
+        #board {
+            display: block;
+            touch-action: manipulation;
+            cursor: pointer;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        aside.side {
+            width: 268px;
+            flex: 0 0 268px;
+            border-left: 1px solid var(--edge);
+            background: linear-gradient(180deg, rgba(15, 18, 32, .7), rgba(6, 7, 13, .5));
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .stat {
+            border: 1px solid var(--edge);
+            border-radius: var(--radius);
+            background: rgba(6, 7, 13, .5);
+            padding: 8px 10px;
+        }
+
+        .stat .k {
+            font-size: 9px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--dim-2);
+            font-weight: 600;
+        }
+
+        .stat .v {
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+            font-size: 19px;
+            font-weight: 700;
+            line-height: 1.25;
+        }
+
+        .stat .v small {
+            font-size: 11px;
+            color: var(--dim);
+            font-weight: 400;
+        }
+
+        .stat.wide { grid-column: 1 / -1; }
+        .stat.hit .v { color: var(--ok); }
+        .stat.over .v { color: var(--y); }
+
+        .btn-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        button.act {
+            appearance: none;
+            border: 1px solid var(--edge);
+            background: var(--panel);
+            color: var(--text);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .04em;
+            padding: 9px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: border-color .15s, background .15s, transform .1s;
+        }
+
+        button.act:hover:not(:disabled) { border-color: var(--edge-2); background: var(--panel-2); }
+        button.act:active:not(:disabled) { transform: translateY(1px); }
+
+        button.act:disabled {
+            opacity: .38;
+            cursor: default;
+        }
+
+        button.act.primary {
+            grid-column: 1 / -1;
+            border-color: rgba(63, 240, 154, .4);
+            background: linear-gradient(180deg, rgba(63, 240, 154, .18), rgba(63, 240, 154, .07));
+            color: #d6ffee;
+        }
+
+        button.act.primary:hover { border-color: rgba(63, 240, 154, .7); }
+
+        button.act kbd {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: var(--dim-2);
+            border: 1px solid var(--edge);
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+
+        .panel-title {
+            font-size: 9px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--dim-2);
+            font-weight: 700;
+            margin: 4px 0 -4px;
+        }
+
+        /* ── legend ────────────────────────────── */
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .lg-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 11.5px;
+            color: var(--dim);
+            line-height: 1.35;
+        }
+
+        .lg-item canvas {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            border-radius: 8px;
+            background: #080a12;
+            border: 1px solid var(--edge);
+        }
+
+        .lg-item b {
+            color: var(--text);
+            font-weight: 600;
+            display: block;
+            font-size: 11.5px;
+        }
+
+        .objective {
+            font-size: 11.5px;
+            line-height: 1.5;
+            color: var(--dim);
+            border: 1px solid var(--edge);
+            border-left: 2px solid var(--c);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            background: rgba(72, 232, 255, .045);
+            padding: 9px 11px;
+        }
+
+        .objective b { color: var(--text); }
+
+        /* ── overlays ──────────────────────────── */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            background: rgba(6, 7, 13, .82);
+            backdrop-filter: blur(7px);
+            z-index: 20;
+            padding: 18px;
+        }
+
+        .overlay[hidden] { display: none; }
+
+        .card {
+            width: min(430px, 100%);
+            max-height: 100%;
+            overflow-y: auto;
+            border: 1px solid var(--edge-2);
+            border-radius: 18px;
+            background: linear-gradient(180deg, var(--panel-2), var(--panel));
+            padding: 22px;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, .6);
+            animation: rise .28s cubic-bezier(.2, .9, .3, 1);
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(14px) scale(.98); }
+            to { opacity: 1; transform: none; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card { animation: none; }
+        }
+
+        .card h2 {
+            margin: 0 0 4px;
+            font-size: 22px;
+            letter-spacing: .02em;
+        }
+
+        .card h2.win {
+            background: linear-gradient(92deg, var(--g), var(--c));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .card p {
+            margin: 0 0 14px;
+            color: var(--dim);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .card p:last-of-type { margin-bottom: 18px; }
+
+        .verdict {
+            display: inline-block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .12em;
+            padding: 4px 10px;
+            border-radius: 99px;
+            margin-bottom: 12px;
+        }
+
+        .verdict.under { background: rgba(255, 210, 63, .14); color: var(--y); border: 1px solid rgba(255, 210, 63, .4); }
+        .verdict.par { background: rgba(63, 240, 154, .14); color: var(--g); border: 1px solid rgba(63, 240, 154, .4); }
+        .verdict.over { background: rgba(131, 142, 173, .12); color: var(--dim); border: 1px solid var(--edge-2); }
+
+        .scores {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .scores > div {
+            border: 1px solid var(--edge);
+            border-radius: 10px;
+            padding: 9px;
+            text-align: center;
+            background: rgba(6, 7, 13, .45);
+        }
+
+        .scores .k {
+            font-size: 9px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--dim-2);
+            font-weight: 600;
+        }
+
+        .scores .v {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .card .btn-row { grid-template-columns: 1fr 1fr; }
+
+        /* the help card can outgrow a short window, so its call to action
+           rides along the bottom instead of scrolling out of reach */
+        .card .sticky-foot {
+            position: sticky;
+            bottom: -22px;
+            margin: 0 -22px -22px;
+            padding: 0 22px 22px;
+            background: var(--panel);
+        }
+
+        .card .sticky-foot::before {
+            content: '';
+            display: block;
+            height: 20px;
+            margin: 0 -22px;
+            background: linear-gradient(180deg, rgba(15, 18, 32, 0), var(--panel));
+        }
+
+        #legend-help .lg-item { font-size: 11px; }
+        #legend-help .lg-item canvas { width: 30px; height: 30px; flex: 0 0 30px; }
+
+        .rules {
+            list-style: none;
+            margin: 0 0 18px;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .rules li {
+            display: flex;
+            gap: 11px;
+            align-items: flex-start;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: var(--dim);
+        }
+
+        .rules li b { color: var(--text); }
+
+        .rules .num {
+            flex: 0 0 20px;
+            height: 20px;
+            border-radius: 6px;
+            display: grid;
+            place-items: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--void);
+            background: var(--c);
+            margin-top: 1px;
+        }
+
+        .swatch-row {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin: 10px 0 16px;
+        }
+
+        .sw {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 6px;
+            border: 1px solid currentColor;
+            opacity: .95;
+        }
+
+        /* ── toast ─────────────────────────────── */
+        .toast {
+            position: absolute;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(15, 18, 32, .96);
+            border: 1px solid var(--edge-2);
+            border-radius: 12px;
+            padding: 10px 15px;
+            font-size: 12px;
+            line-height: 1.45;
+            max-width: min(400px, 88%);
+            box-shadow: 0 14px 34px rgba(0, 0, 0, .5);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s, transform .3s;
+            z-index: 15;
+        }
+
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast b { color: var(--c); }
+
+        /* ── free-play form ────────────────────── */
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            font-size: 9px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--dim-2);
+            font-weight: 700;
+        }
+
+        .field input, .field select {
+            appearance: none;
+            border: 1px solid var(--edge);
+            background: rgba(6, 7, 13, .6);
+            color: var(--text);
+            border-radius: 9px;
+            padding: 9px 11px;
+            font: inherit;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .field select {
+            background-image: linear-gradient(45deg, transparent 50%, var(--dim) 50%), linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+            background-position: calc(100% - 16px) 17px, calc(100% - 11px) 17px;
+            background-size: 5px 5px, 5px 5px;
+            background-repeat: no-repeat;
+        }
+
+        .field input:focus, .field select:focus {
+            outline: none;
+            border-color: var(--c);
+        }
+
+        .link-btn {
+            appearance: none;
+            background: none;
+            border: 0;
+            color: var(--dim);
+            font: inherit;
+            font-size: 11.5px;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .link-btn:hover { color: var(--text); }
+
+        /* ── narrow layout ─────────────────────── */
+        @media (max-width: 860px) {
+            main { flex-direction: column; }
+
+            aside.side {
+                width: auto;
+                flex: 0 0 auto;
+                border-left: 0;
+                border-top: 1px solid var(--edge);
+                flex-direction: column;
+                gap: 8px;
+                overflow: visible;
+                padding: 9px 10px calc(48px + env(safe-area-inset-bottom));
+            }
+
+            .side .legend, .side .panel-title, .side .objective { display: none; }
+
+            .side .stats { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+            .side .stat { padding: 6px 8px; }
+            .side .stat .k { font-size: 8px; letter-spacing: .1em; }
+            .side .stat .v { font-size: 17px; }
+            .side .stat.wide { grid-column: auto; }
+
+            .side .btn-row { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+            .side button.act { padding: 10px 4px; font-size: 11.5px; }
+            .side button.act kbd { display: none; }
+
+            .stage { padding: 8px; }
+            header.top { padding: 8px 12px; gap: 10px; }
+            .brand span { display: none; }
+        }
+
+        @media (max-width: 560px) {
+            header.top { flex-wrap: nowrap; gap: 7px; padding: 7px 10px; }
+            .brand { font-size: 13px; letter-spacing: .06em; flex: 0 0 auto; }
+            nav.modes { padding: 2px; flex: 0 0 auto; }
+            nav.modes button { padding: 5px 8px; font-size: 10.5px; }
+            .icon-btn { width: 30px; height: 30px; flex: 0 0 auto; }
+            .icon-btn svg { width: 15px; height: 15px; }
+            .side .stat .v { font-size: 15px; }
+            .card { padding: 18px; }
+            .card h2 { font-size: 19px; }
+        }
+
+        @media (max-width: 440px) {
+            .brand b.long { display: none; }
+            .brand b.short { display: inline; }
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Lumenwright","item":"https://suipce.com/games/Arcade/Lumenwright/"}]}</script>
+</head>
+<body>
+<div id="app">
+    <header class="top">
+        <div class="brand"><b class="long">LUMENWRIGHT</b><b class="short">LW</b><span>optics puzzle</span></div>
+        <nav class="modes" aria-label="Game mode">
+            <button id="m-journey" aria-pressed="true">Journey</button>
+            <button id="m-daily" aria-pressed="false">Daily</button>
+            <button id="m-free" aria-pressed="false">Free</button>
+        </nav>
+        <div class="spacer"></div>
+        <button class="icon-btn" id="btn-labels" aria-pressed="false" title="Colour labels (L)" aria-label="Toggle colour labels">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-sound" aria-pressed="true" title="Sound (M)" aria-label="Toggle sound">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-help" title="How to play (?)" aria-label="How to play">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a2.8 2.8 0 0 1 5.5.8c0 1.9-2.7 2.4-2.7 4"/><path d="M12 17.5h.01"/></svg>
+        </button>
+    </header>
+
+    <main>
+        <div class="stage" id="stage">
+            <canvas id="board" role="application" aria-label="Optics puzzle board" tabindex="0"></canvas>
+            <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+            <div class="overlay" id="ov-win" hidden>
+                <div class="card">
+                    <h2 class="win" id="win-title">Solved</h2>
+                    <p id="win-sub">Every detector is reading true.</p>
+                    <div class="verdict" id="win-verdict">AT PAR</div>
+                    <div class="scores">
+                        <div><div class="k">Moves</div><div class="v" id="win-moves">0</div></div>
+                        <div><div class="k">Par</div><div class="v" id="win-par">0</div></div>
+                        <div><div class="k">Best</div><div class="v" id="win-best">—</div></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="act" id="win-replay">Replay</button>
+                        <button class="act primary" id="win-next" style="grid-column:auto">Next level</button>
+                    </div>
+                    <div style="text-align:center;margin-top:12px">
+                        <button class="link-btn" id="win-share">Copy a link to this puzzle</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overlay" id="ov-help" hidden>
+                <div class="card">
+                    <h2>How light works here</h2>
+                    <p>Every detector wants one exact colour. Turn the optics until they all read true — and don't spill anything extra into them.</p>
+                    <ol class="rules">
+                        <li><span class="num">1</span><span><b>Click any piece to turn it.</b> Right-click, or hold <kbd>Shift</kbd>, to turn it the other way. Emitters, walls, filters and detectors are bolted down.</span></li>
+                        <li><span class="num">2</span><span><b>Colour adds up.</b> A red beam and a green beam arriving at the same detector make yellow. All three primaries make white.</span></li>
+                        <li><span class="num">3</span><span><b>And it comes apart again.</b> Prisms fan a beam into its primaries, dichroic mirrors bounce one colour and pass the rest, filters keep only their own. White light is a resource.</span></li>
+                        <li><span class="num">4</span><span><b>Exactly</b> means exactly. A cyan detector fed cyan <i>and</i> a stray red reads white, and stays dark.</span></li>
+                        <li><span class="num">5</span><span><b>Par is real.</b> It is the shortest solution the generator could prove, so matching it is a genuine result.</span></li>
+                    </ol>
+                    <div class="swatch-row" id="help-swatches"></div>
+                    <div class="panel-title" style="margin:0 0 10px">Optics</div>
+                    <div class="legend" id="legend-help"></div>
+                    <div class="sticky-foot">
+                        <div class="btn-row">
+                            <button class="act primary" id="help-close">Start bending light</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overlay" id="ov-free" hidden>
+                <div class="card">
+                    <h2>Free play</h2>
+                    <p>Pick a size and a seed. The same seed always builds the same board, so a link is a puzzle.</p>
+                    <div class="field">
+                        <label for="f-size">Board</label>
+                        <select id="f-size">
+                            <option value="0">Small — 6×6, gentle</option>
+                            <option value="1" selected>Medium — 8×8, mixed optics</option>
+                            <option value="2">Large — 10×9, everything</option>
+                            <option value="3">Vast — 12×10, unkind</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="f-seed">Seed</label>
+                        <input id="f-seed" type="text" maxlength="24" placeholder="anything at all" autocomplete="off" spellcheck="false">
+                    </div>
+                    <div class="btn-row">
+                        <button class="act" id="f-random">Random seed</button>
+                        <button class="act primary" id="f-go" style="grid-column:auto">Build it</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="side">
+            <div class="stats">
+                <div class="stat"><div class="k" id="s-label">Level</div><div class="v" id="s-level">1</div></div>
+                <div class="stat"><div class="k">Moves</div><div class="v" id="s-moves">0</div></div>
+                <div class="stat"><div class="k">Par</div><div class="v" id="s-par">—</div></div>
+                <div class="stat" id="s-lit-box"><div class="k">Detectors</div><div class="v" id="s-lit">0<small>/0</small></div></div>
+            </div>
+
+            <div class="btn-row">
+                <button class="act" id="b-undo" disabled>Undo <kbd>U</kbd></button>
+                <button class="act" id="b-reset">Reset <kbd>R</kbd></button>
+                <button class="act" id="b-hint">Hint <kbd>H</kbd></button>
+                <button class="act" id="b-skip">New <kbd>N</kbd></button>
+            </div>
+
+            <div class="objective" id="objective">
+                Turn the optics so every <b>

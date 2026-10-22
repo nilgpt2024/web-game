@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Blind-Crest/">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Play Blind Crest Online - Free Puzzle Game | AIGameHub</title>
+<meta name="description" content="Play Blind Crest online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<style>
+:root{
+  --ink:#f2efe8; --dim:#9aa3a8; --hi:#ffcf4a; --bad:#ff5a4d; --good:#6fe3a0;
+  --panel:rgba(10,13,16,.82); --edge:rgba(255,255,255,.14);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#05070a;color:var(--ink);
+  font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;overscroll-behavior:none}
+#wrap{position:fixed;inset:0}
+#cv{display:block;width:100%;height:100%;touch-action:none}
+
+.hud{position:absolute;pointer-events:none;text-shadow:0 2px 8px #000}
+#topleft{top:0;left:0;padding:14px 16px}
+#topright{top:0;right:0;padding:14px 16px;text-align:right}
+.lab{font-size:10px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase}
+.big{font-size:30px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.med{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+#delta{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* the co-driver's call */
+#call{position:absolute;left:50%;transform:translateX(-50%);bottom:52%;
+  display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;
+  padding:0 12px;max-width:94vw;pointer-events:none}
+.tok{background:var(--panel);border:1px solid var(--edge);border-radius:8px;
+  padding:7px 13px;font-size:19px;font-weight:700;letter-spacing:.02em;
+  backdrop-filter:blur(6px);animation:pop .18s ease-out}
+.tok.sev{color:#05070a;background:var(--hi);border-color:var(--hi)}
+.tok.sev.tight{background:var(--bad);color:#fff;border-color:var(--bad)}
+.tok.mod{font-size:15px;color:var(--hi);background:rgba(10,13,16,.7)}
+.tok.dist{font-size:15px;color:var(--dim)}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.96)}to{opacity:1}}
+@media (max-width:560px){
+  #call{gap:6px}
+  .tok{padding:5px 9px;font-size:16px}
+  .tok.mod,.tok.dist{font-size:13px}
+}
+
+#warn{position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);
+  font-size:min(8.5vw,54px);font-weight:800;letter-spacing:.06em;color:var(--bad);
+  opacity:0;pointer-events:none;text-shadow:0 4px 24px #000;white-space:nowrap}
+
+/* progress bar down the right edge */
+#prog{position:absolute;right:10px;top:76px;bottom:76px;width:4px;
+  background:rgba(255,255,255,.12);border-radius:2px;pointer-events:none}
+#progdot{position:absolute;left:-3px;width:10px;height:10px;border-radius:50%;
+  background:var(--hi);box-shadow:0 0 10px var(--hi)}
+
+#mini{position:absolute;left:14px;bottom:14px;width:110px;height:110px;opacity:.72;pointer-events:none}
+
+/* overlays */
+.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,rgba(12,16,22,.9),rgba(3,5,8,.97));
+  backdrop-filter:blur(3px);padding:20px;overflow-y:auto}
+.card{width:min(560px,100%);text-align:center}
+h1{font-size:clamp(30px,8vw,52px);margin:0 0 2px;letter-spacing:.02em;font-weight:800}
+h1 span{color:var(--hi)}
+.sub{color:var(--dim);font-size:13px;line-height:1.65;margin:0 0 20px}
+.rules{text-align:left;background:rgba(255,255,255,.04);border:1px solid var(--edge);
+  border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.75;margin:0 0 18px;color:#cfd6da}
+.rules b{color:var(--hi);font-weight:700}
+.rules .k{display:inline-block;background:rgba(255,255,255,.1);border:1px solid var(--edge);
+  border-radius:4px;padding:0 6px;color:var(--ink);font-size:12px}
+button{font:inherit;font-weight:700;cursor:pointer;border-radius:9px;padding:13px 26px;
+  font-size:16px;background:var(--hi);color:#0a0d10;border:0;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--edge);
+  padding:10px 18px;font-size:13px;font-weight:600}
+button:active{transform:translateY(1px)}
+.row{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+input{font:inherit;font-size:14px;background:rgba(255,255,255,.07);color:var(--ink);
+  border:1px solid var(--edge);border-radius:8px;padding:10px 12px;width:170px;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 14px}
+td,th{padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.09);text-align:right}
+th{color:var(--dim);font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+td:first-child,th:first-child{text-align:left}
+tr.now td{color:var(--hi)}
+.tot{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.pen{color:var(--bad)}
+.hide{display:none!important}
+.note{font-size:11px;color:var(--dim);line-height:1.6;margin-top:14px}
+
+/* touch controls: one surface, read analogue */
+#touch{position:absolute;inset:0;display:none;touch-action:none}
+body.touch #touch{display:block}
+#hints{position:absolute;inset:0;pointer-events:none;display:none;
+  transition:opacity .5s;font-size:10px;letter-spacing:.16em;color:rgba(255,255,255,.5)}
+body.touch #hints{display:block}
+#hints .z{position:absolute;bottom:10%;top:36%;
+  border:1px dashed rgba(255,255,255,.16);border-radius:10px}
+#hL{left:2%;width:41%}#hM{left:44%;width:12%}#hR{right:2%;width:41%}
+#hints .t{position:absolute;left:0;right:0;text-align:center;line-height:1.5;
+  font-size:9px;padding:0 4px}
+#hints b{display:block;font-size:17px;color:rgba(255,255,255,.6);font-weight:700}
+#hM .half{position:absolute;left:0;right:0;height:50%}
+#hM .half+.half{top:50%;border-top:1px dashed rgba(255,255,255,.16)}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Blind Crest","item":"https://suipce.com/games/Puzzle/Blind-Crest/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Blind-Crest/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Blind-Crest/preview.png"></head>
+<body>
+<div id="wrap">
+  <canvas id="cv"></canvas>
+
+  <div class="hud" id="topleft">
+    <div class="lab">Speed</div>
+    <div class="big"><span id="spd">0</span><span style="font-size:13px;color:var(--dim)"> km/h</span></div>
+    <div id="delta"></div>
+  </div>
+  <div class="hud" id="topright">
+    <div class="lab" id="stagelab">Stage</div>
+    <div class="med" id="clock">0:00.0</div>
+    <div class="lab" style="margin-top:7px">To go</div>
+    <div class="med" id="togo">0.0 km</div>
+  </div>
+  <div id="prog"><div id="progdot"></div></div>
+  <canvas id="mini" width="120" height="120"></canvas>
+  <div id="call"></div>
+  <div id="warn"></div>
+
+  <div id="touch"></div>
+  <div id="hints">
+    <div class="z" id="hL"><div class="t" style="top:12%"><b>&larr;</b>nearer the edge,<br>sharper the turn</div></div>
+    <div class="z" id="hM">
+      <div class="half"><div class="t" style="top:18%"><b>&uarr;</b>lift</div></div>
+      <div class="half"><div class="t" style="top:18%"><b>&darr;</b>brake</div></div>
+    </div>
+    <div class="z" id="hR"><div class="t" style="top:12%"><b>&rarr;</b>nearer the edge,<br>sharper the turn</div></div>
+  </div>
+
+  <div class="screen" id="menu">
+    <div class="card">
+      <h1>BLIND <span>CREST</span></h1>
+      <p class="sub">You cannot see the corner. She can.</p>
+      <div class="rules">
+        <b>Pacenotes.</b> Your co-driver reads the road ahead of you. <b>Left 4</b> is a fast
+        left; <b>right 1</b> is a hairpin. Low number, slow corner. A <b>6</b> is flat out
+        and a <b>5</b> is a lift — it is the <b>4</b>s and below you brake for.
+        <b>Long</b> means it keeps going, <b>tightens</b> means brake more than you want to,
+        <b>into</b> means there is no straight in between.<br>
+        <b>Drive.</b> <span class="k">← →</span> steer &middot; <span class="k">↑</span> throttle
+        &middot; <span class="k">↓</span> brake &middot; <span class="k">R</span> restart stage.<br>
+        <b>On a phone</b> the throttle looks after itself. Hold anywhere on the left or
+        right to steer: the nearer the middle of the screen, the gentler the turn, and the
+        screen edge is full lock. A narrow strip down the centre is speed — lower half
+        brakes, upper half lifts. Two thumbs work at once.<br>
+        <b>The rally.</b> Six stages, they get harder, and the night comes in. Times add up.
+      </div>
+      <div class="row">
+        <button id="go">Start rally</button>
+        <button class="ghost" id="single">Single stage</button>
+      </div>
+      <div class="row">
+        <input id="seedin" placeholder="seed" maxlength="18">
+        <button class="ghost" id="reseed">New seed</button>
+      </div>
+      <p class="note" id="menunote"></p>
+    </div>
+  </div>
+
+  <div class="screen hide" id="result"><div class="card" id="resbody"></div></div>
+</div>
+
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════
+   BLIND CREST — a rally stage you cannot see.
+
+   The road is rendered in road-space (a projected strip of segments), which
+   is the whole point: at 140 km/h you can see about two seconds of tarmac,
+   and everything past that you only know because you were told.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── seeded PRNG ─────────────────────────────────────────────────────── */
+function hashSeed(str){
+  let h=2166136261>>>0;
+  for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return h>>>0;
+}
+function mulberry(a){
+  return function(){
+    a=(a+0x6D2B79F5)|0;
+    let t=Math.imul(a^(a>>>15), a|1);
+    t=(t+Math.imul(t^(t>>>7), t|61))^t;
+    return ((t^(t>>>14))>>>0)/4294967296;
+  };
+}
+
+/* ── constants ───────────────────────────────────────────────────────── */
+const SEG=6;                 // metres per road segment
+const ROADW=4.5;             // half-width of the tarmac, metres
+const GRIP=19.0;             // m/s^2 of lateral grip on tarmac (arcade, ~1.9g)
+const VMAX=50;               // m/s (180 km/h)
+// Camera. The road's on-screen half-width at the bottom of the frame is
+// ROADW*(H-HOR)/(CAM_D*CAM_H); at the original 1.35 / 0.86 that came to 2.3x
+// the screen width, so the near tarmac swallowed the lower half of the frame
+// and the whole thing read as a motorway rather than a lane through a wood.
+const CAM_D=1.15;
+
+/* the car, as the stage generator understands it */
+const ACC_MS2=5.4, BRK_MS2=11.0, NOTE_LEAD_S=3.6, NOTE_LEAD_M=38;
+
+/* severity -> the radius band the note actually promises */
+const BANDS=[null,10,16,29,50,86,150];
+function severityOf(r){
+  if(r<12)return 1; if(r<22)return 2; if(r<38)return 3;
+  if(r<65)return 4; if(r<110)return 5; return 6;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STAGE GENERATION
+   Corners are laid out as radius/arc/side, then baked into per-segment
+   curvature and elevation. Every stage is checked for drivability before
+   it is ever shown — see checkReadable().
+   ═══════════════════════════════════════════════════════════════════════ */
+function buildCorners(rnd, targetLen, diff){
+  // diff 0..1 shifts the mix towards tighter, more linked corners
+  const corners=[]; let len=0, bias=0, v=22;
+  while(len<targetLen){
+    let radius = 9 + Math.pow(rnd(), 2.2+0.6*diff)*180;
+    let arc = Math.min(0.35 + rnd()*2.3, 2.9);
+    let want = 20 + Math.pow(rnd(),1.8)*(250-90*diff);
+    // Rather than roll a straight and throw the stage away when the corner
+    // turns out to be unreachable, lengthen the straight until the note has
+    // somewhere to land. Short straights therefore pair with fast corners,
+    // which is also how a real road works.
+    const need=minRunUp(v, radius);
+    const straight=Math.max(want, need);
+    let side = bias>0 ? -1 : 1;
+    if(rnd() < 0.5 - Math.min(0.42, Math.abs(bias)/6)) side=-side;
+    bias += arc*side;
+    corners.push({straight, radius, arc, side, link:null});
+    len += straight + radius*arc;
+    v = Math.min(VMAX, Math.sqrt(GRIP*radius));
+    // linked corner: tightens or opens, called as one note with its parent
+    if(rnd() < 0.20+0.22*diff){
+      const tighten = rnd()<0.55;
+      const r2 = Math.max(9, Math.min(200, radius*(tighten?0.42:2.3)));
+      const a2 = 0.3+rnd()*1.1;
+      corners.push({straight:0, radius:r2, arc:a2, side, link:tighten?'tightens':'opens'});
+      len += r2*a2; bias += a2*side;
+      v = Math.min(VMAX, Math.sqrt(GRIP*r2));
+    }
+  }
+  return corners;
+}
+
+/* Shortest straight after which a corner of this radius is still brakeable
+   inside the warning the pacenote gives. */
+function minRunUp(vPrev, radius){
+  const vC=Math.min(VMAX, Math.sqrt(GRIP*radius));
+  let lo=0, hi=900;
+  const ok=d=>{
+    const vA=Math.min(VMAX, Math.sqrt(vPrev*vPrev + 2*ACC_MS2*d));
+    if(vA<=vC) return true;
+    const needed=(vA*vA - vC*vC)/(2*BRK_MS2);
+    return needed <= Math.min(d, vA*NOTE_LEAD_S + NOTE_LEAD_M)*0.94;
+  };
+  if(ok(0)) return 0;
+  for(let i=0;i<24;i++){ const m=(lo+hi)/2; if(ok(m)) hi=m; else lo=m; }
+  return hi;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COUNTRY
+   A stage drives through places rather than past the same two props. Each
+   biome sets the ground colour, how steep the banks are, and what grows or
+   stands beside the road. Everything here is fogged at the same rate as the
+   tarmac, so none of it reveals a corner earlier than the road itself does.
+   ═══════════════════════════════════════════════════════════════════════ */
+const BIOMES=[
+  { id:'forest', ground:[46,58,42], bank:[1.0,2.8], near:2.0, density:1.35,
+    props:[['conifer',7,3.5,7],['conifer_tall',4,6,9.5],['stump',1,0.8,1.6],['rock',1,0.7,1.8]] },
+  { id:'moor', ground:[74,72,52], bank:[0.2,1.6], near:6.0, density:0.55,
+    props:[['rock',4,0.8,2.2],['boulder',2,2.2,4.2],['gorse',5,1.0,2.2],['snowpole',2,1.6,1.9]] },
+  { id:'farm', ground:[86,94,54], bank:[0.4,2.2], near:3.0, density:0.95,
+    props:[['fence',9,2.4,2.8],['bale',2,3.0,4.4],['broadleaf',3,4.5,7.5],['gate',1,3,3.4]] },
+  { id:'gorge', ground:[62,60,58], bank:[2.4,5.0], near:1.4, density:1.05,
+    props:[['cliff',8,1.4,3.2],['boulder',3,1.4,3.0],['conifer',1,3,9]] },
+  { id:'hamlet', ground:[72,78,56], bank:[0.3,1.4], near:3.4, density:1.05,
+    props:[['wall',6,2.6,3.2],['barn',2,4.5,7],['crowd',4,2.6,4.2],['broadleaf',2,4.5,7.5]] }
+];
+
+function planCountry(rnd, nSeg){
+  // runs of country, 250–700 m each, never the same twice in a row
+  const track=new Uint8Array(nSeg); let i=0, prev=-1;
+  while(i<nSeg){
+    let b; do { b=Math.floor(rnd()*BIOMES.length); } while(b===prev);
+    prev=b;
+    const run=Math.round((250+rnd()*450)/SEG);
+    for(let k=0;k<run && i<nSeg;k++,i++) track[i]=b;
+  }
+  return track;
+}
+
+function dressStage(segs, track, rnd){
+  const props=[]; for(let i=0;i<segs.length;i++) props.push(null);
+  for(let i=0;i<segs.length;i++){
+    const B=BIOMES[track[i]];
+    for(const side of [-1,1]){
+      let n = rnd()<B.density-1 ? 2 : (rnd()<Math.min(1,B.density) ? 1 : 0);
+      while(n-- > 0){
+      // weighted pick
+      let tot=0; for(const p of B.props) tot+=p[1];
+      let r=rnd()*tot, pick=B.props[0];
+      for(const p of B.props){ r-=p[1]; if(r<=0){ pick=p; break; } }
+      const [type,,lo,hi]=pick;
+      const off = B.near + 2.5 + rnd()*17;
+      const o={side, off, type, s:lo+rnd()*(hi-lo), a:rnd(), b:rnd()};
+      (props[i] || (props[i]=[])).push(o);
+      }
+      // rough grass right on the verge, so the kerb does not meet bare colour
+      if(rnd()<0.8){
+        (props[i] || (props[i]=[])).push({side, off:0.2+rnd()*1.9, type:'tuft',
+          s:0.35+rnd()*0.55, a:rnd(), b:rnd(), bio:track[i]});
+      }
+    }
+  }
+  return props;
+}
+
+function bakeStage(corners, rnd, diff){
+  const segs=[];
+  const push=(curve,dy)=>segs.push({curve, y:0, dy, crest:false});
+  // Elevation as a sum of bounded waves: guarantees real crests and brows
+  // without the road wandering off into the stratosphere.
+  const waves=[];
+  for(let k=0;k<3;k++){
+    const L = 55 + rnd()*210;                 // wavelength, metres
+    waves.push({L, A: L*(0.035+rnd()*0.055), p: rnd()*Math.PI*2});
+  }
+  const heightAt = d => waves.reduce((a,w)=>a + w.A*Math.sin(d/w.L + w.p), 0);
+
+  const notes=[];
+  for(const c of corners){
+    const nS=Math.max(0,Math.round(c.straight/SEG));
+    for(let i=0;i<nS;i++) push(0, 0);
+    const nC=Math.max(2,Math.round(c.radius*c.arc/SEG));
+    const curve=(SEG/c.radius)*c.side;
+    const startSeg=segs.length;
+    // ease the curvature in and out so corners have an entry, not a wall
+    for(let i=0;i<nC;i++){
+      const t=i/(nC-1);
+      const ease=Math.min(1, Math.sin(Math.PI*Math.min(t,1))*1.6+0.35);
+      push(curve*Math.min(1,ease), 0);
+    }
+    notes.push({seg:startSeg, sev:severityOf(c.radius), side:c.side,
+                radius:c.radius, arc:c.arc, link:c.link, straightBefore:c.straight});
+  }
+  for(let i=0;i<40;i++) push(0, 0);  // run-off past the flying finish
+
+  // lay the elevation on, then mark the crests: places where the road rises
+  // and then falls away fast enough that you genuinely cannot see over it
+  for(let i=0;i<segs.length;i++) segs[i].y = heightAt(i*SEG);
+  for(let i=12;i<segs.length-14;i++){
+    const rise = segs[i].y - segs[i-12].y;
+    const fall = segs[i+12].y - segs[i].y;
+    const peak = segs[i].y >= segs[i-3].y && segs[i].y >= segs[i+3].y;
+    if(peak && rise > 1.4 && fall < -1.4) segs[i].crest = true;
+  }
+  // one crest flag per brow, not twenty in a row
+  let lastC=-99;
+  for(let i=0;i<segs.length;i++){
+    if(!segs[i].crest) continue;
+    if(i-lastC < 14) segs[i].crest=false; else lastC=i;
+  }
+
+  // cumulative heading, so the far ridgelines swing as the road turns
+  let hd=0;
+  for(let i=0;i<segs.length;i++){ hd+=segs[i].curve; segs[i].head=hd; }
+
+  // country, and the banks it cuts the road through
+  const track=planCountry(rnd, segs.length);
+  let bl=1, br=1;
+  for(let i=0;i<segs.length;i++){
+    const B=BIOMES[track[i]];
+    const tgt=B.bank[0]+ (B.bank[1]-B.bank[0]) *
+      (0.5+0.5*Math.sin(i*0.031+track[i]*2.1)) ;
+    bl += (tgt*(0.75+0.5*((i*7919)%97)/97) - bl)*0.06;
+    br += (tgt*(0.75+0.5*((i*6271)%89)/89) - br)*0.06;
+    segs[i].bl=bl; segs[i].br=br; segs[i].bio=track[i];
+  }
+  const props=dressStage(segs, track, rnd);
+
+  return {segs, notes, props, track};
+}
+
+/* The check that matters — and the first version of it was worthless.
+
+   A backward speed pass can never reject a road: it *defines* a feasible
+   profile, so asking "does the road obey it" is a tautology, and it happily
+   passed a 50-metre run-up into a hairpin. The real question is not whether
+   the corner can be taken, it is whether you can be TOLD in time: is there
+   room to brake between the moment the note is called and the corner itself?
+   A stage that fails this is not difficult, it is unfair, and the player has
+   no way to tell the difference. */
+function checkReadable(corners){
+  let v=22;                                   // speed off the start line
+  for(let i=0;i<corners.length;i++){
+    const c=corners[i];
+    // what you would be doing at the end of the straight before this corner
+    const vArrive=Math.min(VMAX, Math.sqrt(v*v + 2*ACC_MS2*c.straight));
+    const vCorner=Math.min(VMAX, Math.sqrt(GRIP*c.radius));
+    if(vArrive>vCorner){
+      const needed=(vArrive*vArrive - vCorner*vCorner)/(2*BRK_MS2);
+      // the note lands this far out; a linked corner is called with its parent
+      const warned=c.link ? 1e9 : Math.min(c.straight, vArrive*NOTE_LEAD_S + NOTE_LEAD_M);
+      if(needed > warned*1.02) return false;
+    }
+    v=vCorner;
+  }
+  return true;
+}
+
+function makeStage(seedStr, index, diff){
+  // deterministic: walk seeds until one is drivable, so a seed always
+  // yields the same stage without ever handing out a broken one
+  for(let attempt=0; attempt<200; attempt++){
+    const rnd=mulberry(hashSeed(seedStr+"|"+index+"|"+attempt));
+    const targetLen = 1900 + 500*index/5 + Math.floor(rnd()*500);
+    const corners=buildCorners(rnd, targetLen, diff);
+    if(!checkReadable(corners)) continue;
+    const baked=bakeStage(corners, rnd, diff);
+    if(checkReadable(corners)){
+      baked.length=baked.segs.length*SEG;
+      baked.attempt=attempt;
+      return baked;
+    }
+  }
+  return null;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PACENOTES — turning geometry into something a person can act on
+   ═══════════════════════════════════════════════════════════════════════ */
+function writeNotes(stage){
+  const out=[];
+  for(let i=0;i<stage.notes.length;i++){
+    const n=stage.notes[i];
+    if(n.link){ continue; }                     // folded into the previous call
+    const toks=[];
+    // how far since the last corner
+    const gap=n.straightBefore;
+    if(i>0){
+      if(gap<28) toks.push({t:'into', c:'mod'});
+      else{
+        const r = gap<80 ? Math.round(gap/10)*10 : Math.round(gap/50)*50;
+        toks.push({t:String(r), c:'dist'});
+      }
+    }
+    toks.push({t:(n.side<0?'Left':'Right')+' '+n.sev, c:'sev', sev:n.sev});
+    if(n.arc>2.05 && n.radius*n.arc>60) toks.push({t:'long', c:'mod'});
+    // a brow anywhere in the approach means you take the corner blind
+    let brow=false;
+    for(let k=Math.max(0,n.seg-7); k<=n.seg+2; k++) if(stage.segs[k] && stage.segs[k].crest) brow=true;
+    if(brow) toks.push({t:'over crest', c:'mod'});
+    const nx=stage.notes[i+1];
+    if(nx && nx.link){
+      toks.push({t:nx.link, c:'mod'});
+      if(nx.link==='tightens') toks.push({t:'to '+nx.sev, c:'sev', sev:nx.sev});
+    }
+    out.push({seg:n.seg, toks, sev:n.sev, side:n.side, spoken:false});
+  }
+  return out;
+}
+function spokenText(call){
+  return call.toks.map(t=> t.c==='dist' ? t.t : t.t).join(' ')
+    .replace(/Left (\d)/,'left $1').replace(/Right (\d)/,'right $1');
+}
+
+/* ── the co-driver's voice ───────────────────────────────────────────── */
+const Voice={
+  on:true, ready:false, v:null,
+  init(){
+    if(!('speechSynthesis' in window)) { this.on=false; return; }
+    const pick=()=>{
+      const vs=speechSynthesis.getVoices();
+      if(!vs.length) return;
+      // prefer an English voice; anything else reads the numbers wrong
+      this.v = vs.find(v=>/en[-_]GB/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || vs[0];
+      this.ready=true;
+    };
+    pick(); speechSynthesis.onvoiceschanged=pick;
+  },
+  say(text){
+    if(!this.on || !('speechSynthesis' in window)) return;
+    try{
+      speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      if(this.v) u.voice=this.v;
+      u.rate=1.45; u.pitch=1.05; u.volume=1;
+      speechSynthesis.speak(u);
+    }catch(e){ this.on=false; }
+  },
+  stop(){ try{ speechSynthesis.cancel(); }catch(e){} }
+};
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RENDERING
+   ═══════════════════════════════════════════════════════════════════════ */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+const SCENE={hor:0, fl:0, camH:2.6};
+let VIG=null;
+function bakeVignette(){
+  // baked once per resize instead of rasterising a full-screen radial
+  // gradient on every frame
+  const c=document.createElement('canvas');
+  c.width=Math.max(2,Math.round(W/2)); c.height=Math.max(2,Math.round(H/2));
+  const g=c.getContext('2d');
+  const vg=g.createRadialGradient(c.width/2,c.height/2,c.height*0.35,
+                                  c.width/2,c.height/2,c.height*0.95);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.55)');
+  g.fillStyle=vg; g.fillRect(0,0,c.width,c.height);
+  VIG=c;
+}
+function resize(){
+  DPR=Math.min(2, window.devicePixelRatio||1);
+  W=cv.clientWidth; H=cv.clientHeight;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  // A tall phone puts nearly the whole screen in the near field, so the road
+  // ahead shrinks to a strip. Lifting the camera and dropping the horizon
+  // spreads it back out.
+  const tall=Math.max(0, Math.min(1, (H/W-1.05)/1.10));
+  SCENE.camH = 2.60 + 1.90*tall;
+  SCENE.hor  = H*(0.50 - 0.14*tall);
+  SCENE.fl   = Math.max(W/2, H*0.46);
+  // the co-driver's call always sits just above the horizon, whatever the shape
+  const c=document.getElementById('call');
+  if(c) c.style.bottom = Math.round(H - SCENE.hor + 26)+'px';
+  bakeVignette();
+}
+window.addEventListener('resize',resize);
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+function mix(c1,c2,t){
+  return 'rgb('+Math.round(lerp(c1[0],c2[0],t))+','+Math.round(lerp(c1[1],c2[1],t))+','
+    +Math.round(lerp(c1[2],c2[2],t))+')';
+}
+
+// Palette per stage — dawn through to night. `sun` is a direction and a
+// colour: everything that stands up beside the road is lit from it, which is
+// most of what stops flat shapes reading as cardboard.
+const LOOKS=[
+ {name:'Morning', dist:10,
+  sky:[[86,120,158],[196,214,224]], sun:{x:-0.62,y:0.30,warm:[255,244,214],amb:[150,168,188],str:0.55},
+  grass:[[62,78,54],[52,66,46]], road:[[66,68,72],[58,60,64]],
+  rumble:[[176,78,66],[226,226,222]], fogc:[146,166,170], stars:0},
+ {name:'Overcast', dist:9,
+  sky:[[96,106,120],[178,186,196]], sun:{x:-0.2,y:0.9,warm:[226,230,236],amb:[150,158,168],str:0.22},
+  grass:[[54,66,48],[45,56,42]], road:[[60,62,66],[54,56,60]],
+  rumble:[[172,74,62],[220,220,216]], fogc:[132,142,148], stars:0},
+ {name:'Low sun', dist:8,
+  sky:[[128,102,92],[228,172,112]], sun:{x:0.80,y:0.10,warm:[255,206,140],amb:[136,120,120],str:0.85},
+  grass:[[70,64,44],[56,52,37]], road:[[72,66,62],[62,58,56]],
+  rumble:[[186,80,60],[236,228,206]], fogc:[182,134,92], stars:0},
+ {name:'Dusk', dist:7,
+  sky:[[46,50,74],[168,112,96]], sun:{x:0.9,y:-0.05,warm:[236,150,110],amb:[86,92,116],str:0.55},
+  grass:[[48,50,44],[38,42,37]], road:[[56,56,60],[48,48,52]],
+  rumble:[[162,64,54],[206,202,196]], fogc:[120,84,76], stars:0.25},
+ {name:'Last light', dist:6,
+  sky:[[16,20,36],[64,60,80]], sun:{x:0.7,y:-0.2,warm:[132,112,128],amb:[38,44,64],str:0.30},
+  grass:[[26,30,28],[21,25,23]], road:[[42,42,46],[36,36,40]],
+  rumble:[[126,52,44],[168,166,162]], fogc:[34,38,52], stars:0.7},
+ {name:'Night', dist:5,
+  sky:[[6,8,15],[14,17,28]], sun:{x:-0.4,y:0.6,warm:[70,78,104],amb:[16,20,32],str:0.22},
+  grass:[[14,17,16],[11,14,13]], road:[[32,32,36],[28,28,32]],
+  rumble:[[112,44,38],[150,148,144]], fogc:[9,12,20], stars:1}
+];
+
+function drawPoly(x1,y1,w1,x2,y2,w2,fill){
+  ctx.fillStyle=fill; ctx.beginPath();
+  ctx.moveTo(x1-w1,y1); ctx.lineTo(x1+w1,y1); ctx.lineTo(x2+w2,y2); ctx.lineTo(x2-w2,y2);
+  ctx.closePath(); ctx.fill();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   GAME
+   ═══════════════════════════════════════════════════════════════════════ */
+const G={
+  seed:'', stageIdx:0, rally:true, nStages:6,
+  stage:null, calls:[], look:LOOKS[0],
+  pos:0, x:0, vx:0, v:0, steer:0, yaw:0,
+  t:0, running:false, finished:false, penalty:0,
+  offT:0, shake:0, warnT:0, warnMsg:'',
+  results:[], best:null, bestSplits:null, splits:null, delta:null,
+  headlightPulse:0
+};
+
+const el=id=>document.getElementById(id);
+const fmt=t=>{ const m=Math.floor(t/60), s=t-m*60; return m+':'+(s<10?'0':'')+s.toFixed(1); };
+const fmtD=d=>(d>=0?'+':'−')+Math.abs(d).toFixed(1);
+
+function loadStage(){
+  const diff=G.rally ? G.stageIdx/(G.nStages-1) : 0.45;
+  G.stage=makeStage(G.seed, G.stageIdx, diff);
+  G.calls=writeNotes(G.stage);
+  G.look=LOOKS[G.rally ? Math.min(LOOKS.length-1, G.stageIdx) : 1];
+  G.pos=0; G.x=0; G.vx=0; G.yaw=0; G.v=0; G.t=0; G.penalty=0; G.offT=0; G.shake=0;
+  G.finished=false; G.warnT=0;
+  for(const c of G.calls) c.spoken=false;
+  buildMini();
+  buildRidges(G.seed+'|'+G.stageIdx);
+  const key=bestKey();
+  try{
+    const raw=localStorage.getItem(key);
+    const o=raw?JSON.parse(raw):null;
+    G.best=o?o.t:null; G.bestSplits=o?o.s:null;
+  }catch(e){ G.best=null; G.bestSplits=null; }
+  G.splits=[]; G.delta=null;
+  el('stagelab').textContent = G.rally ? ('Stage '+(G.stageIdx+1)+'/'+G.nStages+' · '+G.look.name) : G.look.name;
+  renderCall(null);
+}
+
+function bestKey(){ return 'blindcrest:'+G.seed+':'+G.stageIdx+':'+(G.rally?'r':'s'); }
+
+/* ── minimap ─────────────────────────────────────────────────────────── */
+const mini=el('mini'), mctx=mini.getContext('2d');
+let miniPts=[];
+function buildMini(){
+  const pts=[]; let hx=0,hy=0,h=-Math.PI/2;
+  for(let i=0;i<G.stage.segs.length;i+=3){
+    h += G.stage.segs[i].curve*3;
+    hx+=Math.cos(h)*SEG*3; hy+=Math.sin(h)*SEG*3;
+    pts.push([hx,hy]);
+  }
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  for(const [a,b] of pts){ x0=Math.min(x0,a);y0=Math.min(y0,b);x1=Math.max(x1,a);y1=Math.max(y1,b); }
+  const s=Math.min(104/Math.max(1,x1-x0), 104/Math.max(1,y1-y0));
+  miniPts=pts.map(([a,b])=>[8+(a-x0)*s, 8+(b-y0)*s]);
+}
+function drawMini(){
+  const d=Math.min(2, window.devicePixelRatio||1);
+  if(mini.width!==120*d){ mini.width=120*d; mini.height=120*d; }
+  mctx.setTransform(d,0,0,d,0,0);
+  mctx.clearRect(0,0,120,120);
+  mctx.strokeStyle='rgba(255,255,255,.34)'; mctx.lineWidth=2.4;
+  mctx.lineJoin='round'; mctx.lineCap='round';
+  mctx.beginPath();
+  miniPts.forEach(([a,b],i)=> i?mctx.lineTo(a,b):mctx.moveTo(a,b));
+  mctx.stroke();
+  const i=Math.min(miniPts.length-1, Math.floor(G.pos/SEG/3));
+  if(miniPts[i]){
+    mctx.fillStyle='#ffcf4a'; mctx.beginPath();
+    mctx.arc(miniPts[i][0],miniPts[i][1],3.6,0,7); mctx.fill();
+  }
+}
+
+/* ── the call on screen ──────────────────────────────────────────────── */
+function renderCall(call){
+  const box=el('call');
+  if(!call){ box.innerHTML=''; return; }
+  box.innerHTML='';
+  for(const t of call.toks){
+    const d=document.createElement('div');
+    d.className='tok '+t.c+((t.c==='sev'&&t.sev<=2)?' tight':'');
+    d.textContent=t.t; box.appendChild(d);
+  }
+}
+
+/* ── input ──────────────────────────────────────────

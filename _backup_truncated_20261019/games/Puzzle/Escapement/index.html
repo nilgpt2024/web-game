@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Play Escapement Online - Free Puzzle Game | AIGameHub</title>
+<meta name="description" content="Play Escapement online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="keywords" content="pinball, browser pinball, html5 pinball, physics game, flippers, ramps, multiball, free online pinball, arcade game, clockwork, no download">
+<meta name="author" content="gptgames.dev">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#080b13">
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Escapement/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="gptgames.dev">
+<meta property="og:title" content="Play Escapement Online - Free Puzzle Game | AIGameHub">
+<meta property="og:description" content="Play Escapement online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta property="og:url" content="https://www.gptgames.dev/games/escapement.html">
+<meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_291.webp">
+<meta property="og:image:alt" content="A dark pinball playfield with brass clockwork art, glowing inserts and a steel ball on the flippers">
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Escapement/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Escapement/preview.png">
+<meta name="twitter:title" content="Play Escapement Online - Free Puzzle Game | AIGameHub">
+<meta name="twitter:description" content="Play Escapement online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_291.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.onload=null">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Escapement","url":"https://www.gptgames.dev/games/escapement.html","image":"https://www.gptgames.dev/screenshots/screenshot_291.webp","description":"A single-file pinball machine with continuous-collision physics. Five missions each install a part of a clock, and each part physically changes the playfield: a kickback, a turning escape wheel, a second habitrail, chime bars and an upper flipper. Complete the movement to light Strike Twelve.","genre":["Arcade","Pinball","Physics"],"gamePlatform":"Web Browser","playMode":"SinglePlayer","applicationCategory":"Game","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"publisher":{"@type":"Organization","name":"gptgames.dev","url":"https://www.gptgames.dev/"}}</script>
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --bg:#080b13; --ink:#05070d;
+  --panel:#0e1322; --panel2:#131a2c; --edge:#232c46; --edge2:#33405f;
+  --text:#e9edf9; --dim:#98a2c0; --dim2:#5f6a8c;
+  --brass:#c9a463; --brassL:#ffdf9e;
+  --amber:#ffb454; --cyan:#5ce1ea; --green:#5ee6a8; --violet:#a98cff; --red:#ff5f72;
+  --r:12px;
+}
+html,body{margin:0;padding:0;height:100%;overscroll-behavior:none}
+body{
+  background:
+    radial-gradient(1200px 700px at 50% -12%, #161c30 0%, transparent 62%),
+    radial-gradient(900px 600px at 50% 115%, #10142a 0%, transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:"Space Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.45;overflow:hidden;
+  -webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;
+  touch-action:manipulation;user-select:none;
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+canvas{display:block}
+
+#app{position:fixed;inset:0;display:flex;gap:16px;padding:12px;padding-top:max(12px,env(safe-area-inset-top));justify-content:center;max-width:1160px;margin:0 auto}
+#stage{flex:1 1 auto;position:relative;display:flex;align-items:center;justify-content:center;min-width:0}
+#pf{border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.72),0 0 0 1px #2a3350,0 0 0 7px #10141f,0 0 0 8px #2a3350}
+
+#msg{
+  position:absolute;left:50%;top:11%;transform:translateX(-50%);max-width:96%;
+  font-weight:700;letter-spacing:.11em;font-size:clamp(11px,1.15vw,15px);
+  padding:8px 15px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:rgba(10,13,22,.86);border:1px solid var(--edge2);
+  color:var(--brassL);opacity:0;transition:opacity .18s;pointer-events:none;text-align:center;
+}
+#msg.on{opacity:1}
+#msg.good{color:var(--green);border-color:#2c6b52}
+#msg.bad{color:var(--red);border-color:#6b2c38}
+#msg.install{color:var(--brassL);border-color:#6b5a2c;box-shadow:0 0 30px rgba(255,223,158,.25)}
+#msg.wizard{color:var(--violet);border-color:#4c3c8a;box-shadow:0 0 34px rgba(169,140,255,.3)}
+
+#panel{
+  flex:0 0 300px;display:flex;flex-direction:column;gap:10px;
+  background:linear-gradient(180deg,var(--panel2),var(--panel));
+  border:1px solid var(--edge);border-radius:var(--r);padding:14px;overflow:hidden;
+}
+.wordmark{font-weight:700;letter-spacing:.30em;font-size:15px;color:var(--dim)}
+.wordmark b{color:var(--brassL);font-weight:700}
+.scorebox{display:flex;align-items:baseline;gap:8px;margin-top:2px}
+#score{font-size:33px;font-weight:700;letter-spacing:-.02em;line-height:1.05;
+  color:#fff;text-shadow:0 0 22px rgba(255,223,158,.28)}
+.row{display:flex;gap:8px}
+.chip{flex:1;background:#0b1020;border:1px solid var(--edge);border-radius:9px;padding:6px 9px}
+.chip b{display:block;font-size:16px;color:var(--brassL)}
+.chip span{font-size:10px;letter-spacing:.13em;color:var(--dim2);text-transform:uppercase}
+#pips{display:none;gap:4px}
+.pip{width:11px;height:11px;border-radius:50%;border:1px solid var(--edge2);position:relative;overflow:hidden;
+  background:linear-gradient(90deg,rgba(255,180,84,.75) calc(var(--f)*100%),transparent 0)}
+.pip.on{background:var(--green);border-color:var(--green);box-shadow:0 0 7px rgba(94,230,168,.5)}
+body.phone #pips{display:flex}
+.dialwrap{display:flex;align-items:center;gap:12px;padding:8px 2px;border-top:1px solid var(--edge);border-bottom:1px solid var(--edge)}
+.dialwrap p{margin:0;font-size:11.5px;color:var(--dim);line-height:1.35}
+.dialwrap p b{color:var(--brassL);display:block;font-size:12.5px;letter-spacing:.08em}
+#parts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;flex:0 0 auto}
+.spacer{flex:1 1 auto;min-height:0}
+.part{position:relative;background:#0b1020;border:1px solid var(--edge);border-radius:8px;
+  padding:6px 9px;display:flex;justify-content:space-between;align-items:center;overflow:hidden;font-size:11.5px}
+.part .pn{letter-spacing:.09em;color:var(--dim);z-index:1}
+.part .pv{color:var(--brass);font-weight:700;z-index:1;font-variant-numeric:tabular-nums}
+.part i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(255,180,84,.18),rgba(255,180,84,.05));transition:width .3s}
+.part.done{border-color:#2c6b52}
+.part.done .pn{color:var(--green)}
+.part.done .pv{color:var(--green)}
+#objective{background:#0b1020;border:1px solid var(--edge);border-left:2px solid var(--brass);
+  border-radius:8px;padding:8px 10px;font-size:11.5px;color:var(--dim);line-height:1.45}
+#objective b{display:block;color:var(--brassL);letter-spacing:.1em;font-size:11.5px;margin-bottom:2px}
+#objective i{display:block;color:var(--dim2);font-style:normal;margin-top:3px;font-size:11px}
+body.phone #objective{display:none}
+.keys{font-size:11px;color:var(--dim2);line-height:1.7}
+.keys kbd{background:#0b1020;border:1px solid var(--edge2);border-radius:5px;padding:1px 6px;color:var(--dim);font:inherit;font-size:10.5px}
+.tools{display:flex;gap:7px}
+.ib{width:34px;height:34px;border-radius:9px;border:1px solid var(--edge);background:#0b1020;
+  display:grid;place-items:center;color:var(--dim);transition:.15s}
+.ib:hover{color:var(--brassL);border-color:var(--edge2)}
+.ib.off{opacity:.42}
+.ib svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------------------------------------------------------------- touch */
+#touch{position:fixed;inset:0;display:none;pointer-events:none;z-index:20}
+.zone{position:absolute;bottom:0;width:50%;height:62%;pointer-events:auto}
+#zl{left:0}#zr{right:0}
+#bNudge{position:absolute;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  pointer-events:auto;padding:7px 20px;border-radius:999px;background:rgba(14,19,34,.9);
+  border:1px solid var(--edge2);color:var(--dim);font-size:11px;letter-spacing:.16em}
+body.phone #touch{display:block}
+body.phone #app{padding:0;gap:0;flex-direction:column;max-width:none}
+body.phone #panel{order:-1;padding-left:46px}
+body.phone #bNudge{bottom:calc(6px + env(safe-area-inset-bottom));padding:5px 16px;font-size:10px;background:rgba(14,19,34,.7)}
+body.phone #panel{flex:0 0 auto;flex-direction:row;align-items:center;gap:10px;border-radius:0;
+  border-left:0;border-right:0;border-top:0;padding:6px 10px 6px 48px;padding-top:max(6px,env(safe-area-inset-top))}
+body.phone .wordmark{display:none}
+body.phone .keys,body.phone #parts,body.phone .dialwrap p{display:none}
+body.phone .dialwrap{border:0;padding:0}
+body.phone .scorebox{margin:0}
+body.phone #score{font-size:19px;white-space:nowrap;flex:0 0 auto}
+body.phone .scorebox{flex:0 0 auto;min-width:0;overflow:visible}
+body.phone #panel{gap:7px}
+body.phone .dialwrap{display:none}
+body.phone .row{flex:0 0 auto}
+body.phone .chip{padding:3px 7px}
+body.phone .chip b{font-size:12px}
+body.phone .chip span{font-size:8px}
+body.phone #stage{padding:2px 0 0}
+body.phone #pf{border-radius:6px;box-shadow:0 0 0 1px #2a3350}
+body.phone #msg{top:8%;font-size:12px;padding:7px 13px}
+body.phone .tools{margin-left:auto}
+body.phone .ib{width:30px;height:30px}
+
+/* ---------------------------------------------------------------- veils */
+.veil{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;
+  background:rgba(4,6,12,.82);backdrop-filter:blur(7px);padding:20px}
+.veil.show{display:flex}
+.card{width:min(560px,94vw);max-height:88vh;overflow:auto;background:linear-gradient(180deg,#141b2e,#0d1220);
+  border:1px solid var(--edge2);border-radius:16px;padding:26px;box-shadow:0 30px 90px rgba(0,0,0,.7)}
+.big{font-weight:700;letter-spacing:.30em;font-size:clamp(26px,5vw,40px);color:var(--brassL);
+  text-shadow:0 0 40px rgba(255,223,158,.28);margin-bottom:6px}
+.big span{color:var(--dim)}
+.tag{color:var(--dim);margin:0 0 18px;font-size:14.5px;line-height:1.5}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btn{padding:11px 20px;border-radius:10px;border:1px solid var(--edge2);background:#111726;
+  color:var(--text);font-weight:600;letter-spacing:.05em;transition:.15s}
+.btn:hover{border-color:var(--brass);color:var(--brassL)}
+.btn.pri{background:linear-gradient(180deg,#c9a463,#9c7936);color:#1a1206;border-color:#e0bd7c}
+.btn.pri:hover{filter:brightness(1.1);color:#1a1206}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}
+.hcell{background:#0b1020;border:1px solid var(--edge);border-radius:9px;padding:9px 11px}
+.hcell b{display:block;color:var(--brassL);font-size:12px;letter-spacing:.1em;margin-bottom:3px}
+.hcell span{font-size:12px;color:var(--dim);line-height:1.45}
+h3{margin:16px 0 7px;font-size:12px;letter-spacing:.16em;color:var(--dim2);text-transform:uppercase}
+.credit{margin-top:16px;font-size:11.5px;color:var(--dim2)}
+.credit a{color:var(--brass);text-decoration:none}
+.ostat{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:16px 0 4px}
+.ostat div{background:#0b1020;border:1px solid var(--edge);border-radius:9px;padding:9px}
+.ostat b{display:block;font-size:19px;color:var(--brassL)}
+.ostat span{font-size:10px;letter-spacing:.12em;color:var(--dim2);text-transform:uppercase}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Escapement","item":"https://suipce.com/games/Puzzle/Escapement/"}]}</script>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="pf"></canvas>
+    <div id="msg"></div>
+  </div>
+  <aside id="panel">
+    <div class="wordmark">ESCAPE<b>MENT</b></div>
+    <div class="scorebox"><div id="score">0</div></div>
+    <div class="row">
+      <div class="chip"><b id="ballno">1 / 3</b><span>ball</span></div>
+      <div class="chip"><b id="bonusx">1×</b><span>bonus</span></div>
+    </div>
+    <div id="pips"></div>
+    <div class="dialwrap">
+      <canvas id="dial"></canvas>
+      <p><b>THE MOVEMENT</b>Each mission you finish bolts another part onto the playfield. Five parts, then the clock can strike.</p>
+    </div>
+    <ul id="parts"></ul>
+    <div id="objective"></div>
+    <div class="spacer"></div>
+    <div class="keys">
+      <kbd>←</kbd><kbd>→</kbd> or <kbd>Z</kbd><kbd>/</kbd> flippers &nbsp;·&nbsp; <kbd>space</kbd> plunge<br>
+      <kbd>↓</kbd> nudge &nbsp;·&nbsp; <kbd>X</kbd><kbd>C</kbd> side nudge &nbsp;·&nbsp; <kbd>H</kbd> help
+    </div>
+    <div class="tools">
+      <button class="ib" id="bHelp" title="How to play (H)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.2a2.8 2.8 0 1 1 3.6 2.7c-.7.3-1 .8-1 1.6v.3"/><path d="M12 17.3v.01"/></svg></button>
+      <button class="ib" id="bSound" title="Sound (M)"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+    </div>
+  </aside>
+</div>
+
+<div id="touch">
+  <div class="zone" id="zl"></div>
+  <div class="zone" id="zr"></div>
+  <button id="bNudge">NUDGE</button>
+</div>
+
+<div class="veil show" id="title"><div class="card">
+  <div class="big">ESCAPE<span>MENT</span></div>
+  <p class="tag">A pinball machine with a clock inside it. Every mission you finish installs another part —
+  and the part is <em>physically there</em> on the playfield afterwards: a kickback in the outlane, a turning
+  escape wheel, a second habitrail, chime bars, an upper flipper. Build all five and the clock can strike twelve.</p>
+  <div class="btnrow">
+    <button class="btn pri" id="tPlay">Insert coin</button>
+    <button class="btn" id="tHelp">How to play</button>
+  </div>
+  <div class="credit"><span id="tBest"></span>A single HTML file from <a href="https://gptgames.dev" target="_blank" rel="noopener">gptgames.dev</a></div>
+</div></div>
+
+<div class="veil" id="help"><div class="card">
+  <div class="big" style="font-size:22px">HOW TO PLAY</div>
+  <div class="hgrid">
+    <div class="hcell"><b>FLIPPERS</b><span><kbd>←</kbd> <kbd>→</kbd>, <kbd>Z</kbd> <kbd>/</kbd> or either shift key. On a phone, touch the left or right half of the screen.</span></div>
+    <div class="hcell"><b>PLUNGER</b><span>Hold <kbd>space</kbd> (or touch and hold) and let go. Every pull clears the lane; stop on the blue band on the meter and the ball drops into the top lanes — that is the skill shot. A full pull makes the orbit. If the ball ever ends up back in the shooter lane, the plunger takes it again.</span></div>
+    <div class="hcell"><b>NUDGE</b><span><kbd>↓</kbd> to shove the cabinet, <kbd>X</kbd> and <kbd>C</kbd> to shove it sideways. Four shoves in a row and the machine tilts.</span></div>
+    <div class="hcell"><b>E–S–C LANES</b><span>Light all three for another bonus multiplier. The flipper buttons rotate which lanes are lit, as on a real machine.</span></div>
+  </div>
+  <h3>The movement</h3>
+  <div class="hgrid">
+    <div class="hcell"><b>MAINSPRING</b><span>Wind the spinner in the left orbit. Installs a kickback that throws the ball back out of the left outlane.</span></div>
+    <div class="hcell"><b>ESCAPEMENT</b><span>Clear the three drop targets twice. A toothed escape wheel starts turning at the top of the table.</span></div>
+    <div class="hcell"><b>GEAR TRAIN</b><span>Make the left ramp three times. The right habitrail deploys — a whole new shot.</span></div>
+    <div class="hcell"><b>CHIME BARS</b><span>Hit all three standup targets. Three chime bars appear down the left, and they ring.</span></div>
+    <div class="hcell"><b>MINUTE HAND</b><span>Shoot the centre scoop three times. An upper flipper deploys in mid-table.</span></div>
+    <div class="hcell"><b>STRIKE TWELVE</b><span>With all five in, the centre scoop lights. Enter it for a three-ball multiball. Nine strikes — ramps, orbits, chimes, the wheel, the bank — and the clock strikes twelve.</span></div>
+  </div>
+  <h3>Worth knowing</h3>
+  <p class="tag" style="margin:0">Parts stay installed for the whole game, not just the ball. A ball save covers the first eleven seconds.
+  Different shots in a row build a combo. The bonus at the end of each ball is multiplied by the E–S–C lanes.</p>
+  <div class="btnrow"><button class="btn pri" id="hClose">Back to the table</button></div>
+</div></div>
+
+<div class="veil" id="over"><div class="card">
+  <div class="big" style="font-size:24px">GAME OVER</div>
+  <p class="tag" id="oNote">—</p>
+  <div class="ostat">
+    <div><b id="oScore">0</b><span>score</span></div>
+    <div><b id="oParts">0 of 5</b><span>movement</span></div>
+    <div><b id="oBest">0</b><span>best</span></div>
+  </div>
+  <div class="btnrow"><button class="btn pri" id="oAgain">Play again</button></div>
+</div></div>
+
+<script>
+/* ============================================================================
+   ESCAPEMENT — simulation core.  No DOM, no canvas, fully deterministic.
+   Table space: 100 units wide, 207 tall, +y is down (towards the drain).
+   1 unit ~= 5.14 mm, so the table is a real 20.25" x 42" playfield.
+   ========================================================================== */
+(function (global) {
+'use strict';
+
+/* ------------------------------------------------------------------ random */
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* --------------------------------------------------------------- constants */
+const W = 100, H = 207;
+const BR = 2.6;                 // ball radius (27 mm ball)
+const GRAV = 218;               // units/s^2 — a 6.5 degree playfield
+const VMAX = 1000;              // hard speed cap
+const DAMP = 0.10;              // rolling friction, per second
+const SKIN = 0.004;             // separation kept after a contact
+const EPS = 1e-9;
+
+/* ------------------------------------------------- swept collision helpers */
+// Earliest time in [0,tmax] at which a moving circle touches a static circle.
+function toiCirc(px, py, vx, vy, r, cx, cy, cr, tmax) {
+  const R = r + cr;
+  const mx = px - cx, my = py - cy;
+  const c = mx * mx + my * my - R * R;
+  const b = mx * vx + my * vy;
+  const a = vx * vx + vy * vy;
+  if (a < EPS) return -1;
+  if (c < 0) return b < 0 ? 0 : -1;          // already overlapping: only if closing
+  if (b >= 0) return -1;                     // moving away
+  const disc = b * b - a * c;
+  if (disc < 0) return -1;
+  const t = (-b - Math.sqrt(disc)) / a;
+  return (t >= 0 && t <= tmax) ? t : -1;
+}
+
+// Earliest time at which a moving circle touches a static capsule (a,b,rr).
+function toiSeg(px, py, vx, vy, r, ax, ay, bx, by, rr, tmax) {
+  const R = r + rr;
+  const dx = bx - ax, dy = by - ay;
+  const L2 = dx * dx + dy * dy;
+  let best = -1, lim = tmax;
+  if (L2 > EPS) {
+    const L = Math.sqrt(L2);
+    const nx = -dy / L, ny = dx / L;
+    const dist = (px - ax) * nx + (py - ay) * ny;
+    const vn = vx * nx + vy * ny;
+    const s = dist >= 0 ? 1 : -1;
+    if (vn * s < -EPS) {
+      let t = (s * R - dist) / vn;
+      if (t < 0) t = 0;
+      if (t <= lim) {
+        const cx = px + vx * t, cy = py + vy * t;
+        const proj = ((cx - ax) * dx + (cy - ay) * dy) / L2;
+        if (proj >= 0 && proj <= 1) { best = t; lim = t; }
+      }
+    }
+  }
+  let t1 = toiCirc(px, py, vx, vy, r, ax, ay, rr, lim);
+  if (t1 >= 0) { best = t1; lim = t1; }
+  let t2 = toiCirc(px, py, vx, vy, r, bx, by, rr, lim);
+  if (t2 >= 0) { best = t2; }
+  return best;
+}
+
+// Closest point on capsule axis to p, plus the outward normal and gap.
+function closestOnSeg(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const L2 = dx * dx + dy * dy;
+  let t = L2 > EPS ? ((px - ax) * dx + (py - ay) * dy) / L2 : 0;
+  if (t < 0) t = 0; else if (t > 1) t = 1;
+  return [ax + dx * t, ay + dy * t, t];
+}
+
+/* ------------------------------------------------------------------ shapes */
+// Every collider is a capsule (segment + radius) or a circle. Both are swept
+// exactly, so nothing can tunnel no matter how fast the ball is travelling.
+function seg(ax, ay, bx, by, o) {
+  o = o || {};
+  return {
+    k: 's', ax, ay, bx, by, r: o.r || 0,
+    e: o.e === undefined ? 0.42 : o.e, mu: o.mu === undefined ? 0.03 : o.mu,
+    kick: o.kick || 0, id: o.id || '', style: o.style || 'wall',
+    on: o.on !== false, oneWay: o.oneWay || 0, group: o.group || '',
+    hit: 0
+  };
+}
+function circ(x, y, r, o) {
+  o = o || {};
+  return {
+    k: 'c', x, y, r,
+    e: o.e === undefined ? 0.55 : o.e, mu: o.mu === undefined ? 0.02 : o.mu,
+    kick: o.kick || 0, id: o.id || '', style: o.style || 'post',
+    on: o.on !== false, group: o.group || '', hit: 0
+  };
+}
+// Sample a circular arc into capsule segments (2 units per segment keeps the
+// polygonal error below 0.01 units, far under the ball radius).
+function arc(cx, cy, rad, a0, a1, o) {
+  const span = Math.abs(a1 - a0) * rad;
+  const n = Math.max(3, Math.ceil(span / 2.2));
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const t0 = a0 + (a1 - a0) * (i / n), t1 = a0 + (a1 - a0) * ((i + 1) / n);
+    out.push(seg(cx + Math.cos(t0) * rad, cy + Math.sin(t0) * rad,
+                 cx + Math.cos(t1) * rad, cy + Math.sin(t1) * rad, o));
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------------- flippers */
+function makeFlipper(px, py, side, len, o) {
+  o = o || {};
+  const rest = o.rest === undefined ? 0.52 : o.rest;   // radians below horizontal
+  const sweep = o.sweep === undefined ? 0.86 : o.sweep;
+  const a0 = side < 0 ? rest : Math.PI - rest;
+  const a1 = side < 0 ? rest - sweep : Math.PI - rest + sweep;
+  return {
+    px, py, side, len, r: o.r || 1.35,
+    a0, a1, ang: a0, av: 0, up: false,
+    wUp: o.wUp || 34, wDn: o.wDn || 15,
+    id: o.id || (side < 0 ? 'flipL' : 'flipR'), on: o.on !== false
+  };
+}
+function flipperTip(f) {
+  return [f.px + Math.cos(f.ang) * f.len, f.py + Math.sin(f.ang) * f.len];
+}
+
+global.ESC_CORE = {
+  mulberry32, toiCirc, toiSeg, closestOnSeg, seg, circ, arc,
+  makeFlipper, flipperTip, W, H, BR, GRAV, VMAX, DAMP, SKIN
+};
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>
+/* ============================================================================
+   ESCAPEMENT — the playfield.  Everything the ball can touch lives here.
+   Mirror line is x = 46; the shooter lane eats the strip from x = 88.5 out.
+   Slot widths are checked by test_clearance.js: nothing between a seal (<1.2)
+   and a ball (5.2) is allowed anywhere a ball can arrive.
+   ========================================================================== */
+(function (global) {
+'use strict';
+const C = global.ESC_CORE;
+const { seg, circ, arc, makeFlipper } = C;
+const MX = 92;
+const CEN = MX / 2;
+
+function mseg(ax, ay, bx, by, o) { return seg(MX - ax, ay, MX - bx, by, o); }
+function mcirc(x, y, r, o) { return circ(MX - x, y, r, o); }
+
+const WALL   = { e: 0.40, mu: 0.04, r: 1.1, style: 'wall' };
+const RAIL   = { e: 0.36, mu: 0.05, r: 0.85, style: 'rail' };
+const RUBBER = { e: 0.76, mu: 0.06, r: 1.6, style: 'rubber' };
+const SLING  = { e: 0.34, mu: 0.10, r: 1.0, style: 'sling', kick: 275 };
+const BACK   = { r: 1.0, e: 0.42, mu: 0.06, style: 'wall' };
+const TGT    = { r: 0.9, e: 0.40, mu: 0.16, style: 'stand' };
+
+function build() {
+  const co = [], tr = [];
+  const push = (a) => { if (Array.isArray(a)) a.forEach((x) => co.push(x)); else co.push(a); };
+
+  /* ---------------------------------------------------------- outer shell */
+  push(seg(3.5, 66, 3.5, 168, WALL));
+  push(arc(50, 66, 46.5, Math.PI, Math.PI * 2, WALL));
+  push(seg(96.5, 66, 96.5, 197, WALL));
+  push(seg(88.5, 78, 88.5, 197, Object.assign({ id: 'divider' }, WALL)));
+  push(seg(88.5, 77.5, 96.5, 74.5, { r: 0.5, e: 0.2, mu: 0.35, style: 'gate', oneWay: 1, id: 'gate' }));
+  push(circ(88.5, 78, 0.9, { e: 0.6, style: 'post', id: 'gatepost' }));
+  push(seg(88.5, 197, 96.5, 197, WALL));
+
+  /* ------------------------------------------------------------ the apron */
+  push(seg(3.5, 168, 8.5, 186, WALL));   push(mseg(3.5, 168, 8.5, 186, WALL));
+  push(seg(8.5, 186, 15.5, 197, WALL));  push(mseg(8.5, 186, 15.5, 197, WALL));
+
+  /* -------------------------------------------------------- slingshots */
+  push(seg(17, 146, 30, 159, Object.assign({ id: 'slingL' }, SLING)));
+  push(seg(30, 159, 16, 163, BACK));
+  push(seg(16, 163, 17, 146, BACK));
+  push(mseg(17, 146, 30, 159, Object.assign({ id: 'slingR' }, SLING)));
+  push(mseg(30, 159, 16, 163, BACK));
+  push(mseg(16, 163, 17, 146, BACK));
+
+  // Ball guide at the foot of each orbit lane.  It spans the whole return lane
+  // — the old one only covered its outer half, so a ball coming back round the
+  // orbit slipped past the inner edge and went straight down the outlane.  Now
+  // every returning ball is steered across the outlane mouth and onto the
+  // slingshot; the outlane is fed from the sling below it, the way it should be.
+  // One-way, so a kickback still fires straight back up the lane through it.
+  const DEF = { r: 1.0, e: 0.30, mu: 0.04, style: 'gate', oneWay: 1 };
+  push(seg(4.2, 132.0, 16.0, 143.0, Object.assign({ id: 'defL' }, DEF)));
+  push(mseg(4.2, 132.0, 16.0, 143.0, Object.assign({ id: 'defR' }, DEF)));
+
+  /* --------------------------------------------------------- inlane rails */
+  // the ball rolls down the top of these straight onto the flipper's base
+  push(seg(15.5, 167, 20, 169, RAIL));   push(seg(20, 169, 25, 171, RAIL));
+  push(mseg(15.5, 167, 20, 169, RAIL));  push(mseg(20, 169, 25, 171, RAIL));
+
+  /* ------------------------------------------------------------ flippers */
+  const flippers = [
+    makeFlipper(27.5, 173.5, -1, 15.0, { id: 'flipL' }),
+    makeFlipper(MX - 27.5, 173.5, 1, 15.0, { id: 'flipR' }),
+    makeFlipper(22, 122, -1, 10, { id: 'upL', on: false, rest: 0.45, sweep: 0.85, wUp: 30 })
+  ];
+
+  /* --------------------------------------------------------- orbit guides */
+  push(seg(12.6, 120, 12.6, 88, RAIL));   push(mseg(12.6, 120, 12.6, 88, RAIL));
+
+
+  /* ------------------------------------------------------- top lane posts */
+  const LP = { r: 1.4, e: 0.62, mu: 0.04, style: 'post' };
+  [18, 28.5, 39, 49.5].forEach((x, i) => push(seg(x, 47, x + 1.6, 59, Object.assign({ id: 'lp' + i }, LP))));
+  [['E', 24.3], ['S', 34.8], ['C', 45.3]].forEach((l, i) =>
+    tr.push({ kind: 'roll', x: l[1], y: 55, r: 3.9, id: 'lane' + i, letter: l[0] }));
+
+  /* --------------------------------------------------------- pop bumpers */
+  push(circ(22, 74, 4.3, { e: 0.5, kick: 305, style: 'bumper', id: 'popA' }));
+  push(circ(35, 70, 4.3, { e: 0.5, kick: 305, style: 'bumper', id: 'popB' }));
+  push(circ(27, 84, 4.3, { e: 0.5, kick: 305, style: 'bumper', id: 'popC' }));
+  push(circ(15.5, 80, 1.6, RUBBER));
+  push(circ(39, 79, 1.6, RUBBER));
+
+  /* -------------------------------------------------------- drop targets */
+  for (let i = 0; i < 3; i++) {
+    const x = 56 + i * 7.6, y = 98 - i * 3.45;
+    push(seg(x, y, x + 4.9, y - 2.2, {
+      r: 0.9, e: 0.34, mu: 0.2, style: 'drop', id: 'drop' + i, group: 'drops'
+    }));
+  }
+  push(circ(54.2, 99, 1.5, RUBBER));
+  push(circ(78.2, 88, 1.5, RUBBER));
+
+  /* ------------------------------------------------------ standup targets */
+  push(seg(64.5, 118.5, 68.1, 122, Object.assign({ id: 'stU0', group: 'stand' }, TGT)));
+  push(seg(67.5, 106.5, 71, 109, Object.assign({ id: 'stU1', group: 'stand' }, TGT)));
+  push(seg(44.5, 88.5, 48.5, 91, Object.assign({ id: 'stU2', group: 'stand' }, TGT)));
+
+  /* -------------------------------------------------------------- scoop */
+  const SW = Object.assign({}, WALL, { style: 'scoopwall' });
+  push(seg(40.4, 124, 38.6, 112, Object.assign({ id: 'scoopL' }, SW)));
+  push(seg(51.6, 124, 53.4, 112, Object.assign({ id: 'scoopR' }, SW)));
+  push(arc(46, 112, 7.2, Math.PI * 1.06, Math.PI * 1.94, SW));
+  tr.push({ kind: 'saucer', x: 46, y: 115.5, r: 4.3, id: 'scoop', out: [46, 127], kick: 1 });
+
+  /* ------------------------------------------------------------- spinner */
+  tr.push({ kind: 'spinner', x: 8.2, y: 101, ax: 4.6, ay: 96, bx: 11.8, by: 106, id: 'spin' });
+
+  /* ---------------------------------------------------------- ramp mouths */
+  // A ramp is a chute aimed at the opposite flipper: walls parallel to the
+  // approach, and a mouth line the ball must cross fast enough to make it.
+  function chute(id, mouth, dir, len, on) {
+    const [mx, my] = mouth, [dx, dy] = dir;
+    const nx = -dy, ny = dx;                       // perpendicular
+    const W = 4.7;
+    const A = [mx + nx * W, my + ny * W], B = [mx - nx * W, my - ny * W];
+    const A2 = [A[0] - dx * len, A[1] - dy * len], 

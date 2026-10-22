@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Arcade/Webcraft/">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1030">
+<title>Play Lanternfall Online - Free Arcade Game | AIGameHub</title>
+<meta name="description" content="Play Lanternfall online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta property="og:title" content="Play Lanternfall Online - Free Arcade Game | AIGameHub">
+<meta property="og:description" content="Play Lanternfall online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta property="og:type" content="website">
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Webcraft/preview.png"><meta name="twitter:card" content="summary"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Webcraft/preview.png">
+<style>
+:root{--amber:#ffb347;--amber2:#ff8a3c;--ink:#0f1230;--cream:#fff4de;--slate:rgba(14,16,40,.58);--hair:rgba(255,244,222,.2);--cyan:#7df9ff;
+--font:ui-rounded,"SF Pro Rounded","Avenir Next Rounded","Nunito","Trebuchet MS",system-ui,sans-serif;--safe-b:env(safe-area-inset-bottom,0px);--safe-l:env(safe-area-inset-left,0px);--safe-r:env(safe-area-inset-right,0px);--safe-t:env(safe-area-inset-top,0px);
+--n:6;--slot:min(56px,calc((100vw - 40px - var(--safe-l) - var(--safe-r) - (var(--n) - 1)*5px)/var(--n)))}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0b1030;color:var(--cream);font-family:var(--font);overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-user-select:none;user-select:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+.layer{position:fixed;inset:0;pointer-events:none}
+#vig{background:radial-gradient(ellipse at 50% 50%,rgba(6,5,22,0) 55%,rgba(6,5,22,.5) 100%)}
+#hurt{opacity:0;background:radial-gradient(ellipse at 50% 50%,rgba(125,249,255,0) 40%,rgba(90,60,200,.55) 100%);transition:opacity .5s ease-out}
+#hurt.on{opacity:1;transition:none}
+#wet{opacity:0;background:rgba(40,110,190,.28);transition:opacity .2s}#wet.on{opacity:1}
+#hud{opacity:0;transition:opacity .6s}.playing #hud{opacity:1}
+.top{position:absolute;left:calc(14px + var(--safe-l));right:calc(14px + var(--safe-r));top:calc(12px + var(--safe-t));display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+#flames{display:flex;gap:5px;padding:7px 9px;border-radius:14px;background:var(--slate);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.fl{width:15px;height:21px;position:relative;transition:transform .25s cubic-bezier(.3,1.6,.5,1),opacity .3s}
+.fl svg{width:100%;height:100%;display:block;overflow:visible}
+.fl .on{filter:drop-shadow(0 0 5px rgba(255,138,60,.8))}.fl .off{opacity:.22}
+.fl.bump{transform:scale(1.35)}.fl.low svg{animation:flick .5s ease-in-out infinite alternate}
+@keyframes flick{to{transform:scale(1.14) translateY(-1px)}}
+#flames.shake{animation:shk .35s}@keyframes shk{20%{transform:translateX(-5px)}50%{transform:translateX(5px)}80%{transform:translateX(-3px)}}
+.right{display:flex;gap:8px;align-items:center}
+#dial{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:99px;background:var(--slate);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:box-shadow .6s}
+#dial.late{box-shadow:0 0 0 1.5px rgba(255,179,71,.9),0 0 14px rgba(255,179,71,.4);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 1.5px rgba(255,179,71,.3),0 0 4px rgba(255,179,71,.1)}}
+#dial svg{width:30px;height:30px}
+.btn{pointer-events:auto;border:0;color:inherit;font:inherit;cursor:pointer}
+#pausebtn{width:38px;height:38px;border-radius:50%;background:var(--slate);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:grid;place-items:center}
+#pausebtn i{display:block;width:12px;height:14px;border-left:4px solid var(--cream);border-right:4px solid var(--cream)}
+#cross{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;opacity:.9;transition:transform .12s,opacity .3s}
+#cross:before,#cross:after{content:"";position:absolute;background:#fff;mix-blend-mode:difference}
+#cross:before{left:10px;top:3px;width:2px;height:16px}#cross:after{top:10px;left:3px;height:2px;width:16px}
+#cross.act{transform:scale(1.35)}
+#holdring{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;opacity:0;background:conic-gradient(var(--amber) calc(var(--p,0)*1turn),rgba(255,244,222,.15) 0);-webkit-mask:radial-gradient(circle,transparent 17px,#000 18px);mask:radial-gradient(circle,transparent 17px,#000 18px)}#holdring.on{opacity:.95}
+#hotbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(12px + var(--safe-b));display:flex;gap:5px;padding:6px;border-radius:18px;background:var(--slate);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.slot{pointer-events:auto;width:var(--slot);height:var(--slot);border-radius:12px;background:rgba(255,244,222,.07);position:relative;display:grid;place-items:center;transition:transform .15s cubic-bezier(.3,1.6,.5,1),background .2s,box-shadow .2s}
+.slot img{width:90%;height:90%;image-rendering:pixelated;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.4))}
+.slot.sel{background:rgba(255,179,71,.16);box-shadow:inset 0 0 0 2px var(--amber),0 0 16px rgba(255,179,71,.5);transform:translateY(-4px)}
+.slot.bump{transform:translateY(-7px) scale(1.12)}
+.slot b{position:absolute;right:3px;top:1px;font:800 11px/1 var(--font);text-shadow:0 1px 2px #000,0 0 3px #000;letter-spacing:.02em}
+.slot u{position:absolute;left:5px;bottom:2px;font:700 9px/1 var(--font);text-decoration:none;opacity:.5}.touch .slot u{display:none}
+.slot.empty img,.slot.empty b{opacity:0}
+#itemname{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--slot) + 30px + var(--safe-b));font-weight:800;letter-spacing:.14em;text-transform:uppercase;font-size:12px;text-shadow:0 1px 8px #000,0 0 3px #000;opacity:0;transition:opacity .3s}#itemname.on{opacity:1}.slot.empty{background:rgba(255,244,222,.03)}
+#hint{position:absolute;left:50%;top:auto;bottom:calc(var(--slot) + 78px + var(--safe-b));transform:translate(-50%,10px);opacity:0;padding:12px 20px;border-radius:14px;background:rgba(12,13,34,.94);border:1.5px solid rgba(255,179,71,.5);box-shadow:0 6px 24px rgba(0,0,0,.45);font-weight:800;font-size:15px;letter-spacing:.01em;transition:opacity .4s,transform .4s;text-align:center;max-width:86vw}
+#hint.on{opacity:1;transform:translate(-50%,0)}#hint em{font-style:normal;color:var(--amber)}
+#banner{position:absolute;left:0;right:0;top:30%;text-align:center;opacity:0;transform:scale(.96);transition:opacity .8s,transform 1.2s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+#banner.on{opacity:1;transform:none}#banner h2{margin:0;font-size:clamp(34px,8vw,64px);font-weight:900;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 2px 22px rgba(255,150,60,.65)}
+#banner p{margin:6px 0 0;font-weight:600;letter-spacing:.2em;font-size:13px;text-transform:uppercase;opacity:.85}
+/* touch */
+#touch{display:none}.touch #touch{display:block}
+#ring{position:absolute;width:118px;height:118px;margin:-59px 0 0 -59px;border-radius:50%;border:2.5px solid rgba(255,244,222,.8);background:rgba(14,16,40,.45);box-shadow:0 0 0 1px rgba(10,10,30,.5);opacity:.75;transition:opacity .2s;left:calc(26px + var(--safe-l) + 59px);bottom:calc(108px + var(--safe-b));transform:none}
+#ring.ghost{opacity:.9;animation:ghost 2s ease-in-out infinite}
+@keyframes ghost{50%{opacity:.35}}
+#ring.on{opacity:1}
+#nub{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,244,222,.38);box-shadow:0 0 18px rgba(255,179,71,.25)}
+#jump{position:absolute;right:calc(22px + var(--safe-r));bottom:calc(var(--slot) + 46px + var(--safe-b));width:84px;height:84px;border-radius:50%;background:rgba(40,22,6,.55);border:2.5px solid rgba(255,179,71,.75);box-shadow:0 0 18px rgba(255,179,71,.25);display:grid;place-items:center;pointer-events:auto;transition:transform .1s,background .1s}
+#jump.down{transform:scale(.92);background:rgba(255,179,71,.3)}
+#jump svg{width:34px;height:34px;stroke:#ffd9a0}
+#lookghost{position:absolute;right:calc(18px + var(--safe-r));top:34%;width:150px;height:150px;opacity:0;transition:opacity .4s;text-align:center}
+#lookghost.on{opacity:1}
+#lookghost i{display:block;margin:0 auto;width:58px;height:58px;border-radius:50%;border:2px dashed var(--hair);animation:drag 2.4s ease-in-out infinite}
+@keyframes drag{0%,100%{transform:translateX(-26px)}50%{transform:translateX(26px)}}
+/* screens */
+.screen{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .6s;z-index:5;text-align:center;padding:24px}
+.screen.on{opacity:1;pointer-events:auto}.screen:not(.on){visibility:hidden;transition:opacity .6s,visibility 0s .6s}.screen:not(.on) .btn{pointer-events:none}
+#title{background:radial-gradient(ellipse at 50% 46%,rgba(10,9,30,.62),rgba(10,9,30,.22) 55%,rgba(10,9,30,.05) 80%),linear-gradient(180deg,rgba(10,9,30,.3),rgba(10,9,30,0) 40%,rgba(10,9,30,.5))}
+#title .box{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:-6vh}
+#title svg.logo{width:54px;height:72px;filter:drop-shadow(0 0 18px rgba(255,150,60,.8));animation:breathe 3s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.07) translateY(-2px);filter:drop-shadow(0 0 28px rgba(255,150,60,1))}}
+h1{margin:0;font-size:clamp(30px,8.4vw,84px);font-weight:900;letter-spacing:.16em;text-indent:.2em;text-transform:uppercase;text-shadow:0 2px 0 rgba(10,6,40,.55),0 4px 34px rgba(10,6,40,.95),0 0 60px rgba(10,6,40,.7)}
+.tag{margin:0;font-weight:600;letter-spacing:.16em;font-size:clamp(11px,2.6vw,14px);text-transform:uppercase;opacity:.88;text-shadow:0 1px 12px #000}
+.go{margin-top:12px;min-width:210px;padding:16px 34px;border-radius:99px;background:linear-gradient(180deg,#ffc468,#ff9a3c);color:#2a1406;font-weight:900;font-size:19px;letter-spacing:.16em;text-transform:uppercase;box-shadow:0 8px 34px rgba(255,138,60,.45),inset 0 -3px 0 rgba(150,70,10,.35);transition:transform .15s cubic-bezier(.3,1.6,.5,1)}
+.go:active{transform:scale(.95)}.go[disabled]{opacity:.5}
+.sub{margin-top:4px;background:rgba(14,16,40,.55);border:1.5px solid rgba(255,244,222,.28);border-radius:99px;color:var(--cream);font-weight:800;font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:11px 18px;transition:background .15s}
+.sub:hover,.sub:active{background:rgba(255,179,71,.22)}
+.links{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+#loadbar{position:fixed;left:50%;bottom:calc(10vh);width:120px;height:3px;margin-left:-60px;border-radius:2px;background:rgba(255,244,222,.2);overflow:hidden;transition:opacity .4s}
+#loadbar i{display:block;height:100%;width:0;background:var(--amber);transition:width .2s}
+#pause,#dead{background:rgba(8,7,26,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#dead{background:rgba(18,14,44,.72)}
+#dead h2,#pause h2{margin:0 0 6px;font-size:clamp(26px,6vw,44px);letter-spacing:.14em;text-transform:uppercase;font-weight:900}
+.col{display:flex;flex-direction:column;align-items:center;gap:6px}
+#credit{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--safe-b));font-size:11px;letter-spacing:.12em;opacity:.45;text-transform:uppercase}
+@media (min-width:820px) and (min-aspect-ratio:6/5){#title{place-items:center start;padding-left:8vw;text-align:left;background:linear-gradient(90deg,rgba(10,9,30,.78),rgba(10,9,30,.3) 45%,rgba(10,9,30,0) 75%)}#title .box{align-items:flex-start;margin-top:0}#title .links{justify-content:flex-start}h1{text-indent:0}}
+@media (min-width:820px){:root{--slot:58px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition-duration:.01s!important}}
+
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Lanternfall","item":"https://suipce.com/games/Arcade/Webcraft/"}]}</script>
+</head>
+<body>
+<canvas id="c" tabindex="-1"></canvas>
+<div class="layer" id="vig"></div><div class="layer" id="wet"></div><div class="layer" id="hurt"></div>
+<div class="layer" id="hud">
+  <div class="top">
+    <div id="flames" aria-label="Health"></div>
+    <div class="right">
+      <div id="dial"><svg id="dialsvg" viewBox="0 0 30 30"><circle cx="15" cy="15" r="13" fill="rgba(255,244,222,.08)"/><path d="M2 15A13 13 0 0 1 28 15Z" fill="rgba(255,179,71,.18)"/><path d="M2 15A13 13 0 0 0 28 15Z" fill="rgba(70,80,200,.3)"/><circle id="mkg" cx="25" cy="15" r="6" fill="#ffb347" opacity=".28"/><circle id="mk" cx="25" cy="15" r="3.6" fill="#ffb347"/></svg><span id="daytxt">Day 1</span></div>
+      <button class="btn" id="pausebtn" aria-label="Pause"><i></i></button>
+    </div>
+  </div>
+  <div id="cross"></div><div id="holdring"></div>
+  <div id="hint"></div><div id="itemname"></div><div id="banner"></div>
+  <div id="hotbar"></div>
+  <div id="touch"><div id="ring"><div id="nub"></div></div><div id="jump" role="button" aria-label="Jump"><svg viewBox="0 0 30 30" fill="none" stroke="#fff4de" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19l9-9 9 9"/></svg></div><div id="lookghost"><i></i></div></div>
+</div>
+<div class="screen" id="title"><div class="box">
+  <svg class="logo" viewBox="0 0 16 22"><defs><radialGradient id="lg" cx="50%" cy="72%" r="60%"><stop offset="0" stop-color="#fff4b8"/><stop offset=".45" stop-color="#ffb347"/><stop offset="1" stop-color="#ff6a2b"/></radialGradient></defs><path fill="url(#lg)" d="M8 0C10 6 16 10 16 15.5A8 6.5 0 0 1 0 15.5C0 10 5 8 8 0Z"/></svg>
+  <h1>Lanternfall</h1><p class="tag">Build. Explore. Keep your light.</p>
+  <button class="btn go" id="go">Begin</button>
+  <div class="links"><button class="btn sub" id="newworld">New world</button><button class="btn sub" id="snd">Sound on</button></div>
+  <p class="tag" id="goinfo" style="opacity:.55"></p>
+</div></div>
+<div class="screen" id="pause"><div class="col"><h2>Paused</h2>
+  <button class="btn go" id="resume">Resume</button>
+  <button class="btn sub" id="link">Copy world link</button><button class="btn sub" id="snd2">Sound on</button><button class="btn sub" id="newworld2">New world</button></div></div>
+<div class="screen" id="dead"><div class="col"><h2>The dark took you</h2><p class="tag">Nothing is lost but the night</p><button class="btn go" id="rise">Rise</button></div></div>
+<div id="loadbar"><i></i></div>
+
+<script id="core">
+/* Lanternfall core: DOM-free. World, terrain, mesher, rays, bodies, the clock, the Murk, saves.
+   Everything the page draws comes from here; test/lanternfall.mjs runs this block in Node. */
+const LF = (() => {
+'use strict';
+const CS = 16, H = 64, SEA = 20, CELLS = CS * CS * H;
+const CYCLE = 420, DAY_PART = 0.62, START_U = 0.42;
+const REACH = 5.5, JUMP_V = 8.2, GRAV = 26, WALK = 4.3;
+const MAX_HP = 6;
+
+/* ---------- blocks ---------- */
+const B = {AIR:0,GRASS:1,DIRT:2,STONE:3,SAND:4,LOG:5,LEAVES:6,PLANK:7,GLASS:8,BRICK:9,SNOW:10,WATER:11,TORCH:12,EMBER:13,BEDROCK:14,POPPY:15,DAISY:16};
+// layers of the texture array
+const L = {GRASS_TOP:0,GRASS_SIDE:1,DIRT:2,STONE:3,SAND:4,LOG_SIDE:5,LOG_TOP:6,LEAVES:7,PLANK:8,GLASS:9,BRICK:10,SNOW_TOP:11,SNOW_SIDE:12,WATER:13,BEDROCK:14,POPPY:15,DAISY:16,WHITE:17,MURK:18,TORCH:20,EMBER:21,MURK_FACE:22,GLOW:23,CRACK:24,COUNT:34};
+const BL = [];
+function def(id, name, o) { BL[id] = Object.assign({id, name, solid:true, opaque:true, cut:false, trans:false, plant:false, top:0, side:0, bot:0, hard:1, snd:'stone', drop:id, nodrop:false}, o); }
+def(B.AIR, 'air', {solid:false, opaque:false, hard:0});
+def(B.GRASS, 'grass', {top:L.GRASS_TOP, side:L.GRASS_SIDE, bot:L.DIRT, hard:.4, snd:'grass', drop:B.DIRT});
+def(B.DIRT, 'dirt', {top:L.DIRT, side:L.DIRT, bot:L.DIRT, hard:.35, snd:'dirt'});
+def(B.STONE, 'stone', {top:L.STONE, side:L.STONE, bot:L.STONE, hard:1.1, snd:'stone'});
+def(B.SAND, 'sand', {top:L.SAND, side:L.SAND, bot:L.SAND, hard:.3, snd:'sand'});
+def(B.LOG, 'log', {top:L.LOG_TOP, side:L.LOG_SIDE, bot:L.LOG_TOP, hard:.8, snd:'wood'});
+def(B.LEAVES, 'leaves', {top:L.LEAVES, side:L.LEAVES, bot:L.LEAVES, hard:.15, snd:'leaf', opaque:false, cut:true});
+def(B.PLANK, 'planks', {top:L.PLANK, side:L.PLANK, bot:L.PLANK, hard:.7, snd:'wood'});
+def(B.GLASS, 'glass', {top:L.GLASS, side:L.GLASS, bot:L.GLASS, hard:.25, snd:'glass', opaque:false, trans:true});
+def(B.BRICK, 'brick', {top:L.BRICK, side:L.BRICK, bot:L.BRICK, hard:1.1, snd:'stone'});
+def(B.SNOW, 'snow', {top:L.SNOW_TOP, side:L.SNOW_SIDE, bot:L.DIRT, hard:.3, snd:'snow', drop:B.SNOW});
+def(B.WATER, 'water', {top:L.WATER, side:L.WATER, bot:L.WATER, solid:false, opaque:false, trans:true, hard:0, snd:'water'});
+def(B.TORCH, 'torch', {top:L.TORCH, side:L.TORCH, bot:L.TORCH, solid:false, opaque:false, plant:true, hard:0, snd:'wood', light:6});
+def(B.EMBER, 'ember', {top:L.EMBER, side:L.EMBER, bot:L.EMBER, hard:.9, snd:'glass', drop:B.TORCH, dropN:3, light:3.5});
+def(B.BEDROCK, 'bedrock', {top:L.BEDROCK, side:L.BEDROCK, bot:L.BEDROCK, hard:Infinity, snd:'stone', nodrop:true});
+def(B.POPPY, 'poppy', {top:L.POPPY, side:L.POPPY, bot:L.POPPY, solid:false, opaque:false, plant:true, hard:0, snd:'leaf'});
+def(B.DAISY, 'daisy', {top:L.DAISY, side:L.DAISY, bot:L.DAISY, solid:false, opaque:false, plant:true, hard:0, snd:'leaf'});
+const SOLID = new Uint8Array(256), OPAQUE = new Uint8Array(256), BLOCKS_SKY = new Uint8Array(256);
+for (const b of BL) { SOLID[b.id] = b.solid ? 1 : 0; OPAQUE[b.id] = b.opaque ? 1 : 0; BLOCKS_SKY[b.id] = (b.opaque || b.cut) ? 1 : 0; }
+const LIGHT_R = new Float32Array(256); for (const b of BL) LIGHT_R[b.id] = b.light || 0;
+
+/* ---------- noise ---------- */
+function hash3(x, y, z, s) {
+  let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(z | 0, 1274126177) ^ Math.imul(s | 0, 1442695041);
+  h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; h = Math.imul(h, 2246822519); h ^= h >>> 13;
+  return (h >>> 0) / 4294967296;
+}
+function vn2(x, z, s) {
+  const xi = Math.floor(x), zi = Math.floor(z), fx = x - xi, fz = z - zi, u = fx * fx * (3 - 2 * fx), v = fz * fz * (3 - 2 * fz);
+  const a = hash3(xi, 0, zi, s), b = hash3(xi + 1, 0, zi, s), c = hash3(xi, 0, zi + 1, s), d = hash3(xi + 1, 0, zi + 1, s);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function vn3(x, y, z, s) {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z), fx = x - xi, fy = y - yi, fz = z - zi;
+  const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy), w = fz * fz * (3 - 2 * fz);
+  const h = (a, b, c) => hash3(xi + a, yi + b, zi + c, s);
+  const x00 = h(0,0,0) + (h(1,0,0) - h(0,0,0)) * u, x10 = h(0,1,0) + (h(1,1,0) - h(0,1,0)) * u;
+  const x01 = h(0,0,1) + (h(1,0,1) - h(0,0,1)) * u, x11 = h(0,1,1) + (h(1,1,1) - h(0,1,1)) * u;
+  const y0 = x00 + (x10 - x00) * v, y1 = x01 + (x11 - x01) * v;
+  return y0 + (y1 - y0) * w;
+}
+function fbm2(x, z, s, o) { let a = .5, f = 1, t = 0, n = 0; for (let i = 0; i < o; i++) { t += a * vn2(x * f, z * f, s + i * 31); n += a; a *= .5; f *= 2; } return t / n; }
+function rng(seed) { let a = seed >>> 0 || 1; return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+
+/* ---------- terrain ---------- */
+function column(seed, wx, wz) {
+  const c = fbm2(wx / 150, wz / 150, seed + 1, 3), hills = fbm2(wx / 48, wz / 48, seed + 2, 4), mt = fbm2(wx / 110, wz / 110, seed + 3, 3);
+  let h = SEA - 5 + (c - .36) * 52 + (hills - .5) * 17 + Math.max(0, mt - .58) * 90;
+  h = Math.max(3, Math.min(H - 8, Math.round(h)));
+  const temp = fbm2(wx / 260 + 40, wz / 260 - 70, seed + 4, 2), moist = fbm2(wx / 170 - 90, wz / 170 + 20, seed + 5, 2);
+  return {h, temp, moist};
+}
+function generate(seed, cx, cz) {
+  const blocks = new Uint8Array(CELLS), ox = cx * CS, oz = cz * CS, surf = new Uint8Array(CS * CS);
+  const tops = [];
+  for (let lz = 0; lz < CS; lz++) for (let lx = 0; lx < CS; lx++) {
+    const wx = ox + lx, wz = oz + lz, {h, temp, moist} = column(seed, wx, wz);
+    const desert = temp > .6 && moist < .46 && h > SEA, snowy = h > 44 || (temp < .3 && h > SEA + 1);
+    const beach = h <= SEA + 1;
+    let top = B.GRASS, under = B.DIRT;
+    if (beach || desert) { top = B.SAND; under = B.SAND; }
+    else if (snowy) { top = B.SNOW; under = B.STONE; }
+    else if (h > 40) { top = B.STONE; under = B.STONE; }
+    surf[lx + lz * CS] = top;
+    for (let y = 0; y <= h; y++) {
+      let id = B.STONE;
+      if (y === 0) id = B.BEDROCK;
+      else if (y === h) id = top;
+      else if (y >= h - 3) id = under;
+      else if (y > 2 && y < h - 4) {
+        // tunnels where two noise surfaces cross, rarer near the top
+        const a = vn3(wx / 20, y / 11, wz / 20, seed + 7), b = vn3(wx / 20 + 50, y / 11, wz / 20 - 20, seed + 8);
+        if (Math.abs(a - .5) < .055 && Math.abs(b - .5) < .055) id = B.AIR;
+        else if (y < 17 && vn3(wx / 12, y / 8, wz / 12, seed + 9) > .8) id = B.AIR;
+      }
+      blocks[lx + lz * CS + y * 256] = id;
+    }
+    for (let y = h + 1; y <= SEA; y++) blocks[lx + lz * CS + y * 256] = B.WATER;
+    tops.push(h);
+  }
+  // ember crystals cling to cave walls and hide in deep stone
+  for (let y = 3; y < 40; y++) for (let lz = 0; lz < CS; lz++) for (let lx = 0; lx < CS; lx++) {
+    const i = lx + lz * CS + y * 256;
+    if (blocks[i] !== B.STONE) continue;
+    const air = (lx > 0 && blocks[i - 1] === 0) || (lx < 15 && blocks[i + 1] === 0) || (lz > 0 && blocks[i - 16] === 0) || (lz < 15 && blocks[i + 16] === 0) || blocks[i + 256] === 0 || blocks[i - 256] === 0;
+    const r = hash3(ox + lx, y, oz + lz, seed + 11);
+    if (air ? r < .012 : r < .0009) blocks[i] = B.EMBER;
+  }
+  // trees and flowers
+  for (let lz = 0; lz < CS; lz++) for (let lx = 0; lx < CS; lx++) {
+    const col = lx + lz * CS, wx = ox + lx, wz = oz + lz, h = tops[col];
+    if (surf[col] !== B.GRASS || blocks[col + (h + 1) * 256] !== 0 || h <= SEA) continue;
+    const {moist} = column(seed, wx, wz), r = hash3(wx, 5, wz, seed + 12);
+    if (lx >= 2 && lx <= 13 && lz >= 2 && lz <= 13 && r < (moist > .5 ? .028 : .004)) {
+      const th = 4 + Math.floor(hash3(wx, 6, wz, seed + 13) * 3);
+      for (let y = 1; y <= th; y++) blocks[col + (h + y) * 256] = B.LOG;
+      for (let dy = th - 2; dy <= th + 1; dy++) {
+        const rad = dy > th ? 1 : 2;
+        for (let dz = -rad; dz <= rad; dz++) for (let dx = -rad; dx <= rad; dx++) {
+          if (rad === 2 && Math.abs(dx) === 2 && Math.abs(dz) === 2 && hash3(wx + dx, dy, wz + dz, seed + 14) < .6) continue;
+          const j = (lx + dx) + (lz + dz) * CS + (h + dy) * 256;
+          if (blocks[j] === 0) blocks[j] = B.LEAVES;
+        }
+      }
+    } else if (r > .93) blocks[col + (h + 1) * 256] = hash3(wx, 7, wz, seed + 15) < .5 ? B.POPPY : B.DAISY;
+  }
+  return blocks;
+}
+
+/* ---------- world ---------- */
+class Chunk {
+  constructor(cx, cz, blocks) { this.cx = cx; this.cz = cz; this.blocks = blocks; this.top = new Uint8Array(256); this.lights = []; this.version = 1; this.meshed = -1; this.gpu = null; this.scan(); }
+  scan() {
+    const b = this.blocks; this.lights.length = 0;
+    for (let c = 0; c < 256; c++) { let y = H - 1; while (y > 0 && !BLOCKS_SKY[b[c + y * 256]]) y--; this.top[c] = y; }
+    for (let i = 0; i < CELLS; i++) if (LIGHT_R[b[i]]) { this.lights.push({x: this.cx * CS + (i & 15) + .5, y: ((i >> 8) | 0) + .5, z: this.cz * CS + ((i >> 4) & 15) + .5, r: LIGHT_R[b[i]], id: b[i]}); }
+  }
+}
+class World {
+  constructor(seed) { this.seed = seed | 0; this.chunks = new Map(); this.edits = new Map(); this.editCount = 0; }
+  key(cx, cz) { return cx + ',' + cz; }
+  has(cx, cz) { return this.chunks.has(cx + ',' + cz); }
+  chunk(cx, cz) {
+    const k = cx + ',' + cz; let c = this.chunks.get(k);
+    if (!c) {
+      const blocks = generate(this.seed, cx, cz), e = this.edits.get(k);
+      if (e) for (const [i, id] of e) blocks[i] = id;
+      c = new Chunk(cx, cz, blocks); this.chunks.set(k, c);
+    }
+    return c;
+  }
+  /** block at a cell; unloaded cells read as stone so nothing is drawn against them and nobody falls into them */
+  get(x, y, z) {
+    if (y < 0) return B.BEDROCK; if (y >= H) return B.AIR;
+    const c = this.chunks.get((x >> 4) + ',' + (z >> 4)); if (!c) return B.STONE;
+    return c.blocks[(x & 15) + (z & 15) * 16 + y * 256];
+  }
+  loaded(x, z) { return this.chunks.has((x >> 4) + ',' + (z >> 4)); }
+  topY(x, z) { const c = this.chunks.get((x >> 4) + ',' + (z >> 4)); return c ? c.top[(x & 15) + (z & 15) * 16] : 0; }
+  set(x, y, z, id, record = true) {
+    if (y < 0 || y >= H) return false;
+    const cx = x >> 4, cz = z >> 4, c = this.chunk(cx, cz), lx = x & 15, lz = z & 15, i = lx + lz * 16 + y * 256, old = c.blocks[i];
+    if (old === id) return false;
+    c.blocks[i] = id;
+    if (record) { const k = cx + ',' + cz; let e = this.edits.get(k); if (!e) this.edits.set(k, e = new Map()); e.set(i, id); this.editCount++; }
+    const col = lx + lz * 16;
+    if (BLOCKS_SKY[id]) { if (y > c.top[col]) c.top[col] = y; }
+    else if (y === c.top[col]) { let t = y - 1; while (t > 0 && !BLOCKS_SKY[c.blocks[col + t * 256]]) t--; c.top[col] = t; }
+    if (LIGHT_R[old] || LIGHT_R[id]) {
+      const wx = x + .5, wy = y + .5, wz = z + .5;
+      c.lights = c.lights.filter(l => !(l.x === wx && l.y === wy && l.z === wz));
+      if (LIGHT_R[id]) c.lights.push({x: wx, y: wy, z: wz, r: LIGHT_R[id], id});
+    }
+    c.version++;
+    const nb = [];
+    if (lx === 0) nb.push([cx - 1, cz]); if (lx === 15) nb.push([cx + 1, cz]); if (lz === 0) nb.push([cx, cz - 1]); if (lz === 15) nb.push([cx, cz + 1]);
+    if (lx === 0 && lz === 0) nb.push([cx - 1, cz - 1]); if (lx === 15 && lz === 15) nb.push([cx + 1, cz + 1]); if (lx === 0 && lz === 15) nb.push([cx - 1, cz + 1]); if (lx === 15 && lz === 0) nb.push([cx + 1, cz - 1]);
+    for (const [a, b] of nb) { const n = this.chunks.get(a + ',' + b); if (n) n.version++; }
+    return true;
+  }
+  /** nearest light source to a point within r (blocks), or null */
+  nearestLight(x, y, z, extra = 0) {
+    let best = null, bd = 1e9;
+    const cx = Math.floor(x / CS), cz = Math.floor(z / CS);
+    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+      const c = this.chunks.get((cx + dx) + ',' + (cz + dz)); if (!c) continue;
+      for (const l of c.lights) { const d = Math.hypot(l.x - x, (l.y - y) * .8, l.z - z); if (d < l.r + extra && d < bd) { bd = d; best = l; } }
+    }
+    return best;
+  }
+  lightsNear(x, y, z, r, n) {
+    const out = [], cx = Math.floor(x / CS), cz = Math.floor(z / CS), cr = Math.ceil(r / CS);
+    for (let dz = -cr; dz <= cr; dz++) for (let dx = -cr; dx <= cr; dx++) {
+      const c = this.chunks.get((cx + dx) + ',' + (cz + dz)); if (!c) continue;
+      for (const l of c.lights) { const d = Math.hypot(l.x - x, l.y - y, l.z - z); if (d < r) out.push({l, d}); }
+    }
+    out.sort((a, b) => a.d - b.d); return out.slice(0, n).map(o => o.l);
+  }
+  findSpawn() {
+    for (let r = 0; r < 200; r += 2) for (let a = 0; a < Math.max(1, r); a++) {
+      const th = a / Math.max(1, r) * 6.2832, x = Math.round(Math.cos(th) * r), z = Math.round(Math.sin(th) * r);
+      this.chunk(x >> 4, z >> 4);
+      const t = this.topY(x, z);
+      if (t > SEA + 1 && t < 30 && this.get(x, t, z) === B.GRASS && this.get(x, t + 1, z) === 0 && this.get(x, t + 2, z) === 0) return {x: x + .5, y: t + 1, z: z + .5};
+    }
+    return {x: .5, y: H - 2, z: .5};
+  }
+}
+
+/* ---------- meshing ---------- */
+// face table: normal, tangent axes (u,v), the four corners as (a,b) in tangent units, shade
+const FACES = [
+  {n:[1,0,0], u:[0,0,-1], v:[0,1,0], sh:.82, k:'side'}, {n:[-1,0,0], u:[0,0,1], v:[0,1,0], sh:.82, k:'side'},
+  {n:[0,1,0], u:[1,0,0], v:[0,0,-1], sh:1, k:'top'}, {n:[0,-1,0], u:[1,0,0], v:[0,0,1], sh:.5, k:'bot'},
+  {n:[0,0,1], u:[1,0,0], v:[0,1,0], sh:.7, k:'side'}, {n:[0,0,-1], u:[-1,0,0], v:[0,1,0], sh:.7, k:'side'}
+];
+const AO_CURVE = [.46, .66, .84, 1];
+class Buf {
+  constructor() { this.v = new Float32Array(1 << 16); this.i = new Uint32Array(1 << 15); this.nv = 0; this.ni = 0; }
+  reset() { this.nv = 0; this.ni = 0; }
+  quad(p, uvs, layer, sh, sky, flip) {
+    if ((this.nv + 4) * 8 > this.v.length) { const n = new Float32Array(this.v.length * 2); n.set(this.v); this.v = n; }
+    if (this.ni + 6 > this.i.length) { const n = new Uint32Array(this.i.length * 2); n.set(this.i); this.i = n; }
+    const v = this.v, b = this.nv;
+    for (let k = 0; k < 4; k++) { const o = (b + k) * 8; v[o] = p[k * 3]; v[o + 1] = p[k * 3 + 1]; v[o + 2] = p[k * 3 + 2]; v[o + 3] = uvs[k * 2]; v[o + 4] = uvs[k * 2 + 1]; v[o + 5] = layer; v[o + 6] = sh[k]; v[o + 7] = sky[k]; }
+    const i = this.i, n = this.ni;
+    if (flip) { i[n] = b + 1; i[n + 1] = b + 2; i[n + 2] = b + 3; i[n + 3] = b + 1; i[n + 4] = b + 3; i[n + 5] = b; }
+    else { i[n] = b; i[n + 1] = b + 1; i[n + 2] = b + 2; i[n + 3] = b; i[n + 4] = b + 2; i[n + 5] = b + 3; }
+    this.nv += 4; this.ni += 6;
+  }
+  out() { return {v: this.v.slice(0, this.nv * 8), i: this.i.slice(0, this.ni), faces: this.ni / 6}; }
+}
+const _op = new Buf(), _tr = new Buf();
+function skyAt(world, x, y, z) {
+  const t = world.topY(x, z); if (y > t) return 1;
+  return Math.max(.1, 1 - (t - y) * .2);
+}
+/** Mesh a chunk. Needs its four neighbours loaded. Returns {op, tr} each {v, i, faces}. */
+function meshChunk(world, cx, cz) {
+  _op.reset(); _tr.reset();
+  const c = world.chunk(cx, cz), ox = cx * CS, oz = cz * CS, bl = c.blocks;
+  const P = new Array(12), U = new Array(8), SH = [0,0,0,0], SK = [0,0,0,0];
+  for (let y = 0; y < H; 

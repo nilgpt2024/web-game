@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Action/Emoji-Horde-Survival/">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <title>Play Emoji Horde Survival Online - Free Action Game | AIGameHub</title>
+    <meta name="description" content="Play Emoji Horde Survival online for free — an action game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try i">
+    <meta name="theme-color" content="#120e26">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --ink: #120e26; --sun: #ffd23f; --cream: #fff6e0; --card: #2b2552; --line: #433a7a; --violet: #b49cff; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { margin: 0; height: 100%; background: var(--ink); overflow: hidden; color: var(--cream);
+            font-family: Fredoka, ui-rounded, 'SF Pro Rounded', system-ui, sans-serif; overscroll-behavior: none;
+            -webkit-user-select: none; user-select: none; touch-action: none; }
+        button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+        button:focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
+        #field { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+        /* ---------- HUD ---------- */
+        .hud { position: fixed; left: 0; right: 0; top: 0; padding: max(12px, env(safe-area-inset-top)) 14px 30px;
+            pointer-events: none; background: linear-gradient(#0b0820e0 35%, #0b082000); transition: opacity .4s, transform .4s cubic-bezier(.2,.8,.2,1); }
+        .hud.off { opacity: 0; transform: translateY(-16px); }
+        .bar { display: flex; align-items: center; margin-right: 52px; }
+        .lv { position: relative; z-index: 1; width: 38px; height: 38px; border-radius: 50%; background: var(--sun); color: #4a2a00;
+            font-weight: 700; font-size: 19px; display: grid; place-items: center; box-shadow: 0 0 0 3px var(--cream), 0 3px 0 4px #0005; flex: none; }
+        .lv.pop { animation: pop .45s cubic-bezier(.2,1.6,.4,1); }
+        @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+        .xp { flex: 1; height: 14px; margin-left: -6px; border-radius: 0 10px 10px 0; background: #ffffff18; overflow: hidden; box-shadow: inset 0 2px 0 #0004; }
+        .xp i { display: block; height: 100%; width: 100%; transform-origin: left; transform: scaleX(0);
+            background: linear-gradient(#fff3b0, #ffc83a 55%, #ff9f1c); box-shadow: 0 0 10px #ffc83a88; transition: transform .18s ease-out; }
+        .pausebtn { position: absolute; right: 14px; top: max(12px, env(safe-area-inset-top)); width: 40px; height: 40px; border-radius: 50%;
+            background: #fff6e026; box-shadow: inset 0 0 0 2px #fff6e055; display: grid; place-items: center; pointer-events: auto; }
+        .pausebtn::before { content: ""; width: 13px; height: 15px; border-left: 4.5px solid var(--cream); border-right: 4.5px solid var(--cream); }
+        .time { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; font-size: 26px;
+            font-variant-numeric: tabular-nums; margin-top: 4px; text-shadow: 0 2px 0 #0007; line-height: 1; }
+        .boss { display: flex; align-items: center; gap: 8px; width: min(300px, 64%); margin: 8px auto 0; opacity: 0; transform: translateY(-6px);
+            transition: opacity .35s, transform .35s; }
+        .boss.on { opacity: 1; transform: none; }
+        .boss > div { flex: 1; }
+        .boss b { display: block; font-size: 11.5px; letter-spacing: 2px; color: #d8ccff; font-weight: 600; text-transform: uppercase; }
+        .boss .hp { height: 10px; margin-top: 3px; border-radius: 5px; background: #120a2a; box-shadow: 0 0 0 2px #8a6cff66; overflow: hidden; }
+        .boss .hp i { display: block; height: 100%; width: 100%; transform-origin: left; transition: transform .2s;
+            background: repeating-linear-gradient(90deg, #b49cff 0 22px, #9a7cf5 22px 24px); }
+        #hurt { position: fixed; inset: 0; pointer-events: none; opacity: 0;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(255, 60, 90, .55)); }
+        #flash { position: fixed; inset: 0; pointer-events: none; opacity: 0; }
+        #hint { position: fixed; left: 50%; bottom: max(28px, calc(env(safe-area-inset-bottom) + 18px)); transform: translate(-50%, 12px);
+            padding: 10px 18px; border-radius: 30px; background: #0b0820cc; box-shadow: inset 0 0 0 2px #fff6e033; font-weight: 500;
+            font-size: 16px; opacity: 0; transition: opacity .4s, transform .4s cubic-bezier(.2,.8,.2,1); pointer-events: none; white-space: nowrap; }
+        #hint.on { opacity: 1; transform: translate(-50%, 0); }
+        #banner { position: fixed; left: 0; right: 0; top: 17%; text-align: center; pointer-events: none; opacity: 0; color: var(--cream);
+            font-weight: 700; font-size: clamp(40px, 11vw, 72px); letter-spacing: 1px; line-height: 1; text-shadow: 0 5px 0 #3a1c4a, 0 0 30px #3a1c4a99; }
+        #banner small { display: block; margin-top: 8px; font-size: .32em; letter-spacing: 3px; font-weight: 600; opacity: .8; text-transform: uppercase; }
+
+        /* ---------- overlays ---------- */
+        .ov { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px;
+            visibility: hidden; opacity: 0; transition: opacity .3s, visibility 0s .3s; }
+        .ov.show { visibility: visible; opacity: 1; transition: opacity .3s; }
+        .dim { background: linear-gradient(#0d0a2099, #0d0a20f0 70%); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+        .pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-width: 200px; padding: 16px 34px; border-radius: 40px;
+            background: linear-gradient(#ffe36e, #ffb52e); color: #4a2a00; font-weight: 700; font-size: 22px;
+            box-shadow: 0 5px 0 #b06a10, 0 0 40px #ffb52e55; transition: transform .12s, box-shadow .12s; }
+        .pill:active { transform: translateY(4px); box-shadow: 0 1px 0 #b06a10, 0 0 30px #ffb52e55; }
+        .ghost { padding: 12px 24px; border-radius: 30px; box-shadow: inset 0 0 0 2px #fff6e055; font-weight: 600; font-size: 17px; }
+        .ghost:active { transform: translateY(2px); }
+
+        /* title */
+        #title { justify-content: space-between; padding: max(9vh, env(safe-area-inset-top)) 16px max(5vh, calc(env(safe-area-inset-bottom) + 16px)); }
+        .logo { text-align: center; }
+        .logo h1 { margin: 0; font-size: clamp(54px, 15vw, 96px); font-weight: 700; line-height: .9; letter-spacing: -1px;
+            color: var(--cream); text-shadow: 0 6px 0 #0009, 0 0 60px #ffb52e44; }
+        .logo h1 em { font-style: normal; color: var(--sun); }
+        .logo p { margin: 14px 0 0; font-size: 18px; opacity: .78; font-weight: 500; }
+        .tbottom { display: flex; flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+        .heroes { display: flex; gap: 10px; justify-content: center; }
+        .heroes button { position: relative; width: 62px; height: 62px; border-radius: 50%; background: #ffffff0d; box-shadow: inset 0 0 0 2px #fff6e022; transition: transform .15s, box-shadow .2s; }
+        .heroes button.sel { box-shadow: inset 0 0 0 3px var(--sun), 0 0 24px #ffb52e66; transform: scale(1.08); }
+        .heroes canvas { width: 100%; height: 100%; display: block; }
+        .heroinfo { min-height: 44px; text-align: center; font-size: 16px; line-height: 1.35; opacity: .9; }
+        .heroinfo b { font-weight: 600; color: var(--sun); }
+        .best { font-size: 15px; opacity: .7; font-variant-numeric: tabular-nums; min-height: 1em; }
+        .credit { color: var(--cream); opacity: .45; font-size: 13px; text-decoration: none; letter-spacing: 1px; }
+        .soundbtn { position: fixed; right: 14px; top: max(12px, env(safe-area-inset-top)); width: 42px; height: 42px; border-radius: 50%; background: #fff6e01a; display: grid; place-items: center; }
+        .soundbtn svg { width: 22px; height: 22px; }
+
+        /* level up */
+        #lvl { justify-content: center; }
+        #lvl h2, #boxv h2 { margin: 0; font-size: 34px; font-weight: 600; line-height: 1; display: flex; align-items: center; gap: 12px; }
+        .sunlv { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; font-size: 30px; font-weight: 700; color: #5a3300;
+            background: radial-gradient(#fff08a, #ffb01f); box-shadow: 0 0 0 4px var(--cream), 0 0 34px 10px #ffb52e88; }
+        .build { display: flex; gap: 6px; justify-content: center; margin: 14px 0 26px; flex-wrap: wrap; min-height: 46px; }
+        .bi { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .bi canvas { width: 44px; height: 44px; border-radius: 50%; background: var(--cream); }
+        .bi.ch canvas { background: #d9d0ff; border-radius: 10px; }
+        .mp { display: flex; gap: 2px; } .mp i { width: 7px; height: 4px; border-radius: 2px; background: var(--sun); } .mp i.o { background: #ffffff25; }
+        .build .gap { width: 2px; margin: 4px 8px 12px; background: #fff6e044; border-radius: 2px; }
+        .cards { display: flex; gap: 18px; }
+        .card { position: relative; width: clamp(256px, 21vw, 310px); display: flex; flex-direction: column; align-items: center; text-align: center;
+            background: linear-gradient(#332c62, #28224f); border: 2px solid var(--line); border-radius: 26px; padding: 26px 18px 20px;
+            box-shadow: 0 8px 0 #0006; opacity: 0; transform: translateY(28px) scale(.96);
+            transition: transform .38s cubic-bezier(.2,1.3,.4,1), opacity .25s, border-color .15s, box-shadow .15s; }
+        .show .card { opacity: 1; transform: none; }
+        .card:hover, .card:focus-visible { border-color: #8a7ad8; outline: none; }
+        .card.evo { background: linear-gradient(160deg, #6a4310, #3a2457 70%); border-color: var(--sun); box-shadow: 0 8px 0 #0006, 0 0 40px #ffc23a55; }
+        .card.picked { transform: scale(1.06); border-color: var(--sun); box-shadow: 0 0 0 4px #ffd23f66, 0 0 50px #ffc23a88; }
+        .card.gone { opacity: 0; transform: translateY(20px) scale(.94); }
+        .ic { width: 108px; height: 108px; border-radius: 50%; background: radial-gradient(#fffaf0, #f3e3c0); box-shadow: 0 4px 0 #0005; flex: none; }
+        .card.charm .ic { background: radial-gradient(#ece6ff, #cfc3ff); border-radius: 26px; }
+        .card > div { flex: 1; display: flex; flex-direction: column; align-items: inherit; width: 100%; }
+        .card b { display: block; font-size: 24px; font-weight: 600; margin-top: 16px; }
+        .card span { display: block; font-size: 17px; line-height: 1.3; opacity: .95; margin-top: 6px; }
+        .tag { font-style: normal; position: absolute; top: -13px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 700;
+            letter-spacing: 1px; border-radius: 12px; padding: 3px 12px; background: #3fd0a0; color: #06291d; }
+        .evo .tag { background: var(--sun); color: #3a2408; }
+        .pips { display: flex; gap: 5px; margin-top: auto; padding-top: 14px; }
+        .pips i { width: 22px; height: 7px; border-radius: 4px; background: #ffffff22; }
+        .pips i.on { background: var(--sun); }
+        .pips i.nx { background: #fff3b0; box-shadow: 0 0 0 2px #ffd23f, 0 0 10px #ffd23f; animation: nx .8s ease-in-out infinite alternate; }
+        .pips i.ev { width: 60px; background: linear-gradient(90deg, #ffe98a, #ff9f1c); }
+        @keyframes nx { to { box-shadow: 0 0 0 2px #ffd23f, 0 0 2px #ffd23f; } }
+        .mix { display: flex; align-items: center; gap: 4px; margin-top: 12px; font-weight: 700; color: var(--sun); }
+        .mix canvas { width: 44px; height: 44px; border-radius: 50%; background: var(--cream); }
+        .mix canvas.ch { background: #d9d0ff; border-radius: 12px; }
+
+        /* pause / results */
+        .panel { width: min(460px, 100%); text-align: center; }
+        .panel h2 { margin: 0 0 6px; font-size: 40px; font-weight: 700; }
+        .panel .sub { opacity: .75; font-size: 17px; margin-bottom: 18px; }
+        .list { display: flex; flex-direction: column; gap: 8px; margin: 0 0 22px; text-align: left; }
+        .row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 16px; background: #ffffff0b; }
+        .row canvas { width: 40px; height: 40px; border-radius: 50%; background: var(--cream); flex: none; }
+        .row.ch canvas { background: #d9d0ff; border-radius: 11px; }
+        .row b { flex: 1; font-weight: 600; font-size: 17px; }
+        .row .mp i { width: 12px; height: 5px; }
+        .btns { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+        .btns .two { display: flex; gap: 10px; }
+        .stats { display: flex; justify-content: center; gap: 12px; margin: 6px 0 18px; }
+        .stat { flex: 1; max-width: 140px; padding: 12px 6px; border-radius: 18px; background: #ffffff0d; }
+        .stat big { display: block; font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+        .stat small { font-size: 13px; opacity: .7; letter-spacing: 1px; text-transform: uppercase; }
+        .stat.newbest { box-shadow: inset 0 0 0 2px var(--sun); }
+        .stat.newbest small::after { content: " · best!"; color: var(--sun); opacity: 1; }
+        .unlock { display: flex; align-items: center; gap: 14px; text-align: left; padding: 12px 16px; border-radius: 20px; margin: 0 0 18px;
+            background: linear-gradient(160deg, #6a4310, #3a2457 70%); box-shadow: inset 0 0 0 2px var(--sun); }
+        .unlock canvas { width: 56px; height: 56px; flex: none; }
+        .unlock b { color: var(--sun); }
+        #over .build { margin: 0 0 20px; }
+
+        @media (max-width: 640px) {
+            .time { font-size: 22px; }
+            .lv { width: 32px; height: 32px; font-size: 16px; }
+            .xp { height: 11px; }
+            .pausebtn { width: 36px; height: 36px; }
+            .bar { margin-right: 46px; }
+            #lvl { justify-content: flex-end; padding-bottom: max(26px, env(safe-area-inset-bottom)); }
+            #lvl h2 { font-size: 30px; }
+            .cards { flex-direction: column; gap: 14px; width: 100%; }
+            .card { width: 100%; flex-direction: row; text-align: left; align-items: center; gap: 16px; padding: 16px; }
+            .card > div { align-items: flex-start; }
+            .ic { width: 72px; height: 72px; }
+            .card.charm .ic { border-radius: 20px; }
+            .card b { margin-top: 0; font-size: 22px; }
+            .card span { font-size: 15.5px; margin-top: 2px; }
+            .pips { padding-top: 8px; margin-top: 0; }
+            .tag { left: auto; right: 16px; transform: none; }
+            .mix { margin-top: 6px; } .mix canvas { width: 36px; height: 36px; }
+            .panel h2 { font-size: 34px; }
+        }
+        @media (max-height: 560px) and (min-width: 641px) {
+            .card { padding: 16px 14px 14px; } .ic { width: 70px; height: 70px; } .card b { margin-top: 10px; }
+            .build { margin: 8px 0 14px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .card, .hud, .boss, #hint, .ov { transition-duration: .01s !important; }
+            .lv.pop, .pips i.nx { animation: none; }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"动作反应游戏","item":"https://suipce.com/action-games"},{"@type":"ListItem","position":3,"name":"表情部落生存","item":"https://suipce.com/games/Action/Emoji-Horde-Survival/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Action/Emoji-Horde-Survival/preview.webp"><meta name="twitter:image"content="https://suipce.com/games/Action/Emoji-Horde-Survival/preview.webp"></head>
+<body>
+<canvas id="field" aria-label="Last Smile playfield"></canvas>
+
+<div class="hud off" id="hud">
+    <div class="bar"><div class="lv" id="lv">1</div><div class="xp"><i id="xpf"></i></div></div>
+    <button class="pausebtn" id="pausebtn" aria-label="Pause"></button>
+    <div class="time" aria-label="Time until sunrise">
+        <svg viewBox="0 0 44 22" width="40" height="20" aria-hidden="true"><clipPath id="hz"><rect x="0" y="0" width="44" height="20"/></clipPath>
+            <circle id="dsun" cx="22" cy="24" r="9" fill="#ffc83a" clip-path="url(#hz)"/><path d="M1 20h42" stroke="#fff6e0" stroke-width="2.4" stroke-linecap="round"/></svg>
+        <span id="clock">10:00</span>
+    </div>
+    <div class="boss" id="boss"><svg viewBox="0 0 30 20" width="30" height="20" aria-hidden="true"><path d="M7 18a6 6 0 0 1-1-12 8 8 0 0 1 15-1 6.5 6.5 0 0 1 2 13z" fill="#b49cff"/></svg>
+        <div><b id="bossname"></b><div class="hp"><i id="bosshp"></i></div></div></div>
+</div>
+<div id="hurt"></div>
+<div id="flash"></div>
+<div id="hint"></div>
+<div id="banner"></div>
+
+<div class="ov show" id="title">
+    <div class="logo"><h1>Last <em>Smile</em></h1><p>Last the night. Cheer the gloom.</p></div>
+    <div class="tbottom">
+        <div class="heroes" id="heroes"></div>
+        <div class="heroinfo" id="heroinfo"></div>
+        <button class="pill" id="play">Play</button>
+        <div class="best" id="best"></div>
+        <a class="credit" href="https://www.gptgames.dev/">gptgames.dev</a>
+    </div>
+</div>
+<button class="soundbtn" id="soundbtn" aria-label="Sound"></button>
+
+<div class="ov dim" id="lvl" role="dialog" aria-label="Level up">
+    <h2><span class="sunlv" id="lvlnum">2</span>Brighter!</h2>
+    <div class="build" id="lvlbuild"></div>
+    <div class="cards" id="cards"></div>
+</div>
+
+<div class="ov dim" id="boxv" role="dialog" aria-label="A gift">
+    <h2>A gift from the storm</h2>
+    <div class="build"></div>
+    <div class="cards" id="boxcards"></div>
+</div>
+
+<div class="ov dim" id="pausev" role="dialog" aria-label="Paused">
+    <div class="panel"><h2>Paused</h2><div class="sub" id="pausesub"></div>
+        <div class="list" id="pauselist"></div>
+        <div class="btns"><button class="pill" id="resume">Resume</button>
+            <div class="two"><button class="ghost" id="psound"></button><button class="ghost" id="quit">Give up the night</button></div></div></div>
+</div>
+
+<div class="ov dim" id="over" role="dialog" aria-label="Night over">
+    <div class="panel"><h2 id="overh"></h2><div class="sub" id="oversub"></div>
+        <div class="stats" id="stats"></div>
+        <div id="unlocks"></div>
+        <div class="build" id="overbuild"></div>
+        <div class="btns"><button class="pill" id="again">Again</button><button class="ghost" id="totitle">Title</button></div></div>
+</div>
+
+<script id="core">
+// Last Smile - the rules. No DOM: the page draws what this decides, test/last_smile.mjs checks it.
+var SmileCore = (function () {
+    'use strict';
+    var NIGHT = 600;                    // seconds until sunrise
+    var GIFT_SLOTS = 4, CHARM_SLOTS = 4, MAX_LV = 5;
+    var TAU = Math.PI * 2;
+
+    // ---------------------------------------------------------------- rng
+    function rng(seed) {                // mulberry32, state kept in the run so a save could resume it
+        return function (s) {
+            s.rs = (s.rs + 0x6D2B79F5) | 0;
+            var t = s.rs;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+    var R = rng();
+
+    // ---------------------------------------------------------------- the gloom
+    // r radius, hp at minute 0, sp speed, dmg per bite, xp tier dropped, mass (knockback resistance)
+    var MOODS = {
+        meh:   { r: 12, hp: 7,    sp: 46,  dmg: 4,  xp: 1,  mass: 1 },
+        grump: { r: 13, hp: 12, sp: 74,  dmg: 7,  xp: 2,  mass: 1 },
+        fume:  { r: 13.5, hp: 22,   sp: 52,  dmg: 9,  xp: 3,  mass: 1.4 },
+        sob:   { r: 20, hp: 70,   sp: 34,  dmg: 12, xp: 6,  mass: 3 },
+        boss:  { r: 60, hp: 900,  sp: 44,  dmg: 22, xp: 0,  mass: 40 }
+    };
+    var BITE_GAP = 1.0;                 // a face bites at most this often
+    var STRIKE_GAP = 3.6, STRIKE_WARN = 1.1, STRIKE_R = 44, STRIKE_DMG = 16;
+
+    // ---------------------------------------------------------------- gifts and charms
+    // each gift: lv[1..5] stat tables; evo: the evolved gift, partner charm.
+    var GIFTS = {
+        hearts:   { name: 'Hearts',   evo: 'lovebomb', partner: 'cookie',
+                    lines: ['Throws a heart at the nearest face', 'Throw 2 hearts, not 1', 'Hearts hit 60% harder', 'Throw 3 hearts, not 2', 'Quicker throws; hearts fly through a face'],
+                    lv: [null, { cd: 1.05, n: 1, dmg: 10, pierce: 0 }, { cd: 1.05, n: 2, dmg: 10, pierce: 0 }, { cd: 1.05, n: 2, dmg: 16, pierce: 0 }, { cd: 1.05, n: 3, dmg: 16, pierce: 0 }, { cd: 0.8, n: 3, dmg: 18, pierce: 1 }] },
+        sunshine: { name: 'Sunshine', evo: 'heatwave', partner: 'sunhat',
+                    lines: ['Your light warms every face inside it', 'Your light reaches further', 'Your light warms 60% harder', 'Your light reaches further', 'Hotter light, warming more often'],
+                    lv: [null, { r: 58, dmg: 5, tick: 0.5 }, { r: 72, dmg: 5, tick: 0.5 }, { r: 72, dmg: 8, tick: 0.5 }, { r: 86, dmg: 8, tick: 0.5 }, { r: 92, dmg: 11, tick: 0.4 }] },
+        confetti: { name: 'Confetti', evo: 'popper', partner: 'coffee',
+                    lines: ['Bursts confetti all around you', '12 pieces a burst, not 8', 'Confetti hits harder, flies further', '16 pieces a burst, not 12', 'Bursts come sooner and pierce more'],
+                    lv: [null, { cd: 2.6, n: 8, dmg: 11, pierce: 1, range: 230 }, { cd: 2.6, n: 12, dmg: 11, pierce: 1, range: 230 }, { cd: 2.6, n: 12, dmg: 17, pierce: 1, range: 250 }, { cd: 2.6, n: 16, dmg: 17, pierce: 1, range: 250 }, { cd: 1.9, n: 16, dmg: 19, pierce: 2, range: 270 }] },
+        balloons: { name: 'Balloons', evo: 'parade', partner: 'sneakers',
+                    lines: ['Two balloons circle you and bonk the gloom', '3 balloons, not 2', 'Balloons bonk 60% harder', '4 balloons, not 3', 'A wider, faster circle'],
+                    lv: [null, { n: 2, dmg: 9, orbit: 64, spin: 2.6 }, { n: 3, dmg: 9, orbit: 64, spin: 2.6 }, { n: 3, dmg: 15, orbit: 68, spin: 2.8 }, { n: 4, dmg: 15, orbit: 68, spin: 2.8 }, { n: 4, dmg: 18, orbit: 84, spin: 3.4 }] },
+        rainbow:  { name: 'Rainbow',  evo: 'double', partner: 'star',
+                    lines: ['A rainbow shoots the way you go, through everything', 'Rainbow hits 50% harder', 'A longer, wider rainbow', 'Rainbows come sooner', 'Rainbow hits 40% harder'],
+                    lv: [null, { cd: 1.9, len: 300, w: 22, dmg: 20 }, { cd: 1.9, len: 300, w: 22, dmg: 30 }, { cd: 1.9, len: 380, w: 30, dmg: 30 }, { cd: 1.45, len: 380, w: 30, dmg: 32 }, { cd: 1.45, len: 400, w: 32, dmg: 46 }] },
+        tune:     { name: 'Tune',     evo: 'encore', partner: 'magnet',
+                    lines: ['A ring of song pushes faces back', 'The song reaches further', 'The song hits harder', 'Sing more often', 'A further, harder push'],
+                    lv: [null, { cd: 3.2, r: 150, dmg: 7, push: 170 }, { cd: 3.2, r: 185, dmg: 7, push: 170 }, { cd: 3.2, r: 185, dmg: 13, push: 180 }, { cd: 2.5, r: 195, dmg: 13, push: 190 }, { cd: 2.5, r: 220, dmg: 16, push: 240 }] },
+        // evolved forms: one level, replace their gift
+        lovebomb: { name: 'Lovebomb', from: 'hearts', line: 'Hearts burst into love where they land',
+                    lv: [null, { cd: 0.75, n: 4, dmg: 22, pierce: 0, blast: 56, bdmg: 16 }] },
+        heatwave: { name: 'Heatwave', from: 'sunshine', line: 'A huge sun that slows everything it touches',
+                    lv: [null, { r: 132, dmg: 15, tick: 0.35, slow: 0.45 }] },
+        popper:   { name: 'Party Popper', from: 'confetti', line: 'Confetti never stops',
+                    lv: [null, { cd: 0.55, n: 7, dmg: 18, pierce: 3, range: 300, spiral: 1 }] },
+        parade:   { name: 'Parade', from: 'balloons', line: 'Two rings of balloons, one each way',
+                    lv: [null, { n: 8, dmg: 22, orbit: 70, spin: 3.2, outer: 128 }] },
+        double:   { name: 'Double Rainbow', from: 'rainbow', line: 'Rainbows forward and back, all the way',
+                    lv: [null, { cd: 1.0, len: 560, w: 40, dmg: 60, both: 1 }] },
+        encore:   { name: 'Encore', from: 'tune', line: 'Every chorus pulls in all the sparkle on screen',
+                    lv: [null, { cd: 2.0, r: 260, dmg: 22, push: 260, pull: 1 }] }
+    };
+    var BASE_GIFTS = ['hearts', 'sunshine', 'confetti', 'balloons', 'rainbow', 'tune'];
+    var CHARMS = {
+        cookie:   { name: 'Cookie',   line: 'More health, and you heal as you go' },
+        sneakers: { name: 'Sneakers', line: 'You move faster' },
+        coffee:   { name: 'Coffee',   line: 'Every gift comes back sooner' },
+        sunhat:   { name: 'Sun Hat',  line: 'Every gift reaches further' },
+        star:     { name: 'Star',     line: 'Every gift hits harder' },
+        magnet:   { name: 'Magnet',   line: 'Sparkle flies to you from further' }
+    };
+    var CHARM_IDS = Object.keys(CHARMS);
+
+    var HEROES = {
+        sunny: { name: 'Sunny', gift: 'hearts',   goal: null },
+        beamy: { name: 'Beamy', gift: 'rainbow',  goal: 'Last 3 minutes' },
+        party: { name: 'Party', gift: 'confetti', goal: 'Cheer 600 faces in one night' },
+        cool:  { name: 'Cool',  gift: 'sunshine', goal: 'Evolve a gift' },
+        hum:   { name: 'Hum',   gift: 'tune',     goal: 'See the sunrise' }
+    };
+
+    // xp to go from level L to L+1
+    function need(L) { return Math.round(4 + (L - 1) * 3 + Math.pow(Math.max(0, L - 15), 1.7) * 2); }
+
+    // ---------------------------------------------------------------- the night: what comes when
+    // per minute: [faces kept on screen, mix weights meh grump fume sob]
+    var NIGHTPLAN = [
+        [12,  [1, 0, 0, 0]],
+        [34,  [6, 3, 0, 0]],
+        [55,  [5, 4, 1, 1]],
+        [80,  [5, 4, 2, 1]],
+        [110, [3, 5, 2, 2]],
+        [140, [3, 5, 3, 2]],
+        [170, [2, 5, 3, 3]],
+        [210, [2, 5, 4, 3]],
+        [250, [2, 4, 4, 4]],
+        [300, [1, 4, 4, 5]]
+    ];
+    // set pieces: a ring closing in, a stream crossing, a boss
+    var EVENTS = [
+        { t: 75,  kind: 'stream', n: 26, mood: 'grump' },
+        { t: 150, kind: 'ring',   n: 46, mood: 'meh' },
+        { t: 180, kind: 'boss',   hp: 1, name: 'The Drizzle' },
+        { t: 255, kind: 'stream', n: 40, mood: 'grump' },
+        { t: 330, kind: 'ring',   n: 64, mood: 'meh' },
+        { t: 360, kind: 'boss',   hp: 2.4, name: 'The Downpour' },
+        { t: 420, kind: 'stream', n: 50, mood: 'fume' },
+        { t: 470, kind: 'ring',   n: 80, mood: 'grump' },
+        { t: 510, kind: 'boss',   hp: 4.2, name: 'The Thunderhead' },
+        { t: 560, kind: 'ring',   n: 64, mood: 'sob' }
+    ];
+    var MAX_FACES = 420, MAX_GEMS = 260;
+
+    function hpScale(t) { return 1 + t / 60 * 0.42 + Math.pow(t / 60, 2) * 0.03; }
+
+    // ---------------------------------------------------------------- run
+    function create(opt) {
+        opt = opt || {};
+        var hero = HEROES[opt.hero] ? opt.hero : 'sunny';
+        var s = {
+            seed: opt.seed >>> 0, rs: opt.seed | 0, t: 0, over: false, won: false,
+            view: { w: opt.w || 900, h: opt.h || 700 },
+            hero: hero,
+            p: { x: 0, y: 0, r: 16, hp: 100, max: 100, fx: 1, fy: 0, hurtT: -9, vx: 0, vy: 0 },
+            faces: [], gems: [], drops: [], shots: [], rings: [], beams: [], strikes: [],
+            nextId: 1, gifts: {}, charms: {}, giftOrder: [], charmOrder: [],
+            cds: {}, orbitA: 0, auraT: 0,
+            xp: 0, level: 1, pending: 0, offer: null, box: 0,
+            cheered: 0, bosses: 0, evolved: 0, spawnAcc: 0, ev: 0, dmgDone: 0
+        };
+        addGift(s, HEROES[hero].gift);
+        return s;
+    }
+    function setView(s, w, h) { s.view.w = w; s.view.h = h; }
+
+    function addGift(s, id) {
+        var g = GIFTS[id];
+        if (g.from) {                    // evolution replaces its gift in place
+            var i = s.giftOrder.indexOf(g.from);
+            s.giftOrder[i] = id; delete s.gifts[g.from]; s.gifts[id] = 1; s.evolved++;
+            s.cds[id] = 0.2; return;
+        }
+        if (s.gifts[id]) s.gifts[id]++; else { s.gifts[id] = 1; s.giftOrder.push(id); s.cds[id] = 0.3; }
+    }
+    function addCharm(s, id) {
+        if (s.charms[id]) s.charms[id]++; else { s.charms[id] = 1; s.charmOrder.push(id); }
+        if (id === 'cookie') { s.p.max += 20; s.p.hp += 20; }
+    }
+    function stat(s, id) { return GIFTS[id].lv[s.gifts[id]]; }
+    function mult(s) {
+        return {
+            dmg: 1 + 0.1 * (s.charms.star || 0),
+            cd: 1 - 0.08 * (s.charms.coffee || 0),
+            area: 1 + 0.1 * (s.charms.sunhat || 0),
+            speed: 1 + 0.09 * (s.charms.sneakers || 0),
+            reach: 1 + 0.3 * (s.charms.magnet || 0),
+            regen: 0.25 * (s.charms.cookie || 0)
+        };
+    }
+
+    // what a level-up may offer: [{type:'gift'|'charm'|'evo'|'snack', id, lv}]
+    function pool(s) {
+        var out = [], id, i;
+        for (i = 0; i < s.giftOrder.length; i++) {
+            id = s.giftOrder[i]; var g = GIFTS[id];
+            if (g.from) continue;
+            if (s.gifts[id] < MAX_LV) out.push({ type: 'gift', id: id, lv: s.gifts[id] + 1, w: 3 });
+        }
+        if (s.giftOrder.length < GIFT_SLOTS)
+            for (i = 0; i < BASE_GIFTS.length; i++) {
+                id = BASE_GIFTS[i];
+                if (!s.gifts[id] && !s.gifts[GIFTS[id].evo]) out.push({ type: 'gift', id: id, lv: 1, w: 2 });
+            }
+        for (i = 0; i < s.charmOrder.length; i++) {
+            id = s.charmOrder[i];
+      

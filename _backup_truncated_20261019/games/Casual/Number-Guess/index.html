@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Casual/Number-Guess/">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Number Guess Online - Free Casual Game | AIGameHub</title>
+<meta name="description" content="Play Number Guess online for free — a casual game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="theme-color" content="#0f2019">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --enamel:#132a20;--enamel-hi:#1d3d2f;--enamel-lo:#0b1a13;
+  --gold:#e0c27e;--gold-lo:#a07c3a;--ivory:#f2e9d1;--ink:#211c14;--lacquer:#a82a1c;
+  --mute:#9fb3a6;--leather:#3a2416;--leather-hi:#56361f;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:#07100c;color:var(--ivory);font-family:Cinzel,Georgia,serif;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+/* the vault room: a dark wall, one warm lamp above the door */
+.room{position:fixed;inset:0;display:flex;justify-content:center;background:#0b1711}
+@media (min-width:700px) and (min-height:560px){
+  /* a bank's back room: striped paper above a panelled dado, one lamp, a floor in shadow */
+  .room{background:
+    radial-gradient(42% 60% at 50% 0%,rgba(255,206,130,.22),transparent 70%),
+    linear-gradient(transparent 78%,#1c120b 78%,#120b06 79.5%,#0a0604 100%),
+    linear-gradient(transparent 60%,rgba(0,0,0,.25) 60%,rgba(0,0,0,.25) 60.4%,transparent 60.4%),
+    radial-gradient(circle at 50% 50%,rgba(224,194,126,.07) 0 3px,transparent 4px) 0 0/46px 46px,
+    radial-gradient(ellipse 9px 14px at 50% 50%,rgba(224,194,126,.035) 0 8px,transparent 9px) 23px 23px/46px 46px,
+    repeating-linear-gradient(90deg,#16261e 0 46px,#132219 46px 48px,#182a21 48px 92px,#132219 92px 94px),
+    #13221a}
+  .room::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(80% 90% at 50% 40%,transparent 40%,rgba(0,0,0,.6))}
+}
+.room::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(90% 70% at 50% 45%,transparent 30%,rgba(190,30,20,.55))}
+.room.alarm::after{animation:alarm 1.6s ease-out}
+@keyframes alarm{0%,40%,80%{opacity:1}20%,60%,100%{opacity:0}}
+
+/* the door: enamel, gold-leaf pinstripes, four rivets; it fills a phone and stands in the room on a desk */
+.door{position:relative;width:100%;max-width:560px;height:100%;display:flex;flex-direction:column;
+  padding:calc(10px + var(--sat)) 18px calc(14px + var(--sab));
+  background:linear-gradient(100deg,var(--enamel-lo) 0%,var(--enamel) 18%,var(--enamel-hi) 46%,var(--enamel) 70%,var(--enamel-lo) 100%)}
+.door::before{content:"";position:absolute;inset:8px;border-radius:14px;pointer-events:none;
+  border:1.5px solid rgba(224,194,126,.55);box-shadow:inset 0 0 0 6px rgba(0,0,0,0),inset 0 0 0 7px rgba(224,194,126,.22)}
+.rivet{position:absolute;width:9px;height:9px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 35% 30%,#fbe7b0,#a07c3a 60%,#4d3612);box-shadow:0 1px 2px rgba(0,0,0,.7)}
+.rivet.a{top:20px;left:20px}.rivet.b{top:20px;right:20px}.rivet.c{bottom:20px;left:20px}.rivet.d{bottom:20px;right:20px}
+.hinge{display:none}
+.rivet{display:none}
+@media (min-width:700px) and (min-height:560px){
+  .room{align-items:center}
+  .door{height:min(94vh,1040px);border-radius:22px;padding:22px 34px 26px;
+    box-shadow:0 0 0 2px #050b08,0 0 0 9px #24372d,0 0 0 11px #0a140f,0 30px 80px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.06)}
+  .door::before{inset:12px;border-radius:16px}
+  .rivet{display:block}
+  .rivet.a{top:26px;left:26px}.rivet.b{top:26px;right:26px}.rivet.c{bottom:26px;left:26px}.rivet.d{bottom:26px;right:26px}
+  .hinge{display:block;position:absolute;left:-17px;width:20px;height:110px;border-radius:7px;
+    background:linear-gradient(90deg,#4d3612,#d9b56a 45%,#f6e2aa 55%,#7a5a22);box-shadow:0 6px 14px rgba(0,0,0,.6)}
+  .hinge.t{top:14%}.hinge.b{bottom:14%}
+}
+
+header{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;height:48px;flex:none}
+.ic{width:44px;height:44px;display:grid;place-items:center;color:var(--gold);border-radius:50%;transition:transform .12s var(--ease),opacity .2s}
+.ic:active{transform:scale(.88)}
+.ic svg{width:22px;height:22px}
+.ic[hidden]{display:grid;visibility:hidden}
+.plate{text-align:center;line-height:1.1;font-family:Cinzel,serif;font-weight:700;color:var(--gold);font-size:21px;letter-spacing:.16em;text-shadow:0 1px 0 #000,0 0 18px rgba(224,194,126,.18);
+  white-space:nowrap;transition:opacity .25s,transform .35s var(--ease)}
+.door.title .stage{justify-content:center}
+.door.title .plate{font-size:32px;letter-spacing:.22em;text-indent:.22em;text-align:center;transform:translateY(10px)}
+.plate small{display:block;font-family:Cinzel,serif;font-size:13px;letter-spacing:.18em;font-weight:600;color:#c4d0c8;text-align:center;margin-top:1px;text-shadow:none}
+.door.title .plate small{font-family:Cinzel,serif;color:var(--gold);font-size:13px;letter-spacing:.24em;font-weight:600;opacity:.85;margin-top:6px}
+.door.title header{height:84px}
+
+.stage{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;perspective:1400px}
+.dialbox{position:relative;width:100%;display:flex;align-items:center;justify-content:center;transform-origin:50% 0;transition:transform .6s var(--ease)}
+.door.ended .dialbox{transform:scale(.66)}
+.dialbox.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{15%,85%{translate:-3px 0}30%,70%{translate:6px 0}45%,55%{translate:-8px 0}}
+@media (min-width:1000px) and (min-height:600px){.door.ended .dialbox{transform:none}}
+.dialwrap{position:relative}
+#scale{display:none}
+@media (min-width:1000px) and (min-height:600px){.scalebox{grid-area:scale;margin-bottom:18px}#scale{display:block}.door.title .scalebox{display:none}}
+#dial{display:block;touch-action:none;cursor:grab;outline:none}
+#dial.drag{cursor:grabbing}
+#entry{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+
+/* the roll: lockpicks in a leather wrap, one slit per pick the safe brought */
+.roll{flex:none;position:relative;display:flex;align-items:center;gap:12px;height:clamp(78px,11.5vh,104px);align-self:center;width:100%;max-width:100%;margin:8px 0 0;padding:0 18px;border-radius:12px;
+  background:linear-gradient(#4a2e1b,var(--leather) 60%,#2a190e);box-shadow:inset 0 1px 0 rgba(255,220,180,.12),0 3px 10px rgba(0,0,0,.5)}
+.roll::before{content:"";position:absolute;inset:5px;border:1.5px dashed rgba(230,190,140,.35);border-radius:8px;pointer-events:none}
+.picks{position:relative;flex:1;height:100%;min-width:0}
+/* a pocket: a sunken slot of leather with a stitched front flap; the pick stands in it */
+.picks{isolation:isolate}
+/* one strap across the roll; each pick goes through its own slit, and a spent pick leaves the slit bare */
+.picks::after{content:"";position:absolute;left:-6px;right:-6px;bottom:8px;height:38%;z-index:2;border-radius:4px;pointer-events:none;
+  background:linear-gradient(#6a4427,#4a2e1b 60%,#3a2414);box-shadow:0 -3px 5px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,220,180,.15);
+  border-top:1.5px dashed rgba(240,200,150,.4);border-bottom:1.5px dashed rgba(240,200,150,.25)}
+.pocket{position:absolute;bottom:8px;height:38%}
+.pocket::before{content:"";position:absolute;left:3px;right:3px;top:-3px;height:9px;border-radius:50%/100% 100% 40% 40%;z-index:3;
+  background:radial-gradient(ellipse at 50% 30%,#000,#160b04 70%);border-bottom:1.5px solid rgba(255,220,180,.3)}
+.pocket.empty::before{background:#080402}
+.pk{position:absolute;left:50%;bottom:4px;width:28px;height:calc(clamp(78px,11.5vh,104px) - 14px);margin-left:-14px;z-index:1;transform-origin:50% 100%;transform:rotate(var(--tilt,0deg));
+  transition:transform .45s var(--ease),opacity .4s}
+.pk svg{width:100%;height:100%;display:block;filter:drop-shadow(0 2px 1px rgba(0,0,0,.55))}
+.pk.gone{transform:translateY(-56px) rotate(28deg);opacity:0}
+.pk.drop{transform:translateY(-70px);opacity:0;transition:none}
+.pk.warn svg{animation:warn 1s ease-in-out infinite}
+@keyframes warn{50%{filter:drop-shadow(0 0 6px rgba(255,90,60,.95))}}
+.plus{position:absolute;left:50%;top:-30px;margin-left:-80px;width:160px;padding:6px 0;border-radius:8px;text-align:center;font:700 20px Cinzel,serif;letter-spacing:.08em;color:#2f2008;z-index:5;
+  background:linear-gradient(#fff0c0,#d2a957);box-shadow:inset 0 0 0 1.5px #7d5a22,0 4px 10px rgba(0,0,0,.5);opacity:0;pointer-events:none;text-shadow:0 2px 4px #000}
+.plus.go{animation:plus 1.2s var(--ease)}
+@keyframes plus{0%{opacity:0;transform:translateY(-120px) scale(1.5)}30%{opacity:1;transform:none}70%{opacity:1;transform:none}100%{opacity:0;transform:translateY(34px) scale(.7)}}
+
+/* turn and try: brass-rimmed nudges either side of a stamped brass plate */
+.controls{flex:none;display:grid;grid-template-columns:auto 1fr auto;gap:12px;margin:14px 0 8px;height:clamp(68px,9vh,80px)}
+.nudge{position:relative;border-radius:50%;width:clamp(68px,9vh,80px);height:clamp(68px,9vh,80px);display:grid;place-items:center;color:#3a2808;
+  background:radial-gradient(circle at 40% 32%,#c9ad74,#8f6f37 50%,#5e4519 80%),#7d5e2a;
+  box-shadow:0 3px 0 #4f3711,0 7px 14px rgba(0,0,0,.5);transition:transform .08s,box-shadow .08s}
+/* a knurled thumbwheel: the edge is milled like the dial's */
+.nudge::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:repeating-conic-gradient(rgba(60,40,8,.55) 0 4deg,rgba(255,240,200,.35) 4deg 8deg);
+  -webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);mask:radial-gradient(circle,transparent 62%,#000 63%)}
+.nudge svg{position:relative;width:34%;height:34%;filter:drop-shadow(0 1px 0 rgba(255,236,190,.35))}
+.nudge:active,.nudge.on{transform:translateY(3px) rotate(var(--turn,0deg));box-shadow:0 0 0 #4f3711,0 3px 6px rgba(0,0,0,.5)}
+#dn{--turn:-8deg}#up{--turn:8deg}
+.try{position:relative;border-radius:10px;font-family:Cinzel,serif;font-weight:700;font-size:25px;letter-spacing:.3em;text-indent:.3em;color:#3a2808;
+  text-shadow:0 1px 0 rgba(255,246,214,.7),0 -1px 0 rgba(60,40,8,.35);
+  background:linear-gradient(#fff0c0,#e8c271 45%,#cfa14a 55%,#e0b65e);
+  box-shadow:inset 0 0 0 1.5px #7d5a22,inset 0 0 0 4px rgba(255,248,215,.5),inset 0 0 0 5px rgba(125,90,34,.6),0 4px 0 #5e4316,0 9px 18px rgba(0,0,0,.5),0 0 24px rgba(255,214,130,.18);
+  transition:transform .08s,box-shadow .08s,filter .2s}
+.try::before,.try::after{content:"";position:absolute;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff1c6,#8a6424);box-shadow:inset 0 0 0 .5px #5e4316}
+.try::before{left:12px}.try::after{right:12px}
+.try:active,.try.on{transform:translateY(4px);box-shadow:inset 0 0 0 1.5px #7d5a22,inset 0 0 0 4px rgba(255,240,200,.35),inset 0 0 0 5px rgba(125,90,34,.6),0 0 0 #5e4316,0 3px 6px rgba(0,0,0,.5)}
+.try[disabled]{cursor:default}
+
+/* the title and the end of a heist share the bottom of the door */
+.sheet{position:absolute;z-index:5;left:14px;right:14px;bottom:calc(14px + var(--sab));padding:22px 16px 8px;border-radius:0 0 12px 12px;
+  background:none;transform:translateY(calc(100% + 40px));opacity:0;transition:transform .5s var(--ease),opacity .4s}
+.sheet.show{opacity:1}
+.sheet.show>*{animation:rise .45s var(--ease) both}.sheet.show>*:nth-child(2){animation-delay:.12s}.sheet.show>*:nth-child(3){animation-delay:.24s}.sheet.show>*:nth-child(4){animation-delay:.34s}.sheet.show>*:nth-child(5){animation-delay:.42s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){.sheet.show>*{animation:none}}
+@media (min-width:700px) and (min-height:560px){.sheet{left:26px;right:26px;bottom:26px;padding:22px 24px 6px}}
+.sheet.show{transform:none}
+.door.title .controls,.door.ended .roll,.door.ended .controls{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s .2s}
+.door.title .roll{pointer-events:none}
+.door.title .controls{visibility:hidden}
+.btn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:100%;height:66px;border-radius:10px;
+  font-family:Cinzel,serif;font-weight:700;font-size:19px;letter-spacing:.14em;transition:transform .08s}
+.btn.gold{color:#3a2808;text-shadow:0 1px 0 rgba(255,246,214,.7);background:linear-gradient(#f4dc9e,#d2a957 45%,#b88c3e 55%,#c99f50);
+  box-shadow:inset 0 0 0 1.5px #7d5a22,inset 0 0 0 4px rgba(255,240,200,.35),inset 0 0 0 5px rgba(125,90,34,.6),0 4px 0 #5e4316,0 9px 18px rgba(0,0,0,.5)}
+.btn.plain{height:58px;margin-top:12px;color:var(--gold);font-size:16px;background:linear-gradient(#1b382b,#12271d);
+  box-shadow:inset 0 0 0 2px #c99f50,inset 0 0 0 4px rgba(0,0,0,.25),inset 0 0 0 5px rgba(224,194,126,.3),0 3px 0 #06100b,0 7px 14px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(3px)}
+.btn small{font-family:Cinzel,serif;font-weight:400;font-size:13px;letter-spacing:.04em;opacity:.8}
+.stats{display:flex;justify-content:center;gap:26px;margin:16px 0 0;color:var(--mute);font-size:13px;letter-spacing:.16em}
+.stats.old{margin-top:8px;font-size:11px;letter-spacing:.14em;opacity:.8}
+.stats b{color:var(--ivory);font-weight:500;font-size:16px;letter-spacing:.04em;margin-left:6px}
+.big{text-align:center;font-family:Cinzel,serif;color:var(--gold);line-height:1}
+.big b{display:block;font-size:64px;font-weight:700}
+.big span{display:block;font-size:15px;letter-spacing:.3em}
+.big .nb{display:table;margin-left:auto;margin-right:auto;font-style:normal;font-size:14px;letter-spacing:.24em;margin-top:12px;padding:6px 14px;border-radius:14px;color:#2f2008;background:linear-gradient(#fff0c0,#e8c271);box-shadow:0 0 18px rgba(255,214,130,.6)}
+.big .nb.dim{background:none;box-shadow:none;padding:0;color:var(--mute)}.big .nb.dim{color:var(--mute)}
+.ladder{display:grid;grid-template-columns:repeat(auto-fit,minmax(46px,1fr));justify-content:center;gap:6px;margin:16px auto 18px;max-width:420px}
+.ladder span{min-width:42px;flex:0 0 auto;padding:6px 5px 5px;border-radius:6px;text-align:center;font-weight:700;font-size:15px;color:#2f2008;
+  background:linear-gradient(#f2d899,#c99d4c);box-shadow:inset 0 0 0 1px #7d5a22,0 2px 0 #5e4316}
+.ladder span.g{background:linear-gradient(#fff0c0,#e8c271);box-shadow:inset 0 0 0 1px #7d5a22,0 2px 0 #5e4316,0 0 10px rgba(255,214,130,.5)}
+.ladder span.r{background:linear-gradient(#b0402c,#7a1e12);color:#ffe2d8;box-shadow:inset 0 0 0 1px #3a0c06,0 2px 0 #3a0c06}
+.ladder small{display:block;font-size:11px;letter-spacing:.06em;opacity:.8;margin-top:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.two .btn.plain{margin-top:0}
+.toast{position:absolute;left:50%;top:70px;z-index:9;transform:translate(-50%,-10px);opacity:0;padding:8px 16px;border-radius:20px;
+  background:#f2e9d1;color:#211c14;font-size:15px;letter-spacing:.05em;transition:opacity .25s,transform .25s var(--ease);pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media (max-height:640px){
+  .roll{height:70px}.pk{height:54px;width:17px;margin-left:-8.5px}.controls{height:58px;grid-template-columns:58px 1fr 58px;margin-top:8px}.nudge{width:58px;height:58px}
+  .btn{height:54px}.big b{font-size:50px}
+}
+/* a wide screen: the dial takes the door's height, the roll and the controls stand beside it */
+@media (min-width:1000px) and (min-height:600px){
+  .door{max-width:1040px;display:grid;grid-template-columns:minmax(0,560px) 440px;justify-content:center;column-gap:44px;
+    grid-template-rows:auto 1fr auto auto auto 1fr;grid-template-areas:"head head" "stage ." "stage scale" "stage roll" "stage controls" "stage .";padding:22px 44px 30px}
+  header{grid-area:head}.stage{grid-area:stage;justify-content:center}.roll{grid-area:roll;margin:0;height:100px}.controls{grid-area:controls;margin-top:24px;height:80px;grid-template-columns:80px 1fr 80px}
+  .plate small{font-size:14px;margin-top:8px}.nudge{width:88px;height:88px;font-size:40px}.roll{height:130px}.pk{height:108px;width:30px;margin-left:-15px}.controls{height:96px;grid-template-columns:96px 1fr 96px}.try{font-size:34px}
+  .door.title .controls{display:none}
+  .sheet{transition:none}.door.title .sheet{position:relative;grid-area:controls;left:auto;right:auto;top:auto;width:auto;padding:24px 0 0;transform:none}.try{font-size:30px}.plate{font-size:26px}.ic svg{width:26px;height:26px}.door.title .plate{font-size:40px}
+  .sheet{left:auto;right:44px;width:440px;top:50%;bottom:auto;padding:24px 0;background:none;border-radius:0;transform:translate(30px,-50%)}
+  .sheet.show{transform:translate(0,-50%)}
+}
+@media (prefers-reduced-motion:reduce){
+  .dialwrap,.pk,.sheet{transition-duration:.01s!important}
+  .room.alarm::after{animation:none;opacity:.6;transition:opacity 1.2s}
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"数字猜谜","item":"https://suipce.com/games/Casual/Number-Guess/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/Number-Guess/preview.webp"><meta name="twitter:image"content="https://suipce.com/games/Casual/Number-Guess/preview.webp"></head>
+<body>
+<div class="room" id="room">
+<div class="door title" id="door">
+  <i class="rivet a"></i><i class="rivet b"></i><i class="rivet c"></i><i class="rivet d"></i>
+  <i class="hinge t"></i><i class="hinge b"></i>
+  <header>
+    <button class="ic" id="back" aria-label="Leave the heist" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="plate" id="plate">TUMBLER</div>
+    <button class="ic" id="snd" aria-label="Sound on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" fill-opacity=".15"/><path id="sndwave" d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/></svg></button>
+  </header>
+  <div class="stage" id="stage">
+    <div class="dialbox" id="dialbox">
+    <div class="dialwrap" id="dialwrap">
+      <canvas id="dial" role="slider" aria-label="Combination dial" tabindex="0"></canvas>
+    </div>
+    </div>
+    <input id="entry" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" aria-label="Type a number">
+  </div>
+  <div class="scalebox"><canvas id="scale" aria-hidden="true"></canvas></div>
+  <div class="roll" id="roll" aria-label="Lockpicks">
+    <div class="picks" id="picks"></div>
+    <span class="plus" id="plus">+4</span>
+  </div>
+  <div class="controls" id="controls">
+    <button class="nudge" id="dn" aria-label="Turn one lower"><svg viewBox="0 0 24 24"><rect x="3" y="10.5" width="18" height="3" rx="1.5" fill="#3a2808"/></svg></button>
+    <button class="try" id="try"><span>TRY</span></button>
+    <button class="nudge" id="up" aria-label="Turn one higher"><svg viewBox="0 0 24 24"><rect x="3" y="10.5" width="18" height="3" rx="1.5" fill="#3a2808"/><rect x="10.5" y="3" width="3" height="18" rx="1.5" fill="#3a2808"/></svg></button>
+  </div>
+  <div class="sheet" id="sheet"></div>
+  <div class="toast" id="toast"></div>
+</div>
+</div>
+<script id="core">
+// Tumbler - the rules. No DOM, no clock: the page calls start() and guess(), and draws what comes back.
+// A heist is a run of safes. Each safe hides one number in 0..n-1 and brings a few picks with it;
+// every guess spends a pick and the dial answers higher or lower. Picks left over when a safe opens
+// stay in the roll for the next one. The roll running dry before the safe opens ends the heist.
+const TumblerCore = (() => {
+    // how many numbers each safe holds; from the seventh on, every safe is 0-999
+    const SIZES = [10, 30, 60, 100, 200, 500, 1000];
+    const size = k => SIZES[Math.min(k, SIZES.length - 1)];
+    // the most guesses halving can need: with this many picks a careful player always opens the safe
+    const sure = n => Math.ceil(Math.log2(n + 1));
+    // the picks a safe brings: enough to be sure for the first four, then one short (so a careful
+    // player needs a spare or some luck), two short from the tenth, three from the fifteenth
+    const allowance = k => sure(size(k)) - (k >= 4) - (k >= 9) - (k >= 14);
+
+    function hash(str) {
+        let h = 1779033703 ^ str.length;
+        for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = h << 13 | h >>> 19; }
+        h = Math.imul(h ^ h >>> 16, 2246822507); h = Math.imul(h ^ h >>> 13, 3266489909);
+        return (h ^ h >>> 16) >>> 0;
+    }
+    function rand(a) { // mulberry32, one draw
+        a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+    // the combination of safe k in heist `seed`: depends on nothing else, so a save needs no PRNG state
+    const secret = (seed, k) => Math.floor(rand(hash(seed + '#' + k)) * size(k));
+
+    function openSafe(s) {
+        const n = size(s.k), pay = allowance(s.k);
+        s.n = n; s.lo = 0; s.hi = n - 1; s.tries = []; s.pay = pay; s.bank += pay;
+        return {type: 'safe', k: s.k, n, pay};
+    }
+    function start(seed) {
+        const s = {v: 1, seed: String(seed), k: 0, bank: 0, n: 0, lo: 0, hi: 0, pay: 0, tries: [], log: [], over: false};
+        openSafe(s);
+        return s;
+    }
+    // one guess. Returns what happened, in order: 'low'/'high' (the number is higher/lower than x),
+    // or 'open' then 'safe' (the next one), and 'bust' when the last pick goes without opening it.
+    function guess(s, x) {
+        if (s.over) return [{type: 'over'}];
+        x = Math.round(x);
+        if (!(x >= s.lo && x <= s.hi)) return [{type: 'ruled', x}];
+        const c = secret(s.seed, s.k);
+        s.bank--;
+        if (x === c) {
+            s.tries.push({x, d: 0});
+            const used = s.tries.length;
+            s.log.push({n: s.n, used, pay: s.pay});
+            const ev = [{type: 'open', k: s.k, x, used, spare: s.bank}];
+            s.k++;
+            ev.push(openSafe(s));
+            return ev;
+        }
+        const d = x < c ? 1 : -1; // 1: the number is higher
+        s.tries.push({x, d});
+        if (d > 0) s.lo = x + 1; else s.hi = x - 1;
+        const ev = [{type: d > 0 ? 'low' : 'high', x, lo: s.lo, hi: s.hi}];
+        if (s.bank <= 0) {
+            s.over = true;
+            s.log.push({n: s.n, used: s.tries.length, pay: s.pay, bust: true});
+            ev.push({type: 'bust', k: s.k, secret: c});
+        }
+        return ev;
+    }
+    // what a careful player is certain of: with b picks, any range of up to 2^b - 1 numbers opens
+    const certain = s => s.hi - s.lo + 1 <= Math.pow(2, s.bank) - 1;
+    const valid = s => s && s.v === 1 && typeof s.seed === 'string' && Number.isInteger(s.k) && Number.isInteger(s.bank)
+        && s.lo >= 0 && s.hi < size(s.k) && s.lo <= s.hi + (s.over ? 1 : 0) && Array.isArray(s.tries) && Array.isArray(s.log);
+    // the line a finished heist shares: one square per safe, no numbers given away
+    function share(s, title) {
+        const sq = s.log.map(e => e.bust ? '🟥' : e.used < e.pay ? '🟩' : '🟨').join('');
+        const opened = s.log.filter(e => !e.bust).length;
+        return `${title}\n${sq}\n${opened} safe${opened === 1 ? '' : 's'} opened`;
+    }
+    return {SIZES, size, sure, allowance, secret, hash, start, guess, certain, valid, share};
+})();
+</script>
+<script>
+(() => {
+'use strict';
+const C = TumblerCore;
+const $ = id => document.getElementById(id);
+const door = $('door'), room = $('room'), cv = $('dial'), stage = $('stage'), sc = $('scale');
+let g = cv.getContext('2d');
+const RM = matchMedia('(prefers-reduced-motion: reduce)');
+const WIDE = matchMedia('(min-width: 1000px) and (min-height: 600px)');
+const ROMAN = k => { let n = k + 1, s = ''; for (const [v, r] of [[50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]) while (n >= v) { s += r; n -= v; } return s; };
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const ease = t => t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3);
+const inout = t => t < 0 ? 0 : t > 1 ? 1 : t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+const now = () => performance.now();
+
+// ------------------------------------------------------------------ saved things
+const KEY = 'tumbler';
+let store = {muted: false, best: 0, daily: null, free: null, days: {}, legacy: null};
+try { const o = JSON.parse(localStorage.getItem(KEY)); if (o && typeof o === 'object') store = Object.assign(store, o); } catch (e) {}
+if (!store.days || typeof store.days !== 'object') store.days = {};
+// this page used to be Number Hunt: its record (numbers found, fewest guesses) is kept and shown, never mixed
+// into the heists, because a guess on a 1-100 board and a safe opened are not the same thing
+if (!store.legacy) try {
+    const o = JSON.parse(localStorage.getItem('numberHuntStats'));
+    if (o && o.gamesPlayed > 0) store.legacy = {played: o.gamesPlayed | 0, found: o.gamesWon | 0, fewest: isFinite(o.bestScore) && o.bestScore > 0 ? o.bestScore | 0 : 0};
+} catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const prettyDay = iso => new Date(iso + 'T12:00').toLocaleDateString(undefined, {day: 'numeric', month: 'short'});
+
+// ------------------------------------------------------------------ sound: a safe made of oscillators
+let ac = null, master = null;
+function audio() {
+    if (store.muted) return null;
+    if (!ac) {
+        try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+        master = ac.createGain(); master.gain.value = .7; master.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+}
+let noiseBuf = null;
+function noise(a) {
+    if (!noiseBuf) { noiseBuf = a.createBuffer(1, a.sampleRate * .5, a.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const s = a.createBufferSource(); s.buffer = noiseBuf; return s;
+}
+function env(a, node, t, peak, dur, attack = .002) {
+    const gn = a.createGain(); gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(peak, t + attack);
+    gn.gain.exponentialRampToValueAtTime(.0001, t + dur); node.connect(gn); gn.connect(master); return gn;
+}
+// the wheel pack clicking past a notch: brighter as the window narrows, so closing in sounds like it
+function sTick(tight) {
+    const a = audio(); if (!a) return; const t = a.currentTime;
+    const n = noise(a), f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2600 + tight * 2600; f.Q.value = 6;
+    n.connect(f); env(a, f, t, .5, .03); n.start(t, Math.random() * .4); n.stop(t + .04);
+    const o = a.createOscillator(); o.type = 'square'; o.frequency.value = 1800 + tight * 1400; env(a, o, t, .04, .02); o.start(t); o.stop(t + .03);
+}
+function sThud(t0 = 0, f0 = 120, vol = .9) {
+    const a = audio(); if (!a) return; const t = a.currentTime + t0;
+    const o = a.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * .45, t + .18);
+    env(a, o, t, vol, .25); o.start(t); o.stop(t + .3);
+    const n = noise(a), f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; n.connect(f); env(a, f, t, .35, .08); n.start(t, Math.random() * .4); n.stop(t + .1);
+}
+// a wheel catching: two clicks a fifth apart, rising for higher, falling for lower
+function sClue(up) {
+    const a = audio(); if (!a) return; const t = a.currentTime + .09;
+    [0, 1].forEach(i => {
+        const o = a.createOscillator(); o.type = 'triangle';
+        o.frequency.value = (up ? [520, 780] : [780, 520])[i]; env(a, o, t + i * .085, .22, .16); o.start(t + i * .085); o.stop(t + i * .085 + .2);
+    });
+}
+function sSnap() {
+    const a = audio(); if (!a) return; const t = a.currentTime + .05;
+    const n = noise(a), f = a.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3500; n.connect(f); env(a, f, t, .35, .05); n.start(t, Math.random() * .4); n.stop(t + .06);
+}
+// the bolts drawing back, then the door's bell
+function sOpen() {
+    const a = audio(); if (!a) return;
+    [0, .13, .26].forEach((d, i) => sThud(d, 150 - i * 20, .8));
+    const t = a.currentTime + .42;
+    [[880, .25], [1320, .12], [1760, .08], [2637, .05]].forEach(([f, v]) => {
+        const o = a.createOscillator(); o.type = 'sine'; o.frequency.value = f; env(a, o, t, v, 1.6, .004); o.start(t); o.stop(t + 1.7);
+    });
+}
+function sAlarm() {
+    const a = audio(); if (!a) return; const t = a.currentTime + .1;
+    const o = a.createOscillator(), lfo = a.createOscillator(), lg = a.createGain(), gn = a.createGain();
+    o.type = 'square'; o.frequency.value = 640; lfo.frequency.value = 18; lg.gain.value = .5; lfo.connect(lg); lg.connect(gn.gain);
+    const f = a.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1300; f.Q.value = 2;
+    o.connect(f); f.connect(gn); gn.gain.setValueAtTime(.0, t); gn.gain.linearRampToValueAtTime(.18, t + .02);
+    gn.gain.setValueAt

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Arcade/Pingu-Throw/">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Play Pingu Throw Online - Free Arcade Game | AIGameHub</title>
+<meta name="description" content="Play Pingu Throw online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="theme-color" content="#07101F">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Big+Shoulders+Text:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--tape:#F5C518;--ink:#141414;--moon:#DDE8FF;--night:#07101F;--red:#E0443A;--blue:#6FB7FF;--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--night);color:var(--moon);font-family:'Big Shoulders Text',system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.ui{position:fixed;inset:0;pointer-events:none}
+.fade{opacity:0;transition:opacity .16s ease-out,transform .2s ease-out}
+.fade.on{transition:opacity .35s cubic-bezier(.2,.7,.2,1),transform .45s cubic-bezier(.2,.8,.2,1)}
+.on{opacity:1}
+#title{position:absolute;left:0;right:0;top:calc(22px + env(safe-area-inset-top,0px));text-align:center;transform:translateY(-8px)}
+#title.on{transform:none}
+#title h1{margin:0;white-space:nowrap;font-family:'Big Shoulders Display',sans-serif;font-weight:900;font-size:clamp(40px,11vw,60px);letter-spacing:.03em;line-height:.9;color:#fff;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+#title h1 span{color:var(--tape)}
+#title h1 br{display:none}
+#title p{margin:10px 0 0;font-weight:800;font-size:18px;letter-spacing:.22em;color:#B9C8E6}
+#title p b{color:var(--tape);letter-spacing:.06em;font-size:19px}
+#title p.friend b{color:var(--blue)}
+#title .go{display:inline-block;margin-top:18px;font-weight:900;font-size:20px;letter-spacing:.24em;color:var(--ink);background:var(--tape);padding:9px 18px 8px;border-radius:6px;box-shadow:0 4px 0 #9C7A00;animation:breathe 1.6s ease-in-out infinite}
+@keyframes breathe{50%{transform:scale(1.06)}}
+@media (min-aspect-ratio:11/10){
+ #title{left:54%;right:auto;top:24vh;width:min(40vw,560px);text-align:left}
+ #title h1{font-size:clamp(56px,7.4vw,104px)}
+ #title h1 br{display:inline}
+}
+#home{transition:opacity .3s;position:absolute;left:calc(14px + env(safe-area-inset-left,0px));top:calc(14px + env(safe-area-inset-top,0px));pointer-events:auto;color:#8FA3C8;text-decoration:none;font-weight:800;font-size:12px;letter-spacing:.2em;padding:8px 4px}
+#hint{position:absolute;left:0;top:0;font-weight:900;font-size:26px;letter-spacing:.12em;color:var(--tape);white-space:nowrap;text-shadow:0 2px 8px rgba(0,0,0,.7);transform:translate(-50%,-50%)}
+#level{position:absolute;left:50%;top:calc(18px + env(safe-area-inset-top,0px));width:min(280px,50vw);transform:translate(-50%,-14px)}
+#level.on{transform:translate(-50%,0)}
+.vial{position:relative;height:40px;border-radius:20px;background:linear-gradient(#FFE27A,#F5C518 45%,#D9A800);border:4px solid #0E1A33;box-shadow:0 0 0 2px rgba(221,232,255,.8),0 8px 20px rgba(0,0,0,.45),inset 0 -4px 8px rgba(120,80,0,.35)}
+.vial:before,.vial:after{content:'';position:absolute;top:4px;bottom:4px;width:3px;border-radius:2px;background:#0E1A33;left:calc(50% - 24px)}
+.vial:after{left:calc(50% + 21px)}
+.vial i{position:absolute;top:6px;left:50%;width:36px;height:20px;margin-left:-18px;border-radius:11px;background:radial-gradient(circle at 34% 30%,#fff,#FFF6CC 60%,#F9E08A);box-shadow:inset 0 -2px 3px rgba(150,110,0,.4);will-change:transform}
+#level .lo,#level .hi{position:absolute;top:22px;transform:translateY(-50%);font-size:14px;font-weight:900;letter-spacing:.14em;color:#DDE8FF;text-shadow:0 2px 4px rgba(0,0,0,.6)}
+#level .hi{right:calc(100% + 10px)}#level .lo{left:calc(100% + 10px)}
+.vial b{position:absolute;top:0;bottom:0;left:calc(50% - 24px);width:48px;background:rgba(255,255,255,.35)}
+#cap{margin-top:10px;text-align:center;font-weight:900;font-size:19px;letter-spacing:.16em;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.7);white-space:nowrap}
+#cap em{font-style:normal;color:var(--tape)}
+#result{position:absolute;left:0;right:0;top:0;text-align:center;transform:translateY(10px)}
+@media (min-aspect-ratio:11/10){#result.miss{left:auto;right:5vw;width:min(46vw,620px);text-align:left}#result.miss #big{font-size:clamp(56px,7vw,110px)}#result.miss #again{justify-content:flex-start}}
+#count{display:none;width:140px;height:4px;margin:16px auto 0;border-radius:2px;background:rgba(221,232,255,.2);overflow:hidden}
+#count i{display:block;height:100%;background:var(--tape);transform-origin:left}
+#result.miss #count{display:block}
+#result.miss.on #count i{animation:count 1.3s linear forwards}
+@keyframes count{to{transform:scaleX(0)}}
+@media (min-aspect-ratio:11/10){#result.miss #count{margin-left:0}}
+#result.miss #again{display:none}
+#why{margin-top:8px;font-weight:900;font-size:21px;letter-spacing:.16em;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.7)}
+#why em{font-style:normal;color:var(--tape)}
+#result.on{transform:none}
+#big{font-family:'Big Shoulders Display',sans-serif;font-weight:900;white-space:nowrap;font-size:clamp(76px,15vw,150px);line-height:.9;color:var(--tape);text-shadow:0 6px 0 var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+#big small{font-size:.34em;margin-left:.08em}
+#badge{display:inline-block;margin-bottom:8px;min-height:28px;padding:4px 12px;border-radius:6px;font-weight:900;font-size:16px;letter-spacing:.16em;background:var(--tape);color:var(--ink);visibility:hidden}
+#badge.show{visibility:visible;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+#badge.muted{background:rgba(221,232,255,.14);color:#fff}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+#again{margin-top:20px;display:flex;justify-content:center;align-items:center;gap:12px;transform:translateY(8px)}
+#again-btn{font:inherit;font-weight:900;font-size:20px;letter-spacing:.2em;color:var(--ink);background:var(--tape);padding:12px 26px 11px;border-radius:8px;box-shadow:0 4px 0 #9C7A00;transition:transform .1s}
+#again-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #9C7A00}
+#again:not(.on) button{pointer-events:none}
+#again.on{transform:none}
+button{font:inherit;pointer-events:auto;cursor:pointer;border:0}
+#share{width:48px;height:48px;display:grid;place-items:center;border-radius:50%;background:rgba(7,16,31,.82);color:#fff;border:2px solid rgba(221,232,255,.6);transition:transform .12s}
+#share[hidden]{display:none}
+#share:active{transform:scale(.94)}
+#share:hover{background:rgba(7,16,31,.9)}
+#share[hidden]{display:none}
+#mute{position:absolute;right:calc(12px + env(safe-area-inset-right,0px));top:calc(12px + env(safe-area-inset-top,0px));width:44px;height:44px;border-radius:50%;background:rgba(7,16,31,.5);display:grid;place-items:center;transition:transform .12s}
+#mute:active{transform:scale(.9)}
+#mute svg{width:22px;height:22px}
+#toast{position:absolute;left:50%;bottom:calc(150px + var(--safe-b));transform:translate(-50%,8px);padding:10px 16px;border-radius:8px;background:var(--moon);color:var(--night);font-weight:800;letter-spacing:.08em;font-size:14px}
+#toast.on{transform:translate(-50%,0)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (max-width:520px){#cap{font-size:15px;letter-spacing:.12em}#why{font-size:16px}}
+@media (max-aspect-ratio:11/10){#home{top:auto;bottom:calc(64px + var(--safe-b))}}
+@media (prefers-reduced-motion:reduce){.fade{transition:opacity .2s}#badge.show,#title .go{animation:none}}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Pingu Throw","item":"https://suipce.com/games/Arcade/Pingu-Throw/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Pingu-Throw/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Pingu-Throw/preview.png"></head>
+<body>
+<canvas id="c" aria-label="Pingu Throw. Tap or press space to drop the penguin, again to swing."></canvas>
+<div class="ui">
+  <a id="home" href="https://gptgames.dev">GPTGAMES.DEV</a>
+  <div id="title" class="fade"><h1>PINGU <br><span>THROW</span></h1><p id="sub"></p><div class="go">TAP TO DROP</div></div>
+  <div id="hint" class="fade"></div>
+  <div id="level" class="fade"><span class="hi">EARLY</span><div class="vial"><b></b><i id="bubble"></i></div><span class="lo">LATE</span><div id="cap"></div></div>
+  <div id="result" class="fade"><div id="badge"></div><div id="big"></div><div id="why"></div><div id="count"><i></i></div><div id="again" class="fade"><button id="again-btn" type="button">THROW AGAIN</button><button id="share" type="button" aria-label="Send this throw to a friend" title="Send this throw to a friend"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button></div></div>
+  <div id="toast" class="fade"></div>
+  <button id="mute" type="button" aria-label="Sound on"><svg viewBox="0 0 24 24" fill="none" stroke="#DDE8FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="#DDE8FF"/><path id="waves" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path id="cross" d="M16 9l6 6M22 9l-6 6" style="display:none"/></svg></button>
+  <div id="live" class="sr" aria-live="polite"></div>
+</div>
+
+<script id="core">
+// The throw, and nothing else: no DOM, no clock, no randomness. The page feeds it frame
+// times and draws what it holds; test/pingu_throw.mjs runs this block on its own.
+// The numbers are the ones the 2026-09-15 page played with, so every throw still lands where it
+// did then, to the centimetre: the dive is slow and readable, the club is already up, and the
+// only thing that matters is how level the penguin is with the club head when you press.
+const Core = (() => {
+    const G = 15;                 // gravity in flight
+    const G_DIVE = 6;             // the dive down the ice wall is slower
+    const DRAG = 0.003;
+    const TAX = 0.7;              // snow the penguin ploughs through on every landing
+    const REST = 0.58;            // bounce restitution
+    const KEEP = 0.925;           // horizontal carry-over per bounce
+    const WALL_X = -1.35;         // the line the penguin dives down
+    const WALL_TOP = 8.6;
+    const PIVOT = {x: 0.35, y: 2.15};   // the yeti's hands
+    const CLUB_LEN = 1.9;
+    const CLUB_REST = 2.79;       // rad, club held out toward the wall
+    const SWEET_Y = PIVOT.y + Math.sin(CLUB_REST) * CLUB_LEN;   // club head height
+    const CLUB_X = PIVOT.x + Math.cos(CLUB_REST) * CLUB_LEN;
+    const BAND = 1.7;             // how far off that height still connects
+    const ANG_HI = 62, ANG_LO = 14;     // launch angle at the top and bottom of the band
+    const VMAX = 52;              // speed off a perfectly level hit
+    const R_PENGU = 0.42;
+    const STEP = 1 / 240;
+
+    function newBody() { return {x: WALL_X, y: WALL_TOP, vx: 0, vy: 0, a: -Math.PI / 2, av: 0, S: 'ready', bounces: 0}; }
+    function strike(b, dy) {
+        const k = dy / BAND;
+        const ang = ((ANG_HI + ANG_LO) / 2 + k * (ANG_HI - ANG_LO) / 2) * Math.PI / 180;
+        const q = Math.max(0, 1 - Math.pow(Math.abs(k), 1.5));
+        const speed = VMAX * (0.35 + 0.65 * q);
+        b.vx = Math.cos(ang) * speed;
+        b.vy = Math.sin(ang) * speed;
+        b.av = -5 - 4 * q;
+        b.S = 'flight';
+        return {q, dy, ang, speed};
+    }
+    // the tumble off the club dies down and the penguin lines itself up beak-forward, so it
+    // lands on its belly and skids rather than digging in (orientation only: it moves nothing)
+    function settle(b, dt) {
+        b.av *= Math.pow(0.22, dt);
+        b.a += b.av * dt;
+        const target = Math.max(-0.42, Math.min(0.75, Math.atan2(b.vy, b.vx)));
+        let diff = target - b.a;
+        while (diff > Math.PI) diff -= 2 * Math.PI;
+        while (diff < -Math.PI) diff += 2 * Math.PI;
+        b.a += diff * Math.min(1, 2.6 * dt);
+    }
+    function land(b) {
+        const impact = Math.abs(b.vy);
+        b.vy = impact * REST;
+        b.vx = Math.max(0, b.vx * KEEP - TAX);
+        b.y = R_PENGU;
+        b.bounces++;
+        b.av = -3 - impact * 0.15;
+        if (b.vy < 1.6) { b.vy = 0; b.av = 0; b.S = 'ground'; }
+        return impact;
+    }
+    function flightStep(b, dt) {
+        const v = Math.hypot(b.vx, b.vy), dragF = DRAG * v;
+        b.vx -= b.vx * dragF * dt;
+        b.vy -= (b.vy * dragF + G) * dt;
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        settle(b, dt);
+        if (b.y <= R_PENGU) { b.y = R_PENGU; return land(b); }
+        return 0;
+    }
+    function groundStep(b, dt) {
+        const sgn = Math.sign(b.vx);
+        b.vx -= sgn * 5 * dt;
+        if (sgn !== Math.sign(b.vx)) b.vx = 0;
+        b.x += b.vx * dt;
+        b.a += b.av * dt;
+        b.av *= Math.pow(0.05, dt);
+        b.a += (0 - b.a) * Math.min(1, 4 * dt);
+        return Math.abs(b.vx) < 0.05;
+    }
+    // how long before (dy > 0) or after the penguin was level with the club, from the dive
+    // itself: it is still accelerating, so a far-off swing is not just distance over speed
+    function offsetMs(dy, vy) {
+        const u = Math.max(0, -vy);
+        const t = dy >= 0 ? (-u + Math.sqrt(u * u + 2 * G_DIVE * dy)) / G_DIVE
+            : (u - Math.sqrt(Math.max(0, u * u + 2 * G_DIVE * dy))) / G_DIVE;
+        return Math.round(t * 1000);
+    }
+
+    // a throw: phase ready -> dive -> flight -> ground -> done; events queue up in s.ev
+    function create() { return {phase: 'ready', b: newBody(), acc: 0, ev: [], swung: false, contact: null, miss: null, peak: 0, n: 0, sinceSwing: -1, dist: null}; }
+    function drop(s) {
+        if (s.phase !== 'ready') return false;
+        s.phase = 'dive'; s.b.S = 'diving'; s.b.vy = -0.6;
+        s.ev.push({type: 'drop'});
+        return true;
+    }
+    function swing(s) {
+        if (s.phase !== 'dive' || s.swung) return false;
+        s.swung = true; s.sinceSwing = 0;
+        const b = s.b, dy = b.y - SWEET_Y, vy = b.vy;
+        if (Math.abs(dy) > BAND) {
+            s.miss = {dy, vy, ms: offsetMs(dy, vy)};
+            s.ev.push({type: 'whiff', dy, ms: s.miss.ms});
+            return true;
+        }
+        s.contact = strike(b, dy);
+        s.contact.ms = offsetMs(dy, vy);
+        s.phase = 'flight';
+        s.ev.push({type: 'hit', dy, q: s.contact.q, ms: s.contact.ms});
+        return true;
+    }
+    function step(s) {
+        const b = s.b;
+        s.n++;
+        if (s.sinceSwing >= 0) s.sinceSwing++;
+        if (s.phase === 'dive') {
+            b.vy -= G_DIVE * STEP;
+            b.y += b.vy * STEP;
+            b.a = -Math.PI / 2 + 0.16;
+            if (b.y <= R_PENGU) {             // never clubbed: it just lands
+                b.y = R_PENGU; b.vy = 0; b.vx = 0; b.S = 'ground'; s.phase = 'ground';
+                s.ev.push({type: 'plop'});
+            }
+        } else if (s.phase === 'flight') {
+            const impact = flightStep(b, STEP);
+            if (b.y > s.peak) s.peak = b.y;
+            if (impact) s.ev.push({type: 'bounce', n: b.bounces, impact});
+            if (b.S === 'ground') { s.phase = 'ground'; s.ev.push({type: 'slide'}); }
+        } else if (s.phase === 'ground') {
+            if (groundStep(b, STEP)) {
+                s.phase = 'done'; s.dist = Math.max(0, b.x);
+                s.ev.push({type: 'rest', dist: s.dist});
+            }
+        }
+    }
+    // the page's clock: seconds of game time in, fixed steps out (at most 60 a frame)
+    function advance(s, dt) {
+        s.acc += dt;
+        let guard = 0;
+        while (s.acc >= STEP && guard++ < 60) { step(s); s.acc -= STEP; }
+    }
+    // a whole throw from the height it was struck at: what a ghost flies and a link promises
+    function flightFrom(dy) {
+        const b = newBody();
+        b.y = SWEET_Y + dy;
+        strike(b, dy);
+        const path = [[b.x, b.y, b.a]];
+        for (let n = 0; n < 240 * 60 && b.S !== 'done'; n++) {
+            if (b.S === 'flight') flightStep(b, STEP);
+            else if (groundStep(b, STEP)) b.S = 'done';
+            path.push([b.x, b.y, b.a]);
+        }
+        return {path, dist: Math.max(0, b.x)};
+    }
+    return {STEP, WALL_X, WALL_TOP, PIVOT, CLUB_LEN, CLUB_REST, CLUB_X, SWEET_Y, BAND, R_PENGU, create, drop, swing, step, advance, flightFrom, offsetMs};
+})();
+</script>
+
+<script>
+(() => {
+'use strict';
+// World units: 30 to the metre, y down on screen, y up in the core. The camera maps them to
+// the screen with the snow line pinned just above the tape.
+const M = 30;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const $ = id => document.getElementById(id);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let W = 0, H = 0, DPR = 1, PORTRAIT = false;
+
+// ---------- saved data (the keys the page has always used) ----------
+const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { } }
+};
+let best = parseFloat(store.get('pinguThrowBest')) || 0;
+let bestDy = parseFloat(store.get('pinguThrowBestDy'));
+let bestPath = null;
+// the ghost of your best is only trusted if it really flies to your best
+if (isFinite(bestDy) && Math.abs(bestDy) <= Core.BAND) {
+    const f = Core.flightFrom(bestDy);
+    if (Math.abs(f.dist - best) <= .05) bestPath = f.path; else bestDy = null;
+} else bestDy = null;
+let muted = store.get('pinguThrowMute') === '1';
+let throwsEver = parseInt(store.get('pinguThrowCount')) || 0;
+
+// a friend's link carries only the height their penguin was struck at
+let friend = null;
+(() => {
+    const g = new URLSearchParams(location.search).get('ghost');
+    if (g === null || g.trim() === '') return;
+    const dy = Number(g);
+    if (!isFinite(dy) || Math.abs(dy) > Core.BAND) return;
+    const f = Core.flightFrom(dy);
+    friend = {dy, dist: f.dist, path: f.path};
+})();
+
+// ---------- geometry ----------
+const PX = Core.WALL_X * M;                       // the line the penguin dives down
+const FACE = PX - .55 * M;                        // the ice face just behind it
+const TOP = -(Core.WALL_TOP - Core.R_PENGU) * M;  // the snow it stands on
+const CLUB = {x: Core.CLUB_X * M, y: -Core.SWEET_Y * M};
+// where the yeti stands, for framing and for the end of the club's band
+const HANDS = [-40, -128];
+const YS = (Core.PIVOT.y * M) / -HANDS[1];
+const YETI_X = Core.PIVOT.x * M - HANDS[0] * YS;
+const PK = .55;                                   // spectator scale, relative to the player's penguin
+
+// ---------- art ----------
+const INK = '#0A1224', TAPE = '#F5C518';
+function hash(i, seed) { let n = (i * 374761393 + seed * 668265263) >>> 0; n = (n ^ (n >>> 13)) * 1274126177 >>> 0; return (n & 0xffff) / 0xffff; }
+function noise(x, seed) { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return hash(i, seed) * (1 - u) + hash(i + 1, seed) * u; }
+const PAR = 1.8;                // screen px per world unit the background layers scroll by
+const ease = u => 1 - Math.pow(1 - Math.max(0, Math.min(1, u)), 3);
+
+// ---------- state ----------
+let S = Core.create();
+const cam = {x: 0, y: 0, s: 1, tx: 0, ty: 0, ts: 1, k: 5, shake: 0, punch: 0, sx: 0, sy: 0};
+let mode = 'ready';           // ready | dive | flight | rest
+let uiTop = 0, snap = null, fadeSnap = 0, missedLast = false, modeT = 0, freeze = 0, slowT = -1, swingT = -1, restAt = 0, rings = [];
+let flags = [], parts = [], flakes = [], craters = [], groove = null;
+let bubble = 0, bubbleV = 0, bubbleTarget = 0, countT = 0, lastTick = 0, clock = 0;
+let mood = 'idle', result = null, levelAt = -9, missAt = null, lastThrow = null;
+
+function resize() {
+    DPR = Math.min(2, devicePixelRatio || 1);
+    W = innerWidth; H = innerHeight; PORTRAIT = H > W * 1.1;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    flakes = Array.from({length: Math.round(Math.min(150, W * H / 8000))}, (_, i) => ({x: hash(i, 1) * W, y: hash(i, 2) * H, z: .3 + hash(i, 3) * .9, p: hash(i, 4) * 6.28}));
+    paintRanges();
+    frameCamera(true);
+}
+
+// ---------- camera ----------
+let TAPE_H = 56;
+const topPad = () => PORTRAIT ? 170 : 120;
+const groundY = () => H - TAPE_H - Math.max(16, H * .04);
+const sx = x => W / 2 + (x - cam.x) * cam.s + cam.sx;
+const sy = y => groundY() + (y - cam.y) * cam.s + cam.sy;
+
+function view() {
+    const gy = groundY(), usable = gy - topPad();
+    if (mode === 'ready') {
+        const s = Math.min(W / (6.9 * M), usable / (10.3 * M));
+        return {x: PORTRAIT ? -.35 * M : 1.1 * M + W * .14 / s, y: 0, s};
+    }
+    if (mode === 'dive') {
+        const r = Math.min(W / (6.9 * M), usable / (10.3 * M));
+        const top = Math.max(S.b.y + 2, 4.9);
+        const s = Math.min(W / (6.2 * M), usable / (top * M), r * 1.9);
+        return {x: -.4 * M + (PORTRAIT ? 0 : .6 * M), y: 0, s};
+    }
+    if (mode === 'flight') {
+        const b = S.b;
+        const v = Math.hypot(b.vx, b.vy), out = 1 - .22 * Math.min(1, v / 45);
+        const s = Math.max(PORTRAIT ? 1.2 : 1.55, Math.min(W / ((PORTRAIT ? 10 : 22) * M), usable / ((b.y + 3.5) * M), 3)) * out;
+        // follow upward once the penguin would leave the top of the screen
+        const y = Math.min(0, -b.y * M + (gy - topPad() - (PORTRAIT ? 150 : 90)) / s);
+        return {x: b.x * M + (W / s) * (PORTRAIT ? .08 : .16), y, s};
+    }
+    // rest
+    const s = Math.min(W / ((PORTRAIT ? 9.5 : 20) * M), (gy - (PORTRAIT ? 330 : 300)) / (3 * M), 3);
+    if (!(result && result.hit)) { const h = Math.max(missAt || 0, 3) + 1.8; return {x: -.35 * M + (PORTRAIT ? 0 : 3.6 * M), y: 0, s: Math.min(W / ((PORTRAIT ? 6.9 : 15) * M), (gy - (PORTRAIT ? 300 : 90)) / (h * M))}; }
+    return {x: S.b.x * M - (PORTRAIT ? .1 : .6) * M, y: 0, s};
+}
+function frameCamera(snap) {
+    const t = view();
+    cam.tx = t.x; cam.ty = t.y; cam.ts = t.s;
+    if (snap) { cam.x = t.x; cam.y = t.y; cam.s = t.s; }
+}
+function stepCamera(dt) {
+    const k = 1 - Math.exp(-dt * cam.k);
+    cam.x += (cam.tx - cam.x) * k;
+    cam.y += (cam.ty - cam.y) * k;
+    cam.s += (cam.ts - cam.s) * k;
+    cam.shake *= Math.exp(-dt * 12);
+    const sh = RM ? 0 : cam.shake;
+    cam.sx = (Math.random() - .5) * sh; cam.sy = (Math.random() - .5) * sh;
+}
+
+// ---------- audio: all synthesised ----------
+let AC = null, master = null, wind = null, slide = null;
+function audio() {
+    if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+    const C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return;
+    try { AC = new C(); } catch (e) { return; }
+    const comp = AC.createDynamicsCompressor(); comp.connect(AC.destination);
+    master = AC.createGain(); master.gain.value = muted ? 0 : .8; master.connect(comp);
+    const len = AC.sampleRate * 2, buf = AC.createBuffer(1, len, AC.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    AC.noise = buf;
+    const loop = (freq, q) => { const src = AC.createBufferSource(); src.buffer = buf; src.loop = true; const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q; const g = AC.createGain(); g.gain.value = 0; src.connect(f); f.connect(g); g.connect(master); src.start(); return {f, g}; };
+    wind = loop(700, .7); slide = loop(1800, .6);
+}
+function tone(type, f0, f1, dur, vol, at = 0) {
+    if (!AC || muted) return;
+    const t = AC.currentTime + at, o = AC.createOscillator(), g = AC.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .02);
+}
+function hiss(type, freq, dur, vol, at = 0, f1) {
+    if (!AC || muted) return;
+    const t = AC.currentTime + at, src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
+    src.buffer = AC.noise; f.type = type; f.frequency.setValueAtTime(freq, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(f); f.connect(g); g.connect(master); src.start(t, Math.random()); src.stop(t + dur + .02);
+}
+const sfx = {
+    hop() { tone('sine', 620, 1150, .09, .16); tone('sine', 900, 500, .5, .05, .08); },
+    whoosh() { hiss('bandpass', 500, .16, .4, 0, 2800); },
+    crack(q) {
+        // a wooden crack: a bright transient, a body thump, and a ring when it was dead level
+        hiss('highpass', 2600, .045, .9); tone('triangle', 210, 70, .18, .75); tone('square', 1300, 800, .025, .1);
+        if (q > .9) { tone('sine', 1760, 1760, .6, .1, .015); tone('sine', 2637, 2637, .45, .05, .03); }
+    },
+    bounce(v) { tone('sine', 150, 50, .2, Math.min(.6, .15 + v * .025)); hiss('lowpass', 900, .14, Math.min(.4, .1 + v * .015)); },
+    tick(big) { tone('square', big ? 2300 : 3100, big ? 2000 : 2900, .012, big ? .06 : .035); },
+    plop() { tone('sine', 330, 100, .25, .45); hiss('lowpass', 700, .22, .3); },
+    rest(nb) {
+        const n = nb ? [523.25, 659.25, 783.99, 1046.5] : [659.25, 783.99];
+        n.forEach((f, i) => { tone('triangle', f, f, .55, .15, i * .09); tone('sine', f * 2, f * 2, .3, .035, i * .09); });
+    },
+    ui() { tone('sine', 880, 1320, .06, .08); }
+};
+
+// ---------- particles ----------
+function burst(x, y, n, o) {
+    if (RM) n = Math.ceil(n / 3);
+    for (let i = 0; i < n; i++) {
+        const a = (o.a ?? -Math.PI / 2) + (Math.random() - .5) * (o.spread ?? Math.PI * 2), v = (o.v ?? 200) * (.35 + Math.random() * .8);
+        parts.push({x, y, vx: Math.cos(a) * v + (o.vx || 0), vy: Math.sin(a) * v, life: 0, max: (o.life ?? .7) * (.6 + Math.random() * .6), r: (o.r ?? 3) * (.5 + Math.random()), c: o.c ? o.c[i % o.c.length] : '#EEF3FF', g: o.g ?? 500, rot: Math.random() * 6, vr: (Math.random() - .5) * 12, sq: o.sq, ground: o.ground !== false});
+    }
+}
+
+// ---------- flow ----------
+const show = (id, on) => $(id).classList.toggle('on', on);
+function setMode(m, k) { mode = m; modeT = 0; if (k) cam.k = k; frameCamera(false); }
+let hintAt = null;
+function hint(text, at) { const h = $('hint'); if (text) h.textContent = text; h.style.visibility = text ? 'visible' : 'hidden'; hintAt = text ? at : null; show('hint', !!text); }
+
+function toReady(snap) {
+    popped = false;
+    S = Core.create(); swingT = -1; result = null; missAt = null; groove = null; craters = []; mood = 'idle'; slowT = -1; freeze = 0;
+    setMode('ready', snap ? 50 : 3.4);
+    const sub = $('sub');
+    if (friend) { sub.className = 'friend'; sub.innerHTML = `A FRIEND THREW <b>${friend.dist.toFixed(1)} m</b>`; }
+    else if (best > 0) { sub.className = ''; sub.innerHTML = `BEST <b>${best.toFixed(1)} m</b>`; }
+    else { sub.className = ''; sub.textContent = 'ONE DIVE · ONE SWING'; }
+    show('title', true); show('level', false); show('result', false); show('again', false);
+    $('home').style.opacity = 1; $('home').style.visibility = 'visible';
+    // the last throw's flag goes into the snow as the next one begins
+    if (lastThrow) { flags.push({m: lastThrow, t: clock - 1}); lastThrow = null; }
+    hint('');
+    if (snap) frameCamera(true);
+}
+
+function press() {
+    audio();
+    if (mode === 'ready') {
+        if (Core.drop(S)) {
+            sfx.hop(); dropAt = clock; setMode('dive', 3.5); show('title', false); $('home').style.opacity = 0; $('home').style.visibility = 'hidden';
+            $('cap').innerHTML = ''; show('level', true); levelAt = -9;
+            burst(PX, TOP, 8, {a: -Math.PI / 2, spread: 1.2, v: 90, r: 3, g: 400, life: .5});
+        }
+    } else if (mode === 'dive') {
+        Core.swing(S); hint('');
+    } else if (mode === 'rest') {
+        if (modeT > .35 || !(result && result.hit)) {
+            sfx.ui();
+            try { snap = snap || document.createElement('canvas'); snap.width = cv.width; snap.height = cv.height; snap.getContext('2d').drawImage(cv, 0, 0); fadeSnap = 1; } catch (e) { fadeSnap = 0; }
+            show('result', false); show('again', false); show('level', false);
+            toReady(true);
+        }
+    }
+}
+
+function caption(dy, ms) {
+    if (Math.abs(dy) < .04) return '<em>PERFECTLY LEVEL</em>';
+    const a = Math.abs(ms), when = a < 40 ? 'A TOUCH ' : a < 110 ? '' : 'WAY ';
+    return `${when}${dy > 0 ? 'EARLY' : 'LATE'} · <em>${dy > 0 ? 'IT LOBBED' : 'IT SKIDDED'}</em>`;
+}
+function onEvent(e) {
+    if (e.type === 'hit') {
+        swingT = 0;
+        const q = e.q;
+        freeze = RM ? 0 : .05 + .08 * q;
+        if (q > .9 && !RM) slowT = 0;
+        rings.push({t: 0, q});
+        cam.punch = RM ? 0 : .6 + .4 * q; cam.shake = RM ? 0 : 8 + 14 * q;
+        sfx.crack(q); hint('');
+        burst(CLUB.x, CLUB.y, 14 + Math.round(18 * q), {v: 260 + 200 * q, c: ['#FFFFFF', TAPE, '#DDE8FF'], r: 3, g: 150, life: .55, ground: false});
+        burst(CLUB.x, CLUB.y, 6, {v: 120, c: ['#1C2436', '#FBFCFF'], r: 3, g: 60, life: 1.4, sq: 1, ground: false});
+        bubbleTarget = -e.dy / Core.BAND;
+        $('cap').innerHTML = ''; show('level', true); levelAt = clock;
+        mood = 'swing'; Yt.moodT = clock; squashA = .35; squashT = clock;
+        setMode('flight', 6); lastTick = 0;
+    } else if (e.type === 'whiff') {
+        swingT = 0; sfx.whoosh(); mood = 'swing'; hint('');
+    } else if (e.type === 'bounce') {
+        sf

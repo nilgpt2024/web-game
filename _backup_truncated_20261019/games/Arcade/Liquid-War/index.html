@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Arcade/Liquid-War/">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Liquid War Online - Free Arcade Game | AIGameHub</title>
+<meta name="description" content="Play Liquid War online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="theme-color" content="#05070c">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌊</text></svg>">
+<style>
+  :root{
+    --bg:#05070c; --panel:#0c111a; --panel2:#121926; --line:#222c3e;
+    --ink:#e9eef7; --dim:#94a1b8; --faint:#5b6880;
+    --p1:#3fd0c9; --p2:#e8534a; --p3:#f0a93c; --p4:#b07ae0;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+    font-family:var(--sans);overscroll-behavior:none;touch-action:none;
+    -webkit-user-select:none;user-select:none}
+  #view{position:fixed;inset:0;display:block;width:100%;height:100%;cursor:none}
+  .hud{position:fixed;z-index:5;pointer-events:none}
+
+  /* ---------- top bar ---------- */
+  #top{top:0;left:0;right:0;padding:8px 10px 0;display:flex;flex-direction:column;gap:5px;
+    align-items:center}
+  #bar{width:min(760px,100%);height:16px;display:flex;border-radius:4px;overflow:hidden;
+    background:#0a0e15;border:1px solid var(--line);box-shadow:0 4px 18px #000a}
+  #bar div{height:100%;transition:width .12s linear}
+  #meta{width:min(760px,100%);display:flex;justify-content:space-between;align-items:center;
+    font:600 11px/1.4 var(--mono);color:var(--dim);letter-spacing:.06em}
+  #meta b{color:var(--ink);font-weight:700}
+  #clock.warn{color:var(--p3)}
+  #btns{position:fixed;top:8px;right:10px;z-index:7;display:flex;gap:6px}
+  .ib{pointer-events:auto;background:#0e1420cc;border:1px solid var(--line);color:var(--dim);
+    font:600 11px/1 var(--mono);padding:7px 9px;border-radius:5px;cursor:pointer;
+    backdrop-filter:blur(6px)}
+  .ib:hover{color:var(--ink);border-color:#3a475f}
+  #hint{bottom:10px;left:0;right:0;text-align:center;font:500 11px/1.5 var(--mono);
+    color:var(--faint);letter-spacing:.05em;transition:opacity .5s}
+
+  /* ---------- portrait prompt ---------- */
+  #turn{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+    background:#04060af5;padding:24px;text-align:center}
+  #turn[hidden]{display:none}
+  .turnInner{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:30ch}
+  .turnInner b{font:800 18px/1.3 var(--sans);color:var(--ink)}
+  .turnInner span{font-size:13px;line-height:1.6;color:var(--dim)}
+  .turnIcon{width:74px;height:46px;border:2px solid var(--p1);border-radius:7px;
+    animation:tip 2.4s ease-in-out infinite;color:transparent}
+  @keyframes tip{0%,100%{transform:rotate(90deg) scale(.8)}45%,80%{transform:rotate(0) scale(1)}}
+  @media (prefers-reduced-motion:reduce){.turnIcon{animation:none;transform:none}}
+
+  /* ---------- overlays ---------- */
+  .ov{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(80% 70% at 50% 40%,#0a1018f2,#04060af7);padding:16px;
+    overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .ov[hidden]{display:none}
+  .card{width:min(680px,100%);background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;box-shadow:0 24px 70px #000c;padding:20px 22px;margin:auto}
+  h1{margin:0;font:800 27px/1.1 var(--sans);letter-spacing:-.02em;
+    background:linear-gradient(92deg,var(--p1),#7fd8ff 45%,var(--p4));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{margin:7px 0 0;color:var(--dim);font-size:13px;line-height:1.6;max-width:56ch}
+  .sub em{color:var(--p1);font-style:normal}
+  .tabs{display:flex;gap:6px;margin:18px 0 14px;border-bottom:1px solid var(--line)}
+  .tab{background:none;border:0;border-bottom:2px solid transparent;color:var(--faint);
+    font:700 12px/1 var(--mono);letter-spacing:.09em;padding:9px 11px;cursor:pointer}
+  .tab.on{color:var(--ink);border-bottom-color:var(--p1)}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:11px}
+  .lbl{font:700 10px/1 var(--mono);letter-spacing:.12em;color:var(--faint);
+    text-transform:uppercase;width:100%;margin-bottom:-3px}
+  .opt{background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;
+    font:600 12px/1 var(--sans);padding:8px 11px;cursor:pointer}
+  .opt:hover{border-color:#3a475f;color:var(--ink)}
+  .opt.on{background:#17324a;border-color:var(--p1);color:#cdf6f4}
+  .opt small{display:block;font:500 10px/1.3 var(--mono);color:var(--faint);margin-top:3px}
+  .opt.on small{color:#7fc9c6}
+  input[type=text]{background:#080c13;border:1px solid var(--line);color:var(--ink);
+    border-radius:6px;font:600 12px var(--mono);padding:8px 10px;width:150px}
+  .go{background:linear-gradient(180deg,#2ba8a3,#1c7d7a);border:0;color:#03110f;
+    font:800 14px/1 var(--sans);padding:13px 22px;border-radius:8px;cursor:pointer;
+    letter-spacing:.02em;box-shadow:0 6px 18px #0b6b6840}
+  .go:hover{filter:brightness(1.1)}
+  .ghost{background:none;border:1px solid var(--line);color:var(--dim);border-radius:8px;
+    font:700 12px/1 var(--sans);padding:12px 16px;cursor:pointer}
+  .ghost:hover{color:var(--ink);border-color:#3a475f}
+  .foot{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:16px}
+  .note{font:500 11px/1.6 var(--mono);color:var(--faint);margin-top:12px}
+  .ladder{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:7px}
+  .lv{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:9px 10px;
+    text-align:left;cursor:pointer;color:var(--dim)}
+  .lv:hover:not(:disabled){border-color:#3a475f}
+  .lv:disabled{opacity:.38;cursor:default}
+  .lv .n{font:700 9px/1 var(--mono);letter-spacing:.12em;color:var(--faint)}
+  .lv .t{font:700 12px/1.3 var(--sans);color:var(--ink);margin-top:4px}
+  .lv .m{font:500 10px/1.4 var(--mono);color:var(--faint);margin-top:3px}
+  .lv.done{border-color:#2c5e4a}
+  .lv.done .n{color:#5bbf92}
+  .lv.next{border-color:var(--p1);box-shadow:0 0 0 1px #3fd0c93a}
+  h2{margin:0 0 4px;font:800 21px/1.2 var(--sans)}
+  .stats{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 4px}
+  .st{font:700 18px/1.1 var(--mono)}
+  .st span{display:block;font:600 9px/1 var(--mono);letter-spacing:.12em;color:var(--faint);
+    text-transform:uppercase;margin-top:5px}
+  .swatch{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;
+    vertical-align:baseline}
+  .rules{margin:14px 0 0;padding:13px 15px;background:#080c13;border:1px solid var(--line);
+    border-radius:8px;font-size:12.5px;line-height:1.65;color:var(--dim)}
+  .rules b{color:var(--ink)}
+  .rules ol{margin:7px 0 0;padding-left:17px}
+  .rules li{margin:4px 0}
+  @media (max-width:940px){
+    #top{padding-right:104px}   /* keep the clock clear of the corner buttons */
+  }
+  @media (max-width:560px){
+    h1{font-size:22px} .card{padding:16px 15px} input[type=text]{width:118px}
+    #hint{display:none}
+  }
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Liquid War","item":"https://suipce.com/games/Arcade/Liquid-War/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Liquid-War/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Liquid-War/preview.png"></head>
+<body>
+<canvas id="view"></canvas>
+
+<div id="top" class="hud">
+  <div id="bar"></div>
+  <div id="meta"><span id="left"></span><span id="clock"></span></div>
+</div>
+<div id="btns">
+  <button class="ib" id="bPause" title="Pause (Space)">❚❚</button>
+  <button class="ib" id="bMenu" title="Menu (Esc)">MENU</button>
+</div>
+<div id="hint" class="hud">move the cursor — your army follows it through the maze</div>
+<div id="turn" hidden>
+  <div class="turnInner">
+    <div class="turnIcon">▭</div>
+    <b>Turn your phone sideways</b>
+    <span>The battlefield is wider than it is tall — held upright it only gets a third
+      of your screen.</span>
+    <button class="ghost" id="turnAnyway">Play like this anyway</button>
+  </div>
+</div>
+
+<!-- ===================== menu ===================== -->
+<div class="ov" id="menu">
+  <div class="card">
+    <h1>Liquid War</h1>
+    <p class="sub">Your army is a few thousand fighters and you do not command any of them.
+      You move one cursor; every fighter of your colour floods through the maze along the
+      shortest path to it. Where two colours meet nobody dies — <em>the loser changes
+      sides</em>, so every fight you win makes you bigger and the map is a tug of war over
+      one fixed population.</p>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="skirmish">SKIRMISH</button>
+      <button class="tab" data-tab="ladder">LADDER</button>
+      <button class="tab" data-tab="daily">DAILY</button>
+      <button class="tab" data-tab="rules">HOW IT WORKS</button>
+    </div>
+
+    <div id="tab-skirmish">
+      <div class="row"><span class="lbl">Battlefield</span><span id="mapOpts"></span></div>
+      <div class="row"><span class="lbl">Armies</span><span id="teamOpts"></span></div>
+      <div class="row"><span class="lbl">Opposition</span><span id="diffOpts"></span></div>
+      <div class="row"><span class="lbl">Population</span><span id="sizeOpts"></span></div>
+      <div class="row"><span class="lbl">Modifiers</span><span id="modOpts"></span></div>
+      <div class="row"><span class="lbl">Seed</span>
+        <input type="text" id="seedIn" maxlength="14" spellcheck="false">
+        <button class="opt" id="reroll">reroll</button>
+        <button class="opt" id="copyLink">copy link</button>
+      </div>
+      <div class="foot">
+        <button class="go" id="playSkirmish">Fight</button>
+        <span class="note" id="seedNote"></span>
+      </div>
+    </div>
+
+    <div id="tab-ladder" hidden>
+      <p class="note" style="margin:0 0 11px">Twelve battles, each on its own fixed map with its
+        own opponent and its own rule bent out of shape. Clear one to unlock the next.</p>
+      <div class="ladder" id="ladderGrid"></div>
+      <div class="foot"><button class="ghost" id="resetLadder">reset progress</button></div>
+    </div>
+
+    <div id="tab-daily" hidden>
+      <p class="note" style="margin:0 0 11px">One battle a day, the same one for everybody:
+        map, opponents and modifier all come out of today's date.</p>
+      <div id="dailyInfo"></div>
+      <div class="foot"><button class="go" id="playDaily">Fight today's battle</button></div>
+    </div>
+
+    <div id="tab-rules" hidden>
+      <div class="rules">
+        <ol>
+          <li><b>You move a cursor, not an army.</b> Every fighter of your colour walks the
+            shortest path through the maze to wherever the cursor is, recomputed continuously.
+            Walls, dead ends and doorways are the whole game.</li>
+          <li><b>Nobody dies.</b> A fighter pushed to zero health flips to the colour that hit
+            it, at low health. The population on the map never changes — it only changes hands.</li>
+          <li><b>Health is position.</b> A fighter that walks freely heals; one pressed against
+            an enemy front does not. Fresh fighters arriving behind a line are what wins it.</li>
+          <li><b>So: never feed a front.</b> Trickling into a corridor loses the corridor.
+            Pull back, let the queue bunch up, then arrive all at once — or leave and take
+            what they left behind.</li>
+          <li>Win by owning every fighter on the map, or by being the largest army when the
+            clock runs out.</li>
+        </ol>
+      </div>
+      <div class="note">Mouse, touch or arrow keys / WASD. <b>Space</b> pauses,
+        <b>Esc</b> opens this menu, <b>R</b> restarts the same battle.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== result ===================== -->
+<div class="ov" id="result" hidden>
+  <div class="card">
+    <h2 id="rTitle">—</h2>
+    <p class="sub" id="rSub"></p>
+    <div class="stats" id="rStats"></div>
+    <div class="foot" id="rFoot"></div>
+    <div class="note" id="rSeed"></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   Liquid War — single-file implementation.
+   Grid sim: one fighter per cell, per-team BFS gradient from that team's
+   cursor, fights convert rather than kill.
+   ===================================================================== */
+'use strict';
+
+/* ---------------------------------------------------------- utilities */
+const TAU = Math.PI * 2;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);
+  h=Math.imul(h,16777619)}return h>>>0}
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const SEED_WORDS=['flux','delta','marsh','rill','spate','eddy','silt','weir','fen','bore',
+  'surge','brine','wash','drift','shoal','tide','ford','creek','slough','swell'];
+function randomSeed(){
+  const w=SEED_WORDS[(Math.random()*SEED_WORDS.length)|0];
+  return w+'-'+(Math.random()*1000|0).toString().padStart(3,'0');
+}
+
+/* ---------------------------------------------------------- constants */
+const W=192, H=120, NC=W*H;
+const NOFF=[-W-1,-W,-W+1,-1,1,W-1,W,W+1];
+const CW=16, CH=10, CSX=W/CW, CSY=H/CH;      // coarse grid for the AI
+const TICK=1/30;
+const TEAM_COL=[[63,208,201],[232,83,74],[240,169,60],[176,122,224]];
+const TEAM_NAME=['Yours','Crimson','Amber','Violet'];
+
+const MAPS=[
+  {id:'caves',   name:'Caves',    note:'organic, pockety'},
+  {id:'chambers',name:'Chambers', note:'rooms and doors'},
+  {id:'pillars', name:'Pillars',  note:'open, flankable'},
+  {id:'rings',   name:'Rings',    note:'concentric gaps'},
+  {id:'isles',   name:'Isles',    note:'blobs on threads'},
+  {id:'warren',  name:'Warren',   note:'wide maze'}
+];
+const PERSONAS=[
+  {id:'hunter', name:'Hunter',  note:'walks straight at you'},
+  {id:'vulture',name:'Vulture', note:'eats the weakest first'},
+  {id:'tyrant', name:'Tyrant',  note:'attacks whoever leads'},
+  {id:'nomad',  name:'Nomad',   note:'retreats, heals, returns'},
+  {id:'flanker',name:'Flanker', note:'arrives from the side'}
+];
+// Two counter-intuitive knobs, both measured rather than guessed. `spd`: a cursor that
+// moves faster than its own army stretches it into a column that arrives one fighter at
+// a time, so the weakest opponent is the one with the quickest hands. `commit`: a cursor
+// that keeps changing its mind smears its army down two corridors and loses both.
+const DIFFS=[
+  {id:0,name:'Calm',    note:'fewer, and dithers', spd:0.80,think:26,noise:10, skill:0.35,commit:34,pop:0.76},
+  {id:1,name:'Steady',  note:'reads the map',      spd:0.62,think:20,noise:5,  skill:0.7, commit:60,pop:0.92},
+  {id:2,name:'Sharp',   note:'punishes gaps',      spd:0.52,think:16,noise:2.5,skill:0.9, commit:84,pop:1.08},
+  {id:3,name:'Ruthless',note:'more, and patient',  spd:0.46,think:14,noise:1,  skill:1.0, commit:105,pop:1.26}
+];
+const SIZES=[{id:0,name:'Thin',mul:0.62},{id:1,name:'Normal',mul:1},{id:2,name:'Teeming',mul:1.5}];
+const MODS=[
+  {id:'fog',    name:'Fog',        note:'see only near your own'},
+  {id:'spring', name:'Spring',     note:'a well that heals whoever holds it'},
+  {id:'erosion',name:'Erosion',    note:'the walls crumble'},
+  {id:'odds',   name:'Long odds',  note:'they start 60% bigger'},
+  {id:'frenzy', name:'Frenzy',     note:'everything moves faster'}
+];
+
+const LADDER=[
+  {name:'First Contact', map:'pillars', teams:2, diff:0, mods:[],                 size:1},
+  {name:'The Warren',    map:'warren',  teams:2, diff:1, mods:[],                 size:1},
+  {name:'Two Doors',     map:'chambers',teams:2, diff:1, mods:['spring'],         size:1},
+  {name:'Low Water',     map:'caves',   teams:2, diff:2, mods:[],                 size:0},
+  {name:'Third Party',   map:'pillars', teams:3, diff:1, mods:[],                 size:1},
+  {name:'Blind Tide',    map:'caves',   teams:2, diff:2, mods:['fog'],            size:1},
+  {name:'The Rings',     map:'rings',   teams:3, diff:2, mods:['spring'],         size:1},
+  {name:'Long Odds',     map:'isles',   teams:2, diff:2, mods:['odds'],           size:1},
+  {name:'Crumble',       map:'chambers',teams:3, diff:2, mods:['erosion'],        size:1},
+  {name:'Warlords',      map:'warren',  teams:4, diff:2, mods:[],                 size:1},
+  {name:'Riptide',       map:'isles',   teams:3, diff:3, mods:['frenzy','fog'],   size:2},
+  {name:'Last Colour',   map:'rings',   teams:4, diff:3, mods:['odds','spring'],  size:1}
+];
+
+/* ========================================================== map making */
+function disc(w,cx,cy,r,v){
+  const x0=Math.max(0,(cx-r)|0),x1=Math.min(W-1,(cx+r)|0);
+  const y0=Math.max(0,(cy-r)|0),y1=Math.min(H-1,(cy+r)|0);
+  const r2=r*r;
+  for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){
+    const dx=x-cx,dy=y-cy; if(dx*dx+dy*dy<=r2) w[y*W+x]=v;
+  }
+}
+function corridor(w,x0,y0,x1,y1,r,v){
+  const steps=Math.ceil(Math.hypot(x1-x0,y1-y0))*2+1;
+  for(let i=0;i<=steps;i++){const t=i/steps; disc(w,x0+(x1-x0)*t,y0+(y1-y0)*t,r,v)}
+}
+function angDiff(a,b){let d=(a-b)%TAU; if(d>Math.PI)d-=TAU; if(d<-Math.PI)d+=TAU; return d}
+
+function genCaves(rnd){
+  let w=new Uint8Array(NC);
+  for(let i=0;i<NC;i++) w[i]=rnd()<0.45?1:0;
+  let n=new Uint8Array(NC);
+  for(let p=0;p<5;p++){
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+      let c=0;
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+        if(!dx&&!dy)continue;
+        const nx=x+dx,ny=y+dy;
+        if(nx<0||ny<0||nx>=W||ny>=H){c++;continue}
+        c+=w[ny*W+nx];
+      }
+      n[y*W+x]= c>4?1:(c<4?0:w[y*W+x]);
+    }
+    const t=w;w=n;n=t;
+  }
+  return w;
+}
+function genChambers(rnd){
+  const w=new Uint8Array(NC);
+  (function div(x0,y0,x1,y1,d){
+    const ww=x1-x0, hh=y1-y0;
+    if(d>6||(ww<21&&hh<18)) return;
+    const vert = ww>hh*1.15 ? true : (hh>ww*1.15 ? false : rnd()<0.5);
+    if(vert){
+      if(ww<21) return;
+      const cx=(x0+8+rnd()*(ww-16))|0;
+      for(let y=y0;y<y1;y++){w[y*W+cx]=1;w[y*W+cx+1]=1}
+      const doors=1+(rnd()<0.55?1:0);
+      for(let k=0;k<doors;k++){
+        const dy=(y0+4+rnd()*(hh-8))|0;
+        for(let j=-3;j<=3;j++){const yy=dy+j; if(yy>y0&&yy<y1){w[yy*W+cx]=0;w[yy*W+cx+1]=0}}
+      }
+      div(x0,y0,cx,y1,d+1); div(cx+2,y0,x1,y1,d+1);
+    }else{
+      if(hh<18) return;
+      const cy=(y0+7+rnd()*(hh-14))|0;
+      for(let x=x0;x<x1;x++){w[cy*W+x]=1;w[(cy+1)*W+x]=1}
+      const doors=1+(rnd()<0.55?1:0);
+      for(let k=0;k<doors;k++){
+        const dx=(x0+4+rnd()*(ww-8))|0;
+        for(let j=-3;j<=3;j++){const xx=dx+j; if(xx>x0&&xx<x1){w[cy*W+xx]=0;w[(cy+1)*W+xx]=0}}
+      }
+      div(x0,y0,x1,cy,d+1); div(x0,cy+2,x1,y1,d+1);
+    }
+  })(1,1,W-1,H-1,0);
+  return w;
+}
+function genPillars(rnd){
+  const w=new Uint8Array(NC);
+  const n=13+(rnd()*10|0);
+  for(let i=0;i<n;i++){
+    const x=8+rnd()*(W-16), y=8+rnd()*(H-16), r=3+rnd()*8;
+    if(rnd()<0.35){ // a slab rather than a rock
+      const a=rnd()*Math.PI, L=8+rnd()*24;
+      corridor(w,x-Math.cos(a)*L/2,y-Math.sin(a)*L/2,x+Math.cos(a)*L/2,y+Math.sin(a)*L/2,2.2,1);
+    } else disc(w,x,y,r,1);
+  }
+  return w;
+}
+function genRings(rnd){
+  const w=new Uint8Array(NC);
+  const cx=W/2, cy=H/2, rings=3+(rnd()*2|0), maxR=H*0.47;
+  for(let i=1;i<=rings;i++){
+    const r=maxR*i/(rings+0.25), gaps=2+(rnd()*3|0), off=rnd()*TAU, gw=0.18+rnd()*0.12;
+    for(let a=0;a<TAU;a+=0.0035){
+      let open=false;
+      for(let g=0;g<gaps;g++) if(Math.abs(angDiff(a,off+g*TAU/gaps))<gw) open=true;
+      if(!open) disc(w,cx+Math.cos(a)*r*1.55,cy+Math.sin(a)*r,1.5,1);
+    }
+  }
+  if(rnd()<0.5) disc(w,cx,cy,4+rnd()*4,1);
+  return w;
+}
+function genIsles(rnd){
+  const w=new Uint8Array(NC).fill(1);
+  const n=5+(rnd()*4|0), pts=[];
+  for(let i=0;i<n;i++){
+    const x=16+rnd()*(W-32), y=14+rnd()*(H-28); pts.push([x,y]);
+    for(let k=0;k<16;k++) disc(w,x+(rnd()-0.5)*26,y+(rnd()-0.5)*20,4+rnd()*7,0);
+  }
+  for(let i=0;i<n;i++){
+    const a=pts[i], b=pts[(i+1)%n];
+    corridor(w,a[0],a[1],b[0],b[1],1.6+rnd()*1.2,0);
+  }
+  for(let k=0;k<2;k++){
+    const a=pts[(rnd()*n)|0], b=pts[(rnd()*n)|0];
+    if(a!==b) corridor(w,a[0],a[1],b[0],b[1],1.5,0);
+  }
+  return w;
+}
+function genWarren(rnd){
+  const w=new Uint8Array(NC).fill(1);
+  const CX=23, CY=14, SX=W/CX, SY=H/CY;   // maze cells
+  const vis=new Uint8Array(CX*CY), stack=[];
+  let cur=((CY/2|0)*CX+(CX/2|0));
+  vis[cur]=1; stack.push(cur);
+  const carve=(a,b)=>{
+    const ax=(a%CX+0.5)*SX, ay=((a/CX|0)+0.5)*SY;
+    const bx=(b%CX+0.5)*SX, by=((b/CX|0)+0.5)*SY;
+    corridor(w,ax,ay,bx,by,3.1,0);
+  };
+  while(stack.length){
+    cur=stack[stack.length-1];
+    const cx=cur%CX, cy=cur/CX|0, opts=[];
+    if(cx>0&&!vis[cur-1])opts.push(cur-1);
+    if(cx<CX-1&&!vis[cur+1])opts.push(cur+1);
+    if(cy>0&&!vis[cur-CX])opts.push(cur-CX);
+    if(cy<CY-1&&!vis[cur+CX])opts.push(cur+CX);
+    if(!opts.length){stack.pop();continue}
+    const nx=opts[(rnd()*opts.length)|0];
+    vis[nx]=1; carve(cur,nx); stack.push(nx);
+  }
+  const extra=(CX*CY*0.34)|0;                  // braid: loops, so flanking exists
+  for(let i=0;i<extra;i++){
+    const a=(rnd()*CX*CY)|0, ax=a%CX, ay=a/CX|0;
+    if(ax<CX-1&&rnd()<0.5) carve(a,a+1); else if(ay<CY-1) carve(a,a+CX);
+  }
+  return w;
+}
+const GEN={caves:genCaves,chambers:genChambers,pillars:genPillars,rings:genRings,
+  isles:genIsles,warren:genWarren};
+
+/* keep only the largest open component, wall the border */
+function cleanMap(w){
+  for(let x=0;x<W;x++){w[x]=1;w[(H-1)*W+x]=1}
+  for(let y=0;y<H;y++){w[y*W]=1;w[y*W+W-1]=1}
+  const seen=new Int32Array(NC).fill(-1), q=new Int32Array(NC);
+  let bestId=-1,bestN=0,id=0;
+  for(let c=0;c<NC;c++){
+    if(w[c]||seen[c]>=0) continue;
+    let head=0,tail=0; q[tail++]=c; seen[c]=id; let n=0;
+    while(head<tail){
+      const p=q[head++]; n++;
+      for(let k=0;k<8;k++){const np=p+NOFF[k];
+        if(np<0||np>=NC||w[np]||seen[np]>=0)continue; seen[np]=id; q[tail++]=np}
+    }
+    if(n>bestN){bestN=n;bestId=id}
+    id++;
+  }
+  for(let c=0;c<NC;c++) if(!w[c]&&seen[c]!==bestId) w[c]=1;
+  return bestN;
+}
+
+/* ========================================================== game state */
+const G = {
+  running:false, paused:false, over:false, cfg:null,
+  wall:null, open:0, teams:2, nf:0, t:0, limit:240,
+  fCell:null, fTeam:null, fHp:null, order:null, occ:null,
+  grad:[], q:null, cursor:[], dens:[], count:new Int32Array(4),
+  persona:[], vis:null, spring:-1, rnd:Math.random, shake:0, peak:null
+};
+
+function buildGame(cfg){
+  G.cfg=cfg;
+  const rnd=mulberry32(hashStr(cfg.seed+'|'+cfg.map+'|'+cfg.teams));
+  G.rnd=mulberry32(hashStr(cfg.seed)^0x9e3779b9);
+  let wall, open=0, tries=0;
+  do{ wall=GEN[cfg.map](rnd); open=cleanMap(wall); tries++; }while(open<NC*0.22&&tries<8);
+  G.wall=wall; G.open=open;
+  G.teams=cfg.teams;
+  G.mods=new Set(cfg.mods);
+  G.limit = cfg.teams>2 ? 300 : 240;
+
+  /* ---- spawn points: greedily far apart ---- */
+  const dist=new Uint16Array(NC), q=new Int32Array(NC);
+  G.q=q;
+  const bfs=(d,start)=>{
+    d.fill(65535); let head=0,tail=0; d[start]=0; q[tail++]=start;
+    while(head<tail){const c=q[head++],nd=d[c]+1;
+      for(let k=0;k<8;k++){const np=c+NOFF[k];
+        if(wall[np])continue; if(d[np]>nd){d[np]=nd;q[tail++]=np}}}
+  };
+  const openCells=[];
+  for(let c=0;c<NC;c++) if(!wall[c]) openCells.push(c);
+  let first=openCells[(rnd()*openCells.length)|0];
+  bfs(dist,first);
+  let far=first,fd=0;
+  for(const c of openCells) if(dist[c]<65535&&dist[c]>fd){fd=dist[c];far=c}
+  const spawns=[far];
+  const dfields=[new Uint16Array(NC)]; bfs(dfields[0],far);
+  while(spawns.length<cfg.teams){
+    let best=-1,bs=-1;
+    for(let i=0;i<openCells.length;i+=3){
+      const c=openCells[i]; let m=1e9;
+      for(const d of dfields) m=Math.min(m,d[c]);
+      if(m<65535&&m>bs){bs=m;best=c}
+    }
+    if(best<0) best=openCells[(rnd()*openCells.length)|0];
+    spawns.push(best);
+    const nd=new Uint16Array(NC); bfs(nd,best); dfields.push(nd);
+  }
+  /* rotate so the player gets a sensible, and varied, corner */
+  const rot=(rnd()*cfg.teams)|0;
+  for(let i=0;i<rot;i++) spawns.push(spawns.shift());
+
+  /* ---- population ---- */
+  const sizeMul=SIZES[cfg.size].mul;
+  let per = Math.floor(open*0.30*sizeMul/cfg.teams);
+  per = clamp(per, 260, 3200);
+  const counts=[];
+  const popEdge = DIFFS[cfg.diff].pop * (G.mods.has('odds')?1.6:1);
+  for(let t=0;t<cfg.teams;t++) counts.push(t>0 ? Math.floor(per*popEdge) : per);
+  G.nf = counts.reduce((a,b)=>a+b,0);
+
+  G.fCell=new Int32Array(G.nf); G.fTeam=new Uint8Array(G.nf);
+  G.fHp=new Float32Array(G.nf); G.order=new Int32Array(G.nf);
+  G.occ=new Int32Array(NC).fill(-1);
+  G.count.fill(0);
+
+  let fi=0;
+  for(let t=0;t<cfg.teams;t++){
+    // flood out from the spawn, taking the nearest free cells
+    let head=0,tail=0; const seen=new Uint8Array(NC);
+    q[tail++]=spawns[t]; seen[spawns[t]]=1;
+    let placed=0;
+    while(head<tail&&placed<counts[t]){
+      const c=q[head++];
+      if(G.occ[c]===-1){
+        G.occ[c]=fi; G.fCell[fi]=c; G.fTeam[fi]=t; G.fHp[fi]=100; fi++; placed++;
+        G.count[t]++;
+      }
+      for(let k=0;k<8;k++){const np=c+NOFF[k];
+        if(wall[np]||seen[np])continue; seen[np]=1; q[tail++]=np}
+    }
+  }
+  G.nf=fi;
+  for(let i=0;i<G.nf;i++) G.order[i]=i;
+
+  /* ---- per-team fields, cursors, brains ---- */
+  G.grad=[]; G.dens=[]; G.cursor=[]; G.persona=[]; G.peak=[];
+  for(let t=0;t<cfg.teams;t++){
+    G.grad.push(new Uint16Array(NC));
+    G.dens.push(new Float32Array(CW*CH));
+    const sc=spawns[t];
+    G.cursor.push({x:sc%W, y:sc/W|0, tx:sc%W, ty:sc/W|0, next:t*4});
+    G.persona.push(PERSONAS[(rnd()*PERSONAS.length)|0].id);
+    G.peak.push(0);
+  }
+  if(cfg.personaOverride) G.persona[1]=cfg.personaOverride;
+
+  /* ---- modifiers ---- */
+  G.spring=-1;
+  if(G.mods.has('spring')){
+    let best=-1,bs=1e9;
+    for(const c of openCells){
+      const d=Math.hypot(c%W-W/2,(c/W|0)-H/2);
+      if(d<bs){bs=d;best=c}
+    }
+    G.spring=best;
+  }
+  G.vis = G.mods.has('fog') ? new Uint8Array((W>>2)*(H>>2)) : null;
+  G.speed = G.mods.has('frenzy') ? 1.45 : 1;
+  G.regen = 0.95;
+
+  G.t=0; G.over=false; G.paused=false; G.running=true; G.shake=0;
+  for(let t=0;t<cfg.teams;t++) recomputeGrad(t);
+  G.startCount=G.count.slice(0);
+  G.best=G.count[0];
+  updateHud();
+}
+
+/* -------------------------------------------------------- BFS gradient */
+function nearestOpen(c){
+  if(!G.wall[c]) return c;
+  const x0=c%W, y0=c/W|0;
+  for(let r=1;r<40;r++){
+    for(let a=0;a<TAU;a+=0.35/r){
+      const x=clamp((x0+Math.cos(a)*r)|0,1,W-2), y=clamp((y0+Math.sin(a)*r)|0,1,H-2);
+      const nc=y*W+x; if(!G.wall[nc]) return nc;
+    }
+  }
+  for(let i=0;i<NC;i++) if(!G.wall[i]) return i;
+  return 0;
+}
+function recomputeGrad(t){
+  const cur=G.cursor[t];
+  const start=nearestOpen((clamp(cur.y|0,0,H-1))*W + clamp(cur.x|0,0,W-1));
+  const d=G.grad[t], q=G.q, wall=G.wall;
+  d.fill(65535);
+  let head=0,tail=0; d[start]=0; q[tail++]=start;
+  while(head<tail){
+    const c=q[head++], nd=d[c]+1;
+    for(let k=0;k<8;k++){
+      const np=c+NOFF[k];
+      if(wall[np]) continue;
+      if(d[np]>nd){d[np]=nd; q[tail++]=np}
+    }
+  }
+}
+
+/* ------------------------------------------------------------ movement */
+function stepFighters(){
+  const {fCell,fTeam,fHp,occ,order,wall,grad,count}=G;
+  const nf=G.nf, rnd=G.rnd, regen=G.regen;
+  const spring=G.spring, sx=spring>=0?spring%W:0, sy=spring>=0?(spring/W|0):0;
+  for(let i=nf-1;i>0;i--){const j=(rnd()*(i+1))|0; const tmp=order[i];order[i]=order[j];order[j]=tmp}
+  for(let oi=0;oi<nf;oi++){
+    const f=order[oi];
+    const c=fCell[f], t=fTeam[f], d=grad[t];
+    let bd=d[c], best=-1, ties=0, contact=false;
+    for(let k=0;k<8;k++){
+      const nc=c+NOFF[k];
+      if(wall[nc]) continue;
+      const o2=occ[nc];
+      if(o2>=0&&fTeam[o2]!==t) contact=true;
+      const dd=d[nc];
+      if(dd<bd){bd=dd;best=nc;ties=1}
+      else if(dd===bd&&best>=0){ties++; if(rnd()*ties<1) best=nc}
+    }
+    // Health is about how far you are from the fighting, not about whether you
+    // happened to take a step: anyone touching an enemy line stops recovering.
+    let healed=contact?0:1;
+    if(best<0){
+      // hemmed in: hit whatever enemy is adjacent
+      for(let k=0;k<8;k++){
+        const nc=c+NOFF[k];
+        if(wall[nc]) continue;
+        const o=occ[nc];
+        if(o>=0&&fTeam[o]!==t){ attack(f,o); break }
+      }
+    }else{
+      const o=occ[best];
+      if(o===-1){ occ[c]=-1; occ[best]=f; fCell[f]=best }
+      else if(fTeam[o]===t){
+        // fresh fighters push past tired friends, so the front keeps rotating
+        // and a deep queue behind you is worth more than a wide one beside you
+        if(fHp[f]>fHp[o]+14){
+          occ[c]=o; occ[best]=f; fCell[f]=best; fCell[o]=c;
+        }
+      }
+      else { attack(f,o) }
+    }
+    if(healed&&fHp[f]<100){
+      let r=regen;
+      if(spring>=0){
+        const cc=fCell[f], dx=cc%W-sx, dy=(cc/W|0)-sy;
+        if(dx*dx+dy*dy<170) r*=3.4;
+      }
+      fHp[f]=Math.min(100,fHp[f]+r);
+    }
+  }
+  function attack(a,b){
+    const dmg = 1.8 + fHp[a]*0.115;   // a fresh fighter hits three times as hard as a spent one
+    fHp[b]-=dmg;
+    if(fHp[b]<=0){
+      count[fTeam[b]]--; fTeam[b]=fTeam[a]; count[fTeam[a]]++; fHp[b]=14;
+    }
+    fHp[a]-=0.55; if(fHp[a]<2) fHp[a]=2;
+  }
+}
+
+/* ----------------------------------------------------------- erosion */
+function erode(){
+  const wall=G.wall, rnd=G.rnd;
+  for(let i=0;i<26;i++){
+    const c=(rnd()*NC)|0;
+    if(!wall[c]) continue;
+    const x=c%W,y=c/W|0;
+    if(x<2||y<2||x>W

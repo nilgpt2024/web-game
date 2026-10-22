@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Play Pulseforge Online - Free Arcade Game | AIGameHub</title>
+    <meta name="description" content="A four-lane rhythm game with no audio files. Type any word as a seed and Pulseforge composes a full track — drums, bass, pads and a melody that is the note chart itself. Play it on keyboard or touch, then share the seed.">
+    <meta name="keywords" content="rhythm game, browser rhythm game, procedural music game, generative music, 4 key rhythm game, free online rhythm game, html5 music game, seed based music, web audio game">
+    <meta name="author" content="gptgames.dev">
+    <meta name="robots" content="index,follow">
+    <meta name="theme-color" content="#05060c">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Pulseforge/">
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="gptgames.dev">
+    <meta property="og:title" content="Play Pulseforge Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description" content="No audio files, no downloads: type a word, get a song. The melody you hear is the chart you play. Four lanes, four difficulties, infinite seeds.">
+    <meta property="og:url" content="https://www.gptgames.dev/games/pulseforge.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_286.webp">
+    <meta property="og:image:alt" content="Pulseforge gameplay: glowing notes falling down a four-lane neon highway toward a hit line">
+    <!-- Twitter Card -->
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Pulseforge/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Pulseforge/preview.png">
+    <meta name="twitter:title" content="Play Pulseforge Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description" content="No audio files, no downloads: type a word, get a song. The melody you hear is the chart you play.">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_286.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Pulseforge","url":"https://www.gptgames.dev/games/pulseforge.html","image":"https://www.gptgames.dev/screenshots/screenshot_286.webp","description":"A four-lane rhythm game that composes every song from a text seed. The generated melody is the note chart, so music and gameplay are the same data. Includes four difficulties, hold notes, latency calibration and shareable seeds.","genre":["Music","Rhythm","Arcade"],"gamePlatform":"Web Browser","playMode":"SinglePlayer","applicationCategory":"Game","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"publisher":{"@type":"Organization","name":"gptgames.dev","url":"https://www.gptgames.dev/"}}</script>
+    <style>
+        :root {
+            --void: #05060c;
+            --panel: #0b0e1a;
+            --edge: #1b2136;
+            --edge-2: #2b3350;
+            --text: #eaeefb;
+            --dim: #8892b0;
+            --l0: #ff3d7f;
+            --l1: #ffb23d;
+            --l2: #3de0ff;
+            --l3: #9b5cff;
+            --good: #46e8a8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%; height: 100%; overflow: hidden;
+            background: var(--void); color: var(--text);
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            touch-action: none; overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+        /* ── overlay screens ───────────────────────────── */
+        .screen {
+            position: fixed; inset: 0; z-index: 10;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 18px; padding: 24px 20px; overflow-y: auto;
+            background: radial-gradient(ellipse at 50% 30%, rgba(20, 26, 52, .92) 0%, rgba(5, 6, 12, .97) 70%);
+            backdrop-filter: blur(6px);
+        }
+        .screen[hidden] { display: none; }
+
+        h1 {
+            font-size: clamp(38px, 11vw, 82px); font-weight: 700; letter-spacing: .12em;
+            line-height: 1; text-transform: uppercase;
+            background: linear-gradient(96deg, var(--l0), var(--l1) 32%, var(--l2) 66%, var(--l3));
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 0 26px rgba(157, 92, 255, .35));
+        }
+
+        .tagline { color: var(--dim); font-size: 13px; text-align: center; max-width: 470px; line-height: 1.65; }
+        .tagline b { color: var(--text); font-weight: 500; }
+
+        .card {
+            width: min(480px, 100%); background: rgba(11, 14, 26, .82);
+            border: 1px solid var(--edge); border-radius: 14px; padding: 16px;
+            display: flex; flex-direction: column; gap: 14px;
+        }
+
+        label.field { display: flex; flex-direction: column; gap: 6px; }
+        .lbl { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--dim); }
+
+        .seedrow { display: flex; gap: 8px; }
+        input[type=text] {
+            flex: 1; min-width: 0; background: #070912; border: 1px solid var(--edge-2); border-radius: 8px;
+            color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 15px; padding: 11px 12px;
+        }
+        input[type=text]:focus { outline: 2px solid var(--l2); outline-offset: 1px; border-color: transparent; }
+        select {
+            width: 100%; background: #070912; border: 1px solid var(--edge-2); border-radius: 8px;
+            color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 14px; padding: 10px 12px;
+        }
+        select:focus { outline: 2px solid var(--l2); outline-offset: 1px; }
+
+        button {
+            font: inherit; color: inherit; background: none; border: none; cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--l2); outline-offset: 2px; }
+
+        .btn {
+            border: 1px solid var(--edge-2); border-radius: 8px; padding: 11px 16px;
+            font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+            color: var(--dim); background: rgba(255, 255, 255, .02); transition: .15s;
+        }
+        .btn:hover { color: var(--text); border-color: #46527a; background: rgba(255, 255, 255, .06); }
+        .btn.primary {
+            background: linear-gradient(96deg, var(--l0), var(--l3)); color: #fff;
+            border-color: transparent; padding: 15px 44px; font-size: 15px; letter-spacing: .26em;
+            box-shadow: 0 8px 34px rgba(155, 92, 255, .3);
+        }
+        .btn.primary:hover { filter: brightness(1.12); }
+        .btn.icon { padding: 11px 14px; font-size: 17px; letter-spacing: 0; }
+
+        .diffs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .diff {
+            border: 1px solid var(--edge-2); border-radius: 8px; padding: 9px 4px; text-align: center;
+            font-size: 10px; font-weight: 700; letter-spacing: .1em; color: var(--dim); transition: .15s;
+        }
+        .diff small { display: block; font-weight: 400; letter-spacing: 0; opacity: .6; font-size: 9px; margin-top: 3px; }
+        .diff:hover { color: var(--text); border-color: #46527a; }
+        .diff[aria-pressed=true] { background: var(--text); color: var(--void); border-color: var(--text); }
+
+        .songcard {
+            border: 1px dashed var(--edge-2); border-radius: 10px; padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 6px; background: rgba(61, 224, 255, .03);
+        }
+        .songtitle { font-size: 17px; font-weight: 700; letter-spacing: .06em; }
+        .songmeta { font-size: 11px; color: var(--dim); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+        .songmeta b { color: var(--l2); font-weight: 400; }
+        .btn.preview { align-self: flex-start; padding: 7px 12px; font-size: 10px; margin-top: 2px; }
+        .btn.preview[data-on="1"] { color: var(--l2); border-color: var(--l2); }
+
+        details { border-top: 1px solid var(--edge); padding-top: 12px; }
+        summary {
+            cursor: pointer; font-size: 10px; letter-spacing: .22em; text-transform: uppercase;
+            color: var(--dim); list-style: none;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary::before { content: "▸ "; }
+        details[open] summary::before { content: "▾ "; }
+        .settings { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; }
+        .slider { display: flex; align-items: center; gap: 10px; }
+        .slider input[type=range] { flex: 1; accent-color: var(--l2); min-width: 0; }
+        .slider .val { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--l2); min-width: 62px; text-align: right; }
+        .settings .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--dim); cursor: pointer; }
+        .check input { accent-color: var(--l0); width: 15px; height: 15px; }
+
+        .keyshint { font-size: 11px; color: var(--dim); text-align: center; letter-spacing: .06em; }
+        .keyshint kbd {
+            font-family: 'JetBrains Mono', monospace; border: 1px solid var(--edge-2); border-radius: 4px;
+            padding: 2px 6px; margin: 0 1px; color: var(--text); font-size: 11px;
+        }
+        .homelink { font-size: 11px; color: var(--dim); text-decoration: none; letter-spacing: .1em; }
+        .homelink:hover { color: var(--text); }
+
+        /* ── in-game HUD ───────────────────────────────── */
+        #hud { position: fixed; inset: 0; z-index: 5; pointer-events: none; padding: 12px 14px; }
+        #hud[hidden] { display: none; }
+        .hudtop { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        .stat { display: flex; flex-direction: column; gap: 2px; }
+        .stat b { font-family: 'JetBrains Mono', monospace; font-size: clamp(17px, 4.4vw, 25px); font-weight: 700; font-variant-numeric: tabular-nums; }
+        .stat span { font-size: 9px; letter-spacing: .2em; color: var(--dim); }
+        .stat.right { align-items: flex-end; }
+        .hudmid { text-align: center; flex: 1; min-width: 0; }
+        .hudmid b, .hudmid span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hudmid b { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
+        .hudmid span { font-size: 9px; letter-spacing: .14em; color: var(--dim); }
+        #progress { margin: 9px auto 0; width: min(560px, 92%); height: 3px; background: rgba(255, 255, 255, .08); border-radius: 3px; overflow: hidden; }
+        #progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--l2), var(--l3)); }
+        #pause {
+            pointer-events: auto; position: fixed; right: 12px; bottom: 12px; z-index: 6;
+            width: 42px; height: 42px; border: 1px solid var(--edge-2); border-radius: 10px;
+            background: rgba(11, 14, 26, .8); color: var(--dim); font-size: 15px; line-height: 1;
+        }
+        #pause[hidden] { display: none; }
+
+        /* ── results ───────────────────────────────────── */
+        .grade {
+            font-size: clamp(70px, 20vw, 130px); font-weight: 700; line-height: .9; letter-spacing: .02em;
+            filter: drop-shadow(0 0 30px currentColor);
+        }
+        .resgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .res {
+            border: 1px solid var(--edge); border-radius: 8px; padding: 9px 11px;
+            display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+        }
+        .res span { font-size: 10px; letter-spacing: .14em; color: var(--dim); text-transform: uppercase; }
+        .res b { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-variant-numeric: tabular-nums; }
+        .judgerow { display: flex; flex-direction: column; gap: 5px; }
+        .jr { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+        .jr span { width: 62px; letter-spacing: .1em; }
+        .jr .bar { flex: 1; height: 6px; background: rgba(255, 255, 255, .06); border-radius: 4px; overflow: hidden; }
+        .jr .bar i { display: block; height: 100%; width: 0; }
+        .jr b { font-family: 'JetBrains Mono', monospace; width: 42px; text-align: right; font-weight: 400; }
+        .btnrow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .note { font-size: 11px; color: var(--dim); text-align: center; line-height: 1.6; }
+        .newbest { color: var(--l1); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; }
+
+        /* ── calibration ───────────────────────────────── */
+        .calbig { font-family: 'JetBrains Mono', monospace; font-size: clamp(30px, 9vw, 48px); font-weight: 700; }
+        .calring { width: 108px; height: 108px; border-radius: 50%; border: 2px solid var(--edge-2); display: grid; place-items: center; transition: transform .06s, border-color .06s; }
+        .calring.on { transform: scale(1.1); border-color: var(--l2); box-shadow: 0 0 30px rgba(61, 224, 255, .35); }
+
+        .helplist { font-size: 12px; color: var(--dim); line-height: 1.85; max-width: 460px; }
+        .helplist b { color: var(--text); font-weight: 500; }
+
+        @media (max-height: 620px) {
+            h1 { font-size: clamp(30px, 8vw, 44px); }
+            .screen { gap: 12px; justify-content: flex-start; }
+            .tagline { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Pulseforge","item":"https://suipce.com/games/Arcade/Pulseforge/"}]}</script>
+</head>
+<body>
+<canvas id="c" aria-label="Pulseforge play field"></canvas>
+
+<!-- ── HUD ─────────────────────────────────────────── -->
+<div id="hud" hidden>
+    <div class="hudtop">
+        <div class="stat"><b id="hScore">0</b><span>SCORE</span></div>
+        <div class="hudmid"><b id="hTitle">—</b><span id="hMeta">—</span></div>
+        <div class="stat right"><b id="hAcc">100.00%</b><span>ACCURACY</span></div>
+    </div>
+    <div id="progress"><i></i></div>
+</div>
+<button id="pause" hidden aria-label="Pause">❚❚</button>
+
+<!-- ── Menu ────────────────────────────────────────── -->
+<div class="screen" id="menu">
+    <h1>Pulseforge</h1>
+    <p class="tagline">A rhythm game with <b>no audio files</b>. Type a word — Pulseforge writes a whole track from it in
+        one of <b>eight styles</b>, and the melody it writes <b>is</b> the note chart. Same seed, same song, forever.</p>
+
+    <div class="card">
+        <label class="field">
+            <span class="lbl">Seed</span>
+            <span class="seedrow">
+                <input type="text" id="seed" maxlength="28" spellcheck="false" autocomplete="off" placeholder="type anything…" aria-label="Song seed">
+                <button class="btn icon" id="dice" title="Random seed" aria-label="Random seed">🎲</button>
+            </span>
+        </label>
+
+        <div class="songcard" id="songcard">
+            <div class="songtitle" id="sTitle">—</div>
+            <div class="songmeta mono" id="sMeta">—</div>
+            <button class="btn preview" id="prev">▶ Hear the drop</button>
+        </div>
+
+        <label class="field">
+            <span class="lbl">Style</span>
+            <select id="style" aria-label="Musical style"></select>
+        </label>
+
+        <div class="field">
+            <span class="lbl">Difficulty</span>
+            <div class="diffs" id="diffs" role="group" aria-label="Difficulty"></div>
+        </div>
+
+        <details id="settings">
+            <summary>Settings &amp; calibration</summary>
+            <div class="settings">
+                <div class="slider">
+                    <span class="lbl" style="width:74px">Speed</span>
+                    <input type="range" id="sSpeed" min="1" max="10" step="1" aria-label="Scroll speed">
+                    <span class="val" id="vSpeed">5</span>
+                </div>
+                <div class="slider">
+                    <span class="lbl" style="width:74px">Volume</span>
+                    <input type="range" id="sVol" min="0" max="100" step="1" aria-label="Volume">
+                    <span class="val" id="vVol">80%</span>
+                </div>
+                <div class="slider">
+                    <span class="lbl" style="width:74px">Offset</span>
+                    <input type="range" id="sOff" min="-200" max="200" step="1" aria-label="Audio offset in milliseconds">
+                    <span class="val" id="vOff">0 ms</span>
+                </div>
+                <div class="row">
+                    <button class="btn" id="calBtn">Calibrate by tapping</button>
+                    <label class="check"><input type="checkbox" id="cAuto"> Autoplay (watch)</label>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <button class="btn primary" id="play">Play</button>
+    <p class="keyshint"><kbd>D</kbd><kbd>F</kbd><kbd>J</kbd><kbd>K</kbd> or <kbd>←</kbd><kbd>↓</kbd><kbd>↑</kbd><kbd>→</kbd> — or tap the lanes ·
+        <button class="btn" id="helpBtn" style="padding:3px 9px;font-size:10px">How to play</button></p>
+    <a class="homelink" href="/">← more games on gptgames.dev</a>
+</div>
+
+<!-- ── Help ────────────────────────────────────────── -->
+<div class="screen" id="help" hidden>
+    <h1 style="font-size:clamp(26px,7vw,42px)">How to play</h1>
+    <div class="card">
+        <p class="helplist">
+            <b>Hit the notes.</b> Four lanes fall toward the bright line. Press the matching key exactly when a note crosses it.<br>
+            <b>The melody is yours.</b> Drums, bass and pads play on their own — the lead melody only sounds when you hit it. Miss, and the tune goes quiet.<br>
+            <b>Long notes.</b> Bars with a tail must be held until the end.<br>
+            <b>Wrong presses cost you.</b> Hitting a lane with nothing in it breaks your combo and shaves a few points — but it never counts against your accuracy, which only ever measures how you timed real notes.<br>
+            <b>Overdrive.</b> Chaining hits fills the flow meter on the left. Fill it and every point counts double.<br>
+            <b>Seeds.</b> Any text composes a different song — style, key, tempo, structure and melody. Synthwave, house, trance, drum &amp; bass, chiptune, lo-fi, trap and cinematic each bring their own drums, instruments and mix. Pick one, or let the seed choose. Share the link to share the exact track.<br>
+            <b>Offset.</b> If your hits feel early or late, run the tap calibration in settings. Headphones beat Bluetooth speakers.
+        </p>
+    </div>
+    <button class="btn primary" id="helpBack">Back</button>
+</div>
+
+<!-- ── Calibration ─────────────────────────────────── -->
+<div class="screen" id="cal" hidden>
+    <h1 style="font-size:clamp(26px,7vw,42px)">Calibrate</h1>
+    <p class="tagline">Tap <b>space</b> or the circle on every beat. Twelve taps and we'll work out your offset.</p>
+    <div class="calring" id="calRing"><span class="calbig mono" id="calCount">12</span></div>
+    <p class="note" id="calRead">—</p>
+    <div class="btnrow">
+        <button class="btn" id="calApply">Apply</button>
+        <button class="btn" id="calCancel">Cancel</button>
+    </div>
+</div>
+
+<!-- ── Pause ───────────────────────────────────────── -->
+<div class="screen" id="paused" hidden>
+    <h1 style="font-size:clamp(26px,7vw,42px)">Paused</h1>
+    <div class="btnrow">
+        <button class="btn primary" id="pResume">Resume</button>
+        <button class="btn" id="pRestart">Restart</button>
+        <button class="btn" id="pQuit">Quit</button>
+    </div>
+</div>
+
+<!-- ── Results ─────────────────────────────────────── -->
+<div class="screen" id="results" hidden>
+    <div class="grade mono" id="rGrade">A</div>
+    <div class="card">
+        <div class="songcard">
+            <div class="songtitle" id="rTitle">—</div>
+            <div class="songmeta mono" id="rMeta">—</div>
+        </div>
+        <div class="resgrid">
+            <div class="res"><span>Score</span><b id="rScore">0</b></div>
+            <div class="res"><span>Accuracy</span><b id="rAcc">0%</b></div>
+            <div class="res"><span>Max combo</span><b id="rCombo">0</b></div>
+            <div class="res"><span>Best</span><b id="rBest">—</b></div>
+        </div>
+        <div class="judgerow" id="rJudge"></div>
+        <div class="newbest" id="rNew" hidden>★ New personal best</div>
+    </div>
+    <div class="btnrow">
+        <button class="btn primary" id="rRetry">Retry</button>
+        <button class="btn" id="rNext">New seed</button>
+        <button class="btn" id="rShare">Copy link</button>
+        <button class="btn" id="rMenu">Menu</button>
+    </div>
+    <p class="note" id="rNote"></p>
+</div>
+
+
+<script>
+    (() => {
+        'use strict';
+
+        /* ═══════════════════════════════════════════════════════════
+           0 · Small helpers
+           ═══════════════════════════════════════════════════════════ */
+        const $ = id => document.getElementById(id);
+        const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+        const lerp = (a, b, t) => a + (b - a) * t;
+        const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+        const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        // string -> 32bit seed
+        function xmur3(str) {
+            let h = 1779033703 ^ str.length;
+            for (let i = 0; i < str.length; i++) {
+                h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+                h = h << 13 | h >>> 19;
+            }
+            return () => {
+                h = Math.imul(h ^ h >>> 16, 2246822507);
+                h = Math.imul(h ^ h >>> 13, 3266489909);
+                return (h ^= h >>> 16) >>> 0;
+            };
+        }
+
+        function mulberry32(a) {
+            return () => {
+                a |= 0; a = a + 0x6D2B79F5 | 0;
+                let t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+
+        /* ═══════════════════════════════════════════════════════════
+           1 · The composer
+           A seed produces a complete arrangement. The lead melody it
+           writes is handed straight to the game as the note chart, so
+           chart and music can never drift apart — they are one list.
+           ═══════════════════════════════════════════════════════════ */
+        const SCALES = {
+            'Aeolian': [0, 2, 3, 5, 7, 8, 10],
+            'Dorian': [0, 2, 3, 5, 7, 9, 10],
+            'Phrygian': [0, 1, 3, 5, 7, 8, 10],
+            'Harmonic minor': [0, 2, 3, 5, 7, 8, 11],
+            'Minor pentatonic': [0, 3, 5, 7, 10],
+            'Lydian': [0, 2, 4, 6, 7, 9, 11],
+            'Mixolydian': [0, 2, 4, 5, 7, 9, 10],
+            'Ionian': [0, 2, 4, 5, 7, 9, 11]
+        };
+        const NOTE_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+
+        // 16-step rhythm cells, grouped by how busy they are
+        const RHYTHMS = [
+            ['1000000010000000', '1000000000001000', '1000000010001000', '1000100000001000'],
+            ['1000001010000010', '1010001010000010', '1001001010010010', '1000101010001010'],
+            ['1010101010101010', '1011001010101101', '1010110110100110', '1010101011011010', '1101001010110010'],
+            ['1111010111101011', '1110111011011010', '1011101110111011', '1111001011110110', '1010111110101111']
+        ];
+
+        /* Structures. A song's shape is part of its identity: a club track
+           builds to two drops, a pop song alternates verse and chorus, a
+           beat tape just loops two ideas. */
+        const STRUCTURES = {
+            dance: [['INTRO', 4, .14], ['VERSE', 8, .42], ['BUILD', 4, .62], ['DROP', 8, .95],
+                    ['BREAK', 4, .28], ['VERSE', 4, .55], ['BUILD', 4, .74], ['DROP', 8, 1], ['OUTRO', 4, .18]],
+            wave: [['INTRO', 4, .2], ['BUILD', 8, .5], ['DROP', 8, .95], ['BREAK', 4, .3],
+                   ['BUILD', 4, .72], ['DROP', 8, 1], ['OUTRO', 4, .18]],
+            song: [['INTRO', 4, .26], ['VERSE', 8, .46], ['CHORUS', 8, .86], ['VERSE', 8, .5],
+                   ['CHORUS', 8, .92], ['BRIDGE', 4, .34], ['CHORUS', 8, 1], ['OUTRO', 4, .2]],
+            loop: [['INTRO', 4, .22], ['A', 8, .46], ['B', 8, .62], ['A', 8, .52], ['B', 8, .68], ['OUTRO', 4, .26]],
+            swell: [['INTRO', 8, .13], ['RISE', 8, .38], ['PEAK', 8, .8], ['FALL', 4, .4],
+                    ['RISE', 4, .62], ['PEAK', 8, 1], ['OUTRO', 4, .16]]
+        };
+
+        /* ── Styles ──────────────────────────────────────────────────
+           The whole variety strategy lives here. Rolling every parameter
+           independently would mostly produce nonsense — 170 BPM lo-fi with
+           an organ playing sixteenth runs. So a seed picks one of these
+           instead: each is a bundle of tempo, drum architecture, bass and
+           chord behaviour, timbre, mix and structure that was checked as a
+           whole. The styles differ far more from each other than two random
+           tempos ever could, while each one's ranges are narrower than the
+           single global range they replace. More variety, less risk. */
+        const STYLES = [{
+            id: 'synthwave', name: 'Synthwave',
+            bpms: [100, 104, 108, 112, 116],
+            scales: ['Aeolian', 'Harmonic minor', 'Dorian'],
+            progs: [[0, 5, 3, 4], [0, 3, 4, 4], [5, 3, 0, 4], [0, 5, 1, 4]],
+            chordBars: 1, swing: 0, structure: 'dance',
+            kick: 'four', snare: 'backbeat', snareVoice: 'snare', hats: 'eighth', ohat: true,
+            bass: 'octave', chords: 'pad', arp: {wave: 'triangle', from: .88},
+            lead: {wave: 'sawtooth', cutoff: 2600, cutoffEnd: 900, detune: 6, q: 5},
+            mix: {drums: .9, music: .62, lead: .85, reverb: .55, tone: 15000},
+            melShift: 0, nouns: ['Horizon', 'Avenue', 'Chrome', 'Mirage', 'Cassette', 'Skyline']
+        }, {
+            id: 'house', name: 'House',
+            bpms: [120, 122, 124, 126, 128],
+            scales: ['Dorian', 'Mixolydian', 'Minor pentatonic', 'Aeolian'],
+            progs: [[0, 3, 4, 3], [0, 5, 3, 4], [3, 4, 0, 0], [0, 2, 5, 4]],
+            chordBars: 1, swing: .08, structure: 'wave',
+            kick: 'four', snare: 'backbeat', snareVoice: 'clap', hats: 'offbeat', ohat: true,
+            bass: 'octave', chords: 'stab', arp: false,
+            lead: {wave: 'pulse25', cutoff: 3000, cutoffEnd: 1100, detune: 4, q: 4},
+            mix: {drums: .95, music: .6, lead: .8, reverb: .42, tone: 17000},
+            melShift: 0, nouns: ['Basement', 'Loft', 'Groove', 'Warehouse', 'Boulevard', 'Motion']
+        }, {
+            id: 'dnb', name: 'Drum & Bass',
+            bpms: [168, 172, 174, 176],
+            scales: ['Minor pentatonic', 'Aeolian', 'Phrygian'],
+            progs: [[0, 5, 3, 4], [0, 6, 3, 4], [5, 3, 0, 4]],
+            chordBars: 2, swing: 0, structure: 'song',
+            kick: 'break', snare: 'break', snareVoice: 'snare', hats: 'sixteenth', ohat: true,
+            bass: 'sub', bassMode: 'sub', chords: 'pad', arp: false,
+            lead: {wave: 'sawtooth', cutoff: 3200, cutoffEnd: 1200, detune: 7, q: 6},
+            mix: {drums: .92, music: .58, lead: .82, reverb: .48, tone: 16000},
+            melShift: -1, nouns: ['Rollers', 'Jungle', 'Amen', 'Steppa', 'Dispatch', 'Velocity']
+        }, {
+            id: 'lofi', name: 'Lo-fi',
+            bpms: [72, 76, 80, 84],
+            scales: ['Dorian', 'Aeolian', 'Mixolydian'],
+            progs: [[0, 3, 5, 4], [0, 5, 3, 4], [3, 5, 0, 4], [0, 2, 5, 4]],
+            chordBars: 2, swing: .2, structure: 'loop',
+            kick: 'lofi', kickMode: 'soft', snare: 'backbeat', snareVoice: 'rim', hats: 'eighth', ohat: false,
+            bass: 'walk', bassMode: 'warm', chords: 'keys', arp: false, seventh: true,
+            lead: {wave: 'triangle', cutoff: 1800, cutoffEnd: 700, detune: 3, q: 2, gain: .9},
+            mix: {drums: .7, music: .72, lead: .5, reverb: .7, tone: 6500},
+            melShift: 1, nouns: ['Window', 'Study', 'Rainfall', 'Tape', 'Afternoon', 'Pillow']
+        }, {
+            id: 'trance', name: 'Trance',
+            bpms: [132, 136, 138, 140],
+            scales: ['Aeolian', 'Harmonic minor', 'Dorian'],
+            progs: [[0, 5, 3, 4], [5, 3, 0, 4], [0, 4, 5, 3]],
+            chordBars: 1, swing: 0, structure: 'swell',
+            kick: 'four', snare: 'backbeat', snareVoice: 'clap', hats: 'offbeat', ohat: true,
+            bass: 'roll', chords: 'pad', arp: {wave: 'pulse25', from: .55},
+            lead: {wave: 'sawtooth', cutoff: 3400, cutoffEnd: 1300, detune: 9, q: 7},
+            mix: {drums: .88, music: .64, lead: .86, reverb: .68, tone: 18000},
+            melShift: 

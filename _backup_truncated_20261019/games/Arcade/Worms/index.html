@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <title>Play Worms Online - Free Arcade Game | AIGameHub</title>
+    <meta name="description"
+          content="Play Worms online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="author" content="Claude Opus 5 prompted by Tobias Müller">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Worms/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Play Worms Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description"
+          content="Play Worms online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta property="og:url" content="https://www.gptgames.dev/games/worms.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_314.webp">
+    <meta property="og:site_name" content="GPT Games">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Worms/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Worms/preview.png">
+    <style>
+        :root {
+            --ink: #eaf2ff;
+            --dim: #8fa3bf;
+            --panel: rgba(9, 16, 28, .82);
+            --edge: rgba(140, 180, 240, .22);
+            --safeT: env(safe-area-inset-top, 0px);
+            --safeB: env(safe-area-inset-bottom, 0px);
+            --safeL: env(safe-area-inset-left, 0px);
+            --safeR: env(safe-area-inset-right, 0px);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background: #050a12;
+            color: var(--ink);
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            touch-action: none;
+            overscroll-behavior: none;
+            user-select: none;
+            -webkit-user-select: none
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none
+        }
+
+        .hidden, [hidden] {
+            display: none !important
+        }
+
+        /* ---------- top HUD: one team strip per team ---------- */
+        #hud {
+            position: fixed;
+            top: calc(6px + var(--safeT));
+            left: calc(6px + var(--safeL));
+            right: calc(6px + var(--safeR));
+            display: flex;
+            gap: 6px;
+            padding-right: 0;
+            align-items: flex-start;
+            pointer-events: none;
+            z-index: 20
+        }
+
+        #hud .gap {
+            flex: 0 0 122px
+        }
+
+        @media (max-width: 620px) {
+            #hud .gap {
+                flex: 0 0 104px
+            }
+        }
+
+        .team {
+            flex: 1 1 0;
+            min-width: 0;
+            background: var(--panel);
+            border: 1px solid var(--edge);
+            border-radius: 9px;
+            padding: 5px 7px;
+            backdrop-filter: blur(6px);
+            transition: box-shadow .2s, border-color .2s
+        }
+
+        .team.act {
+            border-color: currentColor;
+            box-shadow: 0 0 0 1px currentColor, 0 0 16px -4px currentColor
+        }
+
+        .team.out {
+            opacity: .35
+        }
+
+        .tname {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+        .thp {
+            font-size: 15px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.1
+        }
+
+        .tbar {
+            height: 3px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, .13);
+            margin-top: 3px;
+            overflow: hidden
+        }
+
+        .tbar > i {
+            display: block;
+            height: 100%;
+            background: currentColor;
+            transition: width .35s
+        }
+
+        .tdots {
+            display: flex;
+            gap: 3px;
+            margin-top: 4px
+        }
+
+        .tdots > i {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor
+        }
+
+        .tdots > i.dead {
+            background: rgba(255, 255, 255, .16)
+        }
+
+        /* ---------- centre: clock + wind ---------- */
+        #centre {
+            position: fixed;
+            top: calc(6px + var(--safeT));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 22;
+            text-align: center;
+            pointer-events: none;
+            background: var(--panel);
+            border: 1px solid var(--edge);
+            border-radius: 9px;
+            padding: 4px 12px;
+            backdrop-filter: blur(6px);
+            min-width: 108px
+        }
+
+        #clock {
+            font-size: 26px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            line-height: 1
+        }
+
+        #clock.low {
+            color: #ff6b6b
+        }
+
+        #clock.retreat {
+            color: #ffd166
+        }
+
+        #windRow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 3px
+        }
+
+        #windBar {
+            position: relative;
+            width: 76px;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, .12);
+            overflow: hidden
+        }
+
+        #windBar b {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background: #6ee7ff;
+            transition: left .3s, width .3s
+        }
+
+        #windBar:after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: -2px;
+            bottom: -2px;
+            width: 1px;
+            background: rgba(255, 255, 255, .45)
+        }
+
+        .mini {
+            font-size: 9px;
+            letter-spacing: 1.2px;
+            color: var(--dim);
+            text-transform: uppercase
+        }
+
+        /* ---------- bottom control deck ---------- */
+        #deck {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 0 calc(8px + var(--safeL)) calc(8px + var(--safeB)) calc(8px + var(--safeR));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            z-index: 21;
+            pointer-events: none
+        }
+
+        #deckRow {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 10px
+        }
+
+        /* Anchored to the top edge of the button row rather than to a pixel
+           offset from the screen bottom: the strip can then never land on the
+           buttons, and showing it never nudges them. */
+        #deckTop {
+            position: absolute;
+            bottom: calc(100% + 7px);
+            left: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none
+        }
+
+        #deckRow .pad {
+            pointer-events: auto
+        }
+
+        .pad {
+            display: grid;
+            gap: 6px
+        }
+
+        .btn {
+            min-width: 54px;
+            min-height: 54px;
+            border-radius: 13px;
+            border: 1px solid var(--edge);
+            background: var(--panel);
+            color: var(--ink);
+            font-size: 19px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(6px);
+            cursor: pointer;
+            transition: transform .06s, background .12s
+        }
+
+        .btn:active, .btn.on {
+            background: rgba(110, 231, 255, .26);
+            transform: scale(.94)
+        }
+
+        .btn.sm {
+            min-width: 46px;
+            min-height: 46px;
+            font-size: 15px
+        }
+
+        .btn[disabled] {
+            opacity: .3;
+            pointer-events: none
+        }
+
+        /* Two thumb clusters. Everything continuous (walk, aim) sits on the
+           bottom row where the thumbs actually rest; everything discrete
+           (weapon, fuse, skip) sits on the row above, out of the way. */
+        .prow {
+            display: flex;
+            gap: 6px;
+            align-items: flex-end
+        }
+
+        #actPad .prow {
+            justify-content: flex-end
+        }
+
+        .aimcol {
+            display: flex;
+            flex-direction: column;
+            gap: 4px
+        }
+
+        .aimcol .btn {
+            min-height: 40px
+        }
+
+        .btn > u {
+            display: block;
+            text-decoration: none;
+            font-size: 8.5px;
+            letter-spacing: .6px;
+            color: var(--dim);
+            margin-top: 1px
+        }
+
+        .btn > i {
+            font-style: normal;
+            line-height: 1
+        }
+
+        #bJump, #bFlip {
+            flex-direction: column;
+            min-height: 46px
+        }
+
+        /* while roped / flying, the jump key becomes the release */
+        #bJump.letgo {
+            background: rgba(255, 209, 102, .28);
+            border-color: #ffd166
+        }
+
+        #bJump.letgo > u {
+            color: #ffd166
+        }
+
+        #fire {
+            min-width: 128px;
+            min-height: 60px;
+            font-size: 16px;
+            letter-spacing: 1.5px;
+            background: linear-gradient(180deg, #d94141, #a52424);
+            border-color: #ff8a8a
+        }
+
+        #fire.charging {
+            background: linear-gradient(180deg, #ffd166, #f08c1a)
+        }
+
+        #powerWrap {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(10px + var(--safeB));
+            width: min(340px, 52vw);
+            height: 12px;
+            border-radius: 7px;
+            border: 1px solid var(--edge);
+            background: var(--panel);
+            overflow: hidden;
+            z-index: 21;
+            opacity: 0;
+            transition: opacity .15s;
+            pointer-events: none
+        }
+
+        #powerWrap.show {
+            opacity: 1
+        }
+
+        #power {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #6ee7ff, #ffd166, #ff5252)
+        }
+
+        /* ---------- weapon grid ---------- */
+        #wpnBtn {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            font-size: 11px;
+            letter-spacing: .3px;
+            padding: 4px 8px;
+            min-width: 78px
+        }
+
+        #wpnBtn i {
+            font-style: normal;
+            font-size: 22px;
+            line-height: 1
+        }
+
+        #wpnGrid {
+            position: fixed;
+            inset: 0;
+            z-index: 40;
+            background: rgba(4, 8, 15, .84);
+            backdrop-filter: blur(9px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(14px + var(--safeT)) 14px calc(14px + var(--safeB))
+        }
+
+        #wpnGrid .inner {
+            width: min(560px, 100%);
+            max-height: 100%;
+            overflow-y: auto
+        }
+
+        #wpnGrid h3 {
+            margin: 0 0 8px;
+            font-size: 12px;
+            letter-spacing: 2px;
+            color: var(--dim);
+            text-transform: uppercase;
+            text-align: center
+        }
+
+        .wgrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+            gap: 7px
+        }
+
+        .wcell {
+            position: relative;
+            aspect-ratio: 1;
+            min-height: 72px;
+            border-radius: 12px;
+            border: 1px solid var(--edge);
+            background: rgba(18, 28, 46, .9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--ink)
+        }
+
+        .wcell em {
+            font-style: normal;
+            font-size: 25px;
+            line-height: 1
+        }
+
+        .wcell span {
+            font-size: 9.5px;
+            text-align: center;
+            line-height: 1.15;
+            color: var(--dim)
+        }
+
+        .wcell b {
+            position: absolute;
+            top: 3px;
+            right: 6px;
+            font-size: 10px;
+            color: #ffd166
+        }
+
+        .wcell.sel {
+            border-color: #6ee7ff;
+            box-shadow: 0 0 0 1px #6ee7ff
+        }
+
+        .wcell.none {
+            opacity: .28;
+            pointer-events: none
+        }
+
+        /* ---------- banners & overlays ---------- */
+        #banner {
+            position: fixed;
+            top: 40%;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: clamp(22px, 6vw, 44px);
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-shadow: 0 4px 22px #000;
+            z-index: 30;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .25s, transform .25s;
+            transform: translateY(10px)
+        }
+
+        #banner.show {
+            opacity: 1;
+            transform: none
+        }
+
+        #banner small {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            color: var(--dim);
+            margin-top: 6px
+        }
+
+        #modeBar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(9, 16, 28, .9);
+            border: 1px solid #ffd166;
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #ffd166;
+            backdrop-filter: blur(6px);
+            pointer-events: none;
+            white-space: nowrap;
+            max-width: 94vw;
+            overflow: hidden
+        }
+
+        #modeBar span {
+            color: var(--dim);
+            font-weight: 500
+        }
+
+        #hint {
+            font-size: 12px;
+            color: var(--dim);
+            background: var(--panel);
+            border: 1px solid var(--edge);
+            border-radius: 20px;
+            padding: 5px 14px;
+            z-index: 23;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .3s;
+            text-align: center;
+            max-width: 90vw
+        }
+
+        #hint.show {
+            opacity: 1
+        }
+
+        #ov {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: radial-gradient(120% 90% at 50% 0%, #10243f 0%, #050a12 70%);
+            overflow-y: auto;
+            padding: calc(20px + var(--safeT)) 16px calc(24px + var(--safeB))
+        }
+
+        #ov .wrap {
+            width: min(600px, 100%);
+            margin: 0 auto
+        }
+
+        #ov h1 {
+            font-size: clamp(30px, 8vw, 50px);
+            margin: 4px 0 2px;
+            letter-spacing: 3px;
+            font-weight: 900;
+            text-align: center;
+            background: linear-gradient(180deg, #d8f5a8, #6fbf4a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent
+        }
+
+        #ov .sub {
+            text-align: center;
+            color: var(--dim);
+            font-size: 13px;
+            margin-bottom: 16px
+        }
+
+        .sect {
+            margin-bottom: 14px
+        }
+
+        .sect > h4 {
+            margin: 0 0 6px;
+            font-size: 10.5px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--dim)
+        }
+
+        .row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap
+        }
+
+        .chip {
+            flex: 1 1 auto;
+            min-width: 70px;
+            min-height: 42px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--edge);
+            background: rgba(18, 28, 46, .8);
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        .chip.on {
+            background: rgba(110, 231, 255, .2);
+            border-color: #6ee7ff
+        }
+
+        .tset {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 9px;
+            border-radius: 10px;
+            border: 1px solid var(--edge);
+            background: rgba(18, 28, 46, .6);
+            margin-bottom: 6px
+        }
+
+        .swatch {
+            width: 13px;
+            height: 13px;
+            border-radius: 4px;
+            flex: none
+        }
+
+        .tset .lbl {
+            font-size: 13px;
+            font-weight: 700;
+            width: 74px;
+            flex: none
+        }
+
+        .seg {
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--edge)
+        }
+
+        .seg button {
+            border: 0;
+            background: transparent;
+            color: var(--dim);
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 8px 9px;
+            min-height: 36px;
+            cursor: pointer
+        }
+
+        .seg button.on {
+            background: rgba(110, 231, 255, .22);
+            color: var(--ink)
+        }
+
+        .grow {
+            flex: 1
+        }
+
+        #startBtn {
+            width: 100%;
+            min-height: 54px;
+            border-radius: 13px;
+            border: 0;
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            cursor: pointer;
+            background: linear-gradient(180deg, #8fdc5c, #4e9a2c);
+            color: #06210a;
+            margin-top: 4px
+        }
+
+        #ov .keys {
+            margin-top: 14px;
+            font-size: 11.5px;
+            color: var(--dim);
+            line-height: 1.75;
+            text-align: center
+        }
+
+        #ov .keys kbd {
+            background: rgba(255, 255, 255, .09);
+            border: 1px solid var(--edge);
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 10.5px
+        }
+
+        #seedRow {
+            display: flex;
+            gap: 6px;
+            align-items: center
+        }
+
+        #seedIn {
+            flex: 1;
+            min-width: 0;
+            min-height: 42px;
+            border-radius: 10px;
+            border: 1px solid var(--edge);
+            background: rgba(18, 28, 46, .8);
+            color: var(--ink);
+            padding: 0 11px;
+            font-size: 13px;
+            font-family: ui-monospace, Menlo, Consolas, monospace
+        }
+
+        @media (max-width: 620px) {
+            .tname {
+                font-size: 9.5px
+            }
+
+            .thp {
+                font-size: 13px
+            }
+
+            .btn {
+                min-width: 48px;
+                min-height: 48px;
+                font-size: 17px
+            }
+
+            .btn.sm {
+                min-width: 42px;
+                min-height: 42px
+            }
+
+            #fire {
+                min-height: 52px
+            }
+
+            #clock {
+                font-size: 21px
+            }
+
+            #centre {
+                min-width: 94px;
+                padding: 3px 9px
+            }
+
+            #windBar {
+                width: 62px
+            }
+
+            .tset .lbl {
+                width: 58px;
+                font-size: 12px
+            }
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Worms","item":"https://suipce.com/games/Arcade/Worms/"}]}</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud"></div>
+
+<div id="centre" class="hidden">
+    <div id="clock">45</div>
+    <div id="windRow">
+        <span class="mini">WIND</span>
+        <div id="windBar"><b></b></div>
+    </div>
+</div>
+
+<div id="deck" class="hidden">
+    <div id="deckRow">
+        <div id="deckTop">
+            <div id="hint"></div>
+            <div id="modeBar" class="hidden"></div>
+        </div>
+    <div class="pad" id="movePad">
+        <div class="prow">
+            <button class="btn sm" id="bJump" aria-label="Jump"><i>⤴</i><u>jump</u></button>
+            <button class="btn sm" id="bFlip" aria-label="Backflip"><i>⤵</i><u>flip</u></button>
+        </div>
+        <div class="prow">
+            <button class="btn" id="bLeft" aria-label="Walk left">◀</button>
+            <button class="btn" id="bRight" aria-label="Walk right">▶</button>
+        </div>
+    </div>
+    <div class="pad" id="actPad">
+        <div class="prow">
+            <button class="btn sm" id="bFuse" aria-label="Fuse timer">3s</button>
+            <button class="btn sm" id="bSkip" aria-label="Skip turn">⏭</button>
+            <button class="btn" id="wpnBtn"><i>🚀</i><span id="wpnName">Bazooka</span></button>
+        </div>
+        <div class="prow">
+            <div class="aimcol">
+                <button class="btn sm" id="bUp" aria-label="Aim up">▲</button>
+                <button class="btn sm" id="bDown" aria-label="Aim down">▼</button>
+            </div>
+            <button class="btn" id="fire">FIRE</button>
+        </div>
+    </div>
+    </div>
+</div>
+
+<div id="powerWrap">
+    <div id="power"></div>
+</div>
+<div id="banner"></div>
+
+<div id="wpnGrid" class="hidden">
+    <div class="inner">
+        <h3>Select weapon</h3>
+        <div class="wgrid" id="wgrid"></div>
+    </div>
+</div>
+
+<div id="ov">
+    <div class="wrap">
+        <h1>WORMS</h1>
+        <div class="sub">Destructible terrain · wind-bent ballistics · a rope you can fly on</div>
+        <div class="sub" style="margin-top:-10px;font-size:11px;letter-spacing:1px">
+            <a href="https://www.gptgames.dev/" style="color:#7fb4e8;text-decoration:none">gptgames.dev</a>
+        </div>
+
+        <div class="sect">
+            <h4>Teams</h4>
+            <div id="teamSetup"></div>
+            <div class="row" style="margin-top:6px">
+                <button class="chip" id="addTeam">+ Add team</button>
+                <button class="chip" id="delTeam">− Remove team</button>
+            </div>
+        </div>
+
+        <div class="sect">
+            <h4>Worms per team</h4>
+            <div class="row" id="wormCount"></div>
+        </div>
+
+        <div class="sect">
+            <h4>Turn time</h4>
+            <div class="row" id="turnTime"></div>
+        </div>
+
+        <div class="sect">
+            <h4>Map seed</h4>
+            <div id="seedRow">
+                <input id="seedIn" inputmode="text" autocomplete="off" spellcheck="false" aria-label="Map seed">
+                <button class="chip" id="reseed" style="flex:none;min-width:auto">🎲</button>
+            </div>
+        </div>
+
+        <button id="startBtn">START MATCH</button>
+
+        <div class="keys">
+            <kbd>←</kbd> <kbd>→</kbd> walk · <kbd>↑</kbd> <kbd>↓</kbd> aim · <kbd>Enter</kbd> jump ·
+            <kbd>Backspace</kbd> backflip<br>
+            hold <kbd>Space</kbd> to charge, release to fire · <kbd>Tab</kbd> weapons ·
+            <kbd>1</kbd>–<kbd>5</kbd> fuse<br>
+            on a rope, jet pack or parachute: <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> fly,
+            <kbd>Enter</kbd> lets go<br>
+            drag the map to look around · pinch or <kbd>+</kbd>/<kbd>−</kbd> to zoom
+        </div>
+    </div>
+</div>
+
+<script>
+    "use strict";
+    /* =====================================================================
+     *  WORMS — a turn-based artillery game on pixel-destructible terrain.
+     *
+     *  Modelled on Worms Armageddon (Team17, 1999). The numbers that matter
+     *  come from that game and are marked [WA] where they do:
+     *    · a worm is a 9x16 "coffin" and steps up to 8px without jumping
+     *    · terrain is a pixel mask, not polygons, so craters are exact
+     *    · wind is a constant horizontal acceleration, and it only touches
+     *      the weapons it touches in WA (bazooka yes, grenade no)
+     *    · bazooka/grenade 50, cluster 20+5x20, banana 75, dynamite 75
+     *    · worms have 100 health and die at 0 or in the water
+     *  Everything is one file, canvas, no network, no storage.
+     * ===================================================================== */
+
+    const C = document.getElementById('c'), X = C.getContext('2d');
+    const $ = id => document.getElementById(id);
+    const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const TAU = Math.PI * 2;
+
+    /* ---------- world ---------- */
+    const WW = 2400, WH = 900;          // world pixels
+    const SEA = WH - 70;                // resting water line
+    const GRAV = 0.30;                  // px/frame^2 at 60fps, projectiles & worms
+    const WIND_K = 0.035;               // wind units -> px/frame^2  [WA: bazooka bends hard]
+    const W_HW = 4, W_H = 16;           // worm half-width, height   [WA: 9x16]
+    const STEP = 8;                     // climb height without jumping [WA]
+    const WALK = 0.85;                  // px/frame
+    const MAXHP = 100;
+    const FALL_SAFE = 6.2;              // impact speed below which a fall is free
+    const FALL_K = 7.5;                 // damage per px/frame above that
+    const RETREAT = 5;                  // seconds of movement after firing [WA: "retreat time"]
+    const SUDDEN_AFTER = 8;             // rounds before the water starts rising
+
+    /* ---------- deterministic RNG (so a seed is a shareable map) ---------- */
+    function hashStr(s) {
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < s.length; i++) {
+            h ^= s.charCodeAt(i);
+            h = Math.imul(h, 16777619) >>> 0;
+        }
+        return h >>> 0;
+    }
+
+    function mulberry(a) {
+        return function () {
+            a |= 0;
+            a = a + 0x6D2B79F5 | 0;
+            let t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+    }
+
+    let rnd = Math.random;                       // map generation (seeded)
+    const jitter = () => Math.random();          // cosmetic only, never seeded
+
+    /* =====================================================================
+     *  WEAPONS
+     *  kind:  launch | throw | place | gun | air | util
+     *  wind:  does the wind push it?  [WA: rockets yes, thrown things no]
+     * ===================================================================== */
+    const WEAPONS = [
+        {
+            id: 'bazooka', name: 'Bazooka', icon: '🚀', kind: 'launch', ammo: -1,
+            dmg: 50, rad: 44, wind: true, aim: true, power: true, grav: 1,
+            tip: 'Wind bends it. Check the bar.'
+        },
+        {
+            id: 'grenade', name: 'Grenade', icon: '💣', kind: 'throw', ammo: -1,
+            dmg: 50, rad: 42, wind: false, aim: true, power: true, fuse: true,
+            bounce: .52, grav: 1, tip: 'Bounces. Set the fuse with 1–5.'
+        },
+        {
+            id: 'cluster', name: 'Cluster Bomb', icon: '🧨', kind: 'throw', ammo: 5,
+            dmg: 20, rad: 30, wind: false, aim: true, power: true, fuse: true,
+            bounce: .45, grav: 1, cluster: 5, tip: 'Splits into five on the bang.'
+        },
+        {
+            id: 'banana', name: 'Banana Bomb', icon: '🍌', kind: 'throw', ammo: 2,
+            dmg: 75, rad: 62, wind: false, aim: true, power: true, fuse: true,
+            bounce: .62, grav: 1, cluster: 5, clusterDmg: 55, clusterRad: 46,
+            tip: 'Five more bananas, each a grenade.'
+        },
+        {
+            id: 'hhg', name: 'Holy Hand Grenade', icon: '✨', kind: 'throw', ammo: 1,
+            dmg: 100, rad: 86, wind: false, aim: true, power: true,
+            bounce: .38, grav: .85, fixedFuse: 4, tip: 'And the Lord did grin.'
+        },
+        {
+            id: 'mortar', name: 'Mortar', icon: '🎯', kind: 'launch', ammo: 4,
+            dmg: 30, rad: 32, wind: true, aim: true, power: true, grav: 1,
+            cluster: 4, clusterDmg: 22, clusterRad: 26, tip: 'Rocket that showers on impact.'
+        },
+        {
+            id: 'homing', name: 'Homing Missile', icon: '🛰️', kind: 'launch', ammo: 2,
+            dmg: 45, rad: 40, wind: false, aim: true, power: true, grav: .55,
+            homing: true, tip: 'Tap a target first, then fire.'
+        },
+        {
+            id: 'shotgun', name: 'Shotgun', icon: '🔫', kind: 'gun', ammo: -1,
+            dmg: 25, rad: 22, aim: true, shots: 2, tip: 'Two barrels, move between them.'
+        },
+        {
+            id: 'uzi', name: 'Uzi', icon: '🔩', kind: 'gun', ammo: 3,
+            dmg: 6, rad: 9, aim: true, shots: 1, burst: 12, spread: .05,
+            tip: 'Twelve rounds that push you both.'
+        },
+        {
+            id: 'fire_punch', name: 'Fire Punch', icon: '👊', kind: 'melee', ammo: 3,
+            dmg: 30, rad: 24, punchUp: -9.5, punchX: 4.5, tip: 'Straight up, over the edge.'
+        },
+        {
+            id: 'dynamite', name: 'Dynamite', icon: '🕯️', ki

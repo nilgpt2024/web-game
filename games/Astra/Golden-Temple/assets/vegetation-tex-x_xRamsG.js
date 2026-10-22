@@ -1,1 +1,0 @@
-export{t as MAPLE_LEAF,n as makeBlossomAtlas,r as makeFernTexture,i as makeMapleAtlas,a as makeMapleHeroAtlas,o as makePineAtlas,s as makeSamaraTexture,c as makeShrubAtlas}from"./vegetation-tex-DPszFVSO.js";

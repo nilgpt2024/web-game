@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Play Five Rungs Online - Free Puzzle Game | AIGameHub</title>
+<meta name="description" content="Play Five Rungs online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Five-Rungs/">
+<meta property="og:title" content="Play Five Rungs Online - Free Puzzle Game | AIGameHub">
+<meta property="og:description" content="Play Five Rungs online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_340.webp">
+<meta property="og:url" content="https://www.gptgames.dev/games/five_rungs.html">
+<meta property="og:type" content="website">
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Five-Rungs/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Five-Rungs/preview.png">
+<meta name="twitter:title" content="Play Five Rungs Online - Free Puzzle Game | AIGameHub">
+<meta name="twitter:description" content="Play Five Rungs online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_340.webp">
+<meta name="theme-color" content="#11161f">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2311161f'/><g fill='%2358c18e'><rect x='18' y='20' width='64' height='8' rx='4'/><rect x='18' y='38' width='64' height='8' rx='4'/><rect x='18' y='56' width='64' height='8' rx='4'/><rect x='18' y='74' width='64' height='8' rx='4'/></g></svg>">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+ --bg:#11161f;--bg2:#171e2a;--bg3:#1e2735;--line:#2b3647;--line2:#3c4a60;
+ --fg:#e7edf5;--dim:#93a1b5;--dim2:#6b7a90;
+ --k-logic:#58c18e;--k-arith:#e0a951;--k-space:#7aa2f7;--k-word:#c792ea;--k-world:#f07a8c;
+ --good:#58c18e;--bad:#e05d6f;--warn:#e0a951;
+ --r:12px;
+}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg)}
+body{font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+ -webkit-text-size-adjust:100%;overflow-x:hidden;
+ padding:0 0 env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px 90px}
+h1{font-size:23px;margin:18px 0 2px;letter-spacing:-.02em}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:var(--dim2);margin:26px 0 10px;font-weight:700}
+.sub{color:var(--dim);font-size:13.5px;margin:0 0 4px}
+.utc{color:var(--dim2);font-size:12px;margin:8px 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.utc b{color:var(--dim);font-weight:600}
+.dot{width:4px;height:4px;border-radius:50%;background:var(--line2);flex:none}
+
+/* ---- overview cards ---- */
+.card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+ background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:13px 14px;margin-bottom:9px;
+ transition:border-color .15s,transform .08s}
+.card:active{transform:scale(.99)}
+.card:hover{border-color:var(--line2)}
+.card .ic{width:40px;height:40px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--bg3)}
+.card .ic svg{width:24px;height:24px}
+.card .tx{flex:1;min-width:0}
+.card .nm{font-weight:650;font-size:16px;display:flex;align-items:center;gap:7px}
+.card .ds{color:var(--dim);font-size:12.5px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;flex:none}
+.pill.open{background:#2b3647;color:var(--dim)}
+.pill.solved{background:rgba(88,193,142,.16);color:var(--good)}
+.pill.miss{background:rgba(224,93,111,.14);color:var(--bad)}
+.streak{font-size:11.5px;color:var(--dim2);flex:none;text-align:right;line-height:1.3}
+.streak b{display:block;color:var(--fg);font-size:14px;font-weight:650}
+
+/* ---- puzzle view ---- */
+.top{display:flex;align-items:center;gap:10px;padding:14px 0 6px;position:sticky;top:0;background:var(--bg);z-index:5}
+.back{padding:8px 10px 8px 4px;color:var(--dim);font-size:14px;display:flex;align-items:center;gap:5px}
+.back:hover{color:var(--fg)}
+.top .ttl{font-weight:650;font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rules{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--dim);font-size:13px;margin-bottom:14px}
+.rules b{color:var(--fg);font-weight:600}
+.stage{display:flex;flex-direction:column;align-items:center;gap:14px}
+
+/* ---- generic grid ---- */
+.grid{display:grid;gap:0;background:var(--line2);border:2px solid var(--line2);border-radius:8px;overflow:hidden;touch-action:manipulation;user-select:none}
+.cell{background:var(--bg2);display:grid;place-items:center;font-weight:600;position:relative;
+ font-variant-numeric:tabular-nums;cursor:pointer;transition:background .1s}
+.cell:active{filter:brightness(1.25)}
+
+/* ---- bar / controls ---- */
+.bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;width:100%}
+.btn{background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:11px 16px;font-size:14px;font-weight:600;min-height:44px}
+.btn:hover{border-color:var(--line2)}
+.btn.pri{background:var(--pri,var(--k-logic));color:#08131b;border-color:transparent}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn[disabled]{opacity:.4;cursor:default}
+.msg{min-height:22px;font-size:13.5px;color:var(--dim);text-align:center}
+.msg.ok{color:var(--good)}.msg.no{color:var(--bad)}.msg.wa{color:var(--warn)}
+.stat{display:flex;gap:16px;justify-content:center;color:var(--dim2);font-size:12px;font-variant-numeric:tabular-nums}
+.stat b{color:var(--fg);font-weight:650}
+
+/* ---- keyboard ---- */
+.kb{display:flex;flex-direction:column;gap:6px;width:100%;max-width:440px}
+.kb .row{display:flex;gap:5px;justify-content:center}
+.key{flex:1;min-width:0;height:46px;background:var(--bg3);border:1px solid var(--line);border-radius:7px;
+ font-weight:650;font-size:15px;display:grid;place-items:center}
+.key.wide{flex:2;font-size:11px;letter-spacing:.02em;padding:0 2px}
+.key:active{background:var(--line2)}
+
+/* ---- results / share ---- */
+.done{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.done h3{margin:0 0 4px;font-size:17px}
+.done p{margin:0 0 12px;color:var(--dim);font-size:13.5px}
+.emo{font-size:19px;line-height:1.35;letter-spacing:2px;word-break:break-all;margin:0 0 12px}
+textarea.share{width:100%;height:120px;background:var(--bg);color:var(--fg);border:1px solid var(--line);
+ border-radius:8px;padding:10px;font:13px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical}
+.hist{display:flex;gap:3px;flex-wrap:wrap;font-size:17px;line-height:1;letter-spacing:1px;min-height:20px;justify-content:center}
+
+/* ---- archive ---- */
+.arch{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;margin:14px 0 0}
+.arch input{background:var(--bg2);border:1px solid var(--line);color:var(--fg);border-radius:8px;padding:9px 11px;font:inherit;font-size:14px;min-height:42px}
+.arch .btn{padding:9px 13px;min-height:42px}
+.note{color:var(--dim2);font-size:12px;text-align:center;margin:10px 0 0;line-height:1.5}
+.legend{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.legend div{display:flex;gap:9px;align-items:center;font-size:12.5px;color:var(--dim);padding:2px 0}
+.legend span:first-child{font-size:15px;width:20px;flex:none;text-align:center}
+.hidden{display:none!important}
+.warnbar{background:rgba(224,169,81,.13);border:1px solid rgba(224,169,81,.3);color:var(--warn);
+ border-radius:10px;padding:9px 12px;font-size:12.5px;margin:12px 0 0}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Five Rungs","item":"https://suipce.com/games/Puzzle/Five-Rungs/"}]}</script>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+'use strict';
+/* =========================================================================
+   Five Rungs — five daily puzzles generated from the UTC date.
+   Nothing is fetched and nothing is stored anywhere but this browser.
+   Every puzzle below is produced by a seeded generator and then handed to a
+   solver; a seed whose puzzle is unsolvable or has more than one answer is
+   thrown away and the counter moves on. What you see has been proved.
+   ========================================================================= */
+
+/* ---------- deterministic RNG (xmur3 seed -> sfc32 stream) ---------- */
+function xmur3(str){
+  let h=1779033703^str.length;
+  for(let i=0;i<str.length;i++){
+    h=Math.imul(h^str.charCodeAt(i),3432918353);
+    h=(h<<13)|(h>>>19);
+  }
+  return function(){
+    h=Math.imul(h^(h>>>16),2246822507);
+    h=Math.imul(h^(h>>>13),3266489909);
+    h^=h>>>16;return h>>>0;
+  };
+}
+function sfc32(a,b,c,d){
+  return function(){
+    a|=0;b|=0;c|=0;d|=0;
+    const t=(((a+b)|0)+d)|0;
+    d=(d+1)|0;a=b^(b>>>9);b=(c+(c<<3))|0;c=(c<<21)|(c>>>11);c=(c+t)|0;
+    return (t>>>0)/4294967296;
+  };
+}
+function rngFor(label){
+  const s=xmur3(label);
+  return sfc32(s(),s(),s(),s());
+}
+function ri(rnd,n){return Math.floor(rnd()*n);}
+function shuffle(rnd,a){for(let i=a.length-1;i>0;i--){const j=ri(rnd,i+1);const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+
+/* ---------- the day ---------- */
+const EPOCH=Date.UTC(2026,0,1);
+function todayUTC(){
+  const n=new Date();
+  return new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()));
+}
+function iso(d){return d.toISOString().slice(0,10);}
+function dayNumber(dateStr){
+  const[y,m,dd]=dateStr.split('-').map(Number);
+  return Math.round((Date.UTC(y,m-1,dd)-EPOCH)/86400000);
+}
+function dateFromNumber(n){return iso(new Date(EPOCH+n*86400000));}
+function msToUtcMidnight(){
+  const n=new Date();
+  return Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate()+1)-n.getTime();
+}
+function fmtCountdown(ms){
+  const s=Math.max(0,Math.floor(ms/1000));
+  return String(Math.floor(s/3600)).padStart(2,'0')+':'+
+         String(Math.floor(s/60)%60).padStart(2,'0')+':'+
+         String(s%60).padStart(2,'0');
+}
+
+/* ---------- storage that survives being switched off ---------- */
+const Store=(function(){
+  let live=true,mem={};
+  try{
+    const k='__fr_probe';
+    window.localStorage.setItem(k,'1');
+    window.localStorage.removeItem(k);
+  }catch(e){live=false;}
+  function get(k){
+    if(live){try{return window.localStorage.getItem(k);}catch(e){live=false;}}
+    return k in mem?mem[k]:null;
+  }
+  function set(k,v){
+    if(live){try{window.localStorage.setItem(k,v);return;}catch(e){live=false;}}
+    mem[k]=v;
+  }
+  return{
+    get available(){return live;},
+    readJSON(k,dflt){
+      const raw=get(k);
+      if(raw===null)return dflt;
+      try{const v=JSON.parse(raw);return v===null||v===undefined?dflt:v;}catch(e){return dflt;}
+    },
+    writeJSON(k,v){try{set(k,JSON.stringify(v));}catch(e){}}
+  };
+})();
+
+const SKEY='fiveRungs.v1';
+function loadState(){
+  const s=Store.readJSON(SKEY,{});
+  if(typeof s!=='object'||!s)return{};
+  return s;
+}
+function saveState(s){Store.writeJSON(SKEY,s);}
+let STATE=loadState();
+
+/* per-puzzle record for one day: {st:'open'|'won'|'lost', marks:[...], t:seconds, extra} */
+function recFor(pid,date){
+  const d=STATE[date];
+  if(d&&d[pid])return d[pid];
+  return null;
+}
+function putRec(pid,date,rec){
+  if(!STATE[date])STATE[date]={};
+  STATE[date][pid]=rec;
+  /* keep the file small: 400 days is plenty of history */
+  const keys=Object.keys(STATE).sort();
+  while(keys.length>400)delete STATE[keys.shift()];
+  saveState(STATE);
+}
+
+/* streaks and stats are derived, never stored separately, so they cannot drift */
+function statsFor(pid,uptoDate){
+  const upto=dayNumber(uptoDate);
+  let played=0,won=0,streak=0,best=0,run=0;
+  const days=Object.keys(STATE).sort();
+  let prev=null;
+  for(const d of days){
+    const n=dayNumber(d);
+    if(n>upto)continue;
+    const r=STATE[d][pid];
+    if(!r||r.st==='open')continue;
+    played++;
+    if(r.st==='won'){
+      won++;
+      run=(prev!==null&&n===prev+1)?run+1:1;
+      if(run>best)best=run;
+      prev=n;
+    }else{run=0;prev=null;}
+  }
+  /* the current streak only counts if it reaches the day being looked at,
+     or the day before it (today may still be unfinished) */
+  streak=0;
+  for(let n=upto;n>=upto-400;n--){
+    const r=STATE[dateFromNumber(n)];
+    const rec=r&&r[pid];
+    if(rec&&rec.st==='won')streak++;
+    else if(n===upto&&(!rec||rec.st==='open'))continue;
+    else break;
+  }
+  return{played:played,won:won,streak:streak,best:best};
+}
+
+/* ---------- sharing ---------- */
+function copyText(text,btn){
+  const done=function(ok){
+    if(!btn)return;
+    const old=btn.textContent;
+    btn.textContent=ok?'Copied':'Select the box below';
+    setTimeout(function(){btn.textContent=old;},1600);
+  };
+  let p=null;
+  try{
+    if(navigator.clipboard&&window.isSecureContext)p=navigator.clipboard.writeText(text);
+  }catch(e){p=null;}
+  if(p&&p.then){p.then(function(){done(true);},function(){fallback(text);done(false);});}
+  else{fallback(text);done(false);}
+}
+function fallback(text){
+  /* the textarea is always on the page next to the button, so a refused
+     clipboard leaves a selected box the player can copy by hand */
+  const ta=document.getElementById('shareBox');
+  if(!ta)return;
+  ta.value=text;ta.classList.remove('hidden');
+  try{ta.focus();ta.setSelectionRange(0,text.length);}catch(e){}
+}
+/* ---------- data ---------- */
+
+/* 809 common four-letter words: a frequency-ranked list intersected with a dictionary
+   and hand-stripped of names, abbreviations and vulgarities. About 4 KB. */
+const WORDS4=(
+'that this with from your have more will home page free time they site what news only when '+
+'here also help view been were some like than find date back list name just over year into '+
+'next used work last most data make them post city such best then good well high each very '+
+'book read need many user said does mail full life know days part real item must made line '+
+'send type take area want long code show even much sign file link open case same both game '+
+'care down size shop text rate form love main call save card food sale teen room join west '+
+'look left team week note live plan cost test come cart play less park side give sell body '+
+'east club road gift hard four blue easy star hand keep baby term film head cell self away '+
+'once sure tell able gold past five upon says land done ever word bill talk true else mark '+
+'rock tips plus auto edit fast fact unit tech meet feel bank risk town girl golf loan wide '+
+'sort half step none lake fire chat loss face base near stay turn mean king copy drug cash '+
+'seen port stop soon held mind lost tour menu hope wish role came fine hour huge kind move '+
+'nice sent band lead went mode fund male took song late fall idea tool hill deal hold safe '+
+'feed hall anti ship paid hair tree thus wall wine vote ways rule told feet door cool uses '+
+'pass fees skin ring boys deep rest pool mini fish pack born race debt core sets wood rent '+
+'dark host fair gets dead trip poor eyes farm lord hear goes wife hits zone flat flow path '+
+'laws skip diet army gear lots firm jump ball goal sold wind palm pain oral ford edge root '+
+'pink shot cold foot mass heat wild miss task soft fuel walk wait rose pick load drop rich '+
+'seem hire gave ones rank died inch snow camp fill gone fort gene disc boat icon ends cast '+
+'felt soul aids flag atom void disk desk vice duty bear gain lack knew zoom blow clip wire '+
+'tape spam acid cent roll bath font fail jazz bags wear rare bars dual rise bird lady fans '+
+'seat toll mine whom math dogs moon fear wars kept beat arms hide slow nine spot grow rain '+
+'onto bass hole pets ride pair runs yeah evil euro peak salt bell lane kill ages plug cook '+
+'bike lose seek kits soil exit keys wave holy acts poll bond pure hell lens draw warm crew '+
+'rear lock mile bowl tank navy dish slot gray hate rice loop vary boot push dear beer earn '+
+'twin bits suit chip pull plot pump exam beds grey bold scan aged bulk cute para seed peer '+
+'meat bang bone bugs gate tone busy neck wing tiny rail tube belt luck dial gang cake semi '+
+'cafe till shoe sand seal lies pipe deck thin sick dose lets cats folk okay lift mall fell '+
+'yard pour dust adds ward roof kiss rush yoga lamp glad wins rack boss solo tall wake drum '+
+'ease pine tend gulf hunt mill burn sole laid clay weak wise odds sons leaf silk wolf fits '+
+'kick meal hurt slip cuts mars pill mint spin wash aims soap axis guns hero punk duke pace '+
+'wage dawn carl coat doll reed mice vast wrap mood quiz beam tops shut thou mask coal lion '+
+'beef hats surf hook cord crop sing tons hang hood fame eggs ruby stem drew tune corn puts '+
+'grew trek ties jury tail lawn soup byte nose thru trim quit lung sees bull tale coin fake '+
+'cure arch bomb harm deer oven noon mate chef isle slim tied unto pays stud fold pole bend '+
+'moms lips pond tire drag ripe rely nuts nail span joke inns cups foam poem asks bean bias '+
+'swim loud rats pray bare hung mono tile ciao knee prep duck dive raid volt dirt sink grip '+
+'watt pins polo horn frog logs snap swap flip buzz nuke boom calm fork tray sage cave wool '+
+'eyed grab oops trap fool dies jail lace ugly rows gods poly ears fist mere cons taxi worn '+
+'expo deny trio cube fate gras oval tier earl cite mess rope dump hose mild clan hull shed '+
+'tide funk reel bind acre lows aqua pest reef tent hack dare junk poet epic lean dash cage '+
+'rage rays acne gays doom bite myth weed dice quad dock hint buys pork barn fare bald mold '+
+'herb idle cove casa flex hash lazy pens worm deaf mats keen peas owns zinc levy grad pale '+
+'gaps tear nest gale idol moss cork dome heel dumb feat glow oaks norm ware jade foul keno '+
+'seas pose goat sail bolt urge neon ours lone cope lime spas jets yarn knit pike bent').split(' ');
+
+/* 194 UN member states, centroid rounded to 0.1 degrees. The trailing flag marks the
+   161 with an area of at least 10,000 km2 — only those are ever the answer, but all 194
+   can be guessed. About 3.7 KB. */
+const COUNTRY_SRC=(
+'Afghanistan|33|65|1;Albania|41|20|1;Algeria|28|3|1;Andorra|42.5|1.5|0;Angola|-12.5|18.5|1;'+
+'Antigua and Barbuda|17.1|-61.8|0;Argentina|-34|-64|1;Armenia|40|45|1;Australia|-27|133|1;'+
+'Austria|47.3|13.3|1;Azerbaijan|40.5|47.5|1;Bahamas|24.2|-76|1;Bahrain|26|50.5|0;'+
+'Bangladesh|24|90|1;Barbados|13.2|-59.5|0;Belarus|53|28|1;Belgium|50.8|4|1;'+
+'Belize|17.2|-88.8|1;Benin|9.5|2.2|1;Bhutan|27.5|90.5|1;Bolivia|-17|-65|1;'+
+'Bosnia and Herzegovina|44|18|1;Botswana|-22|24|1;Brazil|-10|-55|1;Brunei|4.5|114.7|0;'+
+'Bulgaria|43|25|1;Burkina Faso|13|-2|1;Burundi|-3.5|30|1;Cambodia|13|105|1;Cameroon|6|12|1;'+
+'Canada|60|-95|1;Cape Verde|16|-24|0;Central African Republic|7|21|1;Chad|15|19|1;'+
+'Chile|-30|-71|1;China|35|105|1;Colombia|4|-72|1;Comoros|-12.2|44.2|0;Congo|-1|15|1;'+
+'Costa Rica|10|-84|1;Croatia|45.2|15.5|1;Cuba|21.5|-80|1;Cyprus|35|33|0;Czechia|49.8|15.5|1;'+
+'DR Congo|0|25|1;Denmark|56|10|1;Djibouti|11.5|43|1;Dominica|15.4|-61.3|0;'+
+'Dominican Republic|19|-70.7|1;Ecuador|-2|-77.5|1;Egypt|27|30|1;El Salvador|13.8|-88.9|1;'+
+'Equatorial Guinea|2|10|1;Eritrea|15|39|1;Estonia|59|26|1;Eswatini|-26.5|31.5|1;'+
+'Ethiopia|8|38|1;Fiji|-18|175|1;Finland|64|26|1;France|46|2|1;Gabon|-1|11.8|1;'+
+'Gambia|13.5|-16.6|1;Georgia|42|43.5|1;Germany|51|9|1;Ghana|8|-2|1;Greece|39|22|1;'+
+'Grenada|12.1|-61.7|0;Guatemala|15.5|-90.2|1;Guinea|11|-10|1;Guinea-Bissau|12|-15|1;'+
+'Guyana|5|-59|1;Haiti|19|-72.4|1;Honduras|15|-86.5|1;Hungary|47|20|1;Iceland|65|-18|1;'+
+'India|20|77|1;Indonesia|-5|120|1;Iran|32|53|1;Iraq|33|44|1;Ireland|53|-8|1;'+
+'Israel|31.5|35.1|1;Italy|42.8|12.8|1;Ivory Coast|8|-5|1;Jamaica|18.2|-77.5|1;'+
+'Japan|36|138|1;Jordan|31|36|1;Kazakhstan|48|68|1;Kenya|1|38|1;Kiribati|1.4|173|0;'+
+'Kuwait|29.5|45.8|1;Kyrgyzstan|41|75|1;Laos|18|105|1;Latvia|57|25|1;Lebanon|33.8|35.8|1;'+
+'Lesotho|-29.5|28.5|1;Liberia|6.5|-9.5|1;Libya|25|17|1;Liechtenstein|47.3|9.5|0;'+
+'Lithuania|56|24|1;Luxembourg|49.8|6.2|0;Madagascar|-20|47|1;Malawi|-13.5|34|1;'+
+'Malaysia|2.5|112.5|1;Maldives|3.2|73|0;Mali|17|-4|1;Malta|35.8|14.6|0;'+
+'Marshall Islands|9|168|0;Mauritania|20|-12|1;Mauritius|-20.3|57.5|0;Mexico|23|-102|1;'+
+'Micronesia|6.9|158.2|0;Moldova|47|29|1;Monaco|43.7|7.4|0;Mongolia|46|105|1;'+
+'Montenegro|42.5|19.3|1;Morocco|32|-5|1;Mozambique|-18.2|35|1;Myanmar|22|98|1;'+
+'Namibia|-22|17|1;Nauru|-0.5|166.9|0;Nepal|28|84|1;Netherlands|52.5|5.8|1;'+
+'New Zealand|-41|174|1;Nicaragua|13|-85|1;Niger|16|8|1;Nigeria|10|8|1;North Korea|40|127|1;'+
+'North Macedonia|41.8|22|1;Norway|62|10|1;Oman|21|57|1;Pakistan|30|70|1;Palau|7.5|134.5|0;'+
+'Panama|9|-80|1;Papua New Guinea|-6|147|1;Paraguay|-23|-58|1;Peru|-10|-76|1;'+
+'Philippines|13|122|1;Poland|52|20|1;Portugal|39.5|-8|1;Qatar|25.5|51.2|1;Romania|46|25|1;'+
+'Russia|60|100|1;Rwanda|-2|30|1;Saint Kitts and Nevis|17.3|-62.8|0;Saint Lucia|13.9|-61.0|0;'+
+'Saint Vincent and the Grenadines|13.2|-61.2|0;Samoa|-13.6|-172.3|0;San Marino|43.8|12.4|0;'+
+'Saudi Arabia|25|45|1;Senegal|14|-14|1;Serbia|44|21|1;Seychelles|-4.6|55.7|0;'+
+'Sierra Leone|8.5|-11.5|1;Singapore|1.4|103.8|0;Slovakia|48.7|19.5|1;Slovenia|46.1|14.8|1;'+
+'Solomon Islands|-8|159|1;Somalia|10|49|1;South Africa|-29|24|1;South Korea|37|127.5|1;'+
+'South Sudan|7|30|1;Spain|40|-4|1;Sri Lanka|7|81|1;Sudan|15|30|1;Suriname|4|-56|1;'+
+'Sweden|62|15|1;Switzerland|47|8|1;Syria|35|38|1;São Tomé and Príncipe|1|7|0;'+
+'Tajikistan|39|71|1;Tanzania|-6|35|1;Thailand|15|100|1;Timor-Leste|-8.8|125.9|1;'+
+'Togo|8|1.2|1;Tonga|-20|-175|0;Trinidad and Tobago|11|-61|0;Tunisia|34|9|1;'+
+'Turkmenistan|40|60|1;Tuvalu|-8|178|0;Türkiye|39|35|1;Uganda|1|32|1;Ukraine|49|32|1;'+
+'United Arab Emirates|24|54|1;United Kingdom|54|-2|1;United States|38|-97|1;'+
+'Uruguay|-33|-56|1;Uzbekistan|41|64|1;Vanuatu|-16|167|1;Vatican City|41.9|12.4|0;'+
+'Venezuela|8|-66|1;Vietnam|16.2|107.8|1;Yemen|15|48|1;Zambia|-15|30|1;Zimbabwe|-20|30|1');
+/* =========================================================================
+   LANTERNS — region logic
+   An 8x8 board cut into 8 irregular regions. Light exactly one lantern in
+   every row, every column and every region; no two lanterns may touch, not
+   even at a corner.
+
+   A random cut almost never yields a unique puzzle, so the generator carves
+   towards one: it grows regions, asks the solver for a second answer, and
+   moves one cell of the board across a region border to destroy it. It
+   repeats until the solver can only find the intended answer.
+   ========================================================================= */
+const LN_N=8;
+
+/* returns up to `limit` solutions plus the nodes the search visited */
+function lanternSolve(region,N,limit){
+  const colUsed=new Array(N).fill(false),regUsed=new Array(N).fill(false);
+  const sols=[];let nodes=0;
+  const pick=new Array(N).fill(-1);
+  (function rec(r){
+    if(sols.length>=limit)return;
+    if(r===N){sols.push(pick.slice());return;}
+    for(let c=0;c<N;c++){
+      nodes++;
+      if(colUsed[c])continue;
+      if(r>0&&Math.abs(pick[r-1]-c)<=1)continue;
+      const g=region[r*N+c];
+      if(regUsed[g])continue;
+      colUsed[c]=true;regUsed[g]=true;pick[r]=c;
+      rec(r+1);
+      colUsed[c]=false;regUsed[g]=false;pick[r]=-1;
+      if(sols.length>=limit)return;
+    }
+  })(0);
+  return{sols:sols,nodes:nodes};
+}
+
+function lnConnected(region,N,g,skip){
+  let start=-1,total=0;
+  for(let i=0;i<N*N;i++)if(region[i]===g&&i!==skip){if(start<0)start=i;total++;}
+  if(start<0)return false;
+  const seen=new Set([start]),st=[start];
+  while(st.length){
+    const i=st.pop(),r=(i/N)|0,c=i%N;
+    const nb=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]];
+    for(const[nr,nc]of nb){
+      if(nr<0||nc<0||nr>=N||nc>=N)continue;
+      const j=nr*N+nc;
+      if(j===skip||region[j]!==g||seen.has(j))continue;
+      seen.add(j);st.push(j);
+    }
+  }
+  return seen.size===total;
+}
+
+
+/* A solver that only makes deductions a person can make, and reports how many
+   rounds of them the puzzle needs. If this cannot finish the board, the board
+   needs guessing and is thrown away. */
+function lanternDeduce(region,N){
+  const UNK=0,LIT=1,OUT=2;
+  const st=new Uint8Array(N*N);
+  const units=[];
+  for(let r=0;r<N;r++){const u=[];for(let c=0;c<N;c++)u.push(r*N+c);units.push(u);}
+  for(let c=0;c<N;c++){const u=[];for(let r=0;r<N;r++)u.push(r*N+c);units.push(u);}
+  for(let g=0;g<N;g++){const u=[];for(let i=0;i<N*N;i++)if(region[i]===g)u.push(i);units.push(u);}
+  let lit=0,bad=false;
+  function light(i){
+    if(st[i]===LIT)return;
+    if(st[i]===OUT){bad=true;return;}
+    st[i]=LIT;lit++;
+    const r=(i/N)|0,c=i%N;
+    for(let k=0;k<N;k++){
+      if(k!==c&&st[r*N+k]===UNK)st[r*N+k]=OUT;
+      if(k!==r&&st[k*N+c]===UNK)st[k*N+c]=OUT;
+    }
+    for(let j=0;j<N*N;j++)if(j!==i&&region[j]===region[i]&&st[j]===UNK)st[j]=OUT;
+    for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+      const nr=r+dr,nc=c+dc;
+      if(nr<0||nc<0||nr>=N||nc>=N||(dr===0&&dc===0))continue;
+      const j=nr*N+nc;
+      if(st[j]===LIT)bad=true;
+      else if(st[j]===UNK)st[j]=OUT;
+    }
+  }
+  let rounds=0,confines=0;
+  while(!bad&&lit<N&&rounds<80){
+    rounds++;
+    let changed=false;
+    /* a unit with one square left must use it */
+    for(const u of units){
+      if(u.some(function(i){return st[i]===LIT;}))continue;
+      const cand=u.filter(function(i){return st[i]===UNK;});
+      if(cand.length===0){bad=true;break;}
+      if(cand.length===1){light(cand[0]);changed=true;}
+    }
+    if(bad||lit>=N)break;
+    if(changed)continue;
+    /* every square a unit has left sits inside one row, column or region, so
+       that other unit's lantern is this one's and the rest of it goes dark */
+    for(const u of units){
+      if(u.some(function(i){return st[i]===LIT;}))continue;
+      const cand=u.filter(function(i){return st[i]===UNK;});
+      if(cand.length<2)continue;
+      const sameRow=cand.every(function(i){return ((i/N)|0)===((cand[0]/N)|0);});
+      const sameCol=cand.every(function(i){return (i%N)===(cand[0]%N);});
+      const sameReg=cand.every(function(i){return region[i]===region[cand[0]];});
+      const kill=[];
+      if(sameRow){const r=(cand[0]/N)|0;for(let c=0;c<N;c++){const j=r*N+c;if(st[j]===UNK&&cand.indexOf(j)<0)kill.push(j);}}
+      if(sameCol){const c=cand[0]%N;for(let r=0;r<N;r++){const j=r*N+c;if(st[j]===UNK&&cand.indexOf(j)<0)kill.push(j);}}
+      if(sameReg){const g=region[cand[0]];for(let j=0;j<N*N;j++)if(region[j]===g&&st[j]===UNK&&cand.indexOf(j)<0)kill.push(j);}
+      if(kill.length){for(const j of kill)st[j]=OUT;changed=true;confines++;break;}
+    }
+    if(!changed)break;
+  }
+  const sol=[];
+  if(!bad&&lit===N){for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(st[r*N+c]===LIT)sol[r]=c;}
+  return{solved:!bad&&lit===N,rounds:rounds,confines:confines,sol:sol,st:st};
+}
+
+function lanternGen(seed){
+  const N=LN_N;
+  for(let attempt=0;attempt<6000;attempt++){
+    const rnd=rngFor(seed+'#lanterns#'+attempt);
+    /* the intended answer: one lantern per row and column, never touching */
+    const perm=[];let ok=true;
+    for(let r=0;r<N;r++){
+      const cand=[];
+      for(let c=0;c<N;c++){
+        if(perm.indexOf(c)>=0)continue;
+        if(r>0&&Math.abs(perm[r-1]-c)<=1)continue;
+        cand.push(c);
+      }
+      if(!cand.length){ok=false;break;}
+      perm.push(cand[ri(rnd,cand.length)]);
+    }
+    if(!ok)continue;
+
+    /* grow 8 connected regions, one seeded on each lantern. Growth walks from
+       the region's newest cell most of the time, which makes long crooked
+       regions rather than blobs — blobs barely constrain anything. */
+    const region=new Array(N*N).fill(-1),size=new Array(N).fill(1),tip=new Array(N);
+    const cells=[],isSeed=new Array(N*N).fill(false);
+    for(let r=0;r<N;r++){const i=r*N+perm[r];region[i]=r;tip[r]=i;isSeed[i]=true;cells.push([i]);}
+    let placed=N,stuck=false;
+    const order=[];for(let g=0;g<N;g++)order.push(g);
+    while(placed<N*N&&!stuck){
+      shuffle(rnd,order);
+      order.sort(function(a,b){return size[a]-size[b];});
+      let grew=false;
+      for(const g of order){
+        const near=[],far=[];
+        for(const i of cells[g]){
+          const r=(i/N)|0,c=i%N;
+          if(r>0&&region[i-N]===-1)(i===tip[g]?near:far).push(i-N);
+          if(r<N-1&&region[i+N]===-1)(i===tip[g]?near:far).push(i+N);
+          if(c>0&&region[i-1]===-1)(i===tip[g]?near:far).push(i-1);
+          if(c<N-1&&region[i+1]===-1)(i===tip[g]?near:far).push(i+1);
+        }
+        const pool=(near.length&&rnd()<0.75)?near:(far.length?far:near);
+        if(!pool.length)continue;
+        const cell=pool[ri(rnd,pool.length)];
+        region[cell]=g;cells[g].push(cell);tip[g]=cell;size[g]++;placed++;grew=true;break;
+      }
+      if(!grew)stuck=true;
+    }
+    if(stuck||placed<N*N)continue;
+
+    /* Carve towards a board that comes out by deduction alone. Deduction with
+       sound rules cannot reach two different answers, so a board the deducer
+       finishes is a board with exactly one answer — the exhaustive solver is
+       kept for the audit rather than for the player's benefit. */
+    let ded=lanternDeduce(region,N),carves=0;
+    while(!ded.solved&&carves<160){
+      /* squares deduction could not settle, that the answer does not use:
+         pushing one across a region border removes a place to hesitate */
+      const stuckCells=[];
+      for(let i=0;i<N*N;i++){
+        if(ded.st[i]!==

@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Casual/Whac-A-Mole-HTML/">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Whac A Mole HTML Online - Free Casual Game | AIGameHub</title>
+<meta name="description" content="Play Whac A Mole HTML online for free — a casual game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now">
+<meta name="theme-color" content="#b9493a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,500..900,0..100,0..1;1,9..144,700..900,0..100,0..1&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f3e9d3;--ink:#1d1813;--rust:#c9412d;--mari:#e07a3a;--sky:150px;--sab:env(safe-area-inset-bottom,0px);--sat:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#24402a;overflow:hidden;overscroll-behavior:none}
+body{font-family:Fraunces,Georgia,serif;color:var(--ink);-webkit-user-select:none;user-select:none;touch-action:none;-webkit-tap-highlight-color:transparent;
+  font-variation-settings:'SOFT' 50,'opsz' 72;font-variant-numeric:lining-nums tabular-nums}
+#cv{position:fixed;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .5s ease-out}
+body.ready #cv{opacity:1}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+/* a garden tag: cut card with a notched end, printed in ink */
+.tag{position:relative;background:var(--paper);border:3px solid var(--ink);border-radius:4px 9px 9px 4px;
+  clip-path:polygon(0 50%,14px 0,100% 0,100% 100%,14px 100%);padding:4px 14px 4px 22px;box-shadow:3px 3px 0 rgba(29,24,19,.35)}
+#hud{position:fixed;inset:0;pointer-events:none;transition:opacity .4s ease-out}
+.tags{position:absolute;left:max(calc(10px + env(safe-area-inset-left,0px)),var(--side,0px));right:max(calc(10px + env(safe-area-inset-right,0px)),var(--side,0px));bottom:calc(14px + var(--sab));display:flex;gap:8px;align-items:center;justify-content:space-between}
+#scoreTag{transform:rotate(-1.5deg);min-width:96px}
+#score{display:block;font-size:clamp(26px,3.6vw,40px);font-weight:900;line-height:1.05;font-variation-settings:'SOFT' 50,'WONK' 1,'opsz' 72}
+#streakTag{display:flex;align-items:center;gap:8px;transform:rotate(1.5deg);transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+#mult{font-size:clamp(22px,3vw,32px);font-weight:900;line-height:1.05;min-width:1.6em;font-variation-settings:'SOFT' 50,'WONK' 1,'opsz' 72}
+#pips{display:flex;gap:3px}
+#pips i{display:block;width:clamp(28px,2.6vw,32px);height:clamp(28px,2.6vw,32px);transition:transform .18s cubic-bezier(.3,1.8,.5,1)}
+#pips svg{display:block;width:100%;height:100%}
+#pips .petals{fill:var(--paper);transition:fill .12s}#pips .heart{fill:var(--paper);transition:fill .12s}
+#pips i.on{transform:scale(1.12) rotate(18deg)}#pips i.hop{animation:hop .32s cubic-bezier(.3,1.8,.5,1)}
+@keyframes hop{0%{transform:scale(.6) rotate(-40deg)}60%{transform:scale(1.45) rotate(30deg)}100%{transform:scale(1.12) rotate(18deg)}}#pips i.on .petals{fill:var(--mari)}#pips i.on .heart{fill:#8a3a22}
+#streakTag.bump{animation:bump .45s cubic-bezier(.3,1.6,.5,1)}
+#streakTag.lose #pips{animation:lose .4s ease-out}#streakTag.lose #pips i{animation:wilt .4s ease-out}
+@keyframes wilt{0%{transform:scale(1.12) rotate(18deg)}40%{transform:scale(.7) rotate(-30deg)}100%{transform:none}}
+#streakTag.max{background:#f6cf6a}
+@keyframes bump{0%{transform:rotate(1.5deg) scale(1)}30%{transform:rotate(-3deg) scale(1.18)}100%{transform:rotate(1.5deg) scale(1)}}
+@keyframes lose{0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}100%{transform:none}}
+#mute{position:absolute;right:calc(10px + env(safe-area-inset-right,0px));top:calc(10px + var(--sat));pointer-events:auto;width:46px;height:46px;border-radius:6px 6px 23px 23px;
+  border:3px solid var(--ink);background:var(--paper);display:grid;place-items:center;transform:rotate(3deg);box-shadow:3px 3px 0 rgba(29,24,19,.35)}
+#mute svg{width:22px;height:22px;margin-top:4px}#mute .x{display:none}#mute.off .w{display:none}#mute.off .x{display:block}
+#mute:before{content:'';position:absolute;top:4px;left:50%;margin-left:-3px;width:4px;height:4px;border-radius:50%;border:2px solid var(--ink)}
+body[data-mode=title] .tags,body[data-mode=results] .tags{opacity:0}
+.tags{transition:opacity .3s}
+/* the tags sit at our feet, under the burrows, so the sky stays clear for the sun */
+/* title */
+#title{position:fixed;left:0;right:0;top:calc(var(--sky) + 6px);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none;
+  animation:in .6s cubic-bezier(.2,1.4,.4,1) both}
+#title .big{transform:rotate(-2deg);padding:8px 30px 10px 40px;clip-path:polygon(0 50%,22px 0,100% 0,100% 100%,22px 100%);border-width:4px;box-shadow:5px 5px 0 rgba(29,24,19,.35)}
+#title h1{font-size:clamp(38px,8vw,72px);font-weight:900;line-height:.95;letter-spacing:-.01em;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 144}
+#title h1 em{font-style:italic;color:var(--rust)}
+#title .sub{font-size:clamp(14px,2.2vw,18px);font-weight:600;font-style:italic;margin-top:2px;text-align:center}
+#titleBest{transform:rotate(1.5deg);font-size:16px;font-weight:700}
+#titleBest b{font-weight:900}
+@keyframes in{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+/* results: a seed-packet card that slides up out of the night */
+#results{position:fixed;left:50%;top:50%;width:min(380px,calc(100vw - 32px));transform:translate(-50%,-50%) rotate(-6deg) scale(1.25);opacity:0;pointer-events:none;
+  transition:transform .42s cubic-bezier(.2,1.5,.4,1),opacity .08s linear;background:var(--paper);border:4px solid var(--ink);border-radius:10px;
+  box-shadow:6px 6px 0 rgba(0,0,0,.45);padding:18px 22px 16px;text-align:center}
+#results.show{opacity:1;transform:translate(-50%,-50%) rotate(-1deg) scale(1);pointer-events:auto}
+#results .hd{font-size:15px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;font-variant-caps:all-small-caps;font-size:19px}
+#resScore{display:block;font-size:clamp(52px,14vw,72px);font-weight:900;line-height:1;margin:2px 0 4px;font-variation-settings:'SOFT' 100,'WONK' 1,'opsz' 144}
+#resStamp{position:absolute;right:14px;top:16px;transform:rotate(12deg);border:3px solid var(--rust);color:var(--rust);border-radius:6px;padding:2px 8px;font-weight:900;font-size:15px;
+  letter-spacing:.06em;text-transform:uppercase;animation:stamp .4s .5s cubic-bezier(.3,1.8,.5,1) both}
+@keyframes stamp{from{opacity:0;transform:rotate(12deg) scale(2)}to{opacity:1;transform:rotate(12deg) scale(1)}}
+#resRank{font-size:22px;font-weight:900;font-style:italic;color:var(--rust)}
+#resNext,#resBest{font-size:14px;font-weight:600;min-height:1.2em}
+.stats{display:flex;justify-content:center;gap:18px;margin:12px 0 14px;padding:10px 0;border-top:2px dashed rgba(29,24,19,.5);border-bottom:2px dashed rgba(29,24,19,.5)}
+.stats div{display:flex;flex-direction:column;align-items:center;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.stats b{font-size:24px;font-weight:900;letter-spacing:0}
+#again{border:3px solid var(--ink);background:var(--mari);border-radius:6px 12px 12px 6px;padding:10px 34px 12px 40px;font-size:24px;font-weight:900;
+  clip-path:polygon(0 50%,18px 0,100% 0,100% 100%,18px 100%);box-shadow:3px 3px 0 rgba(29,24,19,.4);transition:transform .12s}
+#again:active{transform:scale(.96)}
+.foot{margin-top:10px;font-size:12px;font-weight:600;opacity:.75}.foot a{color:inherit}
+#pause{position:fixed;inset:0;display:grid;place-items:center;background:rgba(13,15,25,.45)}
+#pause .tag{font-size:24px;font-weight:900;padding:10px 26px 12px 34px;transform:rotate(-2deg)}
+#pause .tag small{display:block;font-size:14px;font-weight:600;font-style:italic}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"打地鼠HTML","item":"https://suipce.com/games/Casual/Whac-A-Mole-HTML/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/Whac-A-Mole-HTML/preview.webp"><meta name="twitter:image"content="https://suipce.com/games/Casual/Whac-A-Mole-HTML/preview.webp"></head>
+<body data-mode="title">
+<canvas id="cv" aria-label="A garden with nine burrows. Hedgehogs come up out of them; boop each one on the nose. Leave the wasps alone."></canvas>
+<div id="hud">
+  <div class="tags">
+    <div class="tag" id="scoreTag"><span id="score">0</span></div>
+    <div class="tag" id="streakTag"><span id="mult">×1</span><span id="pips"></span></div>
+  </div>
+  <button id="mute" aria-label="Sound off"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7.5h3l4-3.5v12l-4-3.5H3z" fill="#1d1813"/><path class="w" d="M13 7a4 4 0 0 1 0 6M15 5a7 7 0 0 1 0 10" stroke="#1d1813" stroke-width="2.2" fill="none" stroke-linecap="round"/><path class="x" d="M13 7.5l5 5M18 7.5l-5 5" stroke="#1d1813" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+</div>
+<div id="title">
+  <div class="tag big"><h1>Prickle <em>Patch</em></h1><div class="sub">a sunset of hedgehogs</div></div>
+  <div class="tag" id="titleBest" hidden>Best <b id="titleBestN">0</b> · <span id="titleRank"></span></div>
+</div>
+<div id="results" role="dialog" aria-labelledby="resHd">
+  <div class="hd" id="resHd">Nightfall</div>
+  <span id="resScore">0</span>
+  <span id="resStamp" hidden>New best</span>
+  <div id="resRank"></div>
+  <div id="resNext"></div>
+  <div class="stats"><div><b id="resBoops">0</b>boops</div><div><b id="resStreak">0</b>best streak</div><div><b id="resStings">0</b>stings</div></div>
+  <div id="resBest"></div>
+  <button id="again">Again</button>
+  <div class="foot">printed at <a href="https://gptgames.dev" target="_blank" rel="noopener">gptgames.dev</a></div>
+</div>
+<div id="pause" hidden><div class="tag">Paused<small>tap to carry on</small></div></div>
+<script id="core">
+// Prickle Patch - the rules. No DOM, no clock of its own: the page calls step(dt) and tap(hole).
+// One round is one evening: ROUND seconds of sun. Hedgehogs come up out of nine burrows; boop them
+// before they tuck in and drop away. Wasps come up too; touching one is a sting, and costs sun.
+const PrickleCore = (() => {
+    const ROUND = 45;          // seconds of evening
+    const STING_COST = 4;      // a sting burns this much sun
+    const APPLE_GIFT = 2;      // an apple gives this much back
+    const PIPS = 5, MAX_MULT = 5;
+    const RISE = 0.14, TUCK = 0.16, SINK = 0.2, DROP = 0.26, FLEE = 0.42, GRACE = 0.1;
+    const RANKS = [[0, 'Seedling'], [3000, 'Weeder'], [8000, 'Gardener'], [16000, 'Head Gardener'], [28000, 'Hedgehog Whisperer']];
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+    function rng(seed) {
+        let a = seed >>> 0 || 1;
+        return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    }
+    // how far into the evening: the sun's own position, so a sting brings night on faster and an
+    // apple holds it back
+    const dusk = s => clamp(1 - s.left / ROUND, 0, 1);
+
+    function create(opt = {}) {
+        return {
+            seed: opt.seed >>> 0 || 1, rand: rng(opt.seed || 1), tutorial: !!opt.tutorial,
+            t: 0, left: ROUND, over: false,
+            score: 0, streak: 0, bestStreak: 0, mult: 1, pips: 0,
+            boops: 0, misses: 0, stings: 0, apples: 0, spawned: 0, wasps: 0,
+            holes: new Array(9).fill(null), nextId: 1,
+            nextSpawn: opt.tutorial ? 0.05 : 0.3, lastApple: 0, recent: [], firstWasp: false
+        };
+    }
+
+    // ---- the tempo of the evening, d = 0 at golden hour, 1 at dark
+    const tempo = {
+        warn: d => lerp(0.3, 0.17, d),                 // how long a burrow heaves before something comes up
+        hogUp: d => lerp(1.25, 0.62, d),                // how long a hedgehog waits to be booped
+        waspUp: d => lerp(1.7, 1.1, d),                 // how long a wasp hangs about
+        gap: d => lerp(0.95, 0.4, Math.pow(d, 0.9)),    // time between arrivals
+        cap: d => Math.min(4, 2 + Math.floor(d * 2.5)), // most burrows busy at once
+        wasp: d => lerp(0.15, 0.3, d)                   // chance an arrival is a wasp
+    };
+
+    function busy(s) { return s.holes.filter(Boolean).length; }
+    function pickHole(s) {
+        const free = [];
+        for (let i = 0; i < 9; i++) if (!s.holes[i]) free.push(i);
+        if (!free.length) return -1;
+        const fresh = free.filter(i => !s.recent.includes(i));
+        const from = fresh.length ? fresh : free;
+        return from[Math.floor(s.rand() * from.length)];
+    }
+    function spawn(s, ev) {
+        const d = dusk(s), tut = s.tutorial && s.t < 12;
+        const cap = tut ? 1 : tempo.cap(d);
+        if (busy(s) >= cap) { s.nextSpawn = s.t + 0.12; return; }
+        let kind = 'hog';
+        if (tut) {
+            // the first round teaches one thing at a time: three hedgehogs, then a wasp, alone
+            if (s.spawned >= 3 && !s.firstWasp) kind = 'wasp';
+        } else if (s.t > 6 && s.rand() < tempo.wasp(d) && !(d < 0.4 && s.holes.some(e => e && e.kind === 'wasp'))) kind = 'wasp';
+        if (!s.tutorial && s.t > 6 && !s.firstWasp) kind = 'wasp';
+        const hole = pickHole(s); if (hole < 0) { s.nextSpawn = s.t + 0.12; return; }
+        const apple = kind === 'hog' && s.t > 10 && s.t - s.lastApple > 11 + s.rand() * 4;
+        if (apple) s.lastApple = s.t;
+        if (kind === 'wasp') { s.firstWasp = true; s.wasps++; }
+        const warn = tempo.warn(d), up = kind === 'wasp' ? tempo.waspUp(d) : tut ? 1.7 : tempo.hogUp(d);
+        const e = {id: s.nextId++, kind, apple, hole, phase: 'warn', t0: s.t, warn, up, upAt: 0};
+        s.holes[hole] = e; s.spawned++;
+        s.recent.push(hole); if (s.recent.length > 2) s.recent.shift();
+        ev.push({type: 'warn', hole, kind, apple, id: e.id});
+        s.nextSpawn = s.t + (tut ? 1.15 : tempo.gap(d) * (0.8 + s.rand() * 0.4));
+    }
+    function breakStreak(s, hard) {
+        s.streak = 0; s.pips = 0;
+        s.mult = hard ? 1 : Math.max(1, s.mult - 1);
+    }
+    // advance the evening by dt seconds; returns what happened, for the page to draw and play
+    function step(s, dt) {
+        const ev = [];
+        if (s.over) { advance(s, dt, ev); return ev; }
+        s.t += dt; s.left -= dt;
+        if (s.left <= 0) {
+            s.left = 0; s.over = true;
+            for (const e of s.holes) if (e && e.phase !== 'sink' && e.phase !== 'drop' && e.phase !== 'flee') { e.phase = 'sink'; e.t0 = s.t; }
+            ev.push({type: 'end'});
+            return ev;
+        }
+        if (s.t >= s.nextSpawn) spawn(s, ev);
+        advance(s, 0, ev);
+        return ev;
+    }
+    function advance(s, dt, ev) {
+        if (s.over) s.t += dt;
+        for (let i = 0; i < 9; i++) {
+            const e = s.holes[i]; if (!e) continue;
+            const age = s.t - e.t0;
+            if (e.phase === 'warn' && age >= e.warn) { e.phase = 'rise'; e.t0 += e.warn; ev.push({type: 'rise', hole: i, kind: e.kind, apple: e.apple}); }
+            else if (e.phase === 'rise' && age >= RISE) { e.phase = 'up'; e.t0 += RISE; e.upAt = e.t0; }
+            else if (e.phase === 'up' && age >= e.up) {
+                e.phase = e.kind === 'hog' ? 'tuck' : 'sink'; e.t0 += e.up; e.tucked = e.kind === 'hog';
+                if (e.kind === 'hog') { s.misses++; breakStreak(s, false); ev.push({type: 'escape', hole: i, apple: e.apple}); }
+                else ev.push({type: 'leave', hole: i});
+            }
+            else if (e.phase === 'tuck' && age >= TUCK) { e.phase = 'sink'; e.t0 += TUCK; }
+            else if ((e.phase === 'sink' && age >= SINK) || (e.phase === 'drop' && age >= DROP) || (e.phase === 'flee' && age >= FLEE)) s.holes[i] = null;
+        }
+    }
+    // a touch on burrow i. Returns the events it caused.
+    function tap(s, i) {
+        const ev = [];
+        if (s.over || i < 0 || i > 8) return ev;
+        const e = s.holes[i];
+        if (!e || e.phase === 'warn' || e.phase === 'sink' || e.phase === 'drop' || e.phase === 'flee' || (e.phase === 'tuck' && s.t - e.t0 > GRACE)) {
+            // thumping bare earth: nothing is hurt, but the hedgehogs hear it - the pips empty
+            const had = s.pips; if (s.mult < MAX_MULT) s.pips = 0;
+            ev.push({type: 'dud', hole: i, lost: had - s.pips}); return ev;
+        }
+        if (e.kind === 'wasp') {
+            s.stings++; s.left = Math.max(0, s.left - STING_COST); breakStreak(s, true);
+            e.phase = 'flee'; e.t0 = s.t;
+            ev.push({type: 'sting', hole: i, cost: STING_COST});
+            return ev;
+        }
+        if (e.phase === 'tuck') { s.misses--; } // booped in the very last moment: the miss is taken back
+        // a quick boop is worth more: full bonus inside a quarter second of the face appearing
+        const react = e.phase === 'rise' ? 0 : s.t - e.upAt;
+        const quick = Math.round(50 * clamp(1 - (react - 0.25) / 0.5, 0, 1));
+        const base = e.apple ? 250 : 100, pts = base * s.mult + quick;
+        s.score += pts; s.boops++; s.streak++; s.bestStreak = Math.max(s.bestStreak, s.streak);
+        let up = false;
+        if (s.mult < MAX_MULT) { s.pips++; if (s.pips >= PIPS) { s.pips = 0; s.mult++; up = true; } } else s.pips = PIPS;
+        e.phase = 'drop'; e.t0 = s.t;
+        ev.push({type: 'boop', hole: i, pts, quick, apple: e.apple, mult: s.mult, streak: s.streak});
+        if (up) ev.push({type: 'mult', mult: s.mult});
+        if (e.apple) { s.apples++; const before = s.left; s.left = Math.min(ROUND, s.left + APPLE_GIFT); ev.push({type: 'apple', hole: i, gift: s.left - before}); }
+        return ev;
+    }
+    function rank(score) { let r = RANKS[0]; for (const k of RANKS) if (score >= k[0]) r = k; return r[1]; }
+    function nextRank(score) { for (const k of RANKS) if (score < k[0]) return k; return null; }
+    return {ROUND, STING_COST, APPLE_GIFT, PIPS, MAX_MULT, RISE, TUCK, SINK, DROP, FLEE, GRACE, RANKS, tempo, dusk, create, step, tap, rank, nextRank, rng};
+})();
+</script>
+<script>
+// Prickle Patch - the print. Everything is drawn as a garden linocut: a few inks on paper, a key
+// block whose lines swell and thin like carved lines do, and gouges cut out of the ink.
+// Sprites are printed once per size and per ink run (dusk, night) and then only placed.
+const Art = (() => {
+    const TAU = Math.PI * 2;
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+    const hexc = {};
+    const hex = h => hexc[h] || (hexc[h] = (n => [n >> 16 & 255, n >> 8 & 255, n & 255])(parseInt(h.slice(1), 16)));
+    const mix = (a, b, t) => { const A = hex(a), B = hex(b); t = clamp(t, 0, 1); return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join(''); };
+    const rgba = (h, a) => { const [r, g, b] = hex(h); return `rgba(${r},${g},${b},${a})`; };
+    const hash = n => { n = Math.floor(n * 1000) | 0; n = (n ^ 61) ^ (n >>> 16); n = n + (n << 3); n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; };
+
+    // Two print runs. Dusk: paper, key, ochre, rust, umber, green, leaf, slate (the shade).
+    // Night: the same block re-inked as a white-line print - dark ground, cream lines.
+    const INKS = {
+        dusk: {
+            paper: '#f3e9d3', line: '#1d1813', ink: '#1d1813', bands: ['#b9493a', '#d8683f', '#eb9a48', '#f4c46a'],
+            skyHi: '#c9583a', skyLo: '#eba64a', ray: '#f2c46c', sun: '#f6ecd6',
+            hedge: '#335535', hedgeLo: '#24402a', nick: '#86a85a',
+            lawn: '#5b8644', tick: '#86ab5c', shade: '#34406a',
+            soil: '#b4623a', soilCut: '#e9a75a', clod: '#7a4026', soilDeep: '#5e2f1d',
+            spine: '#57352a', quill: '#f3e9d3', lit: '#eba64a',
+            face: '#f4e3be', faceCut: '#d2a56c', blush: '#d9643f',
+            wasp: '#f0b032', waspInk: '#1d1813', wing: '#f3e9d3', waspEye: '#c9412d', apple: '#c9412d', leaf: '#86a85a',
+            bed: '#4a2c20', poppy: '#c9412d', mari: '#e07a3a', daisy: '#f3e9d3',
+        },
+        night: {
+            paper: '#efe4cf', line: '#e9dfc8', ink: '#0d0f19', bands: ['#0f1433', '#171f4a', '#212c62', '#2e3b78'],
+            skyHi: '#151a3f', skyLo: '#232c63', ray: '#2f3b7c', sun: '#f3e9d3',
+            hedge: '#123327', hedgeLo: '#0b231b', nick: '#3f7a5c',
+            lawn: '#1b5143', tick: '#2a6e5a', shade: '#0e1a2a',
+            soil: '#33384f', soilCut: '#7f89b3', clod: '#262a3d', soilDeep: '#1a1d2b',
+            spine: '#2a2236', quill: '#efe4cf', lit: '#f2c96e',
+            face: '#dcc394', faceCut: '#a88a66', blush: '#c2584a',
+            wasp: '#f2b440', waspInk: '#0d0f19', wing: '#cfd9f0', waspEye: '#e0533a', apple: '#d8462f', leaf: '#3f6a52',
+            bed: '#3a2232', poppy: '#c2484a', mari: '#d9a24a', daisy: '#d8d8ea',
+        }
+    };
+
+    // ---------------------------------------------------------------- shapes as point lists
+    function ellipsePts(cx, cy, rx, ry, n, seed = 0, amp = 0, a0 = 0, a1 = TAU) {
+        const pts = [], closed = a1 - a0 >= TAU - 1e-6, m = closed ? n : n + 1;
+        for (let k = 0; k < m; k++) {
+            const a = a0 + (a1 - a0) * k / n, w = 1 + (hash(seed + k * 7.31) - 0.5) * amp * 2;
+            pts.push([cx + Math.cos(a) * rx * w, cy + Math.sin(a) * ry * w]);
+        }
+        return pts;
+    }
+    function spikePts(cx, cy, rx, ry, n, inner, outer, seed = 0, a0 = 0, a1 = TAU, jit = 0.12) {
+        const pts = [], closed = a1 - a0 >= TAU - 1e-6, m = closed ? n * 2 : n * 2 + 1;
+        for (let k = 0; k < m; k++) {
+            const a = a0 + (a1 - a0) * k / (n * 2), j = 1 + (hash(seed + k * 3.7) - 0.5) * jit;
+            const rr = (k % 2 ? outer : inner) * j;
+            pts.push([cx + Math.cos(a) * rx * rr, cy + Math.sin(a) * ry * rr]);
+        }
+        return pts;
+    }
+    function bez(pts, p0, p1, p2, p3, n = 10) { for (let i = 1; i <= n; i++) { const t = i / n, u = 1 - t; pts.push([u * u * u * p0[0] + 3 * u * u * t * p1[0] + 3 * u * t * t * p2[0] + t * t * t * p3[0], u * u * u * p0[1] + 3 * u * u * t * p1[1] + 3 * u * t * t * p2[1] + t * t * t * p3[1]]); } }
+    function trace(ctx, pts, closed = true) { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); if (closed) ctx.closePath(); }
+    function fill(ctx, pts, color, dx = 0, dy = 0) { ctx.fillStyle = color; ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x + dx, y + dy) : ctx.moveTo(x + dx, y + dy)); ctx.closePath(); ctx.fill(); }
+    // a key line: a ribbon whose width swells and thins along the path, the way a cut line prints
+    function ink(ctx, pts, w, color, seed = 0, closed = true) {
+        const n = pts.length; if (n < 2) return;
+        const L = [], R = [];
+        for (let i = 0; i < n; i++) {
+            const a = pts[closed ? (i - 1 + n) % n : Math.max(0, i - 1)], b = pts[closed ? (i + 1) % n : Math.min(n - 1, i + 1)];
+            let dx = b[0] - a[0], dy = b[1] - a[1]; const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+            let ww = w * (0.62 + 0.75 * hash(seed + Math.floor(i / 2) * 1.37));
+            if (!closed) ww *= Math.min(1, 0.35 + Math.min(i, n - 1 - i) * 0.35);
+            L.push([pts[i][0] - dy * ww / 2, pts[i][1] + dx * ww / 2]); R.push([pts[i][0] + dy * ww / 2, pts[i][1] - dx * ww / 2]);
+        }
+        ctx.fillStyle = color; ctx.beginPath();
+        L.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+        if (closed) { ctx.closePath(); ctx.moveTo(R[n - 1][0], R[n - 1][1]); for (let i = n - 2; i >= 0; i--) ctx.lineTo(R[i][0], R[i][1]); ctx.closePath(); ctx.fill('evenodd'); return; }
+        for (let i = n - 1; i >= 0; i--) ctx.lineTo(R[i][0], R[i][1]);
+        ctx.closePath(); ctx.fill();
+    }
+    // a gouge: fat where the tool goes in, sharp where it comes out
+    function gouge(ctx, x0, y0, x1, y1, w) {
+        const dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy) || 1, nx = -dy / l * w / 2, ny = dx / l * w / 2;
+        ctx.moveTo(x0 + nx, y0 + ny);
+        ctx.quadraticCurveTo(x0 + dx * 0.4 + nx * 0.85, y0 + dy * 0.4 + ny * 0.85, x1, y1);
+        ctx.quadraticCurveTo(x0 + dx * 0.4 - nx * 0.85, y0 + dy * 0.4 - ny * 0.85, x0 - nx, y0 - ny);
+        ctx.closePath();
+    }
+    function cut(ctx, color, x0, y0, x1, y1, w) { ctx.fillStyle = color; ctx.beginPath(); gouge(ctx, x0, y0, x1, y1, w); ctx.fill(); }
+    // ink never prints solid: knock small specks of paper out of what has been printed so far
+    function speckle(ctx, x, y, w, h, density, seed, size = 1) {
+        ctx.save(); ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = '#000';
+        const n = Math.floor(w * h * density);
+        for (let i = 0; i < n; i++) { const px = x + hash(seed + i * 1.13) * w, py = y + hash(seed + i * 2.71 + 9) * h; ctx.globalAlpha = 0.25 + hash(seed + i * 5.3) * 0.6; ctx.fillRect(px, py, size * (0.6 + hash(i + seed) * 1.2), size * 0.8); }
+        ctx.restore();
+    }
+    const REG = 2.4; // the colour block lands a hair off the key block, as it does on a real press
+
+    function canvas(w, h, dpr) {
+        const c = document.createElement('canvas'); c.width = Math.ceil(w * dpr); c.height = Math.ceil(h * dpr);
+        const g = c.getContext('2d'); g.scale(dpr, dpr); c.w = w; c.h = h; return [c, g];
+    }
+
+    // ---------------------------------------------------------------- the hedgehog
+    // body sprite: spines, quills and key line. Origin (ox, oy) is the body centre.
+    function hogBody(r, P, dpr, seed) {
+        const W = r * 2.8, H = r * 2.8, ox = W / 2, oy = H / 2, [c, g] = canvas(W, H, dpr);
+        const outline = spikePts(ox, oy, r, r * 1.06, 19, 0.9, 1.12, seed);
+        fill(g, outline, P.spine, REG, REG * 0.6);
+        // quills: rings of gouges flowing back from the brow; the top ones catch the sun
+        const rings = [[0.4, 0.68, 12, 0.075], [0.58, 0.88, 15, 0.068], [0.76, 1.03, 19, 0.058]];
+        rings.forEach(([d0, d1, n, w], ri) => {
+            for (let k = 0; k < n; k++) {
+                const a = Math.PI * (0.88 + 1.24 * (k + (ri % 2 ? 0.5 : 0)) / (n - 0.5)) + (hash(seed + k * 3 + ri * 50) - 0.5) * 0.1, bend = 0.13 * Math.cos(a);
+                cut(g, P.quill,
+                    ox + Math.cos(a) * r * d0, oy + Math.sin(a) * r * d0 * 1.05, ox + Math.cos(a + bend) * r * d1, oy + Math.sin(a + bend) * r * d1 * 1.05, r * w);
+            }
+        });
+        speckle(g, 0, 0, W, H, 0.05, seed + 3, Math.max(1, r * 0.03));
+        ink(g, outline, Math.max(2, r * 0.07), P.line, seed + 1);
+        return {c, ox, oy};
+    }
+    // the face, without eyes and nose (those are drawn live: they blink, squint and sniff)
+    function hogFace(r, P, dpr, seed) {
+        const W = r * 2, H = r * 1.9, ox = W / 2, oy = r * 0.75, [c, g] = canvas(W, H, dpr);
+        const x = ox, fy = oy, pts = [[x, fy - r * 0.38]];
+        bez(pts, [x, fy - r * 0.38], [x + r * 0.44, fy - r * 0.62], [x + r * 0.8, fy - r * 0.2], [x + r * 0.6, fy + r * 0.14]);
+        bez(pts, [x + r * 0.6, fy + r * 0.14], [x + r * 0.46, fy + r * 0.42], [x + r * 0.3, fy + r * 0.52], [x + r * 0.2, fy + r * 0.66], 6);
+        bez(pts, [x + r * 0.2, fy + r * 0.66], [x + r * 0.08, fy + r * 0.84], [x - r * 0.08, fy + r * 0.84], [x - r * 0.2, fy + r * 0.66], 6);
+        bez(pts, [x - r * 0.2, fy + r * 0.66], [x - r * 0.3, fy + r * 0.52], [x - r * 0.46, fy + r * 0.42], [x - r * 0.6, fy + r * 0.14], 6);
+        bez(pts, [x - r * 0.6, fy + r * 0.14], [x - r * 0.8, fy - r * 0.2], [x - r * 0.44, fy - r * 0.62], [x, fy - r * 0.38]);
+        pts.pop();
+        for (const s of [-1, 1]) { // ears
+            const e = ellipsePts(x + s * r * 0.6, fy - r * 0.34, r * 0.16, r * 0.15, 14, seed + s);
+            fill(g, e, P.face, REG, REG * 0.5); fill(g, ellipsePts(x + s * r * 0.6, fy - r * 0.32, r * 0.07, r * 0.07, 10), P.blush);
+            ink(g, e, Math.max(1.6, r * 0.05), P.line, seed + 7 + s);
+        }
+        fill(g, pts, P.face, REG, REG * 0.5);
+        for (const s of [-1, 1]) cut(g, P.faceCut, x + s * r * 0.44, fy + r * 0.1, x + s * r * 0.24, fy + r * 0.5, r * 0.055);
+        for (const s of [-1, 1]) fill(g, ellipsePts(x + s * r * 0.4, fy + r * 0.22, r * 0.11, r * 0.07, 12), P.blush);
+        // the brow: the quills come down to a peak between the eyes
+        fill(g, [[x - r * 0.38, fy - r * 0.54], [x - r * 0.2, fy - r * 0.3], [x - r * 0.1, fy - r * 0.42], [x, fy - r * 0.2], [x + r * 0.1, fy - r * 0.42], [x + r * 0.2, fy - r * 0.3], [x + r * 0.38, fy - r * 0.54]], P.spine);
+        speckle(g, 0, 0, W, H, 0.025, seed + 11, Math.max(1, r * 0.025));
+        ink(g, pts, Math.max(2, r * 0.065), P.line, seed + 2);
+        return {c, ox, oy};
+    }
+    // eyes and nose, live. state: 'idle' | 'blink' | 'boop'
+    function hogEyes(ctx, x, fy, r, P, state, look, sniff) {
+        ctx.fillStyle = P.ink; ctx.strokeStyle = P.ink; ctx.lineWidth = r * 0.085; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        const lk = (look || 0) * r * 0.05;
+        for (const s of [-1, 1]) {
+            const ex = x + s * r * 0.26 + lk, ey = fy - r * 0.04;
+            if (state === 'boop') { ctx.beginPath(); ctx.moveTo(ex - s * r * 0.08, ey - r * 0.09); ctx.lineTo(ex + s * r * 0.05, ey); ctx.lineTo(ex - s * r * 0.08, ey + r * 0.09); ctx.stroke(); }
+            else if (state === 'blink') { ctx.beginPath(); ctx.moveTo(ex - r * 0.08, ey); ctx.quadraticCurveTo(ex, ey + r * 0.06, ex + r * 0.08, ey); ctx.stroke(); }
+            else { ctx.beginPath(); ctx.ellipse(ex, ey, r * 0.085, r * 0.105, 0, 0, TAU); ctx.fill

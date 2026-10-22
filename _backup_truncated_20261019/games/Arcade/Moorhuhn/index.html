@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+    <meta name="description"
+          content="Play Moor Chicken online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="author" content="Claude prompted by Tobias Müller">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://suipce.com/games/Arcade/Moorhuhn/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Play Moor Chicken Online - Free Arcade Game | AIGameHub">
+    <meta property="og:description"
+          content="Play Moor Chicken online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta property="og:url" content="https://www.gptgames.dev/games/moorhuhn.html">
+    <meta property="og:image" content="https://www.gptgames.dev/screenshots/screenshot_311.webp">
+    <meta property="og:site_name" content="GPT Games">
+    <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Moorhuhn/preview.png"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Moorhuhn/preview.png">
+    <meta name="twitter:title" content="Play Moor Chicken Online - Free Arcade Game | AIGameHub">
+    <meta name="twitter:description"
+          content="Play Moor Chicken online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="twitter:image" content="https://www.gptgames.dev/screenshots/screenshot_311.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <title>Play Moor Chicken Online - Free Arcade Game | AIGameHub</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box }
+
+        body {
+            background: #0a0c08;
+            font-family: 'Nunito', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #f2ecd9;
+            overflow: hidden;
+            height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #stage {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #wrap {
+            position: relative;
+            box-shadow: 0 0 60px rgba(120, 150, 60, .20);
+        }
+
+        canvas { display: block }
+
+        body.playing #wrap { cursor: none }
+
+        /* ---------- touch controls ---------- */
+        #pads {
+            position: absolute;
+            inset: 0;
+            display: none;
+            pointer-events: none;
+        }
+
+        body.touch #pads { display: block }
+
+        #padReload {
+            /* bottom-left: the aiming thumb owns the right side, and the gun
+               is drawn into that corner */
+            position: absolute;
+            left: 2.5%;
+            bottom: 4%;
+            padding: 12px 20px;
+            border-radius: 14px;
+            border: 2px solid rgba(240, 220, 160, .35);
+            background: rgba(40, 34, 18, .55);
+            backdrop-filter: blur(3px);
+            pointer-events: auto;
+            color: rgba(250, 238, 200, .85);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .07em;
+        }
+
+        #padReload.on { background: rgba(200, 160, 60, .55); transform: scale(.96) }
+
+        /* ---------- overlays ---------- */
+        .overlay {
+            /* fixed, not absolute: the canvas box can be a short band in
+               portrait, and an overlay clipped to it loses its own content */
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            text-align: center;
+            background: radial-gradient(ellipse at 50% 45%, rgba(20, 16, 6, .35), rgba(10, 8, 3, .78));
+            overflow-y: auto;
+        }
+
+        .overlay.hidden { display: none }
+
+        .card {
+            position: relative;
+            margin: auto;
+            width: min(560px, 100%);
+            padding: 22px 26px 18px;
+            border-radius: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: #f2ecd9;
+            background:
+                    repeating-linear-gradient(90deg, rgba(255, 255, 255, .025) 0 2px, transparent 2px 38px),
+                    linear-gradient(180deg, #4a3620, #2e2112 70%, #251a0e);
+            border: 2px solid #8a6634;
+            box-shadow: 0 0 0 5px rgba(34, 24, 12, .75), 0 24px 60px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 226, 170, .25);
+            animation: cardIn .45s cubic-bezier(.2, .9, .3, 1.2) both;
+        }
+
+        @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(.95) } }
+
+        .title {
+            font-family: 'Luckiest Guy', 'Nunito', system-ui, sans-serif;
+            font-weight: 400;
+            font-size: clamp(38px, 9vw, 62px);
+            line-height: .92;
+            letter-spacing: .03em;
+            color: #ffd34d;
+            transform: rotate(-3deg);
+            text-shadow: 0 3px 0 #b8611c, 0 6px 0 #5a2c0c, 0 10px 18px rgba(0, 0, 0, .45);
+        }
+
+        .title span { display: block; color: #fff3d6; font-size: .62em; letter-spacing: .12em }
+        .hero { width: 180px; height: 125px; margin: -10px 0 -10px }
+        .lead { font-size: 15px; line-height: 1.5; color: #e7dcbc; max-width: 30em }
+        .lead b, .how b { color: #ffd34d }
+        .how { font-size: 13.5px; line-height: 1.5; color: #c9bd97; max-width: 34em }
+
+        .pts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            width: 100%;
+        }
+
+        .pts span {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            font-size: 12.5px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, .22);
+            border: 1px solid rgba(255, 214, 140, .18);
+            color: #e8dcb8;
+        }
+
+        .pts span b { font-family: 'Luckiest Guy', system-ui, sans-serif; font-weight: 400; font-size: 16px; color: #ffd34d; letter-spacing: .04em }
+        .pts span.bad { background: rgba(120, 30, 20, .28); border-color: rgba(255, 120, 90, .3) }
+        .pts span.bad b { color: #ff8f78 }
+
+        .btn {
+            padding: 13px 34px;
+            border: 0;
+            border-radius: 14px;
+            font-family: 'Luckiest Guy', 'Nunito', system-ui, sans-serif;
+            font-size: 22px;
+            letter-spacing: .06em;
+            color: #3a1f04;
+            background: linear-gradient(180deg, #ffe07a, #f0a92a);
+            cursor: pointer;
+            box-shadow: 0 5px 0 #8f5710, 0 10px 20px rgba(0, 0, 0, .35);
+            transition: transform .08s, box-shadow .08s;
+        }
+
+        .btn:hover { filter: brightness(1.06) }
+        .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #8f5710, 0 4px 10px rgba(0, 0, 0, .35) }
+        .btn:focus-visible, .linkbtn:focus-visible { outline: 3px solid #fff3d6; outline-offset: 3px }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+
+        .stats div {
+            padding: 8px 4px 7px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, .22);
+            font-size: 11px;
+            font-weight: 800;
+            color: #b3a57e;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .stats b {
+            display: block;
+            font-family: 'Luckiest Guy', system-ui, sans-serif;
+            font-weight: 400;
+            font-size: 26px;
+            letter-spacing: .03em;
+            color: #fff3d6;
+            text-transform: none;
+            margin-top: 2px;
+        }
+
+        .bigscore {
+            font-family: 'Luckiest Guy', system-ui, sans-serif;
+            font-size: clamp(54px, 13vw, 80px);
+            line-height: 1;
+            color: #ffd34d;
+            text-shadow: 0 4px 0 #8f4a10, 0 10px 20px rgba(0, 0, 0, .4);
+        }
+
+        .bigscore small { display: block; font-family: 'Nunito', system-ui, sans-serif; font-size: 12px; font-weight: 800; letter-spacing: .2em; color: #b3a57e; text-shadow: none; margin-bottom: 4px }
+        .ribbon { font-family: 'Luckiest Guy', system-ui, sans-serif; font-size: 22px; letter-spacing: .06em; color: #fff3d6 }
+        .ribbon.best { color: #3a1f04; background: #ffd34d; padding: 3px 16px 1px; border-radius: 999px; box-shadow: 0 3px 0 #8f5710; transform: rotate(-2deg) }
+        .rank { display: flex; gap: 4px; font-size: 26px; line-height: 1; color: rgba(255, 255, 255, .16) }
+        .rank i { font-style: normal }
+        .rank i.on { color: #ffd34d; text-shadow: 0 2px 0 #8f4a10 }
+        .tip { font-size: 13.5px; line-height: 1.5; color: #d6c9a2; max-width: 34em; padding: 9px 12px; border-radius: 12px; background: rgba(0, 0, 0, .18) }
+
+        .keyrow { font-size: 12px; color: #b3a57e; line-height: 2 }
+        .keyrow b { color: #e8dcb8 }
+
+        kbd {
+            background: #2a200f;
+            border-radius: 5px;
+            padding: 2px 7px;
+            font: inherit;
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffe3a3;
+            border: 1px solid #6b5022;
+            box-shadow: 0 2px 0 #140e05;
+        }
+
+        .seedline { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; font-size: 12px; color: #9d9070; letter-spacing: .04em }
+
+        .linkbtn {
+            background: rgba(0, 0, 0, .2);
+            border: 1px solid #6b5022;
+            border-radius: 8px;
+            padding: 6px 11px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            color: #e8d7a6;
+            cursor: pointer;
+        }
+
+        .linkbtn:hover { color: #fff3d6; border-color: #a07a3a }
+
+        .seedline input {
+            width: 9em;
+            background: rgba(0, 0, 0, .3);
+            border: 1px solid #6b5022;
+            color: #ffe3a3;
+            border-radius: 8px;
+            padding: 6px 8px;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        #muteBtn {
+            position: absolute;
+            right: 1.2%;
+            top: 12%;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 226, 160, .35);
+            background: rgba(20, 14, 6, .45);
+            color: #ffe3a3;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        #muteBtn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
+        #muteBtn .off, #muteBtn[aria-pressed="true"] .on { display: none }
+        #muteBtn[aria-pressed="true"] .off { display: block }
+
+        /* a landscape phone is ~410 px tall: tighten the cards so they fit
+           without scrolling rather than hiding the start button below the fold */
+        @media (max-height: 520px) {
+            .overlay { padding: 8px }
+            .card { gap: 7px; padding: 12px 18px 10px; width: min(720px, 100%) }
+            .title { font-size: 34px }
+            .title span { display: inline; margin-left: .3em; font-size: .9em }
+            .hero { display: none }
+            .lead { font-size: 13px }
+            .how { font-size: 12px; line-height: 1.35 }
+            .pts { grid-template-columns: repeat(4, 1fr); gap: 4px }
+            .pts span { font-size: 11px; padding: 3px 8px }
+            .pts span b { font-size: 13px }
+            .btn { padding: 8px 26px; font-size: 18px }
+            .stats { grid-template-columns: repeat(6, 1fr); gap: 5px }
+            .stats b { font-size: 19px }
+            .bigscore { font-size: 44px }
+            .keyrow { font-size: 11px; line-height: 1.5 }
+            .tip { font-size: 12px; padding: 6px 10px }
+        }
+
+        @media (max-width: 420px) {
+            .pts { grid-template-columns: repeat(2, 1fr) }
+        }
+
+        #rotate {
+            position: absolute;
+            left: 50%;
+            bottom: 8px;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: rgba(240, 225, 170, .55);
+            display: none;
+            pointer-events: none;
+        }
+
+        body.portrait.touch #rotate { display: block }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Moor Chicken","item":"https://suipce.com/games/Arcade/Moorhuhn/"}]}</script>
+</head>
+<body>
+<div id="stage">
+    <div id="wrap">
+        <canvas id="cv"></canvas>
+        <div id="pads">
+            <div id="padReload">RELOAD</div>
+        </div>
+        <div id="rotate">↻ turn your phone sideways, or tap Fullscreen, for the whole moor</div>
+
+        <button id="muteBtn" type="button" aria-label="Mute sound" aria-pressed="false">
+            <svg class="on" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+            <svg class="off" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+        </button>
+
+        <div class="overlay" id="startScreen">
+            <div class="card">
+                <canvas class="hero" id="hero" width="300" height="208" aria-hidden="true"></canvas>
+                <h1 class="title">Moor<span>Chicken</span></h1>
+                <p class="lead"><b>Ninety seconds.</b> Ten shells to a magazine, and reloading costs you time you do not have —
+                    that trade is the whole game.</p>
+                <p class="how">The moor is wider than your screen: <span id="panHow">push the crosshair to an edge</span>
+                    to swing the barrel. A bird is worth more <b>the further away</b> it is.</p>
+                <div class="pts">
+                    <span>far bird <b>20</b></span>
+                    <span>middle <b>10</b></span>
+                    <span>fat and close <b>5</b></span>
+                    <span>giant bird <b>25</b></span>
+                    <span>scarecrow's hat <b>25</b></span>
+                    <span>windmill blade <b>25</b></span>
+                    <span class="bad">signpost <b>−25</b></span>
+                </div>
+                <div class="keyrow" id="startKeys"></div>
+                <button class="btn" id="startBtn">Start the hunt</button>
+                <div class="seedline">Moor seed <input id="seedInput" spellcheck="false" aria-label="Moor seed">
+                    <button class="linkbtn" id="fsBtn">Fullscreen</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="overlay hidden" id="overScreen">
+            <div class="card" role="dialog" aria-labelledby="ovScore">
+                <div class="ribbon" id="ovTitle">TIME</div>
+                <div class="bigscore"><small>SCORE</small><span id="ovScore">0</span></div>
+                <div class="rank" id="ovRank" aria-hidden="true"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></div>
+                <div class="stats">
+                    <div>Birds<b id="ovBirds">0</b></div>
+                    <div>Accuracy<b id="ovAcc">0%</b></div>
+                    <div>Best<b id="ovBest">0</b></div>
+                    <div>Far birds<b id="ovFar">0</b></div>
+                    <div>Shells<b id="ovShots">0</b></div>
+                    <div>Reloads<b id="ovReloads">0</b></div>
+                </div>
+                <p class="tip" id="ovTip"></p>
+                <button class="btn" id="againBtn">Hunt again</button>
+                <div class="seedline">Seed <b id="ovSeed"></b>
+                    <button class="linkbtn" id="shareBtn">Copy link to this moor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    'use strict';
+
+    /* ==========================================================================
+       Moor Chicken
+       --------------------------------------------------------------------------
+       Built on the numbers of the 1999 original: ninety seconds, a magazine of
+       ten, and a reload that costs time. Birds are worth 5, 10 or 20 by how far
+       away they are, the three set pieces pay 25, and the things you are not
+       supposed to shoot cost 25. The skill is not marksmanship — it is deciding
+       where to point and when you can afford to reload.
+       ========================================================================== */
+
+    /* ---- the original's numbers ------------------------------------------- */
+    const GAME_SECONDS = 90;
+    const MAG_SIZE = 10;             // shells per magazine
+    const RELOAD_FRAMES = 48;        // 0.8 s — the cost that makes the trade real
+    const SHOT_COOLDOWN = 9;         // ~0.15 s between shells
+
+    const PTS_FAR = 20;              // sources differ here: 20 or 25. 20 keeps
+    const PTS_MID = 10;              // 25 as the set-piece tier alone.
+    const PTS_NEAR = 5;
+    const PTS_SPECIAL = 25;          // giant bird, scarecrow's hat, windmill blade
+    const PENALTY = -25;             // the signpost
+
+    /* ---- world ------------------------------------------------------------ */
+    const WORLD_W = 1900;            // the moor is much wider than the view
+    const VH = 400;                  // internal render height
+    let VW = 640;                    // internal render width, fitted to the screen
+    const HORIZON = 232;
+    const EDGE_PAN = 0.14;           // fraction of the view that pans when entered
+    const PAN_SPEED = 7.2;
+
+    /* three depth bands: y range, scale, speed, points */
+    const BANDS = [
+        /* Body colours wash out with distance. That haze is not decoration: the
+           whole scoring table hangs on reading a bird's range at a glance. */
+        {name: 'far', y: [88, 150], scale: 0.44, spd: [0.75, 1.25], pts: PTS_FAR,
+            body: '#8e8b76', dark: '#77755f', comb: '#a5705f', beak: '#b5a173'},
+        {name: 'mid', y: [142, 206], scale: 0.72, spd: [1.15, 1.80], pts: PTS_MID,
+            body: '#7a6045', dark: '#5f4a32', comb: '#b5533f', beak: '#cf9640'},
+        {name: 'near', y: [200, 306], scale: 1.08, spd: [1.70, 2.50], pts: PTS_NEAR,
+            body: '#6a4a30', dark: '#4e3520', comb: '#c4392f', beak: '#e3a52c'}
+    ];
+
+    /* ---- seeded PRNG ------------------------------------------------------ */
+    function makeRng(seed) {
+        let a = seed >>> 0;
+        return function () {
+            a = (a + 0x6D2B79F5) >>> 0;
+            let t = a;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+
+    function seedFromString(s) {
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < s.length; i++) {
+            h ^= s.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
+    }
+
+    const isTouch = matchMedia('(hover: none)').matches || 'ontouchstart' in window;
+    if (isTouch) document.body.classList.add('touch');
+
+    /* ---- fullscreen -------------------------------------------------------
+       A panorama in a phone's portrait window is a letterbox. Going fullscreen
+       and asking for landscape is the difference between a band and a game.
+       Every step is best-effort: iOS phones have no element fullscreen and the
+       orientation lock is refused on most desktops, so nothing here may throw. */
+    function isFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+
+    function enterFullscreen() {
+        const el = document.documentElement;
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) return Promise.reject();
+        let pr;
+        try {
+            pr = req.call(el, {navigationUI: 'hide'});
+        } catch (e) {
+            try { pr = req.call(el); } catch (e2) { return Promise.reject(); }
+        }
+        return Promise.resolve(pr).then(() => {
+            try {
+                if (screen.orientation && screen.orientation.lock) {
+                    const l = screen.orientation.lock('landscape');
+                    if (l && l.catch) l.catch(() => {});
+                }
+            } catch (e) { /* refused: the rotate hint still stands */ }
+        });
+    }
+
+    function exitFullscreen() {
+        try {
+            if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock();
+        } catch (e) { /* nothing to undo */ }
+        const ex = document.exitFullscreen || document.webkitExitFullscreen;
+        if (ex) { try { ex.call(document); } catch (e) { /* already out */ } }
+    }
+
+    function toggleFullscreen() {
+        if (isFullscreen()) exitFullscreen();
+        else enterFullscreen().catch(() => {});
+    }
+
+    for (const ev of ['fullscreenchange', 'webkitfullscreenchange']) {
+        document.addEventListener(ev, () => {
+            const on = isFullscreen();
+            document.body.classList.toggle('fs', on);
+            const btn = document.getElementById('fsBtn');
+            if (btn) btn.textContent = on ? 'Exit fullscreen' : 'Fullscreen';
+            resize();
+        });
+    }
+
+    /* ---- canvas ----------------------------------------------------------- */
+    const cv = document.getElementById('cv');
+    const ctx = cv.getContext('2d');
+
+    function resize() {
+        const fs = isFullscreen();
+        const padX = fs ? 0 : 8, padTop = fs ? 0 : 8, padBottom = fs ? 0 : 8;
+        const availW = window.innerWidth - padX * 2;
+        const availH = window.innerHeight - padTop - padBottom;
+        /* A panorama wants width. Give it as much as the screen's shape allows,
+           within limits that keep the moor bigger than the view. */
+        /* VW follows the window's aspect so the canvas fills it exactly; the
+           cap only stops the view from swallowing the whole moor. */
+        VW = Math.round(Math.max(460, Math.min(WORLD_W * 0.55, VH * (availW / availH))));
+        document.body.classList.toggle('portrait', availW < availH);
+        document.getElementById('stage').style.paddingBottom = (padBottom - padTop) + 'px';
+        const scale = Math.min(availW / VW, availH / VH);
+        const cssW = Math.round(VW * scale), cssH = Math.round(VH * scale);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        cv.width = Math.round(cssW * dpr);
+        cv.height = Math.round(cssH * dpr);
+        cv.style.width = cssW + 'px';
+        cv.style.height = cssH + 'px';
+        document.getElementById('wrap').style.width = cssW + 'px';
+        document.getElementById('wrap').style.height = cssH + 'px';
+        ctx.setTransform(cv.width / VW, 0, 0, cv.height / VH, 0, 0);
+        if (typeof panX === 'number') panX = Math.max(0, Math.min(WORLD_W - VW, panX));
+    }
+
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+
+    /* ---- audio ------------------------------------------------------------
+       All synthesised. Everything goes through one bus with a compressor and a
+       short slap-back delay, which is what a shot sounds like across open moor.
+       Nothing in here touches the hunt's random stream. */
+    let actx = null, bus = null, noiseBuf = null, ambient = null;
+    let muted = false;
+    try { muted = localStorage.getItem('moorhuhn_mute') === '1'; } catch (e) { /* private mode */ }
+
+    function audio() {
+        if (!actx) {
+            try {
+                actx = new (window.AudioContext || window.webkitAudioContext)();
+                const comp = actx.createDynamicsCompressor();
+                comp.threshold.value = -14; comp.ratio.value = 5; comp.attack.value = 0.002; comp.release.value = 0.25;
+                bus = actx.createGain();
+                bus.gain.value = muted ? 0 : 0.9;
+                bus.connect(comp).connect(actx.destination);
+                const echo = actx.createDelay(1), fb = actx.createGain(), wet = actx.createGain(), tone = actx.createBiquadFilter();
+                echo.delayTime.value = 0.23; fb.gain.value = 0.32; wet.gain.value = 0.28;
+                tone.type = 'lowpass'; tone.frequency.value = 1400;
+                bus.connect(echo); echo.connect(tone).connect(fb).connect(echo); tone.connect(wet).connect(comp);
+                const n = actx.sampleRate * 2;
+                noiseBuf = actx.createBuffer(1, n, actx.sampleRate);
+                const d = noiseBuf.getChannelData(0);
+                for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+            } catch (e) { actx = null; /* no audio, no problem */ }
+        }
+        if (actx && actx.state === 'suspended') actx.resume();
+        return actx;
+    }
+
+    function setMuted(m) {
+        muted = m;
+        try { localStorage.setItem('moorhuhn_mute', m ? '1' : '0'); } catch (e) { /* private mode */ }
+        if (bus) bus.gain.setTargetAtTime(m ? 0 : 0.9, actx.currentTime, 0.03);
+        const btn = document.getElementById('muteBtn');
+        if (btn) {
+            btn.setAttribute('aria-pressed', m ? 'true' : 'false');
+            btn.setAttribute('aria-label', m ? 'Unmute sound' : 'Mute sound');
+        }
+    }
+
+    function noise(dur, vol, filt, o) {
+        const a = audio();
+        if (!a || muted) return;
+        o = o || {};
+        const t0 = a.currentTime + (o.delay || 0);
+        const src = a.createBufferSource();
+        src.buffer = noiseBuf;
+        const f = a.createBiquadFilter();
+        f.type = o.type || 'lowpass';
+        f.frequency.setValueAtTime(filt || 2000, t0);
+        if (o.to) f.frequency.exponentialRampToValueAtTime(o.to, t0 + dur);
+        f.Q.value = o.q || 0.7;
+        const g = a.createGain();
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(vol, t0 + (o.attack || 0.002));
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        src.connect(f).connect(g).connect(bus);
+        src.start(t0, Math.random() * 1.5);
+        src.stop(t0 + dur + 0.05);
+    }
+
+    function tone(freq, dur, type, vol, slideTo, o) {
+        const a = audio();
+        if (!a || muted) return;
+        o = o || {};
+        const t0 = a.currentTime + (o.delay || 0);
+        const osc = a.createOscillator(), g = a.createGain();
+        osc.type = type || 'square';
+        osc.frequency.setValueAtTime(freq, t0);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(vol, t0 + (o.attack || 0.01));
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        let node = osc;
+        if (o.filter) {
+            const f = a.createBiquadFilter();
+            f.type = 'bandpass'; f.frequency.value = o.filter; f.Q.value = o.q || 3;
+            osc.connect(f); node = f;
+        }
+        node.connect(g).connect(bus);
+        osc.start(t0);
+        osc.stop(t0 + dur + 0.03);
+    }
+
+    /* a chicken: a sawtooth pushed through two vowel formants, pitched by size */
+    function bawk(p, delay) {
+        const a = audio();
+        if (!a || muted) return;
+        const t0 = a.currentTime + (delay || 0);
+        const notes = [[1.0, 0.07], [1.35, 0.06], [0.8, 0.16]];
+        let t = t0;
+        for (const [m, d] of notes) {
+            for (const [fq, q, v] of [[900, 6, 0.11], [2300, 8, 0.05]]) {
+                const o = a.createOscillator(), f = a.createBiquadFilter(), g = a.createGain();
+                o.type = 'sawtooth';
+                o.frequency.setValueAtTime(420 * p * m, t);
+                o.frequency.exponentialRampToValueAtTime(330 * p * m, t + d);
+                f.type = 'bandpass'; f.frequency.value = fq * Math.sqrt(p); f.Q.value = q;
+                g.gain.setValueAtTime(0.0001, t);
+                g.gain.exponentialRampToValueAtTime(v, t + 0.008);
+                g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+                o.connect(f).connect(g).connect(bus);
+                o.start(t); o.stop(t + d + 0.02);
+            }
+            t += d * 0.85;
+        }
+    }
+
+    function startAmbient() {
+        const a = audio();
+        if (!a || ambient) return;
+        /* wind over heather: filtered noise, breathing slowly */
+        const src = a.createBufferSource();
+        src.buffer = noiseBuf; src.loop = true;
+        const f = a.createBiquadFilter();
+        f.type = 'bandpass'; f.frequency.value = 420; f.Q.value = 0.5;
+        const g = a.createGain();
+        g.gain.value = 0.035;
+        const lfo = a.createOscillator(), lg = a.createGain();
+        lfo.frequency.value = 0.13; lg.gain.value = 0.02;
+        lfo.connect(lg).connect(g.gain);
+        src.connect(f).connect(g).connect(bus);
+        src.start(); lfo.start();
+        ambient = {src, g};
+    }
+
+    const sfx = {
+        bang() {
+            noise(0.09, 0.9, 5200, {to: 900});                     /* the crack */
+            noise(0.5, 0.45, 

@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Arcade/Doodling/">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Squiggle Online - Free Arcade Game | AIGameHub</title>
+<meta name="description" content="Play Squiggle online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="theme-color" content="#1f3530">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --leather:#1f3530;--leather2:#182a26;--paper:#f5efe2;--print:#e4553a;--cream:#efe6d4;--ink:#3a2f26;
+  --walnut:#5b3f2c;--board:#8b7a62;--glue:#5e2a20;
+  --pw:300px;--ph:450px;--cs:46px;--ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.3,1.45,.5,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--leather2);overscroll-behavior:none}
+body{font-family:Fraunces,Georgia,'Times New Roman',serif;color:var(--cream);-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:2px solid #f3d9a8;outline-offset:2px;border-radius:6px}
+[hidden]{display:none!important}
+
+/* the desk: walnut under a leather blotter */
+#desk{position:fixed;inset:0;background:#2b1c13 center/900px 180px}
+#blotter{position:fixed;inset:0;background:var(--leather) center/300px 300px}
+#blotter::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,250,230,.045) 45%,transparent 60%),radial-gradient(75% 55% at 45% 35%,rgba(255,236,190,.12),transparent 70%),radial-gradient(140% 100% at 50% 45%,transparent 40%,rgba(0,0,0,.45))}
+.corner{display:none;position:absolute;width:120px;height:120px;z-index:1;background:#5a3a2a;filter:drop-shadow(0 2px 3px rgba(0,0,0,.45))}
+.corner svg{position:absolute;inset:0}
+.corner.tl{left:0;top:0;clip-path:polygon(0 0,100% 0,0 100%)}
+.corner.tr{right:0;top:0;clip-path:polygon(0 0,100% 0,100% 100%)}
+.corner.bl{left:0;bottom:0;clip-path:polygon(0 0,0 100%,100% 100%)}
+.corner.br{right:0;bottom:0;clip-path:polygon(100% 0,100% 100%,0 100%)}
+.side #blotter{inset:14px 72px;border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.55),0 2px 4px rgba(0,0,0,.4)}
+.side #blotter::before{content:"";position:absolute;inset:10px;border:1.4px dashed rgba(220,235,210,.15);border-radius:8px;pointer-events:none}
+.side .corner{display:block}
+
+#app{position:fixed;inset:0;display:grid;grid-template-columns:100%;grid-template-rows:auto 1fr auto;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+#top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0;height:62px}
+#stage{position:relative;min-height:0;min-width:0;display:grid;place-items:center;padding:16px 16px 10px}
+
+/* the pad */
+#pad{position:relative;width:var(--pw);height:var(--ph);transition:opacity .25s}
+.board{position:absolute;left:0;right:0;top:-12px;bottom:-15px;border-radius:3px;background:var(--board) 0 0/256px;
+  box-shadow:6px 26px 40px rgba(0,0,0,.45),1px 3px 3px rgba(0,0,0,.45),0 1px 0 rgba(0,0,0,.6)}
+.edges{position:absolute;left:0;right:0;top:4px;bottom:-12px;border-radius:0 0 2px 2px;background:repeating-linear-gradient(#efe8d7 0 1px,#d3c8b1 1px 1.7px)}
+.sheet{position:absolute;inset:0;overflow:hidden;background:var(--paper);box-shadow:0 1px 1px rgba(0,0,0,.12);touch-action:none;cursor:crosshair}
+.sheet canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#cLive.multiply{mix-blend-mode:multiply}
+.glue{position:absolute;left:-1px;right:-1px;top:-10px;height:14px;border-radius:2px 2px 1px 1px;pointer-events:none;
+  background:linear-gradient(#3e1a14,#5e2a20 35%,#8a4c3c 52%,#5e2a20 68%,#43201a);box-shadow:0 1px 1.5px rgba(60,20,10,.45)}
+#curl{position:absolute;right:0;bottom:0;width:var(--cs);height:var(--cs);touch-action:none;cursor:grab;z-index:2}
+#curl svg{position:absolute;right:0;bottom:0;overflow:visible;pointer-events:none}
+#curl::before{content:"";position:absolute;inset:-14px -6px -6px -14px}   /* a thumb is bigger than the corner */
+#curl:active{cursor:grabbing}
+.fly{position:fixed;z-index:30;pointer-events:none;transform-origin:50% 0;filter:drop-shadow(0 1px 1px rgba(60,40,20,.35)) drop-shadow(0 14px 18px rgba(0,0,0,.3));
+}
+
+/* the tray */
+#tray{position:relative;display:grid;grid-template-columns:44px minmax(0,330px) auto;justify-content:center;align-items:end;gap:0 4px;padding:10px 8px 0;
+  border-radius:16px 16px 0 0;background:var(--walnut) 0 0/600px 120px;box-shadow:0 -10px 24px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,220,180,.3)}
+#tray::after{content:"";position:absolute;left:0;right:0;bottom:0;height:calc(24px + env(safe-area-inset-bottom));z-index:2;pointer-events:none;
+  background:inherit;background-position:0 40px;border-radius:6px 6px 0 0;filter:brightness(1.12);
+  box-shadow:inset 0 1px 0 rgba(255,220,180,.35),inset 0 -1px 0 rgba(0,0,0,.3),0 -8px 14px rgba(0,0,0,.42)}
+.acts{display:flex;flex-direction:column;gap:6px;align-self:center;padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+.act{width:44px;height:44px;display:grid;place-items:center;color:#f3e6cf;transition:opacity .2s,transform .15s}
+.act svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.act:disabled{opacity:.3;cursor:default}
+.act:active:not(:disabled){transform:scale(.88)}
+.pens{display:flex;justify-content:space-around;height:148px;overflow:hidden;overflow:clip;padding-bottom:env(safe-area-inset-bottom);min-width:0}
+.pen{position:relative;flex:0 1 50px;min-width:34px;height:150px;transform:translateY(44px);transition:transform .32s var(--spring)}
+.pen svg{width:46px;height:150px;display:block;margin:0 auto;filter:drop-shadow(3px 4px 3px rgba(20,10,5,.4));transition:filter .3s}
+.pen.on{transform:translateY(2px)}
+.pen.on svg{filter:drop-shadow(5px 10px 6px rgba(20,10,5,.45))}
+.pen:active:not(.on){transform:translateY(36px)}
+.inks{display:grid;grid-template-columns:repeat(4,34px);grid-template-rows:repeat(2,42px);padding:0 2px calc(30px + env(safe-area-inset-bottom));align-self:end}
+.inkb{position:relative;width:34px;height:42px;display:grid;place-items:center}
+.well.mix{background:conic-gradient(from 20deg,#e24b3b,#e8a93a,#e4d84a,#5ba35b,#3f86c9,#6a52b0,#c4528f,#e24b3b);box-shadow:inset 0 0 0 2px rgba(0,0,0,.2),inset 0 2px 3px rgba(0,0,0,.3),0 0 0 3px rgba(30,18,10,.45),0 1px 0 3px rgba(255,220,180,.16)}
+.well.mix::before{content:"+";position:absolute;inset:0;display:grid;place-items:center;font:600 18px/1 system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.mixer input{position:absolute;left:50%;top:50%;width:1px;height:1px;opacity:0;border:0;padding:0;pointer-events:none}
+.well{width:28px;height:28px;border-radius:50%;background:var(--c);position:relative;transition:transform .25s var(--spring);
+  box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c) 72%,#000),inset 0 2px 3px rgba(0,0,0,.35),0 0 0 3px rgba(30,18,10,.45),0 1px 0 3px rgba(255,220,180,.16)}
+.well::after{content:"";position:absolute;inset:3px;border-radius:50%;border-top:1.5px solid rgba(255,255,255,.2);transform:rotate(-30deg)}
+.inkb.on .well{transform:scale(1.1)}
+.ring{position:absolute;left:-1px;top:2px;width:38px;height:38px;pointer-events:none;overflow:visible}
+.ring path{fill:none;stroke:#f1e4cc;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:120;stroke-dashoffset:120;transition:stroke-dashoffset .35s var(--ease)}
+.inkb.on .ring path{stroke-dashoffset:0}
+
+/* the sketchbook on the desk */
+#bookBtn{display:flex;align-items:center;gap:10px;padding:10px 4px 2px 10px;min-height:48px;text-align:right}
+/* the sketchbook itself: a closed cloth book, the last torn sheet tucked in at the top */
+.sb{position:relative;display:block;width:40px;height:52px;flex:none}
+.cover{position:absolute;inset:0;z-index:1;border-radius:2px 5px 5px 2px;
+  background:linear-gradient(90deg,#24191560 0 12%,transparent 15%),linear-gradient(#4a3029,#3b2620);
+  box-shadow:inset 3px 0 0 rgba(0,0,0,.25),inset -1px 0 0 rgba(255,220,190,.08),0 4px 10px rgba(0,0,0,.45),0 1px 2px rgba(0,0,0,.4);transition:transform .35s var(--spring)}
+.cover::after{content:"";position:absolute;top:-1px;bottom:-1px;right:16%;width:2.5px;background:#1a110e;box-shadow:1px 0 0 rgba(255,255,255,.07)}
+#bookNum{position:absolute;left:24%;right:30%;top:24%;padding:1px 0 2px;background:#e9e0cc;color:#4b4236;font:italic 600 10px/1.1 Fraunces,serif;text-align:center;border-radius:1px;box-shadow:0 0 0 .5px rgba(0,0,0,.2)}
+#bookNum:empty{opacity:.55;height:8px}
+.peek{position:absolute;left:14%;top:-26%;width:66%;height:80%;background:var(--paper);overflow:hidden;transform:rotate(-4deg);box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform .45s var(--spring),opacity .3s}
+.peek canvas{display:block;width:100%;height:auto}
+.sb.empty .peek{opacity:0;transform:translateY(40%) rotate(-4deg)}
+.bump .cover{animation:bump .45s var(--spring)}
+@keyframes bump{40%{transform:scale(1.1) rotate(-2deg)}}
+.lbl{font:italic 500 14px/1.2 Fraunces,serif;color:rgba(239,230,212,.78)}
+.lbl b{display:none}
+.side .lbl b{display:inline}
+.side .lbl{display:inline-block}
+
+/* wide screens: the tray lies beside a landscape pad */
+.side #app{inset:14px 72px;grid-template-columns:1fr 236px var(--pw) 1fr;grid-template-rows:1fr;column-gap:40px;padding:0}
+.side #top{display:none}
+.side #stage{grid-column:3;grid-row:1;padding:0}
+.side #col{grid-column:2;grid-row:1;align-self:center;height:calc(var(--ph) + 20px);display:flex;flex-direction:column;justify-content:space-between;transform-origin:50% 50%;transform:scale(var(--k,1))}
+#col{display:contents}
+.side #tray{display:flex;flex-direction:column;align-items:stretch;border-radius:14px;padding:12px 12px 8px;gap:0;
+  box-shadow:0 14px 26px rgba(0,0,0,.45),0 3px 5px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,220,180,.25),inset 0 -2px 0 rgba(0,0,0,.25)}
+.side #tray::after{display:none}
+.side .pens{order:1;flex-direction:column;height:auto;overflow:visible;padding:8px 0;border-radius:10px;background:rgba(0,0,0,.2);box-shadow:inset 0 3px 7px rgba(0,0,0,.5),0 1px 0 rgba(255,220,180,.14);gap:4px}
+.side .pen{flex:none;width:100%;height:54px;transform:translateX(0)}
+.side .pen svg{position:absolute;left:69px;top:-48px;transform:rotate(90deg);filter:drop-shadow(-4px 3px 2px rgba(20,10,5,.4))}
+.side .pen.on{transform:translate(16px,-3px) rotate(-2.5deg)}
+.side .pen.on svg{filter:drop-shadow(-12px 9px 7px rgba(20,10,5,.42))}
+.side .pen:active:not(.on){transform:translateX(5px)}
+.side .inks{order:2;align-self:stretch;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(2,44px);justify-items:center;padding:12px 0 2px;margin-top:10px;border-top:1px solid rgba(0,0,0,.35);box-shadow:inset 0 1px 0 rgba(255,255,240,.07)}
+.side .inkb{width:auto}
+.side .acts{order:3;flex-direction:row;justify-content:center;gap:40px;padding:4px 0 0}
+.side .act svg{width:30px;height:30px}
+.side #top2{display:flex;justify-content:center}
+#top2{display:none}
+.side #bookBtn{flex-direction:column-reverse;align-items:center;gap:12px;text-align:center;padding:30px 0 0}
+.side .sb{width:116px;height:150px}
+.side #bookNum{font-size:15px;padding:3px 0 4px}
+.side #bookNum:empty{height:20px}
+.side .lbl{display:inline-block;padding:4px 10px 5px;background:#efe6d2;color:#4b4236;border-radius:2px;box-shadow:0 2px 4px rgba(0,0,0,.4);transform:rotate(-2deg);font-size:14px}
+.side .lbl b{display:inline;margin-left:6px;color:#857a68;font-size:11px}
+
+/* the sketchbook: an open book, the torn sheets taped in */
+.overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;color:#3a3128;background:#e6dcc7 0 0/512px;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.overlay::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 90% at 50% 30%,transparent 50%,rgba(90,60,30,.18))}
+#book{animation:open .34s var(--ease)}
+@keyframes open{from{opacity:0;transform:translateY(18px) scale(.985)}}
+.ohead{position:relative;display:flex;align-items:center;gap:6px;padding:12px 12px 8px 18px;border-bottom:1px solid rgba(90,70,40,.18)}
+.ohead h2{font:italic 600 26px Fraunces,serif;letter-spacing:.005em;margin-right:auto;color:#3a3128}
+.ohead h2 small{font:400 14px Fraunces,serif;color:#8a7c66;margin-left:10px;font-style:normal}
+.ibtn{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;color:#3a3128;flex:none}
+.ibtn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ibtn:active{background:rgba(60,40,20,.08)}
+#grid{position:relative;flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:34px 22px;padding:30px max(22px,calc(50% - 560px)) 48px;align-content:start;-webkit-overflow-scrolling:touch}
+.side #grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:44px 34px}
+.card{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:#3a3128}
+.card .pg{position:relative;width:100%;background:var(--paper);transform:rotate(var(--r));transition:transform .3s var(--spring);
+  box-shadow:0 1px 2px rgba(60,40,20,.25),0 8px 18px rgba(60,40,20,.18)}
+.card .pg canvas{display:block;width:100%;height:100%}
+.card .pg::after{content:"";position:absolute;top:-9px;left:50%;width:46px;height:17px;margin-left:-23px;transform:rotate(var(--t));
+  background:rgba(232,220,182,.78);box-shadow:0 1px 1px rgba(60,40,20,.12);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 3px calc(100% - 3px),transparent);mask:linear-gradient(90deg,transparent,#000 3px calc(100% - 3px),transparent)}
+.card:hover .pg,.card:focus-visible .pg{transform:rotate(0) translateY(-3px)}
+.card span{font:italic 500 15px Fraunces,serif;white-space:nowrap}
+.card span b{font:400 12px Fraunces,serif;color:#8a7c66;font-style:normal;margin-left:6px}
+#bookEmpty{position:relative;margin:auto;max-width:300px;text-align:center;font:italic 400 19px/1.5 Fraunces,serif;color:#7a6c57;padding:40px 20px}
+#view{z-index:21}
+#view .vstage{position:relative;flex:1;min-height:0;display:grid;place-items:center;padding:14px 18px}
+#cView{display:block;background:var(--paper)}
+#vSheet{filter:drop-shadow(0 1px 2px rgba(60,40,20,.3)) drop-shadow(0 14px 20px rgba(60,40,20,.2))}
+#vnav{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:8px 10px;padding:16px 16px 20px}
+.vb{display:flex;align-items:center;gap:7px;min-height:44px;padding:0 12px;border-radius:22px;font:400 15px Fraunces,serif;color:#3a3128}
+#vRemove{color:#8a7c66;font-size:14px}
+.vb:not(.main):hover{background:rgba(58,49,40,.06)}
+.vb svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vb.main{background:#3a3128;color:#f3ead8;font-weight:500;padding:0 16px;box-shadow:0 2px 6px rgba(40,25,10,.3)}
+.vb:active{transform:scale(.96)}
+#vReplay{position:absolute;right:calc(50% - var(--vw,0px) / 2 + 12px);bottom:calc(50% - var(--vh,0px) / 2 + 12px);width:46px;height:46px;border-radius:50%;background:rgba(58,49,40,.8);color:#f3ead8;opacity:0;transition:opacity .3s;pointer-events:none}
+#vReplay.show{opacity:1;pointer-events:auto}
+#vReplay svg{width:18px;height:18px;fill:currentColor;margin-left:3px}
+.zoom{position:fixed;z-index:25;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(60,40,20,.3)) drop-shadow(0 14px 20px rgba(60,40,20,.2))}
+#toast{position:fixed;left:50%;bottom:calc(178px + env(safe-area-inset-bottom));z-index:40;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-radius:22px;background:#3a3128;color:#f3ead8;font:500 14px Fraunces,serif;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:opacity .25s,transform .3s var(--ease);max-width:calc(100vw - 32px)}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+#toast button{font:600 14px Fraunces,serif;color:#f0b49f;padding:4px 6px}
+.side #toast{bottom:40px}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+#top #mute{opacity:.7}
+#mute svg{width:22px;height:22px}
+/* nib sizes: a small card that rises from the button */
+#sizes{position:fixed;z-index:35;display:flex;align-items:center;gap:2px;padding:6px 8px;border-radius:14px;background:#3a2a1e;
+  box-shadow:0 10px 26px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,220,180,.2);animation:rise .22s var(--ease)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+.szb{position:relative;width:46px;height:46px;display:grid;place-items:center;border-radius:10px}
+.szb i{display:block;border-radius:50%;background:var(--c);box-shadow:0 0 0 1.5px rgba(255,240,220,.18)}
+.szb.on{background:rgba(255,235,200,.14);box-shadow:inset 0 0 0 1.5px rgba(241,228,204,.7)}
+#sizeBtn circle{fill:currentColor;stroke:none}
+#topL{display:flex;gap:2px}
+#top #setBtn{opacity:.7}
+#setBtn svg{width:22px;height:22px}
+.side .acts{justify-content:space-between;gap:0}
+.side .act{width:40px}
+/* the pad's settings: a card of the same paper as the sketchbook */
+#prefs{position:fixed;inset:0;z-index:22;display:grid;place-items:center;padding:16px;background:rgba(12,18,16,.55);animation:fade .2s}
+@keyframes fade{from{opacity:0}}
+.pcard{position:relative;width:min(440px,100%);max-height:100%;overflow:auto;border-radius:10px;color:#3a3128;background:#efe6d2;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:open .3s var(--ease)}
+.pcard .ohead{position:sticky;top:0;background:#efe6d2;z-index:1}
+.pbody{padding:6px 18px 22px}
+.pbody h3{font:600 13px Fraunces,serif;letter-spacing:.06em;text-transform:uppercase;color:#8a7c66;margin:18px 0 10px}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:6px;font:400 13px Fraunces,serif;color:#5a4e3e;min-width:56px}
+.opt i{width:52px;height:66px;border-radius:3px;background-color:var(--c);box-shadow:0 1px 2px rgba(60,40,20,.3),0 0 0 1px rgba(60,40,20,.12);transition:transform .2s var(--spring)}
+.opt.on i{box-shadow:0 0 0 2px #efe6d2,0 0 0 4px #3a3128}
+.opt.on{color:#3a3128;font-weight:600}
+.opt:active i{transform:scale(.94)}
+.opts.txt .opt{min-width:0;flex-direction:row;padding:9px 14px;border-radius:20px;box-shadow:inset 0 0 0 1px rgba(60,40,20,.25);font-size:14px}
+.opts.txt .opt.on{background:#3a3128;color:#f3ead8;box-shadow:none}
+.r-lined{background-image:linear-gradient(90deg,transparent 7px,rgba(200,80,70,.4) 7px 8px,transparent 8px),repeating-linear-gradient(transparent 0 7px,rgba(70,110,150,.4) 7px 8px);background-position:0 0,0 14px}
+.r-grid{background-image:repeating-linear-gradient(transparent 0 7px,rgba(70,110,150,.4) 7px 8px),repeating-linear-gradient(90deg,transparent 0 7px,rgba(70,110,150,.4) 7px 8px)}
+.r-dots{background-image:radial-gradient(circle,rgba(60,80,100,.55) 1px,transparent 1.3px);background-size:8px 8px}
+.pnote{font:italic 400 13px/1.4 Fraunces,serif;color:#8a7c66;margin-top:10px}
+.tog{display:flex;align-items:center;gap:12px;min-height:40px;font:400 16px Fraunces,serif;cursor:pointer}
+.tog input{appearance:none;-webkit-appearance:none;width:40px;height:24px;border-radius:12px;background:#cdbfa5;position:relative;transition:background .2s;cursor:pointer;flex:none}
+.tog input::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fbf6ea;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .2s var(--spring)}
+.tog input:checked{background:#3a3128}
+.tog input:checked::after{transform:translateX(16px)}
+.tog input:focus-visible{outline:2px solid #3a3128;outline-offset:2px}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Squiggle","item":"https://suipce.com/games/Arcade/Doodling/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Doodling/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Doodling/preview.png"></head>
+<body>
+<div id="desk"></div>
+<div id="blotter"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></div>
+<main id="app">
+  <div id="top"><span id="topL"><button class="act" id="mute" aria-label="Sound off"><svg viewBox="0 0 24 24"></svg></button><button class="act" id="setBtn" aria-label="Paper and sheet settings" aria-haspopup="dialog"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 13.5h8M8 17h5"/></svg></button></span></div>
+  <section id="stage">
+    <div id="pad">
+      <div class="board"></div>
+      <div class="edges"></div>
+      <div class="sheet" id="sheet" role="img" aria-label="Today's sheet">
+        <canvas id="cPaper"></canvas><canvas id="cDots"></canvas><canvas id="cInk"></canvas><canvas id="cLive"></canvas>
+      </div>
+      <div class="glue"></div>
+      <button id="curl" aria-label="Tear off this sheet and file it in the sketchbook"><svg></svg></button>
+    </div>
+  </section>
+  <div id="col">
+    <aside id="tray" aria-label="Pens and inks">
+      <div class="acts">
+        <button class="act" id="sizeBtn" aria-haspopup="true" aria-expanded="false" aria-label="Nib size"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/></svg></button>
+        <button class="act" id="undo" aria-label="Undo" disabled><svg viewBox="0 0 24 24"><path d="M8.6 5.2C7 7 5.6 8.4 4.2 9.9c1.6 1.4 3 2.9 4.6 4.6"/><path d="M4.5 10.1c3.4-.3 6.8-.6 9.7.3 3.6 1.1 5.2 4.4 3.9 7.3-.9 2-3 3-5.6 3.1"/></svg></button>
+        <button class="act" id="redo" aria-label="Redo" disabled><svg viewBox="0 0 24 24"><path d="M15.4 5.2c1.6 1.8 3 3.2 4.4 4.7-1.6 1.4-3 2.9-4.6 4.6"/><path d="M19.5 10.1c-3.4-.3-6.8-.6-9.7.3-3.6 1.1-5.2 4.4-3.9 7.3.9 2 3 3 5.6 3.1"/></svg></button>
+      </div>
+      <div class="pens" id="pens" role="radiogroup" aria-label="Pens"></div>
+      <div class="inks" id="inks" role="radiogroup" aria-label="Inks"></div>
+    </aside>
+    <div id="top2"></div>
+  </div>
+  <button id="bookBtn" aria-label="Open the sketchbook"><span class="lbl">Sketchbook<b id="bookCount">empty</b></span><span class="sb empty" id="stack"><span class="peek"><canvas id="cStack"></canvas></span><span class="cover"><em id="bookNum"></em></span></span></button>
+</main>
+
+<section id="book" class="overlay" hidden aria-label="Sketchbook">
+  <div class="ohead">
+    <h2>Sketchbook<small id="bookCount2"></small></h2>
+    <button class="ibtn" id="bookClose" aria-label="Close the sketchbook"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  </div>
+  <div id="grid"></div>
+  <p id="bookEmpty" hidden>Sheets you tear off the pad are kept here, with every stroke, so they can draw themselves again.</p>
+</section>
+
+<section id="view" class="overlay" hidden aria-label="A sheet from the sketchbook">
+  <div class="ohead">
+    <button class="ibtn" id="viewBack" aria-label="Back to the sketchbook"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <h2 id="viewTitle" style="font-size:19px"></h2>
+  </div>
+  <div class="vstage"><div id="vSheet"><canvas id="cView"></canvas></div><button id="vReplay" aria-label="Draw it again"><svg viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></svg></button></div>
+  <nav id="vnav">
+    <button class="vb main" id="vDraw"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16z"/><path d="M14 7l3 3"/></svg>Draw on it</button>
+    <button class="vb" id="vSave"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Save image</button>
+    <button class="vb" id="vSend"><svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-3-6z"/></svg>Send the squiggle</button>
+    <button class="vb" id="vRemove"><svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/></svg>Remove</button>
+  </nav>
+</section>
+
+<div id="sizes" role="radiogroup" aria-label="Nib size" hidden></div>
+
+<section id="prefs" role="dialog" aria-modal="true" aria-labelledby="prefsTitle" hidden>
+  <div class="pcard">
+    <div class="ohead"><h2 id="prefsTitle">The pad</h2><button class="ibtn" id="prefsClose" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="pbody">
+      <h3>Paper</h3><div class="opts" id="optPaper" role="radiogroup" aria-label="Paper"></div>
+      <h3>Ruling</h3><div class="opts" id="optRule" role="radiogroup" aria-label="Ruling"></div>
+      <p class="pnote">Changes this sheet and every sheet after it. The ones in the sketchbook keep their own.</p>
+      <h3>Printed at the top</h3>
+      <label class="tog"><input type="checkbox" id="optDate"><span>The date</span></label>
+      <label class="tog"><input type="checkbox" id="optNumber"><span>The sheet's number</span></label>
+      <h3>Date written in</h3><div class="opts txt" id="optLang" role="radiogroup" aria-label="Date language"></div>
+    </div>
+  </div>
+</section>
+
+<div id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastBtn" hidden></button></div>
+
+<script id="core">
+// Squiggle core - DOM-free: the day, the seeded squiggle and its dots, the pen model, the
+// stroke codec, and the pad and sketchbook the sheets move between. test/doodling.mjs runs it.
+var SQ = (function () {
+    'use strict';
+    var W = 1000, H = 1500;                        // a sheet in page units: 1000 x 1500, or turned
+    var EPOCH = Date.UTC(2026, 9, 1);              // No. 1 is Thursday 1 October 2026
+    var DAY = 86400000;
+
+    function rng(seed) {                           // mulberry32
+        var s = seed >>> 0;
+        return function () {
+            s = (s + 0x6D2B79F5) >>> 0;
+            var t = Math.imul(s ^ (s >>> 15), 1 | s);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+    function hash(str) {
+        var h = 2166136261 >>> 0;
+        for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+        return h;
+    }
+
+    // The day number everyone on the same calendar date shares: local date, not UTC instant.
+    function dayNumber(date) {
+        var d = date || new Date();
+        return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - EPOCH) / DAY) + 1;
+    }
+    function dayDate(n) { var d = new Date(EPOCH + (n - 1) * DAY); return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+    function daySeed(n) { return hash('squiggle/day/' + n); }
+
+    // Short codes for extra sheets, so a squiggle can be sent as a link. Six letters of five bits:
+    // extra sheets draw their seeds below 2^30 so every one of them has a code.
+    var ALPHA = 'abcdefghijkmnpqrstuvwxyz23456789';
+    function codeFor(seed) { var s = ''; seed >>>= 0; for (var i = 0; i < 6; i++) { s += ALPHA[seed % 32]; seed = Math.floor(seed / 32); } return s; }
+    function seedFor(code) {
+        if (!/^[a-km-np-z2-9]{6}$/.test(code || '')) return null;
+        var v = 0; for (var i = 5; i >= 0; i--) v = v * 32 + ALPHA.indexOf(code[i]);
+        return v >>> 0;
+    }
+
+    // ---- the squiggle -------------------------------------------------------------------
+    // A turtle walks with a curvature that drifts as a sum of slow sines, so the line turns,
+    // loops and straightens the way a hand does. Candidates that cross themselves too often,
+    // barely bend, or bunch into a knot are thrown away; the survivor is scaled into the
+    // middle of the sheet. The same seed always gives the same line.
+    var BOX_TALL = {x0: 190, y0: 430, x1: 810, y1: 1110};  // portrait sheet, 1000 x 1500
+    var BOX_WIDE = {x0: 380, y0: 260, x1: 1120, y1: 850};  // landscape sheet, 1500 x 1000
+    function sheetSize(wide) { return wide ? {w: H, h: W} : {w: W, h: H}; }
+
+    function segIntersect(a, b, c, d) {
+        var d1 = (d[0] - c[0]) * (a[1] - c[1]) - (d[1] - c[1]) * (a[0] - c[0]);
+        var d2 = (d[0] - c[0]) * (b[1] - c[1]) - (d[1] - c[1]) * (b[0] - c[0]);
+        var d3 = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+        var d4 = (b[0] - a[0]) * (d[1] - a[1]) - (b[1] - a[1]) * (d[0] - a[0]);
+        return d1 * d2 < 0 && d3 * d4 < 0;
+    }
+    function crossings(p) {
+        var n = 0, step = 3, q = [];
+        for (var i = 0; i < p.length; i += step) q.push(p[i]);
+        for (var a = 0; a < q.length - 1; a++)
+            for (var b = a + 2; b < q.length - 1; b++)
+                if (segIntersect(q[a], q[a + 1], q[b], q[b + 1])) n++;
+        return n;
+    }
+    function turning(p) {
+        var t = 0;
+        for (var i = 1; i < p.length - 1; i++) {
+            var a1 = Math.atan2(p[i][1] - p[i - 1][1], p[i][0] - p[i - 1][0]);
+            var a2 = Math.atan2(p[i + 1][1] - p[i][1], p[i + 1][0] - p[i][0]);
+            var d = a2 - a1; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI;
+            t += Math.abs(d);
+        }
+        return t;
+    }
+    function bbox(p) {
+        var b = {x0: 1e9, y0: 1e9, x1: -1e9, y1: -1e9};
+        for (var i = 0; i < p.length; i++) {
+            if (p[i][0] < b.x0) b.x0 = p[i][0]; if (p[i][0] > b.x1) b.x1 = p[i][0];
+            if (p[i][1] < b.y0) b.y0 = p[i][1]; if (p[i][1] > b.y1) b.y1 = p[i][1];
+        }
+        return b;
+    }
+    function walk(r) {
+        var n = 150 + Math.floor(r() * 110), step = 4;
+        var waves = [], k = 1 + Math.floor(r() * 3);
+        var bias = (r() - 0.5) * 0.02;
+        for (var i = 0; i < k; i++) waves.push({a: (0.012 +

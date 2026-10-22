@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Arcade/Obstacle-Dodge/">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Play Obstacle Dodge Online - Free Arcade Game | AIGameHub</title>
+<meta name="description" content="Play Obstacle Dodge online for free — an arcade game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="theme-color" content="#F0E9D8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F0E9D8;--ink:#1B1A17;--red:#E04A26;--yel:#F0A400;--blue:#2A50A8;--pink:#E8168B;--mix:#3B2236;--soft:#5E574C}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--paper);color:var(--ink);font-family:Jost,Futura,"Century Gothic","Avenir Next",sans-serif;overflow:hidden;
+ -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none;overscroll-behavior:none}
+body{background-image:var(--grain)}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.printed{-webkit-mask-image:var(--speck);mask-image:var(--speck)}
+.num{font-variant-numeric:tabular-nums}
+/* the slug: seconds survived and the colour bar of stages */
+.slug.quiet .time{opacity:0}
+.slug .time{transition:opacity .3s ease,color .2s ease}
+.slug{position:fixed;display:flex;align-items:flex-end;gap:20px;pointer-events:none;opacity:1;transition:opacity .4s ease}
+.time{transition:color .2s ease;font-weight:500;line-height:.8;letter-spacing:-.035em;white-space:nowrap;min-width:2.6ch}
+.time.hot{color:var(--pink);transition:none}
+.time small{font-size:.5em;font-weight:400;letter-spacing:0}
+.bar{display:flex;gap:7px;position:relative;flex:1;height:14px;margin-bottom:.12em}
+.bar span{position:relative;overflow:hidden;transform-origin:50% 100%}
+.bar span.beat{animation:beat .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes beat{0%{transform:scaleY(1)}25%{transform:scaleY(2.1)}100%{transform:scaleY(1)}}
+.bar span::before{content:'';position:absolute;inset:0;background:var(--c);opacity:.2}
+.bar span.ink::before{opacity:.3}
+.bar span.mix::before{opacity:.34;background:linear-gradient(90deg,var(--red),var(--blue),var(--yel),var(--ink))}
+.bar span i{position:absolute;inset:0;background:var(--c);opacity:.92;transform-origin:left;transform:scaleX(var(--f,0))}
+.bar .tick{position:absolute;top:-7px;bottom:-7px;width:2px;margin-left:-1px;background:var(--pink);box-shadow:0 0 0 2px var(--paper);display:none}
+.bar .tick.on{display:block}
+/* the thumb pad below the perforation, phones only */
+.pad{position:fixed;left:0;right:0;bottom:0;display:none;pointer-events:none}
+.perf{position:absolute;left:0;right:0;top:0;height:0;border-top:3px dotted rgba(27,26,23,.42)}
+.ring{position:fixed;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;border:2px solid var(--pink);opacity:0;pointer-events:none;transition:opacity .12s ease}
+.ring.on{opacity:.5}
+.ghost{position:absolute;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;border:2px solid var(--pink);opacity:0;transition:opacity .4s ease}
+.ghost.on{opacity:.45}
+.drag{position:absolute;left:0;right:0;text-align:center;font-size:18px;font-weight:500;letter-spacing:.06em;color:var(--ink);opacity:0;transition:opacity .4s ease}
+.drag.on{opacity:1}
+/* overlays sit exactly on the trim */
+.over{position:fixed;display:flex;flex-direction:column;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
+.over.on{opacity:1;visibility:visible;transition:opacity .35s ease,visibility 0s}
+.over .act{pointer-events:auto}
+.wm{font-weight:500;letter-spacing:-.045em;line-height:.86;color:var(--ink)}
+.wm b{color:var(--red);font-weight:500}
+.hint{font-size:17px;letter-spacing:.04em;color:var(--soft);margin-top:18px}
+.hint .k{display:inline-block;border:1.5px solid currentColor;border-radius:5px;padding:0 7px;margin:0 2px;font-size:16px;line-height:24px;vertical-align:1px}
+#title{justify-content:center;padding:0 7%}
+#poster{justify-content:flex-start;align-items:flex-start;padding:5%}
+#poster .label{background:var(--paper);padding:5% 6% 6%;display:flex;flex-direction:column;max-width:100%;border:1px solid rgba(27,26,23,.22);box-shadow:3px 4px 0 rgba(27,26,23,.08);transform:rotate(-1.2deg);transform-origin:0 0}
+#poster .colo{display:block;font-size:.72em;letter-spacing:.12em;color:var(--soft);margin-top:6px;text-transform:uppercase}
+#poster .big{font-weight:500;letter-spacing:-.05em;line-height:.8;transform:translateY(14px);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+#poster.on .big{transform:none}
+#poster .big small{font-size:.42em;letter-spacing:-.01em;font-weight:400}
+#poster .meta{font-size:calc(19px * var(--u,1));margin-top:18px;color:var(--ink);letter-spacing:.02em}
+#poster .meta b{color:var(--pink);font-weight:700;font-size:1.35em;letter-spacing:-.01em}
+.btns{display:flex;gap:12px;margin-top:22px}
+.btn{font:inherit;font-size:calc(18px * var(--u,1));font-weight:500;letter-spacing:.02em;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:calc(12px * var(--u,1)) calc(26px * var(--u,1));min-height:52px;cursor:pointer;border-radius:0;transition:transform .12s ease,background-color .12s ease,color .12s ease}
+.btn.main{background:var(--ink);color:var(--paper)}
+.btn:active{transform:translateY(2px)}
+.btn:focus-visible,.mute:focus-visible{outline:3px solid var(--pink);outline-offset:3px}
+@media (hover:hover){.btn:hover{background:var(--pink);border-color:var(--pink);color:var(--paper)}}
+#pause{justify-content:center;align-items:center;text-align:center}
+#pause .wm{font-size:64px}
+.mute{position:fixed;width:44px;height:44px;border:1.5px solid var(--ink);border-radius:50%;background:var(--paper);display:grid;place-items:center;cursor:pointer;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}
+.mute.on{opacity:1;visibility:visible;transition:opacity .3s ease,visibility 0s}
+.mute svg{width:20px;height:20px}
+.mute .x{display:none}.mute.off .x{display:block}.mute.off .w{display:none}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (prefers-reduced-motion:reduce){*{transition-duration:0s!important}}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"point &amp; line","item":"https://suipce.com/games/Arcade/Obstacle-Dodge/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Arcade/Obstacle-Dodge/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Arcade/Obstacle-Dodge/preview.png"></head>
+<body>
+<canvas id="c" role="img" aria-label="The press sheet you play on"></canvas>
+<div class="pad" id="pad"><div class="perf"></div><div class="ghost" id="ghost"></div><p class="drag" id="drag">drag here</p></div>
+<div class="ring" id="ring"></div>
+<div class="slug" id="slug">
+ <div class="time num printed" id="time">0<small>.0</small></div>
+ <div class="bar" id="bar" aria-hidden="true">
+  <span style="--c:var(--red)"><i></i></span><span style="--c:var(--blue)"><i></i></span><span style="--c:var(--yel)"><i></i></span><span class="ink" style="--c:var(--ink)"><i></i></span><span class="mix" style="--c:var(--mix)"><i></i></span>
+  <b class="tick" id="tick"></b>
+ </div>
+</div>
+<div class="over on" id="title">
+ <h1 class="wm printed" id="wm">point<br><b>&amp;</b> line</h1>
+ <p class="hint" id="hint"></p>
+</div>
+<div class="over" id="poster" aria-live="polite">
+ <div class="label">
+ <div class="big num printed" id="pTime">0<small>.0</small></div>
+ <p class="meta" id="pMeta"></p>
+ <div class="btns"><button class="btn main act" id="again">again</button><button class="btn act" id="share">share</button></div>
+ </div>
+</div>
+<div class="over" id="pause"><div class="wm printed">paused</div><p class="hint" id="pHint">touch to go on</p></div>
+<button class="mute" id="mute" aria-label="Sound on or off"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 7.5h3.2L11 4v12l-4.8-3.5H3z" fill="#1B1A17"/><path class="w" d="M13.6 6.6q2.6 3.4 0 6.8" stroke="#1B1A17" stroke-width="1.7" fill="none" stroke-linecap="round"/><path class="x" d="M13.5 7.5l4 5m0-5l-4 5" stroke="#1B1A17" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+<p class="sr" id="live" aria-live="polite"></p>
+<script id="core">
+// point & line - the rules. No DOM: the page draws what this decides, and test/obstacle_dodge.mjs plays it.
+var PointCore = (function () {
+    'use strict';
+    var R_HIT = 5.5;        // the point's body; the printed mark is larger, the ink in its centre is what counts
+    var GRAZE = 13;         // a pass this close to a shape's edge, without touching, is a graze
+    var MAXV = 1100;        // the point's top speed, units/s: a mouse can fling it, collisions are still swept
+    var BLEED = 34;         // the strip outside the trim where shapes wait, units
+    var FIXED = 1 / 240;    // the rules run at a fixed step whatever the frame rate
+    var BAR = 13;           // thickness of a swept line
+    // one swatch per stage: the ink that joins at its start
+    var STAGES = [
+        {t: 0, ink: 'red'},
+        {t: 10, ink: 'blue'},
+        {t: 20, ink: 'yel'},
+        {t: 30, ink: 'ink'},
+        {t: 45, ink: 'mix'}
+    ];
+    var END = 60;           // where the colour bar ends; play goes on getting harder after it
+
+    function rnd(s) {
+        var t = s.rs = (s.rs + 0x6D2B79F5) | 0;
+        t = Math.imul(t ^ (t >>> 15), 1 | t);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    }
+    function range(s, a, b) { return a + (b - a) * rnd(s); }
+
+    function stageAt(t) { var i = 0; while (i + 1 < STAGES.length && t >= STAGES[i + 1].t) i++; return i; }
+    // how long a shape sits in the bleed before it may cross: never less than half a second
+    function warnAt(t) { return Math.max(0.55, 1.0 - t / 120); }
+    function aimAt(t) { return Math.max(0.7, 1.15 - t / 130); }
+    // the busier the clock, the busier the sheet; a bigger sheet holds proportionally more
+    function pace(s) { return (1 + s.t / 38) * Math.pow(s.W * s.H / (400 * 640), 0.7); }
+
+    function create(opt) {
+        opt = opt || {};
+        var W = opt.W || 400, H = opt.H || 640;
+        var s = {
+            W: W, H: H, seed: (opt.seed >>> 0) || 1, rs: (opt.seed >>> 0) || 1,
+            t: 0, acc: 0, alive: true, px: W / 2, py: H * 0.62, tx: W / 2, ty: H * 0.62,
+            ents: [], nextId: 1, grazes: 0, stage: 0, chain: 0, lastGraze: -9,
+            due: {square: 0.5, circle: STAGES[1].t + 0.4, triangle: STAGES[2].t + 0.4, line: STAGES[3].t + 0.6},
+            first: {square: true}, death: null,
+            ghost: !!opt.ghost   // a ghost run records every hit and plays on: for tests that need to see a whole run
+        };
+        return s;
+    }
+
+    // ---------------------------------------------------------------- geometry, shared with the page
+    function poly(e) {
+        var c = Math.cos(e.ang), n = Math.sin(e.ang), pts, i, out = [];
+        if (e.kind === 'square') { var h = e.size / 2; pts = [[-h, -h], [h, -h], [h, h], [-h, h]]; }
+        else pts = [[e.size, 0], [-e.size * 0.6, -e.size * 0.62], [-e.size * 0.6, e.size * 0.62]];
+        for (i = 0; i < pts.length; i++) out.push([e.x + pts[i][0] * c - pts[i][1] * n, e.y + pts[i][0] * n + pts[i][1] * c]);
+        return out;
+    }
+    // a line is two bars either side of its gap; [x, y, w, h]
+    function bars(e, s) {
+        var out = [], g0 = e.gap - e.gw / 2, g1 = e.gap + e.gw / 2, len = e.horiz ? s.W : s.H, ext = BLEED + 4;
+        if (e.horiz) { out.push([-ext, e.y - BAR / 2, g0 + ext, BAR]); out.push([g1, e.y - BAR / 2, len + ext - g1, BAR]); }
+        else { out.push([e.x - BAR / 2, -ext, BAR, g0 + ext]); out.push([e.x - BAR / 2, g1, BAR, len + ext - g1]); }
+        return out;
+    }
+    function segDist(px, py, ax, ay, bx, by) {
+        var dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy, u = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0;
+        u = u < 0 ? 0 : u > 1 ? 1 : u;
+        var x = ax + dx * u - px, y = ay + dy * u - py;
+        return Math.sqrt(x * x + y * y);
+    }
+    function rectDist(px, py, r) {
+        var dx = Math.max(r[0] - px, 0, px - (r[0] + r[2])), dy = Math.max(r[1] - py, 0, py - (r[1] + r[3]));
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+    // distance from a point to the shape's ink; 0 inside it
+    function dist(e, px, py, s) {
+        if (e.kind === 'circle') return Math.max(0, Math.hypot(px - e.x, py - e.y) - e.r);
+        if (e.kind === 'line') { var b = bars(e, s); return Math.min(rectDist(px, py, b[0]), rectDist(px, py, b[1])); }
+        var p = poly(e), inside = true, d = 1e9, i, j, cr, sign = 0;
+        for (i = 0; i < p.length; i++) {
+            j = (i + 1) % p.length;
+            cr = (p[j][0] - p[i][0]) * (py - p[i][1]) - (p[j][1] - p[i][1]) * (px - p[i][0]);
+            if (cr !== 0) { if (sign === 0) sign = cr > 0 ? 1 : -1; else if ((cr > 0 ? 1 : -1) !== sign) inside = false; }
+            d = Math.min(d, segDist(px, py, p[i][0], p[i][1], p[j][0], p[j][1]));
+        }
+        return inside ? 0 : d;
+    }
+    // how far a shape reaches from its centre, for placing it in the bleed and letting it go
+    function reach(e) {
+        if (e.kind === 'circle') return e.r;
+        if (e.kind === 'square') return e.size * 0.7072;
+        if (e.kind === 'triangle') return e.size;
+        return BAR / 2;
+    }
+    function inTrim(e, s) {
+        var r = reach(e);
+        return e.x + r > 0 && e.x - r < s.W && e.y + r > 0 && e.y - r < s.H;
+    }
+    function hazardous(e) { return e.phase !== 'wait'; }
+
+    // ---------------------------------------------------------------- spawning
+    // edges: 0 top, 1 right, 2 bottom, 3 left; the inward normal of each
+    var NORM = [[0, 1], [-1, 0], [0, -1], [1, 0]];
+    function onEdge(s, edge, u, r) {
+        // a point on the edge, pushed out so the shape's inner side just touches the dieline
+        if (edge === 0) return [u * s.W, -r];
+        if (edge === 1) return [s.W + r, u * s.H];
+        if (edge === 2) return [u * s.W, s.H + r];
+        return [-r, u * s.H];
+    }
+    function add(s, e, ev) {
+        e.id = s.nextId++; e.born = s.t; e.warn = warnAt(s.t); e.phase = 'wait';
+        s.ents.push(e);
+        ev.push({type: 'wait', kind: e.kind, id: e.id, t: s.t});
+        return e;
+    }
+    function spawnSquare(s, ev) {
+        var edge = Math.floor(rnd(s) * 4), size = range(s, 36, 62), u = range(s, 0.12, 0.88);
+        var e = {kind: 'square', size: size, ang: range(s, -0.5, 0.5), edge: edge};
+        var p = onEdge(s, edge, u, size * 0.7072); e.x = p[0]; e.y = p[1];
+        var a = Math.atan2(NORM[edge][1], NORM[edge][0]) + range(s, -0.42, 0.42);
+        var v = Math.min(260, range(s, 95, 150) * (1 + s.t / 70));
+        e.vx = Math.cos(a) * v; e.vy = Math.sin(a) * v;
+        return add(s, e, ev);
+    }
+    function spawnCircle(s, ev) {
+        var edge = Math.floor(rnd(s) * 4), r = range(s, 14, 28), u = range(s, 0.15, 0.85);
+        var e = {kind: 'circle', r: r, edge: edge, bounces: 2 + Math.floor(rnd(s) * 3), inside: false, ang: 0};
+        var p = onEdge(s, edge, u, r); e.x = p[0]; e.y = p[1];
+        var a = Math.atan2(NORM[edge][1], NORM[edge][0]) + range(s, -0.75, 0.75);
+        var v = Math.min(250, range(s, 115, 165) * (1 + s.t / 90));
+        e.vx = Math.cos(a) * v; e.vy = Math.sin(a) * v;
+        return add(s, e, ev);
+    }
+    function spawnTriangle(s, ev) {
+        var edge = Math.floor(rnd(s) * 4), u = range(s, 0.15, 0.85), size = 26;
+        var e = {kind: 'triangle', size: size, edge: edge, vx: 0, vy: 0};
+        var p = onEdge(s, edge, u, size); e.x = p[0]; e.y = p[1];
+        e.ang = Math.atan2(NORM[edge][1], NORM[edge][0]);
+        e.fromX = e.x; e.fromY = e.y;
+        e.toX = e.x + NORM[edge][0] * (size + 34); e.toY = e.y + NORM[edge][1] * (size + 34);
+        e.aim = aimAt(s.t);
+        return add(s, e, ev);
+    }
+    function spawnLine(s, ev) {
+        var edge = Math.floor(rnd(s) * 4), horiz = edge === 0 || edge === 2, len = horiz ? s.W : s.H;
+        var gw = Math.max(54, 84 - (s.t - STAGES[3].t) * 0.6), gap = range(s, gw / 2 + 24, len - gw / 2 - 24);
+        var e = {kind: 'line', horiz: horiz, gw: gw, gap: gap, edge: edge, ang: 0};
+        var v = Math.min(200, range(s, 105, 135) * (1 + (s.t - STAGES[3].t) / 80));
+        if (horiz) { e.x = s.W / 2; e.y = edge === 0 ? -BAR / 2 : s.H + BAR / 2; e.vx = 0; e.vy = edge === 0 ? v : -v; }
+        else { e.y = s.H / 2; e.x = edge === 3 ? -BAR / 2 : s.W + BAR / 2; e.vy = 0; e.vx = edge === 3 ? v : -v; }
+        return add(s, e, ev);
+    }
+    function count(s, kind) { var n = 0; for (var i = 0; i < s.ents.length; i++) if (s.ents[i].kind === kind) n++; return n; }
+    function direct(s, ev) {
+        var k = pace(s), st = s.stage;
+        if (s.t >= s.due.square) {
+            spawnSquare(s, ev);
+            var gapSq = s.first.square ? 0.9 : 1.15 / k * (st >= 3 ? 1.45 : st >= 1 ? 1.3 : 1);
+            s.first.square = false;
+            s.due.square = s.t + gapSq * range(s, 0.75, 1.25);
+        }
+        if (st >= 1 && s.t >= s.due.circle) {
+            if (count(s, 'circle') < 2 + st) spawnCircle(s, ev);
+            s.due.circle = s.t + 2.5 / k * range(s, 0.75, 1.25);
+        }
+        if (st >= 2 && s.t >= s.due.triangle) {
+            spawnTriangle(s, ev);
+            // one at a time until the last stage: spaced by a triangle's whole life, never by when the last
+            // one left - that depends on where it aimed, and the seed alone must decide what comes
+            var life = warnAt(s.t) + 0.45 + aimAt(s.t) + 0.24 + 1.0;
+            s.due.triangle = s.t + Math.max(st >= 4 ? 0 : life, 3.4 / k * range(s, 0.8, 1.2));
+        }
+        if (st >= 3 && s.t >= s.due.line) {
+            if (count(s, 'line') < (st >= 4 ? 2 : 1)) spawnLine(s, ev);
+            s.due.line = s.t + 5.8 / Math.sqrt(k) * range(s, 0.85, 1.15);
+        }
+    }
+
+    // ---------------------------------------------------------------- one fixed step
+    function moveShape(s, e, dt, ev) {
+        var age = s.t - e.born;
+        if (e.phase === 'wait') {
+            if (age < e.warn) return;
+            e.phase = e.kind === 'triangle' ? 'glide' : 'live';
+            ev.push({type: 'enter', kind: e.kind, id: e.id, t: s.t});
+        }
+        if (e.kind === 'triangle') {
+            var a0 = age - e.warn;
+            if (e.phase === 'glide') {
+                var u = Math.min(1, a0 / 0.45), q = 1 - Math.pow(1 - u, 3);
+                e.x = e.fromX + (e.toX - e.fromX) * q; e.y = e.fromY + (e.toY - e.fromY) * q;
+                if (u >= 1) { e.phase = 'aim'; e.t1 = s.t; ev.push({type: 'aim', kind: e.kind, id: e.id, t: s.t}); }
+                return;
+            }
+            if (e.phase === 'aim') {
+                var want = Math.atan2(s.py - e.y, s.px - e.x), d = want - e.ang;
+                while (d > Math.PI) d -= 2 * Math.PI;
+                while (d < -Math.PI) d += 2 * Math.PI;
+                var turn = 4.2 * dt;
+                e.ang += d > turn ? turn : d < -turn ? -turn : d;
+                if (s.t - e.t1 >= e.aim) { e.phase = 'lock'; e.t2 = s.t; ev.push({type: 'lock', kind: e.kind, id: e.id, t: s.t}); }
+                return;
+            }
+            if (e.phase === 'lock') {
+                if (s.t - e.t2 >= 0.24) {
+                    e.phase = 'dart'; e.vx = Math.cos(e.ang) * 560; e.vy = Math.sin(e.ang) * 560;
+                    ev.push({type: 'dart', kind: e.kind, id: e.id, t: s.t});
+                }
+                return;
+            }
+        }
+        e.x += e.vx * dt; e.y += e.vy * dt;
+        if (e.kind === 'circle') {
+            if (!e.inside) {
+                if (e.x - e.r >= 0 && e.x + e.r <= s.W && e.y - e.r >= 0 && e.y + e.r <= s.H) e.inside = true;
+            } else if (e.bounces > 0) {
+                var hit = false;
+                if (e.x - e.r < 0 && e.vx < 0) { e.vx = -e.vx; e.x = e.r; hit = true; }
+                if (e.x + e.r > s.W && e.vx > 0) { e.vx = -e.vx; e.x = s.W - e.r; hit = true; }
+                if (e.y - e.r < 0 && e.vy < 0) { e.vy = -e.vy; e.y = e.r; hit = true; }
+                if (e.y + e.r > s.H && e.vy > 0) { e.vy = -e.vy; e.y = s.H - e.r; hit = true; }
+                if (hit) { e.bounces--; ev.push({type: 'bounce', kind: 'circle', id: e.id, t: s.t, x: e.x, y: e.y}); }
+            }
+        }
+    }
+    function gone(s, e) {
+        if (e.phase === 'wait' || e.phase === 'glide' || e.phase === 'aim' || e.phase === 'lock') return false;
+        var r = reach(e) + BLEED + 8;
+        if (e.kind === 'line') return e.horiz ? (e.y < -r || e.y > s.H + r) : (e.x < -r || e.x > s.W + r);
+        if (e.kind === 'circle' && e.inside && e.bounces > 0) return false;
+        return e.x < -r || e.x > s.W + r || e.y < -r || e.y > s.H + r;
+    }
+    function tick(s, dt, ev) {
+        // the point first, so a shape is judged against where the player put it this step
+        var dx = s.tx - s.px, dy = s.ty - s.py, d = Math.hypot(dx, dy), m = MAXV * dt;
+        if (d > m) { dx *= m / d; dy *= m / d; }
+        s.px = Math.min(s.W - R_HIT, Math.max(R_HIT, s.px + dx));
+        s.py = Math.min(s.H - R_HIT, Math.max(R_HIT, s.py + dy));
+        s.t += dt;
+        var st = stageAt(s.t);
+        if (st !== s.stage) { s.stage = st; ev.push({type: 'stage', stage: st, ink: STAGES[st].ink, t: s.t}); }
+        direct(s, ev);
+        for (var i = s.ents.length - 1; i >= 0; i--) {
+            var e = s.ents[i];
+            moveShape(s, e, dt, ev);
+            if (gone(s, e)) { s.ents.splice(i, 1); continue; }
+            if (!hazardous(e) || !s.alive) continue;   // after a hit the step still finishes, so every shape keeps time
+            var dd = dist(e, s.px, s.py, s);
+            if (dd < R_HIT) {
+                ev.push({type: 'hit', kind: e.kind, id: e.id, t: s.t, x: s.px, y: s.py});
+                if (s.ghost) continue;
+                s.alive = false;
+                s.death = {t: s.t, id: e.id, kind: e.kind, x: s.px, y: s.py};
+                continue;
+            }
+            if (dd < R_HIT + GRAZE) {
+                if (!e.grazed) {
+                    e.grazed = true; s.grazes++;
+                    s.chain = s.t - s.lastGraze < 2 ? s.chain + 1 : 0; s.lastGraze = s.t;
+                    ev.push({type: 'graze', kind: e.kind, id: e.id, t: s.t, chain: s.chain, x: s.px, y: s.py});
+                }
+            }
+        }
+    }
+    // advance by a frame's worth of time towards the target; returns what happened
+    function step(s, dt, tx, ty) {
+        var ev = [];
+        if (!s.alive) return ev;
+        if (tx !== undefined) { s.tx = tx; s.ty = ty; }
+        s.acc += Math.min(dt, 0.25);
+        while (s.acc >= FIXED && s.alive) { s.acc -= FIXED; tick(s, FIXED, ev); }
+        return ev;
+    }
+
+    return {
+        create: create, step: step, dist: dist, poly: poly, bars: bars, reach: reach, inTrim: inTrim,
+        stageAt: stageAt, warnAt: warnAt, STAGES: STAGES, END: END, R_HIT: R_HIT, GRAZE: GRAZE,
+        BLEED: BLEED, BAR: BAR, FIXED: FIXED, MAXV: MAXV, hazardous: hazardous
+    };
+})();
+</script>
+<script>
+(function () {
+    'use strict';
+    var K = PointCore, B = K.BLEED;
+    var C = {paper: '#F0E9D8', ink: '#1B1A17', red: '#E04A26', yel: '#F0A400', blue: '#2A50A8', pink: '#E8168B'};
+    var INK_OF = {square: 'red', circle: 'blue', triangle: 'yel', line: 'ink'};
+    var STORE = 'pointline.v1';
+    var reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    var $ = function (id) { return document.getElementById(id); };
+
+    // ------------------------------------------------------------ saved progress
+    var save = {best: 0, runs: 0, mute: false, print: null};
+    try { var raw = JSON.parse(localStorage.getItem(STORE) || 'null'); if (raw) for (var k in save) if (k in raw) save[k] = raw[k]; } catch (e) {}
+    function persist() { try { localStorage.setItem(STORE, JSON.stringify(save)); } catch (e) {} }
+
+    // ------------------------------------------------------------ paper and ink, made once
+    function noise(n, fn) {
+        var c = document.createElement('canvas'); c.width = c.height = n;
+        var x = c.getContext('2d'), d = x.createImageData(n, n);
+        for (var i = 0; i < d.data.length; i += 4) fn(d.data, i);
+        x.putImageData(d, 0, 0); return c;
+    }
+    var grain = noise(192, function (a, i) { var v = Math.random(); a[i] = a[i + 1] = a[i + 2] = v < .5 ? 60 : 255; a[i + 3] = v < .5 ? Math.random() * 22 : Math.random() * 26; });
+    var drop = noise(200, function (a, i) { a[i] = 240; a[i + 1] = 233; a[i + 2] = 216; a[i + 3] = Math.random() < .09 ? 110 + Math.random() * 120 : 0; });
+    var bite = noise(90, function (a, i) { a[i] = a[i + 1] = a[i + 2] = 0; a[i + 3] = Math.random() < .45 ? 255 : 0; });
+    var blot = (function () {
+        var s = noise(20, function (a, i) { a[i] = 240; a[i + 1] = 233; a[i + 2] = 216; a[i + 3] = Math.random() * 55; });
+        var c = document.createElement('canvas'); c.width = c.height = 320;
+        var x = c.getContext('2d'); x.filter = 'blur(9px)';
+        for (var dx = -320; dx <= 320; dx += 320) for (var dy = -320; dy <= 320; dy += 320) x.drawImage(s, dx, dy, 320, 320);
+        return c;
+    })();
+    var speck = noise(120, function (a, i) { a[i] = a[i + 1] = a[i + 2] = 0; a[i + 3] = Math.random() < .13 ? 40 : 255; });
+    document.body.style.setProperty('--grain', 'url(' + grain.toDataURL() + ')');
+    document.body.style.setProperty('--speck', 'url(' + speck.toDataURL() + ')');
+
+    // one drum per ink: each is laid down alone, takes its own grain and lands a little off register
+    var PLATES = {
+        yel: {col: C.yel, off: [2, -1.4], seed: [37, 11], gs: 1.0},
+        red: {col: C.red, off: [-1.8, -1.2], seed: [91, 53], gs: 1.5},
+        blue: {col: C.blue, off: [1.4, 2], seed: [13, 77], gs: 1.25},
+        ink: {col: C.ink, off: [0, 0], seed: [61, 29], gs: .9},
+        pink: {col: C.pink, off: [0, 0], seed: [5, 3], gs: 1.1}
+    };
+    var ORDER = ['yel', 'red', 'blue', 'ink', 'pink'];
+
+    var cv = $('c'), g = cv.getContext('2d'), L = null, ctx = g, screens = {};
+    function layout() {
+        var vw = innerWidth, vh = innerHeight, portrait = vh > vw * 1.05, d = Math.min(devicePixelRatio || 1, 2), w, h, x, y;
+        var touchy = matchMedia('(pointer: coarse)').matches;
+        // room round the trim for the bleed and the crop marks: the bleed grows with the sheet's scale
+        var k = 1 + 2 * B / 400;
+        if (portrait) {
+            var padMin = Math.max(touchy ? 160 : 100, vh * (touchy ? 0.2 : 0.11)), top = 28, side = 28;
+            w = (vw - 2 * side) / k; h = Math.min((vh - top - 30 - padMin - 40) - B * w / 400, w * 1.9);
+            if (h < w * 1.15) { w = h / 1.15; }
+            x = (vw - w) / 2; y = top + B * w / 400;
+        } else {
+            h = (vh - 40 - 30 - 92) / k; w = Math.min(vw - 2 * (B * h / 400 + 40), h * 1.62); if (w / h < 1.2) h = w / 1.2;
+            x = (vw - w) / 2; y = 40 + B * h / 400 + Math.max(0, (vh - 40 - 30 - 92 - h * k) / 2);
+        }
+        var s = Math.min(w, h) / 400;
+        L = {vw: vw, vh: vh, portrait: portrait, touchy: touchy, s: s, W: w / s, H: h / s, x: x, y: y, w: w, h: h, d: d};
+        cv.width = Math.round(vw * d); cv.height = Math.round(vh * d);
+        // the drums only cover the sheet and its bleed, and print at no more than 1.5x: grain needs no more
+        L.pd = Math.min(d, 1.5);
+        for (var i = 0; i < ORDER.length; i++) {
+            var p = PLATES[ORDER[i]];
+            p.cv = p.cv || document.createElement('canvas');
+            p.cv.width = Math.ceil((L.W + 2 * B) * s * L.pd); p.cv.height = Math.ceil((L.H + 2 * B) * s * L.pd);
+            p.g = p.cv.getContext('2d');
+            var inv = new DOMMatrix().scale(1 / (s * L.pd));
+            p.drop = p.g.createPattern(drop, 'repeat'); p.drop.setTransform(inv.translate(p.seed[0], p.seed[1]).scale(p.gs));
+            p.bite = p.g.createPattern(bite, 'repeat'); p.bite.setTransform(inv.translate(p.seed[0], p.seed[1]));
+            p.blot = p.g.createPattern(blot, 'repeat'); p.blot.setTransform(inv.translate(p.seed[1] * 3, p.seed[0] * 3).scale(1.8));
+        }
+        screens = {};
+        // the slug, the pad and the overlays follow the trim
+        var slug = $('slug'), pad = $('pad'), below = y + h + B * s + (portrait ? 22 : 28);
+        Object.assign(slug.style, {left: x + 'px', width: w + 'px', top: below + 'px'});
+        $('time').style.fontSize = (portrait ? 34 : 56) + 'px';
+        pad.style.display = portrait && touchy ? 'block' : 'none';
+        pad.style.top = below + 54 + 'px';
+        L.padTop = below + 54;
+        ['title', 'poster', 'pause'].forEach(function (id) { Object.assign($(id).style, {left: x + 'px', top: y + 'px', width: w + 'px', height: h + 'px'}); });
+        $('wm').style.fontSize = Math.round(Math.min(w * 0.2, h * 0.17, 150)) + 'px';
+        $('pTime').style.fontSize = Math.round(Math.min(w * 0.3, h * 0.36, 260)) + 'px';
+        $('poster').style.setProperty('--u', Math.max(1, Math.min(1.5, Math.min(w, h) / 420)));
+        var mute = $('mute');
+        Object.assign(mute.style, portrait ? {left: (x + w - 44) + 'px', top: Math.max(below + 70, vh - 44 - 22) + 'px'} : {left: (x + w + B * s + 10) + 'px', top: (y - 44 - 8) + 'px'});
+        if (!portrait) { mute.style.left = Math.min(vw - 52, x + w + B * s + 16) + 'px'; mute.style.top = (below + 4) + 'px'; }
+        if (game) refit();
+    }
+
+    // ------------------------------------------------------------ drawing on the drums
+    function useTrim(c) { c.setTransform(L.s * L.d, 0, 0, L.s * L.d, L.x * L.d, L.y * L.d); }
+    function usePlate(c) { var k = L.s * L.pd; c.setTransform(k, 0, 0, k, B * k, B * k); }
+    function clearAl

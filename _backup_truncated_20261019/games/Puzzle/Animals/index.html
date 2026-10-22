@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Animals/">
+
+    <meta charset="UTF-8">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+    <title>Play Pawpurr Online - Free Puzzle Game | AIGameHub</title>
+    <meta name="description"
+          content="Play Pawpurr online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            background: #0c0d10;
+            overscroll-behavior: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        #veil {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 16px;
+            background: radial-gradient(circle at 50% 38%, #1a1d24, #08090c 72%);
+            color: #eef3ff;
+            font-family: ui-rounded, "SF Pro Rounded", Avenir, system-ui, sans-serif;
+            transition: opacity .5s ease;
+            padding: 30px;
+        }
+
+        #veil.gone {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #veil .paw {
+            font-size: clamp(46px, 13vw, 84px);
+            filter: drop-shadow(0 0 18px rgba(120, 200, 255, .4));
+        }
+
+        #veil h1 {
+            font-size: clamp(38px, 11vw, 80px);
+            font-weight: 800;
+            letter-spacing: -.03em;
+            color: #ffe14d;
+            text-shadow: 0 0 40px rgba(255, 225, 77, .3);
+            line-height: .9;
+        }
+
+        #veil p {
+            font-size: clamp(15px, 4vw, 19px);
+            max-width: 32ch;
+            line-height: 1.5;
+            opacity: .85;
+        }
+
+        #veil .tips {
+            font-size: 13px;
+            opacity: .5;
+            max-width: 36ch;
+            line-height: 1.6;
+            margin-top: 2px;
+        }
+
+        #go {
+            margin-top: 8px;
+            background: #3aa0ff;
+            color: #021024;
+            border: none;
+            font: inherit;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: .02em;
+            padding: 16px 46px;
+            border-radius: 50px;
+            cursor: pointer;
+            animation: pulse 2.6s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(58, 160, 255, .45)
+            }
+            70% {
+                box-shadow: 0 0 0 26px rgba(58, 160, 255, 0)
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(58, 160, 255, 0)
+            }
+        }
+
+        #tally {
+            position: fixed;
+            top: max(14px, env(safe-area-inset-top));
+            left: max(14px, env(safe-area-inset-left));
+            z-index: 5;
+            font-family: ui-monospace, monospace;
+            font-size: 13px;
+            letter-spacing: .1em;
+            color: rgba(255, 255, 255, .22);
+            pointer-events: none;
+            transition: opacity 1s ease;
+            opacity: 0;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            #go {
+                animation: none
+            }
+        }
+
+        /* ---- Options panel (human-facing; set up before play or via corner long-press) ---- */
+        #veil .row2 {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        #opts-btn {
+            background: rgba(255, 255, 255, .08);
+            color: #cdd6e6;
+            border: 1px solid rgba(255, 255, 255, .15);
+            font: inherit;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 14px 26px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        #opts-btn:hover {
+            background: rgba(255, 255, 255, .14);
+        }
+
+        #panel {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: none;
+            background: rgba(6, 7, 11, .86);
+            backdrop-filter: blur(8px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+            font-family: ui-rounded, "SF Pro Rounded", Avenir, system-ui, sans-serif;
+            color: #e7ecf5;
+        }
+
+        #panel.show {
+            display: block;
+        }
+
+        #panel .sheet {
+            width: min(440px, 94vw);
+            margin: 24px auto;
+            background: #13161d;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 22px;
+            padding: 24px 22px;
+        }
+
+        #panel h2 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -.02em;
+            margin-bottom: 4px;
+        }
+
+        #panel .hint2 {
+            font-size: 13px;
+            opacity: .55;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+
+        .opt {
+            padding: 14px 0;
+            border-top: 1px solid rgba(255, 255, 255, .07);
+        }
+
+        .opt:first-of-type {
+            border-top: none;
+        }
+
+        .opt .lab {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .opt .sub {
+            font-size: 12px;
+            opacity: .5;
+            line-height: 1.45;
+        }
+
+        .opt .val {
+            font-size: 12px;
+            opacity: .6;
+            font-family: ui-monospace, monospace;
+            font-weight: 400;
+        }
+
+        .seg {
+            display: flex;
+            gap: 6px;
+            margin-top: 9px;
+            flex-wrap: wrap;
+        }
+
+        .seg button {
+            flex: 1;
+            min-width: 64px;
+            background: rgba(255, 255, 255, .06);
+            color: #cdd6e6;
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 11px;
+            padding: 9px 6px;
+            font: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+        .seg button.on {
+            background: #3aa0ff;
+            color: #04101f;
+            border-color: #3aa0ff;
+            font-weight: 700;
+        }
+
+        .chips {
+            display: flex;
+            gap: 8px;
+            margin-top: 9px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 11px;
+            padding: 8px 13px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .chip.on {
+            background: rgba(58, 160, 255, .18);
+            border-color: #3aa0ff;
+        }
+
+        .chip .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #566;
+        }
+
+        .chip.on .dot {
+            background: #3aa0ff;
+        }
+
+        .swatches {
+            display: flex;
+            gap: 9px;
+            margin-top: 9px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .sw {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .sw.on {
+            border-color: #fff;
+        }
+
+        input[type=range] {
+            width: 100%;
+            margin-top: 10px;
+            accent-color: #3aa0ff;
+        }
+
+        input[type=color] {
+            width: 40px;
+            height: 34px;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .toggle {
+            position: relative;
+            width: 46px;
+            height: 27px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .16);
+            cursor: pointer;
+            transition: background .2s;
+            flex: none;
+        }
+
+        .toggle.on {
+            background: #3aa0ff;
+        }
+
+        .toggle::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 21px;
+            height: 21px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform .2s;
+        }
+
+        .toggle.on::after {
+            transform: translateX(19px);
+        }
+
+        #panel .done {
+            width: 100%;
+            margin-top: 20px;
+            background: #3aa0ff;
+            color: #04101f;
+            border: none;
+            font: inherit;
+            font-weight: 800;
+            font-size: 17px;
+            padding: 15px;
+            border-radius: 14px;
+            cursor: pointer;
+        }
+
+        #gear {
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top));
+            right: max(12px, env(safe-area-inset-right));
+            z-index: 6;
+            width: 30px;
+            height: 30px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Pawpurr","item":"https://suipce.com/games/Puzzle/Animals/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Animals/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Animals/preview.png"></head>
+<body>
+<canvas id="c"></canvas>
+<div id="tally">CAUGHT · 0</div>
+<div id="veil">
+    <div class="paw">🐾</div>
+    <h1>Pawpurr</h1>
+    <p>A game for your cat. One bug at a time — a buzzing fly, a scuttling spider — moving like the real thing. Lay the
+        tablet flat and let them hunt.</p>
+    <div class="row2">
+        <button id="go">Let them play</button>
+        <button id="opts-btn">Options</button>
+    </div>
+    <div class="tips">Best flat on the floor in a sturdy case. One target at a time so your cat can lock on. It never
+        ends — close the tab when playtime's over.
+    </div>
+</div>
+
+<div id="panel">
+    <div class="sheet">
+        <h2>Options</h2>
+        <div class="hint2">For you, not the cat. During play, press &amp; hold the top-right corner to reopen.</div>
+
+        <div class="opt">
+            <div class="lab">Background</div>
+            <div class="sub">Cats see blues &amp; greys best. Dark backgrounds make prey pop.</div>
+            <div class="swatches" id="bgSwatches"></div>
+        </div>
+
+        <div class="opt">
+            <div class="lab">Creatures in rotation</div>
+            <div class="sub">Turn off any your cat ignores so the rest show more often.</div>
+            <div class="chips" id="creatureChips"></div>
+        </div>
+
+        <div class="opt">
+            <div class="lab">Liveliness</div>
+            <div class="sub">How fast and restless the prey is.</div>
+            <div class="seg" id="intensSeg"></div>
+        </div>
+
+        <div class="opt">
+            <div class="lab"><span>Haptic feedback</span><span class="toggle" id="hapticToggle"></span></div>
+            <div class="sub" id="hapticSub">Buzz the device when prey is caught.</div>
+        </div>
+
+        <div class="opt">
+            <div class="lab"><span>Sound</span><span class="toggle" id="soundToggle"></span></div>
+            <div class="sub">The fly's buzz and catch chirps.</div>
+            <input type="range" id="volRange" min="0" max="100" value="100">
+        </div>
+
+        <div class="opt">
+            <div class="lab"><span>Catch difficulty</span><span class="val" id="diffVal"></span></div>
+            <div class="sub">How long a paw must hold prey to secure the catch.</div>
+            <div class="seg" id="diffSeg"></div>
+        </div>
+
+        <div class="opt">
+            <div class="lab"><span>Session timer</span><span class="val" id="timerVal"></span></div>
+            <div class="sub">Vets suggest short sessions. Game dims gently when time's up.</div>
+            <div class="seg" id="timerSeg"></div>
+        </div>
+
+        <button class="done" id="closePanel">Done</button>
+    </div>
+</div>
+
+<script>
+    "use strict";
+    const cv = document.getElementById("c"), x = cv.getContext("2d");
+    let W, H, DPR;
+
+    function size() {
+        DPR = Math.min(2, devicePixelRatio || 1);
+        W = innerWidth;
+        H = innerHeight;
+        cv.width = W * DPR;
+        cv.height = H * DPR;
+        cv.style.width = W + "px";
+        cv.style.height = H + "px";
+        x.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+
+    addEventListener("resize", size);
+    size();
+
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    const pick = a => a[(Math.random() * a.length) | 0];
+    const now = () => performance.now();
+    const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+    const _arc = CanvasRenderingContext2D.prototype.arc;   // never throw on negative radius
+    CanvasRenderingContext2D.prototype.arc = function (cx, cy, r, a, b, c) {
+        return _arc.call(this, cx, cy, r > 0 ? r : 0, a, b, c);
+    };
+
+    let particles = [], score = 0, engage = 0.3, lastPaw = now();
+    const tally = document.getElementById("tally");
+
+    /* ---- Central settings (human-configurable via the options panel) ---- */
+    const BG_PRESETS = ["#0c0d10", "#101622", "#0a1410", "#1a1420", "#000000", "#15161a"];
+    const settings = {
+        bg: "#0c0d10",
+        creatures: {fly: true, spider: true, roach: true, mouse: true},
+        intens: 1,                 // 0 calm, 1 normal, 2 lively
+        haptics: true,
+        sound: true, volume: 1.0,
+        holdMs: 520,               // catch difficulty
+        sessionMin: 0,             // 0 = unlimited
+    };
+    /* Vibration API reality (researched):
+       - iOS/iPadOS: never supported (all browsers use WebKit, which lacks it).
+       - Firefox 129+ (Aug 2024): REMOVED navigator.vibrate entirely -> it's undefined.
+       - Desktop Chrome/Edge: navigator.vibrate exists and returns true, but there's no
+         motor, so nothing is felt. Must detect "mobile" before trusting it.
+       - Android Chrome/Edge/Samsung/Opera: works, BUT only after a real tap (user
+         activation), only while the tab is visible, patterns <=10 entries, and very
+         short pulses (<~20ms) may be imperceptible on many motors.
+    */
+    const isMobileUA = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+    const hasVibrate = typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
+    const hapticsSupported = hasVibrate && isMobileUA;       // exists AND a device that can feel it
+    let hapticReady = false;             // becomes true after the first real tap (user activation)
+    function hapticStatus() {
+        if (!hasVibrate) return "removed";        // Firefox 129+ or never had it
+        if (!isMobileUA) return "nomotor";        // desktop: exists but no hardware
+        return "ok";
+    }
+
+    // keep pulses perceptible (>=35ms) and patterns short (<=10 entries)
+    function buzzHaptic(pattern) {
+        if (!settings.haptics || !hapticsSupported || !hapticReady) return;
+        if (typeof document !== "undefined" && document.hidden) return;   // hidden tab can't vibrate
+        try {
+            navigator.vibrate(pattern);
+        } catch (e) {
+        }
+    }
+
+    // fire a vibrate immediately inside a user gesture (establishes activation + tests motor)
+    function primeHaptic() {
+        hapticReady = true;
+        if (settings.haptics && hapticsSupported && !(typeof document !== "undefined" && document.hidden)) {
+            try {
+                navigator.vibrate(40);
+            } catch (e) {
+            }
+        }
+    }
+
+    let sessionStart = 0, sessionOver = false;   // session timer
+
+    /* ---- Intensity: a hidden corner control cycles calm/normal/lively.
+       intens scales prey speed, dart distance, and freeze brevity. ---- */
+    const MODES = [
+        {name: "calm", spd: 0.78, freezeMul: 1.5, label: "CALM"},
+        {name: "normal", spd: 1.0, freezeMul: 1.0, label: "NORMAL"},
+        {name: "lively", spd: 1.3, freezeMul: 0.62, label: "LIVELY"},
+    ];
+    let intensIdx = 1;
+    const I = () => MODES[clamp(settings.intens, 0, 2)];
+    let modeFlash = 0;                 // brief on-screen confirmation when toggled
+
+    /* ---- Capture system: a paw-down pins prey; it struggles and can escape
+       if released too soon, or is "caught" once held past a threshold. ---- */
+    function HOLD_MS() {
+        return settings.holdMs;
+    }
+
+    let captive = null;                // {cr, x, y, since, lastTouch, col}
+    function beginCapture(cr, px, py, col) {
+        if (captive) return;
+        captive = {cr, x: cr.x, y: cr.y, since: now(), lastTouch: now(), col};
+        cr.captured = true;
+        buzzHaptic(45);                // a tick the instant prey is pinned
+    }
+
+    function touchCapture(px, py) {
+        if (!captive) return false;
+        // staying near the pinned prey keeps it held; it wriggles, so allow some slack
+        if (Math.hypot(px - captive.x, py - captive.y) < 70) {
+            captive.lastTouch = now();
+            // prey strains against the paw -> small jitter
+            captive.x += rnd(-2.2, 2.2);
+            captive.y += rnd(-2.2, 2.2);
+            return true;
+        }
+        return false;
+    }
+
+    function updateCapture(t) {
+        if (!captive) return;
+        const held = t - captive.since;
+        const cr = captive.cr;
+        cr.x = captive.x;
+        cr.y = captive.y;
+        // struggling buzz for the fly
+        if (cr === fly) {
+            setBuzz(0.5 + Math.random() * 0.4, 0.5 + Math.random() * 0.5);
+            if (buzzOsc) buzzOsc.frequency.setTargetAtTime(rnd(160, 300), actx ? actx.currentTime : 0, 0.02);
+        }
+        // faint repeating tremor while it struggles in the paw
+        if (Math.random() < 0.08) buzzHaptic(35);    // occasional struggle pulse
+        if (held >= HOLD_MS()) {
+            // secured: the kill. payoff burst + a satisfying double-pulse.
+            caught(captive.x, captive.y, captive.col);
+            burst(captive.x, captive.y, captive.col, 14);
+            buzzHaptic([45, 50, 90]);   // strong, satisfying catch
+            cr.captured = false;
+            cr.reset(rnd(1500, 3800));
+            captive = null;
+            return;
+        }
+        // released too soon -> escape: prey bolts hard and flees
+        if (t - captive.lastTouch > 90) {
+            cr.captured = false;
+            if (cr.escape) cr.escape();
+            chirp(300);                 // a low "it got away" blip
+            buzzHaptic(40);             // a "slipped away" nudge
+            captive = null;
+        }
+    }
+
+    /* ============================================================
+       AUDIO. Fly buzz = sawtooth fundamental near a real housefly
+       wingbeat (~200 Hz, the key of F) with a light flutter vibrato.
+       Gain swells/fades with the fly's speed (Doppler-ish "passing by"),
+       and only sounds while airborne — silent when landed.
+    ============================================================ */
+    let actx, buzzOsc, buzzVib, buzzVibGain, buzzGain, buzzHi, buzzHiGain;
+
+    function initAudio() {
+        if (actx) return;
+        try {
+            actx = new (window.AudioContext || webkitAudioContext)();
+            buzzOsc = actx.createOscillator();
+            buzzOsc.type = "sawtooth";
+            buzzOsc.frequency.value = 210; // ~F3
+            buzzHi = actx.createOscillator();
+            buzzHi.type = "square";
+            buzzHi.frequency.value = 420;       // airy upper edge
+            buzzVib = actx.createOscillator();
+            buzzVib.type = "sine";
+            buzzVib.frequency.value = 33;        // wing flutter
+            buzzVibGain = actx.createGain();
+            buzzVibGain.gain.value = 18;
+            buzzGain = actx.createGain();
+            buzzGain.gain.value = 0.0001;
+            buzzHiGain = actx.createGain();
+            buzzHiGain.gain.value = 0.0001;
+            buzzVib.connect(buzzVibGain);
+            buzzVibGain.connect(buzzOsc.frequency);
+            buzzOsc.connect(buzzGain);
+            buzzGain.connect(actx.destination);
+            buzzHi.connect(buzzHiGain);
+            buzzHiGain.connect(actx.destination);
+            buzzOsc.start();
+            buzzHi.start();
+            buzzVib.start();
+        } catch (e) {
+        }
+    }
+
+    function setBuzz(vol, speedFrac) {
+        if (!actx || !buzzGain) return;
+        const v = clamp(vol, 0, 1) * (settings.sound ? settings.volume : 0);
+        buzzGain.gain.setTargetAtTime(v * 0.13 + 0.00001, actx.currentTime, 0.06);
+        buzzHiGain.gain.setTargetAtTime(v * 0.035 + 0.00001, actx.currentTime, 0.06); // subtle sharpness
+        // pitch rises with speed -> the zig-zag Doppler that grabs attention
+        const f = 205 + speedFrac * 95;
+        buzzOsc.frequency.setTargetAtTime(f, actx.currentTime, 0.05);
+        buzzHi.frequency.setTargetAtTime(f * 2, actx.currentTime, 0.05);
+    }
+
+    function chirp(f) {
+        if (!actx || !settings.sound) return;
+        try {
+            const o = actx.createOscillator(), g = actx.createGain();
+            o.type = "triangle";
+            o.frequency.value = f;
+            o.connect(g);
+            g.connect(actx.destination);
+            const peak = 0.05 * settings.volume;
+            g.gain.setValueAtTime(0.0001, actx.currentTime);
+            g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), actx.currentTime + 0.012);
+            g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + 0.13);
+            o.start();
+            o.stop(actx.currentTime + 0.15);
+        } catch (e) {
+        }
+    }
+
+    function burst(px, py, col, n) {
+        for (let i = 0; i < n; i++) {
+            const a = rnd(0, Math.PI * 2), s = rnd(1.5, 5);
+            particles.push({x: px, y: py, vx: Math.cos(a) * s, vy: Math.sin(a) * s, a: 1, c: col, r: rnd(1.5, 3)});
+        }
+    }
+
+    // soft ground shadow. height 0 = on the ground (tight, dark), higher = offset & faint.
+    function shadow(cx, cy, rx, ry, height) {
+        const off = 4 + height * 10, soft = clamp(0.32 - height * 0.18, 0.06, 0.32);
+        x.save();
+        x.globalAlpha = soft;
+        x.fillStyle = "#000";
+        x.beginPath();
+        x.ellipse(cx + off * 0.5, cy + off, rx * (1 + height * 0.25), ry * (1 + height * 0.25), 0, 0, 7);
+        x.fill();
+        x.restore();
+    }
+
+    function caught(px, py, col) {
+        score++;
+        engage = Math.min(1, engage + 0.2);
+        lastPaw = now();
+        burst(px, py, col, 10);
+        chirp(pick([560, 640, 720]));
+        tally.textContent = "CAUGHT · " + score;
+        tally.style.opacity = .8;
+        clearTimeout(caught._t);
+        caught._t = setTimeout(() => tally.style.opacity = 0, 1400);
+    }
+
+    /* ============================================================
+       THE FLY — realistic body, blurred wings, real flight physics:
+       fast erratic darts, hovering, abrupt turns, lands and grooms,
+       then takes off again. Sound-led.
+    ============================================================ */
+    class Fly {
+        constructor() {
+            this.r = 10;
+            this.reset(rnd(800, 2600));
+        }
+
+        reset(delay) {
+            this.mode = "away";
+            this.until = now() + delay;
+            this.alpha = 0;
+            this.x = rnd(W * .25, W * .75);
+            this.y = rnd(H * .25, H * .75);
+            this.vx = 0;
+            this.vy = 0;
+            this.face = 0;
+            this.speedFrac = 0;
+            this.legPhase = 0;
+        }
+
+        takeoff() {
+            this.mode = "fly";
+            this.alpha = 1;
+            this.until = now() + rnd(4000, 8000);
+            this.sceneEnds = now() + rnd(7000, 13000);
+            this.retarget(now());
+        }
+
+        retarget(t) {
+            this.tx = rnd(W * .12, W * .88);
+            this.ty = rnd(H * .12, H * .88);
+            this.changeAt = t + rnd(160, 560);
+        }                  // frequent re-aim = erratic
+        land() {
+            this.mode = "land";
+            this.until = now() + rnd(1400, 3600);
+            this.vx = this.vy = 0;
+            this.speedFrac = 0;
+        }
+
+        active() {
+            return this.mode === "fly" || this.mode === "land";
+        }
+
+        update(t) {
+            if (this.captured) return;                          // pinned: held by the paw
+            if (this.mode === "away") {
+                return;
+            }            // only the director wakes creatures
+            if (this.mode === "land") {
+                this.speedFrac = 0;
+                // occasional tiny grooming shuffle so it isn't a dead pixel
+                if (Math.random() < 0.02) {
+                    this.x += rnd(-2, 2);
+                    this.y += rnd(-2, 2);
+                }
+                if (t >= this.sceneEnds) this.reset(rnd(1500, 3500));  // scene over -> leave stage
+                else if (t >= this.until) this.takeoff();
+                return;
+            }
+            // flying
+            if (t >= this.changeAt) this.retarget(t);
+            const dx = this.tx - this.x, dy = this.ty - this.y, d = Math.hypot(dx, dy) || 1;
+            const acc = 1.0 * I().spd;
+            this.vx += (dx / d) * acc + rnd(-0.7, 0.7);   // jitter = insect erratic-ness
+            this.vy += (dy / d) * acc + rnd(-0.7, 0.7);
+            const sp = Math.hypot(this.vx, this.vy), maxs = 11 * I().spd;
+            if (sp > maxs) {
+                this.vx *= maxs / sp;
+                this.vy *= maxs / sp;
+            }
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.x < this.r) {
+                this.x = this.r;
+                this.vx = Math.abs(this.vx);
+            }
+            if (this.x > W - this.r) {
+                this.x = W - this.r;
+                this.vx = -Math.abs(this.vx);
+            }
+            if (this.y < this.r) {
+                this.y = this.r;
+                this.vy = Math.abs(this.vy);
+            }
+            if (this.y > H - this.r) {
+                this.y = H - this.r;
+                this.vy = -Math.abs(this.vy);
+            }
+            this.speedFrac = clamp(sp / (11 * I().spd), 0, 1);
+            if (sp > 0.5) this.face = Math.atan2(this.vy, this.vx);
+            if (t >= this.until && Math.random() < 0.05) this.land();
+        }
+
+        escape() {
+            this.mode = "fly";
+            this.alpha = 1;
+            this.until = now() + rnd(3000, 6000);
+            // burst away fast in a random direction
+            const a = rnd(0, Math.PI * 2);
+            this.vx = Math.cos(a) * 12;
+            this.vy = Math.sin(a) * 12;
+            this.retarget(now());
+        }
+
+        hit(px, py) {
+            if (!this.active() || this.captured) return false;
+            if (Math.hypot(this.x - px, this.y - py) < this.r + 30) {
+                beginCapture(this, px, py, "#e8eef7");
+                return true;
+            }
+            return false;
+        }
+
+        draw(t) {
+            if (this.mode === "away" || this.alpha <= 0.01) return;
+            const r = this.r, flying = this.mode === "fly";
+            // ground shadow — higher and fainter when airborne, tight when landed
+            shadow(this.x, this.y, r * 0.9, r * 0.5, flying ? 0.7 : 0.05);
+            x.save();
+            x.translate(this.x, this.y);
+            // when pinned, it thrashes
+            if (this.captured) x.rotate(this.face + Math.sin(now() / 30) * 0.7);
+            else x.rotate(this.face);
+            // legs (six, tucked when flying, splayed when landed)
+            x.strokeStyle = "#0a0b0e";
+            x.lineWidth = 1.4;
+            x.lineCap = "round";
+            const spread = flying ? 0.4 : 1, lp = this.legPhase;
+            for (let i = -1; i <= 1; i++) {
+                const bx = i * r * 0.5;
+                const sw = flying ? 0 : Math.sin(lp + i) * 1.5;
+                x.beginPath();
+                x.moveTo(bx, -r * 0.4);
+                x.lineTo(bx - r * 0.5, -r * (0.9 * spread) - sw);
+                x.stroke();
+                x.beginPath();
+                x.moveTo(bx, r * 0.4);
+                x.lineTo(bx - r * 0.5, r * (0.9 * spread) + sw);
+                x.stroke();
+            }
+            // wings — blurred ovals when flying, folded over back when landed
+            if (flying) {
+                const wb = Math.sin(t / 9) * 0.5 + 0.5;
+                x.globalAlpha = 0.30 + 0.22 * wb;
+                x.fillStyle = "#cfd8e6";
+                x.beginPath();
+                x.ellipse(-r * 0.2, -r * 0.8, r * 0.85, r * 0.4, -0.6, 0, 7);
+                x.fill();
+                x.beginPath();
+                x.ellipse(-r * 0.2, r * 0.8, r * 0.85, r * 0.4, 0.6, 0, 7);
+                x.fill();
+                x.globalAlpha = 1;
+            } else {
+                x.globalAlpha = 0.55;
+                x.fillStyle = "#aeb7c6";
+                x.beginPath();
+                x.ellipse(-r * 0.3, 0, r * 0.9, r * 0.32, 

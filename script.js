@@ -527,7 +527,6 @@ const gamesData ={
 };
 // 生成艺术体验（AI 生成交互体验合集）：独立于玩法分类展示，不参与筛选与计数
 const genArtExperiences = [
-    { name: '金色寺庙', path: 'games/Astra/Golden-Temple/index.html', preview: 'games/Astra/Golden-Temple/preview.webp', icon: 'fas fa-japanese-castle', desc: 'Opus 5.5 用 3.1 万行代码全程序化生成的黄金时刻日式寺庙，拖拽漫游 + 10 个电影镜头。' },
     { name: 'Orbital Garden', path: 'games/Astra/Orbital-Garden/index.html', preview: 'games/Astra/Orbital-Garden/preview.webp', icon: 'fas fa-atom', desc: '轨道花园：可触摸的生成艺术' },
     { name: '极光观测台', path: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/index.html', preview: 'games/Astra/MiaAI-Experiences/001-aurora-observatory/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },
     { name: '形态编辑', path: 'games/Astra/MiaAI-Experiences/002-form-editorial/index.html', preview: 'games/Astra/MiaAI-Experiences/002-form-editorial/preview.jpg', icon: 'fas fa-palette', desc: 'AI生成交互体验' },

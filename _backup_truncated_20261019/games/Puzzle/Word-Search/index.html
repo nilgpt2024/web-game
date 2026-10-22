@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Puzzle/Word-Search/">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Highlight Online - Free Puzzle Game | AIGameHub</title>
+<meta name="description" content="Play Highlight online for free — a puzzle game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
+<meta name="theme-color" content="#f6efe4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,600;9..144,900&display=swap" rel="stylesheet">
+<style>
+:root {
+    --h: 60;
+    --paper: oklch(0.968 0.009 var(--h));
+    --ink: #1d1a17;
+    --ink-soft: color-mix(in srgb, var(--ink) 58%, var(--paper));
+    --theme: oklch(0.43 0.105 var(--h));
+    --rule: oklch(0.32 0.05 var(--h));
+    --n: 10;
+    --bw: min(calc(100vw - 32px), 470px, calc(100dvh - 330px));
+    --cs: calc(var(--bw) / var(--n));
+    --sans: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; }
+body {
+    background: var(--paper); color: var(--ink); font-family: var(--sans);
+    -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased;
+    transition: background-color .4s;
+}
+button { font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; background: none; border: 0; cursor: pointer; }
+button:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--theme); outline-offset: 3px; border-radius: 4px; }
+.page {
+    min-height: 100dvh; display: flex; flex-direction: column; align-items: center;
+    padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 18px);
+    background-color: var(--paper);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .15 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    transition: background-color .4s;
+}
+.col { width: var(--bw); max-width: 100%; }
+.page > .col { flex: 1; display: flex; flex-direction: column; }
+#play { flex: 1; justify-content: flex-start; padding-bottom: 8px; }
+#play.roomy { justify-content: center; }
+#play .spread { width: 100%; }
+
+/* running header */
+.run {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 46px;
+    border-bottom: 3px solid var(--rule);
+    font: 700 12px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--theme);
+}
+.run button { display: flex; align-items: center; gap: 6px; height: 46px; letter-spacing: inherit; color: inherit; padding: 0 2px; }
+.run .back { justify-self: start; }
+.run .sound { justify-self: end; }
+.run svg { width: 15px; height: 15px; flex: none; }
+.run .sound .off { display: none; }
+.muted .run .sound .on { display: none; }
+.muted .run .sound .off { display: block; }
+.folio { white-space: nowrap; }
+
+/* screens */
+.screen { width: 100%; display: flex; flex-direction: column; align-items: center; }
+.screen[hidden] { display: none; }
+.fade-in { animation: fadeIn .32s cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* masthead: the theme name, or the letters under the finger while dragging */
+.mast { position: relative; height: 62px; display: flex; align-items: flex-end; justify-content: center; border-bottom: 1px solid var(--rule); }
+.theme {
+    font: 900 38px/1 var(--serif); letter-spacing: .022em; color: var(--theme); padding-bottom: 10px;
+    font-variation-settings: "opsz" 120; font-variant-ligatures: none; white-space: nowrap; transition: opacity .24s .04s, transform .24s .04s;
+}
+.readout { position: absolute; inset: 0 0 12px; display: flex; align-items: flex-end; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-6px) scale(.96); transition: opacity .2s, transform .26s; }
+.readout span { position: relative; font: 700 27px/1 var(--sans); letter-spacing: .2em; padding: 0 0 2px .2em; color: var(--ink); white-space: nowrap; }
+.readout span::after { content: ""; position: absolute; left: .2em; right: 0; bottom: -7px; height: 3px; border-radius: 2px; background: var(--theme); }
+.dragging .mast .theme { opacity: 0; transform: translateY(8px); transition: opacity .08s, transform .08s; }
+.dragging .readout { transform: none; transition: opacity .06s, transform 0s; }
+.readout.miss span { color: #8a8378; animation: shake .3s ease-out; }
+.readout.miss span::after { background: #b5ad9f; }
+@keyframes shake { 20% { transform: translateX(-6px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-3px); } }
+.dragging .readout { opacity: 1; }
+.readout.hit span::after { animation: hitbar .45s ease-out; }
+@keyframes hitbar { 50% { transform: scaleY(2); } }
+
+/* board */
+.board { position: relative; width: var(--bw); height: var(--bw); margin: 16px 0 10px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair; }
+.board svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.board .under { mix-blend-mode: multiply; }
+.letters { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), 1fr); grid-auto-rows: 1fr; }
+.letters span {
+    display: grid; place-items: center; font: 700 calc(var(--cs) * .5)/1 var(--sans); color: var(--ink);
+    transition: color .3s;
+}
+.letters span.dealt { color: var(--theme); }
+.letters span.bump { animation: bump .42s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes bump { 40% { transform: translateY(-14%) scale(1.16); } }
+.letters span.enter { animation: enter .5s cubic-bezier(.2, .7, .3, 1) both; }
+@keyframes enter { from { opacity: 0; transform: translateY(30%); } }
+.ring { transition: opacity .6s, stroke-width .6s; }
+.ring.settled { opacity: .26; stroke-width: 1.1; }
+.cursor { fill: none; stroke: var(--theme); stroke-width: 2; stroke-dasharray: 3 3; opacity: 0; }
+.kbd .cursor { opacity: .9; }
+
+/* word list */
+.list { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 18px; padding: 8px 0 6px; border-top: 1px solid var(--rule); list-style: none; }
+.list li { display: flex; }
+.w {
+    position: relative; isolation: isolate; font: 700 16px/1 var(--sans); letter-spacing: .09em; padding: 9px 0;
+    color: var(--ink); text-align: left; transition: color .35s;
+}
+.w::before {
+    content: ""; position: absolute; z-index: -1; left: -1px; right: -4px; top: 50%; height: 10px;
+    background: var(--c, transparent); mix-blend-mode: multiply;
+    clip-path: polygon(3px 0, 100% 0, calc(100% - 3px) 100%, 0 100%);
+    transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.3, .7, .3, 1);
+}
+.w.found { color: var(--ink-soft); }
+.w.found::before { transform: none; }
+.w.hinted { animation: hint .9s ease-out; }
+@keyframes hint { 30% { color: var(--theme); } }
+
+/* the hidden message */
+.msg { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 0 4px; width: 100%; position: relative; }
+.msg .line { display: flex; gap: calc(var(--slot) * 1.15); }
+.msg .mw { display: flex; gap: calc(var(--slot) * .16); }
+.msg i {
+    width: var(--slot); height: calc(var(--slot) * 1.4); position: relative;
+    border-bottom: 2.5px solid color-mix(in srgb, var(--theme) 72%, transparent);
+    font: 900 calc(var(--slot) * 1.08)/calc(var(--slot) * 1.4) var(--serif); font-style: normal; color: var(--theme);
+    text-align: center; font-variation-settings: "opsz" 60;
+}
+.msg i.pop { animation: pop .3s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes pop { 40% { transform: translateY(-18%) scale(1.2); } }
+.msg { --slot: 18px; }
+.msg.open { cursor: text; }
+.msg.open i:empty { transition: border-color .2s; }
+.msg.open:hover i.next, .msg.typing i.next { border-bottom-color: var(--theme); }
+.msg.typing i.next::after { content: ""; position: absolute; left: 50%; bottom: 3px; width: 2px; height: 70%; margin-left: -1px; background: var(--theme); animation: caret 1s steps(1) infinite; }
+@keyframes caret { 50% { opacity: 0; } }
+.msg i.typed { color: var(--ink); }
+.msg.wrong .line { animation: shake .34s ease-out; }
+.msg.wrong i.typed { color: #9a9184; }
+.msg input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; font-size: 16px; border: 0; padding: 0; background: transparent; color: transparent; caret-color: transparent; cursor: text; }
+.read-hint { position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; font: 700 11px/1 var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--theme); opacity: 0; text-align: center; transition: opacity .4s; pointer-events: none; white-space: nowrap; }
+.read-hint.show { opacity: .8; }
+.msg .swipe { position: absolute; z-index: -1; height: 14px; border-radius: 2px; background: var(--pen0); mix-blend-mode: multiply; opacity: .9; transform-origin: left; }
+.flyer {
+    position: fixed; z-index: 30; pointer-events: none; font: 900 26px/1 var(--serif); color: var(--theme);
+    font-variation-settings: "opsz" 60; will-change: transform;
+}
+
+/* the end of a puzzle */
+.done { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px 0 8px; }
+.done[hidden] { display: none; }
+#play.roomy .done[hidden] { display: flex; visibility: hidden; }
+.done .stat { font: 700 14px/1.4 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--theme); text-align: center; }
+.btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.btn {
+    position: relative; isolation: isolate; height: 48px; padding: 0 22px; border-radius: 3px;
+    font: 700 14px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase;
+    background: var(--ink); color: var(--paper); transition: transform .12s, background-color .2s;
+}
+.btn:active { transform: scale(.97); }
+.btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--rule); }
+
+/* contents */
+.cover { padding-top: 26px; text-align: center; }
+.cover .kick { font: 700 11px/1 var(--sans); letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); }
+.cover h1 { position: relative; display: inline-block; font: 900 58px/1 var(--serif); letter-spacing: -.03em; margin-top: 10px; font-variation-settings: "opsz" 144; isolation: isolate; }
+.cover h1 .hl { position: absolute; z-index: -1; left: -6px; right: -10px; bottom: 6px; height: 24px; background: oklch(0.9 0.12 98); mix-blend-mode: multiply; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); transform-origin: left; animation: swipeIn .55s .15s cubic-bezier(.3, .7, .3, 1) both; }
+@keyframes swipeIn { from { transform: scaleX(0); } }
+.cover .sub { margin-top: 12px; font: 400 15px/1.45 var(--sans); color: var(--ink-soft); }
+.cards { display: grid; gap: 14px; margin-top: 26px; border-top: 3px solid var(--rule); padding-top: 18px; }
+.card {
+    --h: 60; position: relative; text-align: left; padding: 16px 16px 18px; border-radius: 3px;
+    background: oklch(0.985 0.01 var(--h)); box-shadow: 0 1px 0 rgba(255, 255, 255, .6) inset, 0 0 0 1px oklch(0.85 0.03 var(--h)), 0 8px 18px -12px rgba(60, 40, 10, .35);
+    display: grid; gap: 6px; transition: transform .15s;
+}
+.card:active { transform: scale(.985); }
+.card .k { font: 700 11px/1 var(--sans); letter-spacing: .2em; text-transform: uppercase; color: oklch(0.43 0.105 var(--h)); }
+.card .t { font: 900 32px/1.05 var(--serif); letter-spacing: -.02em; color: oklch(0.43 0.105 var(--h)); font-variation-settings: "opsz" 120; }
+.card .s { font: 400 14px/1.35 var(--sans); color: var(--ink-soft); padding-right: 104px; }
+.card .go { position: absolute; right: 16px; bottom: 16px; font: 700 13px/1 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ink); }
+.card .bar { position: absolute; left: 16px; right: 16px; bottom: 0; height: 3px; background: oklch(0.88 0.03 var(--h)); }
+.card .bar b { display: block; height: 100%; background: oklch(0.43 0.105 var(--h)); }
+.shelf-h { margin-top: 26px; font: 700 11px/1 var(--sans); letter-spacing: .24em; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1px solid var(--rule); padding-bottom: 10px; }
+.shelf { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 6px 10px; padding: 12px 0; list-style: none; }
+.shelf button { --h: 60; display: grid; gap: 3px; text-align: left; padding: 8px 4px; border-radius: 3px; }
+.shelf .no { position: relative; isolation: isolate; justify-self: start; font: 900 22px/1 var(--serif); color: oklch(0.43 0.105 var(--h)); font-variation-settings: "opsz" 60; }
+.shelf .no::before { content: ""; position: absolute; z-index: -1; left: -3px; right: -5px; bottom: 1px; height: 9px; background: oklch(0.86 0.08 var(--h)); mix-blend-mode: multiply; }
+.shelf .nm { font: 700 11px/1.2 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.colophon { margin: 18px 0 4px; font: 400 12px/1.5 var(--sans); color: var(--ink-soft); text-align: center; }
+.colophon a { color: inherit; }
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.desk { display: none; }
+
+/* desktop: a sheet on the table */
+@media (min-width: 900px) and (min-height: 600px) {
+    :root { --bw: min(640px, calc(100vh - 250px)); }
+    body { background: oklch(0.3 0.02 var(--h)); display: grid; place-items: center; min-height: 100vh; }
+    .page {
+        min-height: auto; width: auto; min-width: 1000px; margin: 20px 0; padding: 6px 52px 34px; border-radius: 2px;
+        box-shadow: 0 30px 60px -24px rgba(0, 0, 0, .6), 0 2px 4px rgba(0, 0, 0, .25);
+    }
+    .col { width: 100%; }
+    .phone { display: none !important; }
+    .desk { display: block; }
+    .mast.desk, .done.desk { display: flex; }
+    .done[hidden] { display: flex; visibility: hidden; }
+    #play { justify-content: center; }
+    .spread { display: flex; gap: 48px; align-items: stretch; width: 100%; margin-top: 18px; }
+    .left .board { margin: 4px 0 0; }
+    .right { width: 400px; flex: none; display: flex; flex-direction: column; justify-content: center; }
+    .right .mast { justify-content: flex-start; height: auto; border: 0; }
+    .right .theme { font-size: 64px; padding: 0 0 18px; }
+    .right .readout { inset: 0 0 18px; justify-content: flex-start; }
+    .right .readout span { font-size: 40px; padding-left: 0; }
+    .right .readout span::after { left: 0; }
+    .right .mast { min-height: 82px; }
+    .list { display: grid; grid-template-columns: repeat(2, auto); justify-content: start; gap: 2px 48px; padding: 14px 0 0; }
+    .w { font-size: 18px; padding: 9px 0; }
+    .right { width: clamp(360px, calc(100vw - var(--bw) - 230px), 480px); }
+    .run { font-size: 12px; }
+    .msg { margin-top: 18px; border-top: 1px solid var(--rule); padding-top: 18px; align-items: flex-start; }
+    .done { align-items: flex-start; padding-top: 18px; }
+    .done .stat { text-align: left; }
+    .flyer { font-size: 30px; }
+    .read-hint { text-align: left; }
+    .page { min-height: min(780px, calc(100vh - 40px)); }
+    .cards { grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 30px; padding-top: 24px; }
+    .cover { padding-top: 34px; }
+    .cover .kick { font-size: 13px; }
+    .cover h1 { font-size: 96px; }
+    .cover h1 .hl { height: 34px; bottom: 10px; }
+    .cover .sub { font-size: 18px; }
+    .card { padding: 24px 26px 28px; gap: 8px; }
+    .card .k { font-size: 13px; }
+    .card .t { font-size: 48px; }
+    .card .s { font-size: 17px; padding-right: 130px; }
+    .card .go { right: 26px; bottom: 26px; font-size: 14px; }
+    .card .bar { left: 26px; right: 26px; }
+    .shelf-h { font-size: 12px; margin-top: 34px; }
+    .shelf { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 18px; }
+    .shelf .no { font-size: 32px; }
+    .shelf .nm { font-size: 12px; }
+    .colophon { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"益智解谜游戏","item":"https://suipce.com/puzzle-games"},{"@type":"ListItem","position":3,"name":"Highlight","item":"https://suipce.com/games/Puzzle/Word-Search/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Puzzle/Word-Search/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Puzzle/Word-Search/preview.png"></head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs id="defs">
+        <filter id="streak" x="-5%" y="-25%" width="110%" height="150%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.02 0.75" numOctaves="1" seed="7" result="s"/>
+            <feColorMatrix in="s" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 -.3 1.12" result="m"/>
+            <feComposite in="SourceGraphic" in2="m" operator="in"/>
+        </filter>
+        <filter id="pencil" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="1" seed="2" result="t"/>
+            <feDisplacementMap in="SourceGraphic" in2="t" scale="2.4"/>
+        </filter>
+    </defs>
+</svg>
+
+<main class="page" id="page">
+    <div class="col">
+        <header class="run">
+            <button class="back" id="back" aria-label="All puzzles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>Puzzles</button>
+            <span class="folio" id="folio"></span>
+            <button class="sound" id="sound" aria-label="Sound" aria-pressed="true">Sound
+                <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg>
+                <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+            </button>
+        </header>
+
+        <section class="screen" id="play" hidden>
+            <div class="spread">
+                <div class="left">
+                    <div class="mast phone"><h1 class="theme" id="themeP"></h1><div class="readout" id="readout"><span id="readText"></span></div></div>
+                    <div class="board" id="board" tabindex="0" role="application" aria-roledescription="word search grid"
+                         aria-label="Word search grid. Drag across a word, or tap its first and last letter. With a keyboard: arrow keys move, Enter marks the start and the end.">
+                        <svg class="under" id="under"></svg>
+                        <div class="letters" id="letters" aria-hidden="true"></div>
+                        <svg class="over" id="over"></svg>
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="mast desk"><h1 class="theme" id="themeD"></h1><div class="readout" id="readoutD"><span id="readTextD"></span></div></div>
+                    <ul class="list" id="list" aria-label="Words to find"></ul>
+                </div>
+            </div>
+            <div class="msg" id="msg" aria-label="Hidden message"></div>
+            <div class="done" id="doneP" hidden></div>
+            <p class="sr" aria-live="polite" id="live"></p>
+        </section>
+
+        <section class="screen" id="contents" hidden>
+            <div class="cover">
+                <div class="kick">Word search, with a hidden message</div>
+                <h1><span class="hl"></span>Highlight</h1>
+                <p class="sub">Find every word. The letters left over spell something.</p>
+            </div>
+            <div class="cards col" id="cards"></div>
+            <div class="col" id="shelfWrap"></div>
+            <p class="colophon">A <a href="https://gptgames.dev/">gptgames.dev</a> puzzle book.</p>
+        </section>
+    </div>
+</main>
+
+<script id="core">
+// Highlight - rules. DOM-free: the page draws and sounds what this returns, test/word_search.mjs checks it.
+var SeekCore = (function () {
+    'use strict';
+
+    // Eight directions as [row step, column step], clockwise from east.
+    var DIRS = [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]];
+    var E = 0, SE = 1, S = 2, NE = 7, W = 4, N = 6;
+
+    // Each theme: an ink hue (OKLCH degrees), the words, and the message its leftover letters spell.
+    // No word may sit inside another (forwards or backwards), and the message must not hold a word.
+    var THEMES = [
+        {id: 'breakfast', name: 'Breakfast', hue: 70, msg: 'EAT LIKE A KING AT DAWN',
+            words: 'TOAST BACON EGGS JAM HONEY CEREAL WAFFLE PANCAKE SYRUP BUTTER MUFFIN CROISSANT OATS BAGEL JUICE YOGURT MILK COFFEE BERRIES GRANOLA OMELETTE'},
+        {id: 'coffee', name: 'Coffee', hue: 55, msg: 'THE BEAN IS REALLY A SEED',
+            words: 'ESPRESSO LATTE MOCHA CREMA ROAST BARISTA ARABICA ROBUSTA CORTADO FILTER GRINDER AROMA DECAF MUG MILK FOAM KETTLE BREW CAFFEINE'},
+        {id: 'ocean', name: 'Ocean', hue: 230, msg: 'MOST OF IT IS STILL UNMAPPED',
+            words: 'WAVE TIDE CORAL WHALE SHARK REEF KELP SQUID OCTOPUS DOLPHIN CURRENT SALT SHELL CRAB LOBSTER PLANKTON TURTLE ANCHOR HARBOR SEAL ABYSS LAGOON'},
+        {id: 'garden', name: 'Garden', hue: 135, msg: 'PLANT TODAY FOR TOMORROW',
+            words: 'TULIP ROSE DAISY FERN HEDGE SPADE TROWEL COMPOST SEED BULB PETAL WEEDS IVY LILAC ORCHID POPPY SHED MULCH HOSE BLOSSOM ROOTS SUNFLOWER LAVENDER MARIGOLD DAFFODIL BEGONIA WISTERIA'},
+        {id: 'space', name: 'Space', hue: 275, msg: 'SPACE IS ONLY AN HOUR AWAY BY CAR',
+            words: 'ORBIT COMET NEBULA GALAXY PLANET ROCKET METEOR SATURN MARS VENUS PULSAR QUASAR ECLIPSE STAR MOON COSMOS GRAVITY ASTEROID LUNAR SOLAR ROVER CRATER'},
+        {id: 'kitchen', name: 'Kitchen', hue: 25, msg: 'TOO MANY COOKS SPOIL THE BROTH',
+            words: 'WHISK LADLE SPATULA KNIFE TONGS GRATER OVEN KETTLE SIEVE COLANDER SKILLET APRON PEELER MIXER TOASTER BLENDER RECIPE PANTRY TIMER WOK POT'},
+        {id: 'weather', name: 'Weather', hue: 215, msg: 'EVERY FLAKE HAS SIX ARMS',
+            words: 'RAIN SNOW HAIL SLEET FOG MIST STORM THUNDER CLOUD BREEZE GALE TORNADO DRIZZLE FROST SUNNY MONSOON HUMID DEW CYCLONE BLIZZARD HEATWAVE'},
+        {id: 'music', name: 'Music', hue: 330, msg: 'WHERE WORDS FAIL MUSIC SPEAKS',
+            words: 'PIANO GUITAR VIOLIN CELLO DRUMS FLUTE HARP TEMPO RHYTHM MELODY CHORD OCTAVE BASS TRUMPET OBOE SCALE TUBA LYRICS CHORUS VERSE BANJO SAXOPHONE'},
+        {id: 'forest', name: 'Forest', hue: 150, msg: 'TREES WHISPER UNDERGROUND',
+            words: 'OAK PINE BIRCH MAPLE ACORN FERN MOSS OWL BADGER FOX DEER LICHEN CANOPY TRAIL BARK ROOT SAP TIMBER CEDAR WILLOW SPRUCE BEECH ELM MUSHROOM WOODPECKER SQUIRREL HEDGEHOG BRAMBLE CLEARING'},
+        {id: 'bakery', name: 'Bakery', hue: 45, msg: 'EGYPTIANS PAID WORKERS IN LOAVES',
+            words: 'BREAD DOUGH YEAST FLOUR OVEN CRUST SCONE BAGUETTE BRIOCHE PRETZEL ECLAIR MUFFIN COOKIE TART ROLLS KNEAD PASTRY CAKE RYE SUGAR'},
+        {id: 'camping', name: 'Camping', hue: 105, msg: 'LEAVE ONLY FOOTPRINTS',
+            words: 'TENT LANTERN COMPASS KAYAK CANOE HIKE TRAIL MAP BACKPACK FLASHLIGHT CAMPFIRE KINDLING STOVE CABIN HAMMOCK MATCHES RIVER SUMMIT BOOTS TARP AXE'},
+        {id: 'birds', name: 'Birds', hue: 195, msg: 'HUMMINGBIRDS CAN FLY BACKWARDS',
+            words: 'ROBIN SPARROW EAGLE HAWK OWL FALCON HERON CRANE PARROT PELICAN PUFFIN SWAN GOOSE DUCK WREN FINCH RAVEN CROW MAGPIE PIGEON STORK OSPREY TOUCAN KIWI'},
+        {id: 'city', name: 'City', hue: 255, msg: 'THE CITY NEVER SLEEPS',
+            words: 'STREET SUBWAY TAXI BRIDGE TOWER PARK PLAZA MARKET CAFE MUSEUM AVENUE TRAM ALLEY SKYLINE STATION LIBRARY THEATER CORNER TRAFFIC NEON'},
+        {id: 'fruit', name: 'Fruit', hue: 15, msg: 'STRAWBERRIES ARE NOT BERRIES',
+            words: 'APPLE BANANA CHERRY MANGO PEACH PEAR PLUM GRAPE LEMON LIME KIWI MELON ORANGE PAPAYA GUAVA FIG DATE APRICOT LYCHEE QUINCE COCONUT'},
+        {id: 'sports', name: 'Sports', hue: 5, msg: 'PLAY FAIR AND PLAY HARD',
+            words: 'SOCCER TENNIS GOLF RUGBY HOCKEY BOXING ROWING CYCLING CRICKET SKIING SURFING ARCHERY FENCING JUDO SAILING POLO KARATE DIVING SPRINT RELAY VAULT'},
+        {id: 'workshop', name: 'Workshop', hue: 50, msg: 'MEASURE TWICE CUT ONCE',
+            words: 'HAMMER WRENCH CHISEL PLIERS SAW DRILL LEVEL CLAMP SANDER RULER NAILS SCREW BOLT VISE FILE MALLET ANVIL PENCIL TAPE SPANNER WORKBENCH TOOLBOX CROWBAR SANDPAPER CARPENTER'},
+        {id: 'snowday', name: 'Snow Day', hue: 220, msg: 'SCHOOL IS CANCELLED SO GO OUTSIDE',
+            words: 'SLED SKATE SCARF MITTEN BOOTS COCOA IGLOO ICICLE FROST BLANKET FIREPLACE SNOWMAN CHILL FLEECE GLOVES SKI BEANIE SLUSH'},
+        {id: 'pirates', name: 'Pirates', hue: 30, msg: 'X MARKS THE SPOT',
+            words: 'ANCHOR PARROT CANNON TREASURE PLANK CAPTAIN MAST SAIL CUTLASS GALLEON COMPASS MAP ISLAND CREW RUM DOUBLOON PLUNDER SKULL CHEST HOOK'},
+        {id: 'library', name: 'Library', hue: 350, msg: 'A ROOM WITHOUT BOOKS IS A BODY WITHOUT A SOUL',
+            words: 'NOVEL POETRY CHAPTER AUTHOR SPINE PAGE INDEX ATLAS FABLE MYTH SAGA PLOT HERO VILLAIN SEQUEL PROLOGUE EPILOGUE BOOKMARK SHELF READER EDITOR COVER'},
+        {id: 'insects', name: 'Insects', hue: 95, msg: 'BEES DANCE TO GIVE DIRECTIONS',
+            words: 'BEETLE WASP MOTH CRICKET CICADA MANTIS FIREFLY LADYBUG DRAGONFLY HORNET TERMITE FLEA GNAT APHID WEEVIL LOCUST EARWIG MIDGE'},
+        {id: 'desert', name: 'Desert', hue: 60, msg: 'ANTARCTICA IS A DESERT TOO',
+            words: 'DUNE CACTUS CAMEL OASIS MIRAGE SCORPION LIZARD SAND MESA CANYON SAHARA NOMAD CARAVAN SUN HEAT VULTURE COYOTE BOULDER ARID'},
+        {id: 'mountains', name: 'Mountains', hue: 205, msg: 'BECAUSE IT IS THERE',
+            words: 'PEAK SUMMIT RIDGE VALLEY GLACIER CLIFF SLOPE AVALANCHE ALPINE CREVASSE BOULDER CAIRN ROPE SHERPA CRAMPON BASECAMP ALTITUDE SCREE TRAIL'},
+        {id: 'detective', name: 'Detective', hue: 0, msg: 'ELEMENTARY MY DEAR WATSON',
+            words: 'CLUE SUSPECT ALIBI MOTIVE WITNESS FOOTPRINT MAGNIFIER CULPRIT SLEUTH MYSTERY EVIDENCE HUNCH DISGUISE CIPHER TRENCHCOAT VERDICT INSPECTOR CASE LEAD'},
+        {id: 'tea', name: 'Tea', hue: 115, msg: 'ALWAYS WARM THE POT FIRST',
+            words: 'OOLONG MATCHA CHAI EARLGREY DARJEELING ASSAM KETTLE TEAPOT INFUSER STEEP LEAF SAUCER HONEY LEMON BISCUIT CHAMOMILE MINT JASMINE'},
+        {id: 'circus', name: 'Circus', hue: 345, msg: 'THE SHOW MUST GO ON',
+            words: 'CLOWN JUGGLER ACROBAT TRAPEZE TIGHTROPE RINGMASTER TENT LION POPCORN MAGICIAN UNICYCLE STILTS CANNON HOOP ARENA CAPE CURTAIN SPOTLIGHT'},
+        {id: 'farm', name: 'Farm', hue: 85, msg: 'EARLY TO BED EARLY TO RISE',
+            words: 'TRACTOR BARN HAY COW SHEEP GOAT PIG HEN ROOSTER PLOW SILO ORCHARD FIELD HARVEST WHEAT CORN PASTURE FENCE DUCK PONY STABLE FARMER SCARECROW PITCHFORK WINDMILL CHICKEN TURKEY MEADOW'},
+        {id: 'cozy', name: 'Cozy', hue: 35, msg: 'THERE IS NO PLACE LIKE HOME',
+            words: 'BLANKET CANDLE PILLOW SLIPPERS SOFA FIREPLACE COCOA BOOK PUZZLE QUILT KNITTING ARMCHAIR LAMP RUG KETTLE SOCKS NAP TEA CURTAINS CAT'},
+        {id: 'gems', name: 'Gemstones', hue: 305, msg: 'CUT CLARITY COLOR CARAT',
+            words: 'RUBY EMERALD SAPPHIRE DIAMOND OPAL PEARL TOPAZ AMBER JADE GARNET QUARTZ ONYX AGATE JASPER AMETHYST TURQUOISE CRYSTAL ZIRCON OBSIDIAN'},
+        {id: 'icecream', name: 'Ice Cream', hue: 340, msg: 'ALWAYS SAVE ROOM FOR DESSERT',
+            words: 'VANILLA SPRINKLES CONE SCOOP SUNDAE WAFFLE CHERRY FUDGE SORBET GELATO SHERBET MINT PISTACHIO CARAMEL BANANA SPLIT SYRUP NUTS FLOAT MALT TOPPING FREEZER'},
+        {id: 'movies', name: 'Movies', hue: 10, msg: 'AND THE AWARD GOES TO',
+            words: 'ACTOR SCRIPT DIRECTOR CAMERA SCENE STAGE CURTAIN POPCORN TICKET SEQUEL PREMIERE CREDITS TRAILER STUNT PLOT CAST REEL FILM CINEMA ENCORE APPLAUSE'},
+        {id: 'travel', name: 'Travel', hue: 185, msg: 'NOT ALL WHO WANDER ARE LOST',
+            words: 'PASSPORT LUGGAGE TICKET FLIGHT TRAIN HOTEL MAP GUIDE VISA CRUISE HOSTEL BEACH SUITCASE POSTCARD JOURNEY ROUTE BORDER AIRPORT CAMERA SOUVENIR ITINERARY'},
+        {id: 'chess', name: 'Chess', hue: 245, msg: 'EVERY GRANDMASTER WAS ONCE A BEGINNER',
+            words: 'KING QUEEN ROOK BISHOP KNIGHT PAWN CHECK CASTLE GAMBIT OPENING ENDGAME BOARD CLOCK TEMPO FORK PIN SKEWER STALEMATE DRAW RANK FILE SQUARE PROMOTE BLITZ'},
+        {id: 'lab', name: 'Laboratory', hue: 165, msg: 'FAIL AGAIN FAIL BETTER',
+            words: 'BEAKER FLASK PIPETTE BURNER ATOM MOLECULE ELEMENT MICROSCOPE PETRI SAMPLE THEORY GOGGLES ACID BASE PROTON NEUTRON ENZYME CRYSTAL FORMULA LASER GENE'},
+        {id: 'picnic', name: 'Picnic', hue: 75, msg: 'BRING AN UMBRELLA JUST IN CASE',
+            words: 'BASKET BLANKET SANDWICH LEMONADE MEADOW CHEESE GRAPES NAPKIN THERMOS SUNHAT PIE SALAD BERRIES WASP SHADE CIDER PICKLE CRACKERS QUICHE'},
+        {id: 'night', name: 'Night', hue: 285, msg: 'COUNT SHEEP UNTIL MORNING',
+            words: 'MOON OWL BAT LANTERN SHADOW GHOST CANDLE MIDNIGHT STARS FIREFLY DREAM PILLOW CRICKET ECHO WHISPER FOG DUSK DAWN ECLIPSE COMET NIGHT

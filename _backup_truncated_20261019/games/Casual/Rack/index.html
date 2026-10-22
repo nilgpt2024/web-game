@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="canonical" href="https://suipce.com/games/Casual/Rack/">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Play Rack Online - Free Casual Game | AIGameHub</title>
+<meta name="description" content="A crossword tile game on a 15×15 board: seven letters, premium squares, a 270,000-word referee. Play a computer opponent at three strengths or pass one device between up to four players. After every move it shows the best play you had.">
+<style>
+:root{
+  --bg:#efe9dc;--panel:#faf6ec;--ink:#2a2620;--muted:#7a7163;--line:#d8cfbd;
+  --board:#2f5a4c;--sq:#3c6b5b;--sqline:#2a4f43;
+  --tw:#b8473c;--dw:#d98a7d;--tl:#3a78a8;--dl:#8fbad6;
+  --tile:#f3e2b8;--tileEdge:#c9ae78;--tileInk:#2b2419;
+  --new:#ffe9a3;--newEdge:#d7a93b;--last:#fff6cf;
+  --accent:#2f5a4c;--accentInk:#fff;--bad:#b8473c;--good:#2f7a4e;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1b1a17;--panel:#252320;--ink:#ece6da;--muted:#a39a8a;--line:#3a3630;
+  --board:#1f3b32;--sq:#28493e;--sqline:#183028;
+  --tw:#a13d33;--dw:#9a5e55;--tl:#2f6590;--dl:#4f7f9e;
+  --tile:#e8d6aa;--tileEdge:#a88e5a;--tileInk:#231d12;
+  --new:#ffe08a;--newEdge:#c4952b;--last:#f7ebc0;
+  --accent:#4f9a82;--accentInk:#0f1a16;--bad:#e0786c;--good:#6cc08f;
+}}
+:root[data-theme="dark"]{
+  --bg:#1b1a17;--panel:#252320;--ink:#ece6da;--muted:#a39a8a;--line:#3a3630;
+  --board:#1f3b32;--sq:#28493e;--sqline:#183028;
+  --tw:#a13d33;--dw:#9a5e55;--tl:#2f6590;--dl:#4f7f9e;
+  --tile:#e8d6aa;--tileEdge:#a88e5a;--tileInk:#231d12;
+  --new:#ffe08a;--newEdge:#c4952b;--last:#f7ebc0;
+  --accent:#4f9a82;--accentInk:#0f1a16;--bad:#e0786c;--good:#6cc08f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{min-height:100vh;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+.wrap{max-width:1040px;margin:0 auto;padding:14px 16px 40px;display:grid;grid-template-columns:minmax(0,600px) minmax(260px,1fr);gap:20px;align-items:start}
+header{grid-column:1/-1;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font:700 26px/1 Georgia,"Times New Roman",serif;margin:0;letter-spacing:.02em}
+header .sub{color:var(--muted);font-size:13px}
+header .sp{flex:1}
+.linkbtn{background:none;border:0;color:var(--muted);cursor:pointer;padding:4px 6px;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.linkbtn:hover{color:var(--ink)}
+
+/* board */
+.boardbox{position:relative}
+#board{display:grid;grid-template-columns:repeat(15,1fr);gap:2px;padding:6px;background:var(--board);border-radius:10px;aspect-ratio:1;width:100%;user-select:none;touch-action:manipulation}
+.sq{position:relative;background:var(--sq);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:clamp(6px,1.35vw,9px);font-weight:700;color:rgba(255,255,255,.85);letter-spacing:-.02em;cursor:pointer;min-width:0;min-height:0}
+.sq.tw{background:var(--tw)}.sq.dw{background:var(--dw)}.sq.tl{background:var(--tl)}.sq.dl{background:var(--dl)}
+.sq.star::after{content:"★";font-size:clamp(10px,2.4vw,16px);color:rgba(255,255,255,.9)}
+.sq.cur{box-shadow:inset 0 0 0 2px #fff}
+.sq.cur::before{position:absolute;right:1px;bottom:0;font-size:clamp(8px,1.8vw,12px);color:#fff;content:"→";line-height:1}
+.sq.cur.down::before{content:"↓"}
+.sq.drop{box-shadow:inset 0 0 0 2px var(--new)}
+.tile{position:absolute;inset:0;border-radius:3px;background:var(--tile);color:var(--tileInk);box-shadow:inset 0 -2px 0 var(--tileEdge);display:flex;align-items:center;justify-content:center;font:700 clamp(11px,2.9vw,20px)/1 Georgia,"Times New Roman",serif;text-transform:uppercase}
+.tile sub{position:absolute;right:2px;bottom:1px;font:600 clamp(6px,1.2vw,8px)/1 system-ui,sans-serif}
+.tile.blank{color:#9a5b18}
+.tile.new{background:var(--new);box-shadow:inset 0 -2px 0 var(--newEdge),0 0 0 1px var(--newEdge)}
+.tile.last{background:var(--last)}
+.tile.pop{animation:pop .28s ease-out}
+@keyframes pop{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* rack */
+.rackrow{display:flex;gap:10px;align-items:center;margin-top:12px}
+#rack{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:6px;min-height:56px;padding:6px;border-radius:10px;background:var(--panel);border:1px solid var(--line);touch-action:none}
+.rt{position:relative;aspect-ratio:1;max-height:60px;border-radius:6px;background:var(--tile);color:var(--tileInk);box-shadow:inset 0 -3px 0 var(--tileEdge);display:flex;align-items:center;justify-content:center;font:700 clamp(18px,5vw,28px)/1 Georgia,serif;cursor:grab;user-select:none;text-transform:uppercase}
+.rt sub{position:absolute;right:4px;bottom:3px;font:600 11px/1 system-ui,sans-serif}
+.rt.sel{outline:3px solid var(--newEdge);outline-offset:1px;transform:translateY(-3px)}
+.rt.gone{visibility:hidden}
+.rt.hide{background:var(--line);box-shadow:none;color:transparent}
+.ghost{position:fixed;pointer-events:none;z-index:50;width:46px;height:46px;border-radius:6px;background:var(--new);color:var(--tileInk);box-shadow:0 6px 18px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font:700 26px/1 Georgia,serif;text-transform:uppercase;transform:translate(-50%,-70%)}
+
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:600}
+.btn:hover:not(:disabled){border-color:var(--muted)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);color:var(--accentInk);border-color:var(--accent)}
+.btn.small{padding:6px 10px;font-size:13px}
+#preview{min-height:22px;margin-top:8px;font-size:14px;color:var(--muted)}
+#preview .ok{color:var(--good);font-weight:600}
+#preview .bad{color:var(--bad)}
+
+/* side */
+.side{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card h2{font:600 12px/1 system-ui,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+.scores{display:flex;flex-direction:column;gap:6px}
+.pl{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px}
+.pl.turn{background:var(--bg);box-shadow:inset 3px 0 0 var(--accent)}
+.pl .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl .kind{font-size:12px;color:var(--muted)}
+.pl .pts{font:700 20px/1 Georgia,serif;font-variant-numeric:tabular-nums}
+.status{font-size:13px;color:var(--muted);margin-top:8px}
+#log{max-height:300px;overflow:auto;font-size:14px;display:flex;flex-direction:column;gap:6px}
+.lg{display:grid;grid-template-columns:1fr auto;gap:0 8px}
+.lg .who{color:var(--muted);font-size:12px;grid-column:1/-1}
+.lg .w{font-family:Georgia,serif;letter-spacing:.04em;word-break:break-word}
+.lg .s{font-weight:700;font-variant-numeric:tabular-nums}
+.lg .best{grid-column:1/-1;font-size:12px;color:var(--muted)}
+.lg .best b{font-family:Georgia,serif;font-weight:600;color:var(--ink)}
+#unseen{display:flex;flex-wrap:wrap;gap:3px 8px;font:14px/1.5 Georgia,serif;text-transform:uppercase}
+#unseen span.z{color:var(--muted);opacity:.4}
+#unseen small{font:11px system-ui,sans-serif;color:var(--muted);margin-left:1px}
+
+/* overlays */
+.ov{position:fixed;inset:0;background:rgba(20,18,14,.55);display:flex;align-items:center;justify-content:center;z-index:40;padding:16px}
+.ov[hidden]{display:none}
+.dlg{background:var(--panel);color:var(--ink);border-radius:14px;padding:20px;max-width:440px;width:100%;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.dlg h3{margin:0 0 6px;font:700 22px/1.2 Georgia,serif}
+.dlg p{margin:6px 0 12px;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center;margin:8px 0}
+.row input[type=text]{flex:1;min-width:0;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-shrink:0}
+.seg button{border:0;background:none;padding:7px 9px;cursor:pointer;font-size:13px}
+.seg button.on{background:var(--accent);color:var(--accentInk)}
+.letters{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.letters button{aspect-ratio:1;border:0;border-radius:6px;background:var(--tile);color:var(--tileInk);box-shadow:inset 0 -3px 0 var(--tileEdge);font:700 20px Georgia,serif;cursor:pointer;text-transform:uppercase}
+.letters button.on{background:var(--new);outline:2px solid var(--newEdge)}
+.final{width:100%;border-collapse:collapse;margin:8px 0 12px;font-variant-numeric:tabular-nums}
+.final td{padding:5px 4px;border-bottom:1px solid var(--line)}
+.final td:last-child{text-align:right;font-weight:700}
+.note{font-size:13px;color:var(--muted)}
+.banner{grid-column:1/-1;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--bad);border-radius:8px;padding:8px 12px;font-size:14px}
+.banner[hidden]{display:none}
+.cover{position:absolute;inset:0;border-radius:10px;background:var(--board);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;text-align:center;z-index:5}
+.cover[hidden]{display:none}
+.cover b{font:700 24px Georgia,serif}
+
+@media (max-width:820px){
+  .wrap{display:flex;flex-direction:column;align-items:stretch;padding:10px 10px 40px;gap:12px}
+  header,.banner{order:-2}
+  header .sub{display:none}
+  .side{display:contents}
+  .card.sc{order:-1;padding:8px 10px}
+  .card.sc h2{display:none}
+  .status{margin-top:4px}
+  main,.card{order:0}
+  .controls{flex-wrap:nowrap;gap:6px}
+  .controls .btn{flex:1;padding:10px 4px;min-width:0}
+  #board{padding:4px;gap:1px}
+  .sq{border-radius:2px}
+  .scores{flex-direction:row;flex-wrap:wrap}
+  .pl{flex:1 1 40%}
+  #log{max-height:none}
+}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"Rack","item":"https://suipce.com/games/Casual/Rack/"}]}</script>
+<!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/Rack/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Casual/Rack/preview.png"></head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Rack</h1><span class="sub">seven letters, fifteen squares, one word list</span><span class="sp"></span>
+    <button class="linkbtn" id="howBtn">How to play</button>
+    <button class="linkbtn" id="newBtn">New game</button>
+  </header>
+  <div class="banner" id="banner" hidden></div>
+
+  <main>
+    <div class="boardbox">
+      <div id="board" aria-label="Board"></div>
+      <div class="cover" id="cover" hidden><b id="coverName"></b><span>Your rack is hidden from the others.</span><button class="btn primary" id="coverBtn">Show my tiles</button></div>
+    </div>
+    <div class="rackrow"><div id="rack"></div></div>
+    <div id="preview"></div>
+    <div class="controls">
+      <button class="btn primary" id="playBtn" disabled>Play</button>
+      <button class="btn" id="recallBtn">Recall</button>
+      <button class="btn" id="shuffleBtn">Shuffle</button>
+      <button class="btn" id="swapBtn">Swap</button>
+      <button class="btn" id="passBtn">Pass</button>
+    </div>
+  </main>
+
+  <aside class="side">
+    <div class="card sc"><h2>Scores</h2><div class="scores" id="scores"></div><div class="status" id="status"></div></div>
+    <div class="card"><h2>Moves</h2><div id="log"></div></div>
+    <div class="card"><h2>Tiles you haven't seen</h2><div id="unseen"></div></div>
+  </aside>
+</div>
+
+<div class="ov" id="setupOv" hidden><div class="dlg">
+  <h3>New game</h3>
+  <p>Two to four players on this device. Computer players think on their own.</p>
+  <div id="slots"></div>
+  <div class="row"><button class="btn small" id="addSlot">+ Add player</button></div>
+  <div class="row"><label for="seedIn" class="note" style="flex-shrink:0">Seed</label><input type="text" id="seedIn" spellcheck="false" autocomplete="off"><button class="btn small" id="reseed">New</button></div>
+  <p class="note">Easy and medium computers only play everyday words. Hard knows the whole list and keeps a good rack.</p>
+  <p class="note">The same seed deals the same tiles, so a seed is a game you can hand to someone else.</p>
+  <div class="row" style="justify-content:flex-end"><button class="btn" id="setupCancel">Cancel</button><button class="btn primary" id="setupGo">Start</button></div>
+</div></div>
+
+<div class="ov" id="blankOv" hidden><div class="dlg"><h3>Blank tile</h3><p>Which letter should it be? It scores nothing.</p><div class="letters" id="blankLetters"></div></div></div>
+
+<div class="ov" id="swapOv" hidden><div class="dlg"><h3>Swap tiles</h3><p>Pick the tiles to throw back. You draw the same number and lose your turn.</p><div class="letters" id="swapLetters"></div>
+  <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="swapCancel">Cancel</button><button class="btn primary" id="swapGo" disabled>Swap</button></div></div></div>
+
+<div class="ov" id="endOv" hidden><div class="dlg"><h3 id="endTitle"></h3><table class="final" id="endTable"></table><div id="endNotes"></div>
+  <div class="row" style="justify-content:flex-end;flex-wrap:wrap;margin-top:14px"><button class="btn" id="endLook">Look at the board</button><button class="btn" id="endShare">Copy seed link</button><button class="btn" id="endAgain">Same tiles again</button><button class="btn primary" id="endNew">New game</button></div></div></div>
+
+<div class="ov" id="howOv" hidden><div class="dlg">
+  <h3>How to play</h3>
+  <p style="color:var(--ink)">Make words crossword-style from your seven tiles. Every word goes in one row or one column and has to touch the tiles already down; the first one covers the star.</p>
+  <p>Coloured squares multiply what lands on them for the first time: <b style="color:var(--dl)">2L</b>/<b style="color:var(--tl)">3L</b> a letter, <b style="color:var(--dw)">2W</b>/<b style="color:var(--tw)">3W</b> the whole word. Every new word you form scores, including the short ones across. Using all seven tiles at once is worth 50 extra. Blanks can be any letter and score nothing.</p>
+  <p><b>Placing tiles:</b> drag them, or tap a tile then a square. Tap a tile you've put down to take it back. With a keyboard, click a square and type; click it again to turn the arrow, Backspace takes back, Enter plays.</p>
+  <p>The game ends when the bag is empty and someone plays out, or after six scoreless turns in a row. Letters left on a rack count against you.</p>
+  <p>After each of your moves the log shows the best play you had. The referee is <a href="https://github.com/sindresorhus/word-list" target="_blank" rel="noopener">word-list</a> (MIT), about 270,000 words; the easier computers draw on <a href="http://wordlist.aspell.net/" target="_blank" rel="noopener">SCOWL</a>'s everyday tiers. Both load once from a CDN.</p>
+  <div class="row" style="justify-content:flex-end"><button class="btn primary" id="howClose">Got it</button></div>
+</div></div>
+
+<script id="engine">
+// ---- Rack engine: dictionary trie, move generator, scoring, bots. Plain JS, runs in a Worker or Node.
+var N = 15, BL = 26;
+var VAL = [1,3,3,2,1,4,2,4,1,8,5,1,3,1,1,3,10,1,1,1,1,4,4,8,4,10,0];
+var DIST = [9,2,2,4,12,2,3,2,9,1,1,4,2,6,8,2,1,6,4,6,4,2,2,1,2,1,2];
+// one quadrant, mirrored: T triple word, D double word, t triple letter, d double letter
+var QUAD = ['T..d...T', '.D...t..', '..D...d.', 'd..D...d', '....D...', '.t...t..', '..d...d.', 'T..d...D'];
+var LM = new Uint8Array(225), WM = new Uint8Array(225);
+(function () {
+  for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+    var ch = QUAD[r > 7 ? 14 - r : r][c > 7 ? 14 - c : c], i = r * N + c;
+    LM[i] = ch === 't' ? 3 : ch === 'd' ? 2 : 1;
+    WM[i] = ch === 'T' ? 3 : ch === 'D' ? 2 : 1;
+  }
+})();
+
+// ---- trie as first-child / next-sibling typed arrays, built from a sorted list
+var T = null;
+function buildTrie(words) {
+  var cap = 1 << 20, first = new Int32Array(cap), next = new Int32Array(cap), ch = new Uint8Array(cap), term = new Uint8Array(cap);
+  var last = new Int32Array(cap), n = 1, count = 0;
+  function grow() {
+    cap *= 2;
+    var f = new Int32Array(cap); f.set(first); first = f;
+    var x = new Int32Array(cap); x.set(next); next = x;
+    var h = new Uint8Array(cap); h.set(ch); ch = h;
+    var t = new Uint8Array(cap); t.set(term); term = t;
+    var l = new Int32Array(cap); l.set(last); last = l;
+  }
+  words.sort();
+  for (var w = 0; w < words.length; w++) {
+    var s = words[w];
+    if (s.length < 2 || s.length > N || !/^[a-z]+$/.test(s)) continue;
+    var node = 0;
+    for (var k = 0; k < s.length; k++) {
+      var c = s.charCodeAt(k) - 97, lc = last[node];
+      if (lc && ch[lc] === c) { node = lc; continue; }
+      if (n >= cap) grow();
+      var nn = n++; ch[nn] = c;
+      if (lc) next[lc] = nn; else first[node] = nn;
+      last[node] = nn; node = nn;
+    }
+    if (!term[node]) { term[node] = 1; count++; }
+  }
+  T = { first: first, next: next, ch: ch, term: term, nodes: n, words: count };
+  return T;
+}
+// common words (a second, smaller list) are marked term = 2; easy and medium computers only play those
+function markCommon(words) {
+  var n = 0;
+  for (var w = 0; w < words.length; w++) {
+    var s = words[w], node = 0;
+    if (!/^[a-z]{2,15}$/.test(s)) continue;
+    for (var k = 0; k < s.length && (k === 0 || node); k++) node = child(node, s.charCodeAt(k) - 97);
+    if (node && T.term[node]) { T.term[node] = 2; n++; }
+  }
+  T.common = n;
+  return n;
+}
+function child(node, c) {
+  for (var k = T.first[node]; k; k = T.next[k]) if (T.ch[k] === c) return k;
+  return 0;
+}
+function isWord(s) {
+  var node = 0;
+  for (var k = 0; k < s.length; k++) { node = child(node, s.charCodeAt(k) - 97); if (!node) return false; }
+  return T.term[node] >= 1;
+}
+
+// ---- board: Int8Array(225) letter 0..25 or -1; blank: Uint8Array(225) 1 if that tile is a blank
+function transpose(a) {
+  var b = new a.constructor(225);
+  for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) b[c * N + r] = a[r * N + c];
+  return b;
+}
+function tileVal(board, blank, i) { return blank[i] ? 0 : VAL[board[i]]; }
+
+// cross-checks for placing into row-words: the vertical word through each empty square
+function crossChecks(board, blank, need) {
+  need = need || 1;
+  var mask = new Int32Array(225), cscore = new Int32Array(225), has = new Uint8Array(225);
+  for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+    var i = r * N + c;
+    if (board[i] >= 0) continue;
+    var up = r, dn = r;
+    while (up > 0 && board[(up - 1) * N + c] >= 0) up--;
+    while (dn < N - 1 && board[(dn + 1) * N + c] >= 0) dn++;
+    if (up === r && dn === r) { mask[i] = (1 << 26) - 1; continue; }
+    has[i] = 1;
+    var node = 0, sc = 0, ok = true;
+    for (var k = up; k <= dn; k++) if (k !== r) sc += tileVal(board, blank, k * N + c);
+    cscore[i] = sc;
+    if (!T) { mask[i] = (1 << 26) - 1; continue; }
+    for (k = up; k < r; k++) { node = child(node, board[k * N + c]); if (!node) { ok = false; break; } }
+    if (!ok) continue;
+    var m = 0;
+    for (var ck = T.first[node]; ck; ck = T.next[ck]) {
+      var nd = ck;
+      for (k = r + 1; k <= dn && nd; k++) nd = child(nd, board[k * N + c]);
+      if (nd && T.term[nd] >= need) m |= 1 << T.ch[ck];
+    }
+    mask[i] = m;
+  }
+  return { mask: mask, cscore: cscore, has: has };
+}
+
+// score a set of new tiles lying in one row of this frame (tiles: [[i, letter, isBlank]...], already on board)
+function scoreRow(board, blank, xc, tiles) {
+  var r = (tiles[0][0] / N) | 0, c0 = 1e9, c1 = -1, isNew = {};
+  for (var t = 0; t < tiles.length; t++) { var c = tiles[t][0] % N; isNew[tiles[t][0]] = tiles[t]; if (c < c0) c0 = c; if (c > c1) c1 = c; }
+  while (c0 > 0 && board[r * N + c0 - 1] >= 0) c0--;
+  while (c1 < N - 1 && board[r * N + c1 + 1] >= 0) c1++;
+  var main = 0, wm = 1, total = 0;
+  for (c = c0; c <= c1; c++) {
+    var i = r * N + c, nt = isNew[i];
+    if (nt) {
+      var v = nt[2] ? 0 : VAL[nt[1]];
+      main += v * LM[i]; wm *= WM[i];
+      if (xc.has[i]) total += (xc.cscore[i] + v * LM[i]) * WM[i];
+    } else main += tileVal(board, blank, i);
+  }
+  total += main * wm;
+  if (tiles.length === 7) total += 50;
+  return total;
+}
+
+// all legal moves for a rack (counts[27]). Returns [{tiles:[[i,letter,blank]], score, dir, word, start}]
+function genMoves(board0, blank0, rack, need) {
+  need = need || 1;
+  var out = [], seen = {};
+  var empty = true;
+  for (var q = 0; q < 225; q++) if (board0[q] >= 0) { empty = false; break; }
+  for (var dir = 0; dir < 2; dir++) {
+    var board = dir ? transpose(board0) : board0, blank = dir ? transpose(blank0) : blank0;
+    var xc = crossChecks(board, blank, need);
+    var anchor = new Uint8Array(225);
+    if (empty) anchor[7 * N + 7] = 1;
+    else for (var r = 0; r < N; r++) for (var c = 0; c < N; c++) {
+      var i = r * N + c;
+      if (board[i] >= 0) continue;
+      if ((r > 0 && board[i - N] >= 0) || (r < N - 1 && board[i + N] >= 0) || (c > 0 && board[i - 1] >= 0) || (c < N - 1 && board[i + 1] >= 0)) anchor[i] = 1;
+    }
+    var placed = [];
+    var record = function (row, endCol) {
+      var tiles = [];
+      for (var p = 0; p < placed.length; p++) tiles.push(placed[p].slice());
+      for (p = 0; p < tiles.length; p++) { board[tiles[p][0]] = tiles[p][1]; blank[tiles[p][0]] = tiles[p][2]; }
+      var sc = scoreRow(board, blank, xc, tiles);
+      var c0 = endCol - 1;
+      while (c0 > 0 && board[row * N + c0 - 1] >= 0) c0--;
+      var w = '';
+      for (var cc = c0; cc < endCol; cc++) w += String.fromCharCode(97 + board[row * N + cc]);
+      for (p = 0; p < tiles.length; p++) { board[tiles[p][0]] = -1; blank[tiles[p][0]] = 0; }
+      // back to board0 frame
+      var real = tiles.map(function (t) { var rr = (t[0] / N) | 0, c2 = t[0] % N; return [dir ? c2 * N + rr : t[0], t[1], t[2]]; });
+      real.sort(function (a, b) { return a[0] - b[0]; });
+      var key = real.map(function (t) { return t[0] + ':' + t[1] + (t[2] ? '?' : ''); }).join(',');
+      if (seen[key]) return;
+      seen[key] = 1;
+      out.push({ tiles: real, score: sc, word: w, dir: dir, start: dir ? c0 * N + row : row * N + c0 });
+    };
+    var extendRight = function (row, node, col, anc) {
+      if (col >= N) { if (T.term[node] >= need && col > anc) record(row, col); return; }
+      var i = row * N + col;
+      if (board[i] >= 0) {
+        var nd = child(node, board[i]);
+        if (nd) extendRight(row, nd, col + 1, anc);
+        return;
+      }
+      if (T.term[node] >= need && col > anc) record(row, col);
+      var m = xc.mask[i];
+      for (var ck = T.first[node]; ck; ck = T.next[ck]) {
+        var l = T.ch[ck];
+        if (!(m & (1 << l))) continue;
+        if (rack[l] > 0) { rack[l]--; placed.push([i, l, 0]); extendRight(row, ck, col + 1, anc); placed.pop(); rack[l]++; }
+        if (rack[BL] > 0) { rack[BL]--; placed.push([i, l, 1]); extendRight(row, ck, col + 1, anc); placed.pop(); rack[BL]++; }
+      }
+    };
+    // left part is laid out right-to-left ending just before the anchor; we build it as a prefix
+    var leftPart = function (row, node, limit, anc, len) {
+      // place prefix tiles at anc-len .. anc-1
+      extendRight(row, node, anc, anc);
+      if (limit <= 0) return;
+      for (var ck = T.first[node]; ck; ck = T.next[ck]) {
+        var l = T.ch[ck];
+        for (var b = 0; b < 2; b++) {
+          if (b === 0 && !(rack[l] > 0)) continue;
+          if (b === 1 && !(rack[BL] > 0)) continue;
+          var idx = b ? BL : l;
+          rack[idx]--;
+          // shift existing prefix left by one and append this letter at anc-1
+          for (var p = 0; p < placed.length; p++) placed[p][0]--;
+          placed.push([row * N + anc - 1, l, b]);
+          leftPart(row, ck, limit - 1, anc, len + 1);
+          placed.pop();
+          for (p = 0; p < placed.length; p++) placed[p][0]++;
+          rack[idx]++;
+        }
+      }
+    };
+    for (r = 0; r < N; r++) for (c = 0; c < N; c++) {
+      i = r * N + c;
+      if (!anchor[i]) continue;
+      if (c > 0 && board[i - 1] >= 0) {
+        var s = c - 1;
+        while (s > 0 && board[i - (c - s) - 1] >= 0) s--;
+        var node = 0;
+        for (var k = s; k < c && (node || k === s); k++) node = child(node, board[r * N + k]);
+        if (node) extendRight(r, node, c, c);
+      } else {
+        var limit = 0;
+        while (c - limit - 1 >= 0 && board[i - limit - 1] < 0 && !anchor[i - limit - 1]) limit++;
+        leftPart(r, 0, limit, c, 0);
+      }
+    }
+  }
+  return out;
+}
+
+// validate a human placement: tiles [[i, letter, blank]]. Returns {ok, err, words:[{w,ok}], score}
+function checkMove(board, blank, tiles, useDict) {
+  if (!tiles.length) return { ok: false, err: 'Place some tiles first.' };
+  var rows = {}, cols = {};
+  tiles.forEach(function (t) { rows[(t[0] / N) | 0] = 1; cols[t[0] % N] = 1; if (board[t[0]] >= 0) throw new Error('occupied'); });
+  var nr = Object.keys(rows).length, nc = Object.keys(cols).length;
+  if (nr > 1 && nc > 1) return { ok: false, err: 'Tiles must be in one row or one column.' };
+  var empty = true;
+  for (var q = 0; q < 225; q++) if (board[q] >= 0) { empty = false; break; }
+  var dir = nc > 1 ? 0 : nr > 1 ? 1 : (empty || touchesH(board, tiles[0][0]) ? 0 : 1);
+  var B = dir ? transpose(board) : board.slice(), K = dir ? transpose(blank) : blank.slice();
+  var tt = tiles.map(function (t) { var r = (t[0] / N) | 0, c = t[0] % N; return [dir ? c * N + r : t[0], t[1], t[2]]; });
+  var row = (tt[0][0] / N) | 0, cmin = 99, cmax = -1;
+  tt.forEach(function (t) { var c = t[0] % N; cmin = Math.min(cmin, c); cmax = Math.max(cmax, c); });
+  var xc = crossChecks(B, K);
+  for (var c = cmin; c <= cmax; c++) {
+    var i = row * N + c;
+    if (B[i] < 0 && !tt.some(function (t) { return t[0] === i; })) return { ok: false, err: 'There is a gap in your word.' };
+  }
+  if (empty) {
+    if (!tiles.some(function (t) { return t[0] === 112; })) return { ok: false, err: 'The first word must cover the centre star.' };
+    if (tiles.length < 2) return { ok: false, err: 'The first word needs at least two letters.' };
+  } else {
+    var conn = false;
+    tt.forEach(function (t) {
+      var i = t[0], r = (i / N) | 0, cc = i % N;
+      if ((r > 0 && B[i - N] >= 0) || (r < N - 1 && B[i + N] >= 0) || (cc > 0 && B[i - 1] >= 0) || (cc < N - 1 && B[i + 1] >= 0)) conn = true;
+    });
+    if (!conn) return { ok: false, err: 'Your word must connect to tiles on the board.' };
+  }
+  tt.forEach(function (t) { B[t[0]] = t[1]; K[t[0]] = t[2]; });
+  var words = [];
+  var c0 = cmin, c1 = cmax;
+  while (c0 > 0 && B[row * N + c0 - 1] >= 0) c0--;
+  while (c1 < N - 1 && B[row * N + c1 + 1] >= 0) c1++;
+  var w = '';
+  for (c = c0; c <= c1; c++) w += String.fromCharCode(97 + B[row * N + c]);
+  if (w.length > 1) words.push(w);
+  tt.forEach(function (t) {
+    if (!xc.has[t[0]]) return;
+    var r = (t[0] / N) | 0, cc = t[0] % N, u = r, d = r;
+    while (u > 0 && B[(u - 1) * N + cc] >= 0) u--;
+    while (d < N - 1 && B[(d + 1) * N + cc] >= 0) d++;
+    var s = '';
+    for (var k = u; k <= d; k++) s += String.fromCharCode(97 + B[k * N + cc]);
+    words.push(s);
+  });
+  if (!words.length) return { ok: false, err: 'Make a word of at least two letters.' };
+  tt.forEach(function (t) { B[t[0]] = -1; K[t[0]] = 0; });
+  var sc = 0;
+  // score in-frame: main word + cross words
+  tt.forEach(function (t) { B[t[0]] = t[1]; K[t[0]] = t[2]; });
+  sc = scoreRow(B, K, xc, tt);
+  var res = words.map(function (s) { return { w: s, ok: useDict ? isWord(s) : true }; });
+  var bad = res.filter(function (x) { return !x.ok; });
+  return { ok: !bad.length, err: bad.length ? 'Not in the word list: ' + bad.map(function (x) { return x.w.toUpperCase(); }).join(', ') : '', words: res, score: sc };
+}
+function touchesH(board, i) { var c = i % N; return (c > 0 && board[i - 1] >= 0) || (c < N - 1 && board[i + 1] >= 0); }
+
+// ---- bots
+var LEAVE = { a: 1, b: -2, c: 0, d: 0.5, e: 3, f: -2, g: -2, h: 1, i: -0.5, j: -3, k: -2, l: 0, m: 0, n: 0.5, o: -1, p: -1, q: -7, r: 1.5, s: 8, t: 0.5, u: -3, v: -5, w: -3, x: 3, y: -0.5, z: 2, '?': 25 };
+function leaveValue(rack) {
+  var v = 0, vow = 0, n = 0;
+  for (var l = 0; l < 27; l++) {
+    var k = rack[l]; if (!k) continue;
+    var ch = l === BL ? '?' : String.fromCharCode(97 + l);
+    // a letter's value counts once; each duplicate costs flexibility instead
+    v += LEAVE[ch] - 3 * (k - 1) * (ch === '?' || ch === 's' ? 0.5 : 1);
+    if (l < 26 && 'aeiou'.indexOf(ch) >= 0) vow += k;
+    n += k;
+  }
+  if (n) { var cons = n - vow - (rack[BL] || 0); v -= Math.abs(vow - cons) * (n > 2 ? 1.5 : 0.5); }
+  if (rack[16] && !rack[20]) v -= 3;
+  return v;
+}
+function afterRack(rack, tiles) {
+  var r = rack.slice();
+  tiles.forEach(function (t) { r[t[2] ? BL : t[1]]--; });
+  return r;
+}
+// level: 0 easy, 1 medium, 2 hard. rnd: () => [0,1)
+function botChoose(board, blank, rack, level, bagCount, rnd) {
+  // easy and medium keep to everyday words when the common list is there
+  var moves = genMoves(board, blank, rack, level < 2 && T.common ? 2 : 1);
+  if (!moves.length) return { kind: bagCount >= 7 ? 'exchange' : 'pass', ex: exchangePick(rack) , best: null, n: 0 };
+  moves.sort(function (a, b) { return b.score - a.score || (a.start - b.start) || (a.dir - b.dir); });
+  var best = moves[0], pick;
+  if (level === 0) {
+    // an easy opponent plays short, ordinary moves: nothing over four tiles, and well under the best on offer
+    var pool = moves.filter(function (m) { return m.tiles.length <= 4 && m.score <= Math.max(10, best.score * 0.65); });
+    if (!pool.length) pool = moves.slice(-Math.max(1, moves.length >> 1));
+    pool.sort(function (a, b) { return b.score - a.score; });
+    pick = pool[Math.floor(rnd() * Math.min(pool.length, 12))];
+  } else if (level === 1) {
+    pick = best;
+  } else {
+    var endgame = bagCount === 0;
+    var bestV = -1e9;
+    for (var k = 0; k < moves.length; k++) {
+      var m = moves[k], v = m.score + (

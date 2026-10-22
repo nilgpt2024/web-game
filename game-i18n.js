@@ -51,6 +51,7 @@ const GAME_TRANSLATIONS = {
         },
         specific: {
             '2048': {
+                banner: '经典益智游戏',
                 title: '2048',
                 desc: '合并相同数字，挑战 2048 方块！',
                 helpTitle: '📖 游戏说明',
@@ -68,17 +69,20 @@ const GAME_TRANSLATIONS = {
                 tip4: '提前规划移动路线'
             },
             'Flappy-Bird': {
+                banner: '经典小鸟飞行游戏',
                 title: 'Flappy Bird',
                 desc: '点击或按空格键控制小鸟飞翔',
                 control: '点击屏幕或按空格键控制',
                 goal: '避开管道，飞得更远！'
             },
             'Breakout': {
+                banner: '经典打砖块游戏',
                 title: 'Breakout',
                 desc: '打砖块游戏',
                 control: '鼠标或键盘控制'
             },
             'Snake': {
+                banner: '经典贪吃蛇游戏',
                 title: '贪吃蛇',
                 subtitle: '吃食物，变长，活下去！',
                 difficulty: '难度选择',
@@ -114,6 +118,7 @@ const GAME_TRANSLATIONS = {
                 }
             },
             'Tetris': {
+                banner: '经典俄罗斯方块',
                 title: '俄罗斯方块',
                 desc: '经典方块消除游戏',
                 rulesBtn: '规则',
@@ -168,6 +173,7 @@ const GAME_TRANSLATIONS = {
                 }
             },
             'Pac-Man': {
+                banner: '经典吃豆人游戏',
                 title: '🟡 PAC-MAN',
                 subtitle: '经典街机游戏 - 收集豆子，躲避幽灵，挑战极限！',
                 startTitle: 'PAC-MAN',
@@ -213,10 +219,12 @@ const GAME_TRANSLATIONS = {
                 backToMenuBtn: '返回主菜单'
             },
             'Minesweeper': {
+                banner: '经典扫雷游戏',
                 title: 'Minesweeper',
                 desc: '经典扫雷游戏'
             },
             'Sudoku': {
+                banner: '经典数独游戏',
                 title: 'Sudoku',
                 desc: '数独逻辑游戏'
             },
@@ -457,6 +465,7 @@ const GAME_TRANSLATIONS = {
         },
         specific: {
             '2048': {
+                banner: 'Classic Puzzle Game',
                 title: '2048',
                 desc: 'Merge same numbers, reach 2048!',
                 helpTitle: '📖 How to Play',
@@ -474,17 +483,20 @@ const GAME_TRANSLATIONS = {
                 tip4: 'Plan moves in advance'
             },
             'Flappy-Bird': {
+                banner: 'Classic Flappy Bird',
                 title: 'Flappy Bird',
                 desc: 'Click or press Space to control the bird',
                 control: 'Click screen or press Space to control',
                 goal: 'Avoid pipes, fly further!'
             },
             'Breakout': {
+                banner: 'Classic Brick Breaker',
                 title: 'Breakout',
                 desc: 'Break the bricks',
                 control: 'Mouse or keyboard controls'
             },
             'Snake': {
+                banner: 'Classic Snake Game',
                 title: 'Snake Game',
                 subtitle: 'Eat, grow, and survive!',
                 difficulty: 'Difficulty',
@@ -520,6 +532,7 @@ const GAME_TRANSLATIONS = {
                 }
             },
             'Tetris': {
+                banner: 'Classic Tetris',
                 title: 'Tetris',
                 desc: 'Classic block puzzle game',
                 rulesBtn: 'Rules',
@@ -574,6 +587,7 @@ const GAME_TRANSLATIONS = {
                 }
             },
             'Pac-Man': {
+                banner: 'Classic Pac-Man',
                 title: '🟡 PAC-MAN',
                 subtitle: 'Classic Arcade Game - Collect dots, avoid ghosts, challenge your limits!',
                 startTitle: 'PAC-MAN',
@@ -619,10 +633,12 @@ const GAME_TRANSLATIONS = {
                 backToMenuBtn: 'Back to Menu'
             },
             'Minesweeper': {
+                banner: 'Classic Minesweeper',
                 title: 'Minesweeper',
                 desc: 'Classic minesweeper game'
             },
             'Sudoku': {
+                banner: 'Classic Sudoku',
                 title: 'Sudoku',
                 desc: 'Sudoku logic game'
             },
@@ -824,8 +840,7 @@ class GameI18n {
     }
 
     detectLanguage() {
-        const browserLang = navigator.language;
-        if (browserLang.startsWith('zh')) return 'zh-CN';
+        // SEO：无用户主动选择时默认英文，保证 Google 抓取英文内容与英文 meta（欧美流量）
         return 'en';
     }
 
@@ -871,6 +886,22 @@ class GameI18n {
                 el.setAttribute(attr, translation);
             }
         });
+
+        // 切换语言时同步更新 SEO meta（title / description / og / twitter）
+        if (window.GAME_META && window.GAME_META[this.currentLang]) {
+            const m = window.GAME_META[this.currentLang];
+            if (m.title) document.title = m.title;
+            const setMeta = (sel, val) => {
+                const el = document.querySelector(sel);
+                if (el && val) el.setAttribute('content', val);
+            };
+            setMeta('meta[name="description"]', m.description);
+            setMeta('meta[name="title"]', m.title);
+            setMeta('meta[property="og:title"]', m.title);
+            setMeta('meta[property="og:description"]', m.description);
+            setMeta('meta[name="twitter:title"]', m.title);
+            setMeta('meta[name="twitter:description"]', m.description);
+        }
 
         document.documentElement.lang = this.currentLang;
         document.querySelectorAll('.lang-btn').forEach(btn => {

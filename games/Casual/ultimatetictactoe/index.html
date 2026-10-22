@@ -17,7 +17,7 @@
 <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Casual/ultimatetictactoe/preview.webp"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image"content="https://suipce.com/games/Casual/ultimatetictactoe/preview.webp">
 <meta name="twitter:image" content="https://suipce.com/games/Casual/ultimatetictactoe/preview.webp">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Ultimate Tic-Tac-Toe","description":"Nine nested tic-tac-toe boards; each move sends the opponent to a specific board.","url":"https://suipce.com/games/Casual/ultimatetictactoe/","genre":"Strategy","applicationCategory":"Game","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"休闲娱乐游戏","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"Ultimate Tic-Tac-Toe","item":"https://suipce.com/games/Casual/ultimatetictactoe/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Casual Games","item":"https://suipce.com/casual-games"},{"@type":"ListItem","position":3,"name":"Ultimate Tic-Tac-Toe","item":"https://suipce.com/games/Casual/ultimatetictactoe/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What are the rules of Ultimate Tic-Tac-Toe?","acceptedAnswer":{"@type":"Answer","text":"Nine tic-tac-toe boards are arranged in a 3x3 grid. Winning a small board claims that cell of the big board, and three claimed cells in a row wins the game. The twist: the cell you play within a small board decides which small board your opponent must play in next. If that board is already finished, they may play anywhere."}},{"@type":"Question","name":"Is Ultimate Tic-Tac-Toe solved?","acceptedAnswer":{"@type":"Answer","text":"No. Ordinary tic-tac-toe has about 26,830 reachable positions and is trivially solved; Ultimate Tic-Tac-Toe has a state space estimated around 10^38, far beyond exhaustive search. Engines rely on heuristic search or Monte Carlo methods, which is why it stays interesting."}},{"@type":"Question","name":"What is the best opening move in Ultimate Tic-Tac-Toe?","acceptedAnswer":{"@type":"Answer","text":"The centre cell of the centre board is the usual first choice: it takes the most valuable square of the most valuable board, and it sends your opponent straight back into that same centre board where you already have a mark."}},{"@type":"Question","name":"What happens if I am sent to a board that is already won?","acceptedAnswer":{"@type":"Answer","text":"You may play in any board that is still open. This free move is powerful, so a large part of the strategy is avoiding moves that hand one to your opponent."}}]}</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
 <script>
@@ -690,14 +690,14 @@ button.action:hover { background: #3f6a84; }
 .cn-guide-close:hover{color:#fff}
 </style>
 <div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="Chinese Game Guide">📖 Chinese Guide</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="Chinese Game Guide">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="Close">×</button>
 <h4>终极井字棋</h4>
-<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
-<div class="cn-guide-desc">AI生成·终极井字棋游戏</div>
-<div class="cn-guide-tip">💡 以点击、拖拽或简单按键为主，跟随画面提示操作即可上手。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+<div class="cn-guide-lang">✅ Pure graphics — no reading needed</div>
+<div class="cn-guide-desc">AI-Generated interactive game — follow the on-screen prompts.</div>
+<div class="cn-guide-tip">💡 Mostly click, drag or simple keys — follow the on-screen prompts to get going.</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 Back to AIGameHub for more games ›</a>
 </div>
 </div>
 <script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>

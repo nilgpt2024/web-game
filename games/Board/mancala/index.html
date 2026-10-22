@@ -321,7 +321,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   margin-bottom: 16px;
 }
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"棋牌策略游戏","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Mancala","item":"https://suipce.com/games/Board/mancala/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Board & Strategy Games","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Mancala","item":"https://suipce.com/games/Board/mancala/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"What's the best opening move?","acceptedAnswer":{"@type":"Answer","text":"Picking pit 3 (the middle of your row) lets your last seed land in your own store, granting an extra turn. Most strong openings exploit this turn-chain."}},{"@type":"Question","name":"How many variants are there?","acceptedAnswer":{"@type":"Answer","text":"Over 200 documented Mancala-family games worldwide. Kalah, Oware, Bao, Sungka, and Toguz Kumalak are the most widely played."}},{"@type":"Question","name":"Is Mancala solved?","acceptedAnswer":{"@type":"Answer","text":"Kalah with 6 pits and 4 starting seeds is solved — first player wins with perfect play. Other variants and seed counts vary; some remain unsolved."}},{"@type":"Question","name":"How is it different from chess?","acceptedAnswer":{"@type":"Answer","text":"Mancala is shorter (5–10 min) and the rules teach in under a minute. Strategy depth is real but the bar to entry is much lower."}}]}</script>
 <style>
 /* The legacy per-game nav predates the site-wide header nav.js injects. It sits at
@@ -711,14 +711,14 @@ newGame();
 .cn-guide-close:hover{color:#fff}
 </style>
 <div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="Chinese Game Guide">📖 Chinese Guide</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="Chinese Game Guide">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="Close">×</button>
 <h4>非洲棋</h4>
-<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
-<div class="cn-guide-desc">AI生成·经典非洲棋游戏</div>
-<div class="cn-guide-tip">💡 点击己方坑位取子，按规则逐坑播种，最终种子最多者获胜。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+<div class="cn-guide-lang">✅ Pure graphics — no reading needed</div>
+<div class="cn-guide-desc">AI-Generated interactive game — follow the on-screen prompts.</div>
+<div class="cn-guide-tip">💡 Pick up seeds from your pits and sow them around the board — most seeds at the end wins.</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 Back to AIGameHub for more games ›</a>
 </div>
 </div>
 <script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>

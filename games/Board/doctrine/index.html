@@ -118,7 +118,7 @@
   ::-webkit-scrollbar-track { background: var(--panel); }
   ::-webkit-scrollbar-thumb { background: var(--border-bright); }
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"棋牌策略游戏","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Doctrine","item":"https://suipce.com/games/Board/doctrine/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Board & Strategy Games","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Doctrine","item":"https://suipce.com/games/Board/doctrine/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"How accurate is the geopolitics?","acceptedAnswer":{"@type":"Answer","text":"Doctrine's economic and military models are simplified but draw on real datasets (Maddison historical GDP, SIPRI military expenditure). Specific event probabilities are tuned for replayability over historical accuracy."}},{"@type":"Question","name":"Can I play as a minor power?","acceptedAnswer":{"@type":"Answer","text":"Yes. Smaller nations have less budget but more flexibility — alliance-shopping is a viable strategy. Some of the strongest scoring runs come from middle-power coalition-building."}},{"@type":"Question","name":"How long is a campaign?","acceptedAnswer":{"@type":"Answer","text":"61 annual turns spanning 1990–2050 ≈ 30–60 minutes of real time. Save and resume across sessions."}},{"@type":"Question","name":"Is multiplayer planned?","acceptedAnswer":{"@type":"Answer","text":"Asymmetric hot-seat (different powers per session) is in design. Real-time multiplayer is not on the near roadmap."}}]}</script>
 </head>
 <body>
@@ -1267,14 +1267,14 @@ window.playerAction = playerAction;
 .cn-guide-close:hover{color:#fff}
 </style>
 <div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="Chinese Game Guide">📖 Chinese Guide</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="Chinese Game Guide">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="Close">×</button>
 <h4>教义</h4>
-<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
-<div class="cn-guide-desc">AI生成·策略棋盘游戏</div>
-<div class="cn-guide-tip">💡 通过点击进行落子、走棋或出牌等回合操作，遵循规则，与对手或 AI 对弈。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+<div class="cn-guide-lang">✅ Pure graphics — no reading needed</div>
+<div class="cn-guide-desc">AI-Generated interactive game — follow the on-screen prompts.</div>
+<div class="cn-guide-tip">💡 Take turns by clicking to place, move or play cards — follow the rules against a rival or AI.</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 Back to AIGameHub for more games ›</a>
 </div>
 </div>
 <script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>

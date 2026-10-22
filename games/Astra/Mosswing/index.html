@@ -33,14 +33,14 @@ header{position:fixed;z-index:4;top:max(26px,env(safe-area-inset-top));left:max(
 @media(max-height:500px) and (min-width:601px){header{top:10px}.title-block{top:13%}h1{font-size:70px;margin-bottom:4px}.tagline{font-size:13px}.launch{bottom:9%}.primary{min-height:49px;padding:8px 26px;font-size:23px}.hint{margin-top:9px;font-size:11px}.footer{display:none}#score{top:49px;font-size:45px}.result h2{font-size:35px}.result .sprig{display:none}.stats{margin:15px 0}.stats dd{font-size:39px}.result .hint{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-  <meta name="description" content="Mosswing 是一个关于动量、重力和软体的物理游乐场。在苔藓覆盖的世界中抛掷、碰撞、堆叠，探索物理之美。浏览器直接玩，无需下载。">
+  <meta name="description" content="Physics sandbox: momentum, gravity and soft bodies.">
   <link rel="canonical" href="https://suipce.com/games/Astra/Mosswing/">
   <meta property="og:title" content="Mosswing - Physics Sandbox Game | Play Free Online">
   <meta property="og:description" content="Play Mosswing online for free — an ai art game that runs instantly in your browser. No download, no sign-up. Works on desktop and mobile. Try it now!">
   <meta property="og:url" content="https://suipce.com/games/Astra/Mosswing/">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="suipce.com">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"经典街机游戏","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Mosswing","item":"https://suipce.com/games/Astra/Mosswing/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Arcade Games","item":"https://suipce.com/arcade-games"},{"@type":"ListItem","position":3,"name":"Mosswing","item":"https://suipce.com/games/Astra/Mosswing/"}]}</script>
 <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Astra/Mosswing/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Astra/Mosswing/preview.png"></head>
 <body>
 <main id="world"><canvas id="game" tabindex="0" aria-label="Mosswing. Tap, click, or press Space to flap through the gaps. One collision ends your flight."></canvas></main>
@@ -346,14 +346,14 @@ requestAnimationFrame(now=>{previous=now;frame(now);});
 .cn-guide-close:hover{color:#fff}
 </style>
 <div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="Chinese Game Guide">📖 Chinese Guide</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="Chinese Game Guide">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="Close">×</button>
 <h4>Mosswing</h4>
 <div class="cn-guide-lang">🟡 仅少量英文（菜单/按钮），基本不影响游玩</div>
-<div class="cn-guide-desc">物理沙盒：动量重力与软体</div>
-<div class="cn-guide-tip">💡 本作品为 AI 生成的交互体验，用鼠标/触屏点击、拖动或滚轮探索画面中的元素。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+<div class="cn-guide-desc">AI-Generated interactive game — follow the on-screen prompts.</div>
+<div class="cn-guide-tip">💡 This is an AI-generated interactive experience — click, drag or scroll to explore the scene.</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 Back to AIGameHub for more games ›</a>
 </div>
 </div>
 <script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>

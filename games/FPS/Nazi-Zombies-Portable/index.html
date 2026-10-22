@@ -1,24 +1,24 @@
 ﻿<!doctype html>
-<html lang="zh-CN">
+<html  lang="en">
 <head>
 <link rel="canonical" href="https://suipce.com/games/FPS/Nazi-Zombies-Portable/">
 
 <meta charset="utf-8">
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<meta name="description" content="纳粹僵尸：便携版（Nazi Zombies: Portable）——使命召唤僵尸模式网页复刻版，第一人称打僵尸，浏览器直接玩，无需下载。">
-<meta property="og:title" content="纳粹僵尸：便携版 - 网页FPS打僵尸 | suipce.com" />
-<meta property="og:description" content="使命召唤僵尸模式的开源网页复刻版，第一人称守波次打僵尸，支持4人合作，浏览器直接玩。" />
+<meta name="description" content="A web remake of Call of Duty Nazi Zombies: first-person survival shooting, repairing windows, buying guns and surviving wave after wave.">
+<meta property="og:title" content="Play Nazi Zombies Portable Online - Free FPS Game | AIGameHub" />
+<meta property="og:description" content="A web remake of Call of Duty Nazi Zombies: first-person survival shooting, repairing windows, buying guns and surviving wave after wave." />
 <meta property="og:image" content="https://suipce.com/og-image.png" />
 <meta property="og:url" content="https://suipce.com/games/FPS/Nazi-Zombies-Portable/" />
 <meta name="theme-color" content="#6e0d00">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="NZ:P 僵尸">
-<meta name="application-name" content="NZ:P 僵尸">
+<meta name="apple-mobile-web-app-title" content="Nazi Zombies Portable | Free Online FPS Game | AIGameHub">
+<meta name="application-name" content="NZ:P Zombies">
 <link rel="manifest" href="manifest.json">
-<title>纳粹僵尸：便携版 - 网页FPS打僵尸 | suipce.com</title>
+<title>Play Nazi Zombies Portable Online - Free FPS Game | AIGameHub</title>
 <link rel="icon" href="nzportable.ico">
 <style>
 html,body{background:#0a0a0a;color:#ccc;height:100%;width:100%;margin:0;padding:0;font-family:"Microsoft YaHei","PingFang SC",sans-serif;overflow:hidden;}
@@ -66,7 +66,7 @@ canvas.emscripten{border:0 none;width:100%;height:100%;padding:0;margin:0;displa
   #rotate-hint{display:flex;}
 }
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首页","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"动作反应游戏","item":"https://suipce.com/action-games"},{"@type":"ListItem","position":3,"name":"纳粹僵尸：便携版","item":"https://suipce.com/games/FPS/Nazi-Zombies-Portable/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Action Games","item":"https://suipce.com/action-games"},{"@type":"ListItem","position":3,"name":"Nazi Zombies Portable","item":"https://suipce.com/games/FPS/Nazi-Zombies-Portable/"}]}</script>
 <link rel="stylesheet" href="../../game-shared.css">
 </head>
 <body ondrop="gotdrop(event);" ondragover="event.preventDefault()">
@@ -75,20 +75,20 @@ canvas.emscripten{border:0 none;width:100%;height:100%;padding:0;margin:0;displa
 
   <!-- 中文启动面板 -->
   <div id="cn-panel">
-    <h1>纳粹僵尸：便携版</h1>
-    <div class="subtitle">Nazi Zombies: Portable · 使命召唤僵尸模式网页复刻</div>
+    <h1>Nazi Zombies: Portable</h1>
+    <div class="subtitle">Nazi Zombies: Portable · a web remake of the Call of Duty Zombies mode</div>
     <div class="desc">
       第一人称守波次打僵尸。购买武器、开神秘盒子、喝汽水获得技能，在无尽的僵尸潮中存活尽可能多的回合。
       本作为开源项目（GPLv2），基于 Quake 引擎移植，浏览器直接运行无需下载。
     </div>
     <div class="warn">
-      ⚠ 首次加载约 90MB 游戏资源（分块下载），请耐心等待。游戏内菜单为英文（引擎字体限制），下方附中文操作说明和菜单对照。建议使用电脑端 Chrome/Edge 浏览器，横屏体验最佳。
+      ⚠ First load downloads about 90MB of game assets in chunks — please be patient. The in-game menu is English (engine font limitations). Desktop Chrome/Edge is recommended for the best experience.
     </div>
     <div class="controls">
-      <div class="ctrl-item"><b>W A S D</b> — 移动</div>
-      <div class="ctrl-item"><b>鼠标</b> — 视角 / 瞄准</div>
-      <div class="ctrl-item"><b>左键</b> — 射击</div>
-      <div class="ctrl-item"><b>右键</b> — 瞄准</div>
+      <div class="ctrl-item"><b>W A S D</b> — Move</div>
+      <div class="ctrl-item"><b>Mouse</b> — Look / Aim</div>
+      <div class="ctrl-item"><b>Left Click</b> — Shoot</div>
+      <div class="ctrl-item"><b>Right Click</b> — Aim</div>
       <div class="ctrl-item"><b>R</b> — 换弹</div>
       <div class="ctrl-item"><b>空格</b> — 跳跃</div>
       <div class="ctrl-item"><b>E</b> — 使用 / 购买</div>
@@ -476,5 +476,5 @@ Module.postRun[0] = function(){
   }
 };
 </script>
-<section class="game-info-section" id="game-info"><div class="game-info-inner"><ul class="gi-toc"><li><a href="#nazi-zombies-portable-intro">游戏介绍</a></li><li><a href="#nazi-zombies-portable-how">玩法说明</a></li><li><a href="#nazi-zombies-portable-controls">操作方式</a></li><li><a href="#nazi-zombies-portable-features">游戏特色</a></li><li><a href="#nazi-zombies-portable-tips">玩法技巧</a></li><li><a href="#nazi-zombies-portable-faq">常见问题</a></li></ul><h2 id="nazi-zombies-portable-intro">纳粹僵尸（Nazi Zombies Portable）游戏介绍</h2><p>纳粹僵尸（Nazi Zombies Portable）是一款第一人称射击打僵尸游戏，灵感来自经典合作生存玩法。你手持武器站在被僵尸包围的战场上，僵尸会一波接一波从四周涌来，你需要一边瞄准射击、一边移动躲避，在弹药耗尽前尽可能活得久。</p><p>游戏的核心是生存压力管理：波次越靠后，僵尸数量越多、速度越快，对走位和弹药的规划要求越高。它把 FPS 的爽快射击与塔防式的波次压力结合在一起，节奏紧凑、紧张感十足，适合喜欢打僵尸和挑战生存记录的玩家。</p><h2 id="nazi-zombies-portable-how">怎么玩 Nazi-Zombies-Portable？玩法说明</h2><p>进入游戏后用鼠标控制视角、WASD 移动，瞄准僵尸开火。每波僵尸全部消灭后进入下一波，难度逐步提升。留意弹药剩余量，尽量打头部可造成更高伤害。生存的波次越多，得分越高，直至被僵尸击倒结束。</p><h3 id="nazi-zombies-portable-controls">操作方式</h3><ul><li>鼠标：移动视角瞄准</li><li>W / A / S / D：前后左右移动</li><li>鼠标左键：开枪射击</li><li>R：换弹；Shift：奔跑</li></ul><h2 id="nazi-zombies-portable-features">游戏特色</h2><ul><li>第一人称打僵尸，代入感强</li><li>波次制生存挑战，越往后越刺激</li><li>考验走位、瞄准与弹药规划</li><li>无需下载注册，浏览器打开即玩</li></ul><h2 id="nazi-zombies-portable-tips">玩法技巧与攻略</h2><ol><li>优先打头部，爆头伤害高、省子弹。</li><li>不要站在原地扫射，边退边打能有效拉开僵尸距离。</li><li>波次间隙及时换弹，避免在僵尸贴脸时卡弹。</li><li>注意听脚步和背景音，提前判断僵尸来的方向。</li></ol><div class="game-faq" id="nazi-zombies-portable-faq"><h2>常见问题 FAQ</h2><details><summary>纳粹僵尸怎么玩？</summary><p>使用鼠标瞄准、WASD 移动，消灭一波波涌来的僵尸，活得越久得分越高。</p></details><details><summary>游戏支持手柄吗？</summary><p>本作主要面向键鼠操作，移动端也有对应触控方案，具体以页面内提示为准。</p></details><details><summary>游戏免费吗？</summary><p>完全免费，无需下载注册，手机和电脑浏览器打开即玩。</p></details><details><summary>僵尸会越来越强吗？</summary><p>会，越往后的波次僵尸数量更多、移动更快，对走位和弹药管理要求更高。</p></details></div></div></section></body>
+<section class="game-info-section" id="game-info"><div class="game-info-inner"><ul class="gi-toc"><li><a href="#nazi-zombies-portable-intro">Game Introduction</a></li><li><a href="#nazi-zombies-portable-how">How to Play</a></li><li><a href="#nazi-zombies-portable-controls">Controls</a></li><li><a href="#nazi-zombies-portable-features">Features</a></li><li><a href="#nazi-zombies-portable-tips">Tips & Tricks</a></li><li><a href="#nazi-zombies-portable-faq">FAQ</a></li></ul><h2 id="nazi-zombies-portable-intro">Nazi Zombies Portable Game Introduction</h2><p>纳粹僵尸（Nazi Zombies Portable）是一款第一人称射击打僵尸游戏，灵感来自经典合作生存玩法。你手持武器站在被僵尸包围的战场上，僵尸会一波接一波从四周涌来，你需要一边瞄准射击、一边移动躲避，在弹药耗尽前尽可能活得久。</p><p>The core is survival pressure management: later waves bring more and faster zombies, demanding better movement and ammo planning. FPS shooting meets tower-defense wave pressure — tight, tense and built for zombie fans chasing survival records.</p><h2 id="nazi-zombies-portable-how">How to Play Nazi Zombies Portable</h2><p>Use the mouse to look, WASD to move, and fire at zombies. Clear each wave to advance — difficulty rises. Watch your ammo and aim for headshots for extra damage. Survive more waves for a higher score until the zombies take you down.</p><h3 id="nazi-zombies-portable-controls">Controls</h3><ul><li>Mouse: look and aim</li><li>W A S D: move</li><li>Left click: shoot</li><li>R: reload; Shift: sprint</li></ul><h2 id="nazi-zombies-portable-features">Features</h2><ul><li>First-person zombie action, immersive</li><li>Wave survival — the tension builds</li><li>Tests movement, aim and ammo management</li><li>No download or sign-up — play in the browser</li></ul><h2 id="nazi-zombies-portable-tips">Tips & Tricks</h2><ol><li>Go for headshots — more damage per bullet.</li><li>Never stand and spray — kite backward while firing.</li><li>Reload between waves, not when zombies are on you.</li><li>Listen for footsteps and ambience to predict zombie directions.</li></ol><div class="game-faq" id="nazi-zombies-portable-faq"><h2>FAQ</h2><details><summary>Nazi ZombiesHow do I play it?</summary><p>Aim with the mouse, move with WASD, and survive wave after wave for the highest score.</p></details><details><summary>游戏Does it support gamepads?</summary><p>This version is keyboard-and-mouse first, with mobile touch controls where noted on the page.</p></details><details><summary>游戏Is it free?</summary><p>完全免费，无需下载注册，手机和电脑play in the browser。</p></details><details><summary>zombies会越来越强吗？</summary><p>Yes — later waves bring more, faster zombies that demand better movement and ammo discipline.</p></details></div></div></section></body>
 </html>

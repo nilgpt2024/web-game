@@ -417,7 +417,7 @@ body {
   #gameNav .nav-menu { position: static; right: auto; min-width: 0; border: none; border-top: 1px solid #2A4050; box-shadow: none; }
 }
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"棋牌策略游戏","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Bisque","item":"https://suipce.com/games/Board/bisque/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Board & Strategy Games","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Bisque","item":"https://suipce.com/games/Board/bisque/"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Is Bisque a real-time game?","acceptedAnswer":{"@type":"Answer","text":"No — it's turn-based. Each captain takes a full turn in sequence: deploy new traps, haul (attack) adjacent territories, then fortify, before passing to the next player."}},{"@type":"Question","name":"How do I win Bisque?","acceptedAnswer":{"@type":"Answer","text":"Eliminate every rival captain. A captain is knocked out when they lose their last territory, and the last captain standing wins. In 1-player mode you win by removing all AI rivals and lose if you are eliminated."}},{"@type":"Question","name":"How does combat work?","acceptedAnswer":{"@type":"Answer","text":"Combat is dice-based, Risk-style. Select one of your territories holding at least 2 traps, then attack an adjacent enemy or neutral territory; both sides roll and remove traps. Reduce a defender to 0 traps to conquer it and move traps in. Owning every territory in a region grants a deploy bonus."}},{"@type":"Question","name":"How long is a typical game?","acceptedAnswer":{"@type":"Answer","text":"Most games run 15–30 minutes, supporting 2 to 4 captains across the bay's 26 territories."}}]}</script>
 <style>
 /* The legacy per-game nav predates the site-wide header nav.js injects. It sits at
@@ -1914,14 +1914,14 @@ resetGame();
 .cn-guide-close:hover{color:#fff}
 </style>
 <div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="Chinese Game Guide">📖 Chinese Guide</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="Chinese Game Guide">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="Close">×</button>
 <h4>Bisque棋</h4>
-<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
-<div class="cn-guide-desc">AI生成·原创棋盘游戏</div>
-<div class="cn-guide-tip">💡 通过点击进行落子、走棋或出牌等回合操作，遵循规则，与对手或 AI 对弈。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+<div class="cn-guide-lang">✅ Pure graphics — no reading needed</div>
+<div class="cn-guide-desc">AI-Generated interactive game — follow the on-screen prompts.</div>
+<div class="cn-guide-tip">💡 Take turns by clicking to place, move or play cards — follow the rules against a rival or AI.</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 Back to AIGameHub for more games ›</a>
 </div>
 </div>
 <script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>

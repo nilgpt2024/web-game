@@ -1158,7 +1158,7 @@
         z-index: 6;
         transition: color 1s, opacity 1s
     }</style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"打字练习游戏","item":"https://suipce.com/typing-games"},{"@type":"ListItem","position":3,"name":"WORD RAIN","item":"https://suipce.com/games/Typing/Word-Rain/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Typing Games","item":"https://suipce.com/typing-games"},{"@type":"ListItem","position":3,"name":"WORD RAIN","item":"https://suipce.com/games/Typing/Word-Rain/"}]}</script>
 </head>
 <body>
 <button id="mute-btn" title="Toggle sound">♪</button>
@@ -2453,14 +2453,14 @@ if (loadState() && state.totalRounds > 0) showScreen('shop'); else showScreen('s
 .cn-guide-close:hover{color:#fff}
 </style>
 <div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="Chinese Game Guide">📖 Chinese Guide</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="Chinese Game Guide">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="Close">×</button>
 <h4>文字雨</h4>
 <div class="cn-guide-lang">🔴 含较多英文文本，建议理解英文后游玩</div>
-<div class="cn-guide-desc">AI生成·打字雨</div>
-<div class="cn-guide-tip">💡 在单词落入底部前用键盘输入它，输入正确即消除，防止单词堆积。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+<div class="cn-guide-desc">AI-Generated interactive game — follow the on-screen prompts.</div>
+<div class="cn-guide-tip">💡 Type each word before it hits the bottom — correct input clears it and stops the pile-up.</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 Back to AIGameHub for more games ›</a>
 </div>
 </div>
 <script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>

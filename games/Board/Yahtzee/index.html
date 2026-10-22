@@ -248,7 +248,7 @@ button:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
 </style>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"棋牌策略游戏","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Yacht","item":"https://suipce.com/games/Board/Yahtzee/"}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Board & Strategy Games","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Yacht","item":"https://suipce.com/games/Board/Yahtzee/"}]}</script>
 <!--OpenGraph--><meta property="og:image"content="https://suipce.com/games/Board/Yahtzee/preview.png"><meta name="twitter:image"content="https://suipce.com/games/Board/Yahtzee/preview.png"></head>
 <body>
 <div class="app">
@@ -963,14 +963,14 @@ var YACHT = (function () {
 .cn-guide-close:hover{color:#fff}
 </style>
 <div id="cn-guide-wrap">
-<button class="cn-guide-btn" id="cnGuideBtn" aria-label="中文玩法引导">📖 中文玩法</button>
-<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="中文玩法引导">
-<button class="cn-guide-close" id="cnGuideClose" aria-label="关闭">×</button>
+<button class="cn-guide-btn" id="cnGuideBtn" aria-label="Chinese Game Guide">📖 Chinese Guide</button>
+<div class="cn-guide-panel" id="cnGuidePanel" role="dialog" aria-label="Chinese Game Guide">
+<button class="cn-guide-close" id="cnGuideClose" aria-label="Close">×</button>
 <h4>快艇骰子</h4>
-<div class="cn-guide-lang">✅ 无需阅读英文，纯图形操作</div>
-<div class="cn-guide-desc">AI生成·骰子游戏</div>
-<div class="cn-guide-tip">💡 点击&quot;掷骰子&quot;并可保留部分骰子重掷，在计分表上选择组合得分，填满记分卡后总分高者胜。</div>
-<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 返回 AIGameHub 查看更多游戏 ›</a>
+<div class="cn-guide-lang">✅ Pure graphics — no reading needed</div>
+<div class="cn-guide-desc">AI-Generated interactive game — follow the on-screen prompts.</div>
+<div class="cn-guide-tip">💡 Roll the dice, keep some and re-roll, then score combos — highest total on a full card wins.</div>
+<a class="cn-guide-more" href="https://suipce.com/" target="_blank" rel="noopener">🎮 Back to AIGameHub for more games ›</a>
 </div>
 </div>
 <script>(function(){var b=document.getElementById('cnGuideBtn'),p=document.getElementById('cnGuidePanel'),c=document.getElementById('cnGuideClose');if(!b||!p)return;var t=null;function open(){p.classList.add('open');b.style.display='none';clearTimeout(t)}function close(){p.classList.remove('open');b.style.display='flex';t=setTimeout(function(){b.style.display='none'},20000)}b.addEventListener('click',open);c.addEventListener('click',close);document.addEventListener('keydown',function(e){if(e.key==='Escape')close()})})();</script>

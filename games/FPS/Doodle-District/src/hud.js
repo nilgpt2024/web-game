@@ -22,11 +22,35 @@ export class HUD {
       <div class="tip" id="tip"></div>
       <div class="message"><div class="msg-main" id="msg"></div><div class="msg-sub" id="msgsub"></div></div>
       <div class="killfeed" id="killfeed"></div>
-      <div class="screen" id="screen"><div class="panel" id="panel"></div></div>`;
+      <div class="screen" id="screen"><div class="panel" id="panel"></div></div>
+      <div class="touchui" id="touchui" aria-hidden="true">
+        <div class="joy" id="joy"><div class="joy-thumb" id="joythumb"></div></div>
+        <div class="tbtns">
+          <button type="button" class="tbtn tb-grapple" data-act="grapple">抓钩</button>
+          <button type="button" class="tbtn tb-sprint" data-act="sprint">疾跑</button>
+          <button type="button" class="tbtn tb-jump" data-act="jump">跳跃</button>
+          <button type="button" class="tbtn tb-reload" data-act="reload">换弹</button>
+          <button type="button" class="tbtn tb-grenade" data-act="grenade">手雷</button>
+          <button type="button" class="tbtn tb-aim" data-act="aim">瞄准</button>
+          <button type="button" class="tbtn tb-fire" data-act="fire">开火</button>
+          <button type="button" class="tbtn tb-pause" data-act="pause">▐▐</button>
+        </div>
+      </div>`;
     const q = (id) => root.querySelector('#' + id);
     this.el = { crosshair: q('crosshair'), gret: q('gret'), hitmarker: q('hitmarker'), dmg: q('dmg'), score: q('score'), combo: q('combo'), wave: q('wave'), modifier: q('modifier'), left: q('left'), timer: q('timer'), hpfill: q('hpfill'), hpnum: q('hpnum'), mag: q('mag'), reserve: q('reserve'), reloading: q('reloading'), tally: q('tally'), weapon: q('weapon'), hint: q('hint'), slots: q('slots'), tip: q('tip'), msg: q('msg'), msgsub: q('msgsub'), killfeed: q('killfeed'), screen: q('screen'), panel: q('panel'), nades: q('nades'), scope: q('scope'), focusmark: q('focusmark'), focusmeter: q('focusmeter'), fmfill: q('fmfill'), bossbar: q('bossbar'), bossname: q('bossname'), bossfill: q('bossfill'), pvpscore: q('pvpscore'), board: q('board'), gstam: q('gstam'), gstamfill: q('gstamfill') };
-    this._msgT = 0; this._scope = false; this._nades = -1; this._pad = false; this.onDevice = null; this._fmShow = false; this._fmFrac = -1; this._fmReady = false; this._lastTally = -1; this._lastSlots = ''; this._ads = false; this._mode = ''; this.onScreenClick = null; this._tipT = 0;
+    this._msgT = 0; this._scope = false; this._nades = -1; this._pad = false; this._touch = false; this.onDevice = null; this._fmShow = false; this._fmFrac = -1; this._fmReady = false; this._lastTally = -1; this._lastSlots = ''; this._ads = false; this._mode = ''; this.onScreenClick = null; this.onTouchButton = null; this._tipT = 0;
     this.el.screen.addEventListener('click', () => { if (this.onScreenClick) this.onScreenClick(); });
+    // touch buttons: press/release feed input.touchButton
+    root.querySelectorAll('.tbtn').forEach((b) => {
+      const act = b.dataset.act;
+      const down = (e) => { e.preventDefault(); e.stopPropagation(); if (this.onTouchButton) this.onTouchButton(act, true); b.classList.add('held'); };
+      const up = (e) => { e.preventDefault(); e.stopPropagation(); if (this.onTouchButton) this.onTouchButton(act, false); b.classList.remove('held'); };
+      b.addEventListener('pointerdown', down);
+      b.addEventListener('pointerup', up);
+      b.addEventListener('pointercancel', up);
+      b.addEventListener('pointerleave', up);
+      b.addEventListener('contextmenu', (e) => e.preventDefault());
+    });
   }
   // katana charge gauge: fills with katana kills, catches fire when a focus slash is ready
   setFocusMeter(show, frac, ready, label = '太刀') {
@@ -39,8 +63,14 @@ export class HUD {
     if (ready !== this._fmReady) { this._fmReady = ready; m.classList.toggle('ready', ready); }
   }
   setGrenades(n) { if (n === this._nades) return; this._nades = n; let h = ''; for (let i = 0; i < n; i++) h += '<i></i>'; this.el.nades.innerHTML = h; }
-  // control labels follow whatever you touched last
-  setDevice(pad) { if (pad === this._pad) return; this._pad = pad; this.root.classList.toggle('pad', pad); if (this.onDevice) this.onDevice(pad); }
+  // control labels follow whatever you touched last; touch adds the on-screen pad
+  setDevice(pad, touch = false) {
+    if (pad === this._pad && touch === this._touch) return;
+    this._pad = pad; this._touch = touch;
+    this.root.classList.toggle('pad', pad);
+    this.root.classList.toggle('touch', !!touch);
+    if (this.onDevice) this.onDevice(pad);
+  }
   key(action) { return (this._pad ? PAD_KEYS : KB_KEYS)[action] || action; }
   setScope(on) { if (on === this._scope) return; this._scope = on; this.el.scope.classList.toggle('on', on); }
   setFocusMark(x, y) {
@@ -116,5 +146,13 @@ export const CONTROLS_HTML = `
     <div><b>□</b> 换弹 &nbsp; <b>△</b> 下一把武器</div>
     <div><b>R3 / 十字键上</b> 手雷 · 按住可扔得更远</div>
     <div><b>Create</b> 计分板（联机） &nbsp; <b>Options</b> 暂停</div>
+  </div>
+  <div><div class="colhead">触屏</div>
+    <div><b>左半屏拖动</b> 移动（虚拟摇杆） &nbsp; <b>右半屏滑动</b> 视角</div>
+    <div><b>开火</b> 射击 / 挥砍 &nbsp; <b>瞄准</b> 开镜 / 格挡</div>
+    <div><b>跳跃</b> 跳 / 蹬墙跳 / 二段跳 &nbsp; <b>疾跑</b> 加速</div>
+    <div><b>抓钩</b> 点按摆荡，长按收绳，跳跃起飞</div>
+    <div><b>换弹</b> 补充弹匣 &nbsp; <b>手雷</b> 投掷</div>
+    <div><b>▐▐</b> 暂停（联机中为计分板）</div>
   </div>
 </div>`;

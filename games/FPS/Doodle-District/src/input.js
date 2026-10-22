@@ -25,6 +25,21 @@ export class Input {
     this.onLockChange = null; this.onAnyInput = null; this.lastActive = performance.now();
     this.invertY = false; this.onDeviceChange = null;
 
+    // ---- touch / mobile support ----
+    this.isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    this.joy = { active: false, id: -1, ox: 0, oy: 0, dx: 0, dy: 0 };
+    this.touchLook = { x: 0, y: 0 };
+    this.touchSens = 0.0052;
+    this.joyR = 56;
+    this.touchBtns = {};          // action -> bool, injected by on-screen buttons
+    this._joyEl = document.getElementById('joy');
+    this._joyThumb = document.getElementById('joythumb');
+    // listeners are always bound: harmless on desktop (no touch events), needed on mobile
+    canvas.addEventListener('touchstart', (e) => this._onTouchStart(e), { passive: false });
+    canvas.addEventListener('touchmove', (e) => this._onTouchMove(e), { passive: false });
+    canvas.addEventListener('touchend', (e) => this._onTouchEnd(e), { passive: false });
+    canvas.addEventListener('touchcancel', (e) => this._onTouchEnd(e), { passive: false });
+
     window.addEventListener('keydown', (e) => {
       if (e.repeat) return;
       this.lastActive = performance.now(); const a = KEYMAP[e.code]; if (a) { this.keys[a] = true; if (this.usingGamepad && this.onDeviceChange) this.onDeviceChange(false); this.usingGamepad = false; }
@@ -59,6 +74,60 @@ export class Input {
     window.addEventListener('gamepadconnected', (e) => { this.gamepadIndex = e.gamepad.index; });
   }
 
+  // ---- touch / mobile support ----
+  // touch joystick (left half) + touch-look (right half)
+  _onTouchStart(e) {
+    // hud 构造晚于 input，摇杆元素在首次触摸时惰性获取
+    if (!this._joyEl) this._joyEl = document.getElementById('joy');
+    if (!this._joyThumb) this._joyThumb = document.getElementById('joythumb');
+    e.preventDefault(); this.anyInput = true; this.lastActive = performance.now();
+    const w = window.innerWidth;
+    for (const t of e.changedTouches) {
+      if (!this.joy.active && t.clientX < w * 0.45) {
+        this.joy.active = true; this.joy.id = t.identifier;
+        this.joy.ox = t.clientX; this.joy.oy = t.clientY; this.joy.dx = 0; this.joy.dy = 0;
+        if (this._joyEl) this._joyEl.style.left = this.joy.ox + 'px';
+        if (this._joyEl) this._joyEl.style.top = this.joy.oy + 'px';
+        if (this._joyEl) this._joyEl.classList.add('on');
+        if (this._joyThumb) { this._joyThumb.style.transform = 'translate(0px,0px)'; }
+      } else {
+        this.touchLook['t' + t.identifier] = { x: t.clientX, y: t.clientY };
+      }
+    }
+  }
+  _onTouchMove(e) {
+    e.preventDefault(); this.anyInput = true; this.lastActive = performance.now();
+    for (const t of e.changedTouches) {
+      if (t.identifier === this.joy.id && this.joy.active) {
+        let dx = t.clientX - this.joy.ox, dy = t.clientY - this.joy.oy;
+        const mag = Math.hypot(dx, dy);
+        if (mag > this.joyR) { dx = dx / mag * this.joyR; dy = dy / mag * this.joyR; }
+        this.joy.dx = dx; this.joy.dy = dy;
+        if (this._joyThumb) this._joyThumb.style.transform = `translate(${dx.toFixed(0)}px,${dy.toFixed(0)}px)`;
+      } else {
+        const prev = this.touchLook['t' + t.identifier];
+        if (prev) {
+          this.touchLook.x += t.clientX - prev.x;
+          this.touchLook.y += t.clientY - prev.y;
+          prev.x = t.clientX; prev.y = t.clientY;
+        }
+      }
+    }
+  }
+  _onTouchEnd(e) {
+    for (const t of e.changedTouches) {
+      if (t.identifier === this.joy.id && this.joy.active) {
+        this.joy.active = false; this.joy.id = -1; this.joy.dx = 0; this.joy.dy = 0;
+        if (this._joyEl) this._joyEl.classList.remove('on');
+        if (this._joyThumb) this._joyThumb.style.transform = 'translate(0px,0px)';
+      }
+      delete this.touchLook['t' + t.identifier];
+    }
+  }
+
+  // called by on-screen touch buttons
+  touchButton(action, down) { this.touchBtns[action] = down; this.anyInput = true; this.lastActive = performance.now(); }
+
   // browsers refuse a new pointer lock for about a second after Esc released the last one, so a
   // failed request is retried until it takes or the game stops wanting it
   requestLock() {
@@ -90,6 +159,22 @@ export class Input {
     let my = (s.forward ? 1 : 0) - (s.back ? 1 : 0);
     // look from mouse
     let lx = -this.mx * this.mouseSens, ly = -this.my * this.mouseSens; this.mx = 0; this.my = 0;
+
+    // touch: joystick overrides keyboard movement, swipe adds look
+    if (this.isTouch) {
+      if (this.joy.active && (this.joy.dx !== 0 || this.joy.dy !== 0)) {
+        const mag = Math.hypot(this.joy.dx, this.joy.dy) || 1;
+        const k = Math.min(1, mag / this.joyR);
+        mx = this.joy.dx / mag * k;
+        my = -this.joy.dy / mag * k;
+      }
+      if (this.touchLook.x !== 0 || this.touchLook.y !== 0) {
+        lx += -this.touchLook.x * this.touchSens;
+        ly += -this.touchLook.y * this.touchSens;
+        this.touchLook.x = 0; this.touchLook.y = 0;
+      }
+      for (const a in this.touchBtns) if (this.touchBtns[a]) s[a] = true;
+    }
 
     const pad = this._getPad(); const padS = {};
     if (pad) {

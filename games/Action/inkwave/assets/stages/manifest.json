@@ -1,0 +1,33 @@
+{
+  "tidewater": {
+    "day": {
+      "src": "assets/stages/tidewater-day.webp",
+      "sm": "assets/stages/tidewater-day-sm.webp"
+    },
+    "dusk": {
+      "src": "assets/stages/tidewater-dusk.webp",
+      "sm": "assets/stages/tidewater-dusk-sm.webp"
+    }
+  },
+  "kelpline": {
+    "day": {
+      "src": "assets/stages/kelpline-day.webp",
+      "sm": "assets/stages/kelpline-day-sm.webp"
+    },
+    "dusk": {
+      "src": "assets/stages/kelpline-dusk.webp",
+      "sm": "assets/stages/kelpline-dusk-sm.webp"
+    }
+  },
+  "halyard": {
+    "day": {
+      "src": "assets/stages/halyard-day.webp",
+      "sm": "assets/stages/halyard-day-sm.webp"
+    },
+    "dusk": {
+      "src": "assets/stages/halyard-dusk.webp",
+      "sm": "assets/stages/halyard-dusk-sm.webp"
+    }
+  },
+  "generated": "2026-09-26T02:38:48.032Z"
+}

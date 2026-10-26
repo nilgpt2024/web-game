@@ -124,6 +124,11 @@ canvas#c { position: fixed; inset: 0; width: 100vw; height: 100vh; display: bloc
 .mapbtn i { font-style: normal; font-size: 14px; opacity: .75; }
 .mapbtn:hover { opacity: .85; }
 .mapbtn.on { opacity: 1; color: var(--paper); background: var(--ink); }
+.modebtns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.modebtns button { font: inherit; font-size: 20px; color: var(--ink); background: transparent; border: 2.5px solid var(--ink); border-radius: 7px 10px 6px 9px / 10px 6px 9px 7px; padding: 4px 14px; cursor: pointer; opacity: .55; display: flex; flex-direction: column; align-items: center; line-height: 1.1; transform: rotate(-.6deg); }
+.modebtns button i { font-style: normal; font-size: 14px; opacity: .75; }
+.modebtns button:hover { opacity: .85; }
+.modebtns button.on { opacity: 1; color: var(--paper); background: var(--ink); }
 
 /* grenades */
 .nades { display: inline-flex; gap: 3px; margin-left: 12px; vertical-align: middle; }

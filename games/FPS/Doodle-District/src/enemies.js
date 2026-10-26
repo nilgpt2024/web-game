@@ -12,16 +12,16 @@ const nxOf = (dx, d) => dx / (d || 1), nzOf = (dz, d) => dz / (d || 1);
 export const BOSSES = ['boss', 'eraser', 'inkblot'];
 export const STATE_CODES = { spawn: 0, hunt: 1, stunned: 2, dead: 3 }; export const STATE_NAMES = ['spawn', 'hunt', 'stunned', 'dead'];
 export const TYPES = {
-  grunt: { hp: 100, speed: 5.2, weapon: 'rifle', range: 28, stop: 16, keep: 7, burst: 3, burstInt: 0.15, cool: [1.6, 2.6], dmg: 6, spread: 0.055, pspeed: 36, score: 100, scale: 1.0, name: '小兵', hat: 'cap', build: { bodyW: 1, headS: 1, limbR: 0.032 } },
-  rusher: { hp: 70, speed: 7.6, weapon: 'blade', lunge: 2.9, reach: 3.0, standoff: 1.9, cool: [1.0, 1.5], dmg: 15, score: 120, scale: 0.95, name: '冲锋怪', hat: 'band', build: { bodyW: 0.82, headS: 0.95, limbR: 0.027 } },
-  heavy: { hp: 320, speed: 3.0, weapon: 'shotgun', range: 18, stop: 9, keep: 5, pellets: 7, cool: [2.4, 3.2], dmg: 5, spread: 0.13, pspeed: 32, score: 260, scale: 1.25, name: '重装怪', hat: 'helmet', build: { bodyW: 1.55, headS: 0.88, limbR: 0.05 } },
-  sniper: { hp: 60, speed: 3.6, weapon: 'sniper', range: 90, stop: 90, keep: 15, aimTime: 1.7, cool: [2.8, 3.8], dmg: 22, spread: 0.006, pspeed: 95, score: 180, scale: 1.05, name: '狙击怪', stationary: true, hat: 'hood', build: { bodyW: 0.78, headS: 0.92, limbR: 0.026 } },
-  shield: { hp: 150, speed: 3.8, weapon: 'pistol', range: 20, stop: 8, keep: 4, burst: 2, burstInt: 0.2, cool: [1.8, 2.6], dmg: 5, spread: 0.06, pspeed: 34, score: 200, scale: 1.05, name: '盾牌怪', hat: 'helmet', shield: true, build: { bodyW: 1.2, headS: 0.9, limbR: 0.042 } },
-  bomber: { hp: 26, speed: 6.5, weapon: 'bomb', fuseRange: 3.4, fuse: 1.05, blast: 4.2, dmg: 24, score: 150, scale: 0.9, name: '墨水炸弹', ink: INK.BLACK, model: 'bomber' },
-  flyer: { hp: 40, speed: 6.2, weapon: 'dive', dmg: 10, cool: [2.8, 4.2], score: 140, scale: 1.5, name: '纸黄蜂', flying: true, model: 'flyer' },
-  boss: { hp: 2600, speed: 3.2, weapon: 'boss', bossKind: 'doodler', range: 32, stop: 6, keep: 0, cool: [2.6, 3.6], dmg: 22, score: 2500, scale: 2.7, name: '涂鸦魔王', boss: true, ink: INK.BLACK, hat: 'crown', build: { bodyW: 1.35, headS: 1.15, limbR: 0.06 } },
-  eraser: { hp: 3400, speed: 4.2, weapon: 'boss', bossKind: 'eraser', range: 30, stop: 8, keep: 0, cool: [2.2, 3.2], dmg: 26, score: 3200, scale: 2.6, name: '橡皮擦魔王', boss: true, ink: INK.PINK, model: 'blob', build: {} },
-  inkblot: { hp: 3000, speed: 3.0, weapon: 'boss', bossKind: 'inkblot', range: 34, stop: 10, keep: 0, cool: [2.4, 3.4], dmg: 20, score: 3600, scale: 2.4, name: '墨渍魔王', boss: true, ink: INK.BLACK, model: 'blob', build: {} },
+  grunt: { hp: 100, speed: 5.2, weapon: 'rifle', range: 28, stop: 16, keep: 7, burst: 3, burstInt: 0.15, cool: [1.6, 2.6], dmg: 6, spread: 0.055, pspeed: 36, score: 100, scale: 1.0, name: '普通僵尸', zombie: true, ink: INK.GREEN, build: { bodyW: 1, headS: 1, limbR: 0.032 } },
+  rusher: { hp: 70, speed: 7.6, weapon: 'blade', lunge: 2.9, reach: 3.0, standoff: 1.9, cool: [1.0, 1.5], dmg: 15, score: 120, scale: 0.95, name: '奔跑僵尸', zombie: true, ink: INK.GREEN, build: { bodyW: 0.82, headS: 0.95, limbR: 0.027 } },
+  heavy: { hp: 320, speed: 3.0, weapon: 'shotgun', range: 18, stop: 9, keep: 5, pellets: 7, cool: [2.4, 3.2], dmg: 5, spread: 0.13, pspeed: 32, score: 260, scale: 1.25, name: '重装僵尸', zombie: true, ink: INK.GREEN, build: { bodyW: 1.55, headS: 0.88, limbR: 0.05 } },
+  sniper: { hp: 60, speed: 3.6, weapon: 'sniper', range: 90, stop: 90, keep: 15, aimTime: 1.7, cool: [2.8, 3.8], dmg: 22, spread: 0.006, pspeed: 95, score: 180, scale: 1.05, name: '狙击僵尸', stationary: true, zombie: true, ink: INK.GREEN, build: { bodyW: 0.78, headS: 0.92, limbR: 0.026 } },
+  shield: { hp: 150, speed: 3.8, weapon: 'pistol', range: 20, stop: 8, keep: 4, burst: 2, burstInt: 0.2, cool: [1.8, 2.6], dmg: 5, spread: 0.06, pspeed: 34, score: 200, scale: 1.05, name: '盾牌僵尸', zombie: true, ink: INK.GREEN, shield: true, build: { bodyW: 1.2, headS: 0.9, limbR: 0.042 } },
+  bomber: { hp: 26, speed: 6.5, weapon: 'bomb', fuseRange: 3.4, fuse: 1.05, blast: 4.2, dmg: 24, score: 150, scale: 0.9, name: '自爆僵尸', zombie: true, ink: INK.GREEN, model: 'bomber' },
+  flyer: { hp: 40, speed: 6.2, weapon: 'dive', dmg: 10, cool: [2.8, 4.2], score: 140, scale: 1.5, name: '飞行僵尸', flying: true, zombie: true, ink: INK.GREEN, model: 'flyer' },
+  boss: { hp: 2600, speed: 3.2, weapon: 'boss', bossKind: 'doodler', range: 32, stop: 6, keep: 0, cool: [2.6, 3.6], dmg: 22, score: 2500, scale: 2.7, name: '僵尸魔王', zombie: true, boss: true, ink: INK.GREEN, hat: 'crown', build: { bodyW: 1.35, headS: 1.15, limbR: 0.06 } },
+  eraser: { hp: 3400, speed: 4.2, weapon: 'boss', bossKind: 'eraser', range: 30, stop: 8, keep: 0, cool: [2.2, 3.2], dmg: 26, score: 3200, scale: 2.6, name: '狂暴巨人', zombie: true, boss: true, ink: INK.GREEN, model: 'blob', build: {} },
+  inkblot: { hp: 3000, speed: 3.0, weapon: 'boss', bossKind: 'inkblot', range: 34, stop: 10, keep: 0, cool: [2.4, 3.4], dmg: 20, score: 3600, scale: 2.4, name: '毒雾巨怪', zombie: true, boss: true, ink: INK.GREEN, model: 'blob', build: {} },
 };
 
 // ---------------- doodle model kit ----------------
@@ -788,6 +788,12 @@ export class EnemyManager {
       if (a && a.kind === 'throw') { raise = a.t < 0.6 ? clamp(a.t / 0.5, 0, 1) : 0; }
       J.armR.rotation.x = -0.4 - s * 0.5 * w - raise * 2.4 + slam * 0.9; J.armR.rotation.z = -0.35; J.foreR.rotation.x = -0.6 - raise * 0.4;
       J.armL.rotation.x = s * 0.6 * w - raise * 0.8; J.armL.rotation.z = 0.35; J.foreL.rotation.x = -0.5; J.torso.rotation.x = -0.1 * w + e.flinch * 0.15 - raise * 0.3 + slam * 0.5;
+    } else if (T.zombie) {
+      // zombie walk: stiff arms thrust forward, body leaning in, head lolling
+      const sham = e.flinch * 0.5;
+      J.armR.rotation.x = -1.65 + s * 0.25 * w - sham; J.armR.rotation.z = -0.2; J.foreR.rotation.x = -0.25;
+      J.armL.rotation.x = -1.65 - s * 0.25 * w - sham; J.armL.rotation.y = 0.35; J.armL.rotation.z = 0.15; J.foreL.rotation.x = -0.25;
+      J.torso.rotation.x = 0.32 + e.flinch * 0.5; J.torso.rotation.y = 0; J.torso.rotation.z = Math.sin(e.phase) * 0.08 * w;
     } else {
       J.armR.rotation.x = (-s * 1.0 * w) * (1 - aim) + (-1.35 + e.flinch * 0.35) * aim; J.armR.rotation.z = -0.25 * (1 - aim); J.foreR.rotation.x = -0.35 * (1 - aim) + -0.2 * aim;
       if (T.shield) { J.armL.rotation.x = -1.2; J.armL.rotation.y = 0.3; J.foreL.rotation.x = -0.9; }
@@ -796,7 +802,8 @@ export class EnemyManager {
     }
     J.hips.position.y = 0.86 + Math.abs(c) * 0.07 * w + (b.onGround ? 0 : -0.05);
     _v.subVectors(pc, e.center); const yawTo = Math.atan2(_v.x, _v.z); J.headG.rotation.y = clamp(wrapAngle(yawTo - e.yaw) - (J.torso.rotation.y || 0), -1.1, 1.1);
-    J.headG.rotation.x = clamp(-Math.atan2(_v.y, Math.hypot(_v.x, _v.z)), -0.6, 0.6) * 0.8; J.headG.rotation.z = Math.sin(e.phase * 0.5) * 0.06 * w;
+    J.headG.rotation.x = clamp(-Math.atan2(_v.y, Math.hypot(_v.x, _v.z)), -0.6, 0.6) * 0.8;
+    J.headG.rotation.z = T.zombie ? (0.45 + Math.sin(e.phase * 0.5) * 0.12 * w) : Math.sin(e.phase * 0.5) * 0.06 * w;
     if (e.state === 'stunned') { J.torso.rotation.x = 0.6; J.armL.rotation.x = -2.5; J.armR.rotation.x = -2.5; J.legL.rotation.x = -0.8; J.legR.rotation.x = 0.9; }
   }
 }

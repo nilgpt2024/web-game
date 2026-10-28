@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Models Test</title>
+  <style>
+    html,body{margin:0;height:100%;background:#1b2330;overflow:hidden;font-family:sans-serif}
+    canvas{display:block}
+    #portraits{position:fixed;left:8px;bottom:8px;display:flex;gap:6px}
+    #portraits img{width:72px;height:72px}
+    #info{position:fixed;left:8px;top:8px;color:#fff;font-size:12px}
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="info"></div>
+  <div id="portraits"></div>
+  <script type="module" src="./models-test.js"></script>
+</body>
+</html>

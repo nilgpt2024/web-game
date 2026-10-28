@@ -1,0 +1,35 @@
+{
+  "id": "turbo-kart-rally",
+  "title": "Turbo Kart Rally — 浏览器里的低多边形卡丁车竞速，漂移、道具与杯赛",
+  "created_at": "2026-10-28",
+  "category": "arcade",
+  "description": "一款明亮低多边形（low-poly）风格的网页卡丁车竞速游戏，灵感来自经典街机赛车：在多条蜿蜒赛道上漂移过弯、挤撞对手，拾取并发射随机道具，参与一场场上手即玩的杯赛。全程无需下载、打开网页即可开赛，角色、赛道与音效均由代码程序化生成，不含任何外部版权美术或音频资源。",
+  "entry": "index.html",
+  "attribution_status": "MIT 协议开源，已随包保留原始 LICENSE 与作者署名（Copyright (c) 2026 BridgeMind）。本自托管仅用于站内免费游玩，未删除源码与许可声明，也未对程序逻辑做任何修改。",
+  "workflow": "纯静态、无构建步骤（No build step）：根目录 index.html + src 直接以 ES Module 运行，通过 importmap 从 jsDelivr CDN 加载 Three.js（r170）及后期处理插件，Google Fonts 仅用于标题字体且加载失败时自动回退系统字体、不影响可玩性；游戏自身的赛道、赛车等美术与音效均为程序化生成（100% procedural），无外部模型/贴图/音频文件，放到任意可访问公网 CDN 的静态子目录即可运行（站点面向海外用户，jsDelivr 与 Google Fonts 均可正常访问）。",
+  "technologies": [
+    "HTML",
+    "JavaScript",
+    "ES Modules",
+    "Three.js (via jsDelivr CDN)",
+    "WebGL"
+  ],
+  "external_dependencies": [
+    "Three.js r170 及 postprocessing 插件：经 importmap 从 cdn.jsdelivr.net 加载（未 vendored 到本地）",
+    "Google Fonts（Lilita One / Nunito，仅字体样式，失败回退系统字体，不影响运行）"
+  ],
+  "external_assets": [],
+  "requires": [
+    "现代浏览器与 WebGL 支持",
+    "键盘操作（方向键/WASD）",
+    "纯单机，无需联网、无需账号"
+  ],
+  "submitter": {
+    "name": "BridgeMind",
+    "url": "https://github.com/bridge-mind/turbo-kart-rally"
+  },
+  "demo_url": "https://bridge-mind.github.io/turbo-kart-rally/",
+  "creator": {
+    "name": "BridgeMind"
+  }
+}

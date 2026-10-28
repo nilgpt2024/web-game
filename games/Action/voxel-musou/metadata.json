@@ -1,0 +1,35 @@
+{
+  "id": "voxel-musou",
+  "title": "Voxel Musou（方块三国无双）— 浏览器里的体素一骑当千，赵云纵横三百人战场",
+  "created_at": "2026-10-28",
+  "category": "action",
+  "description": "一款体素（voxel）方块风格的网页第三人称割草动作游戏，题材取自中国历史三国时期：操控赵云等武将，在虎牢关、长坂坡、赤壁、定军山等四场战役与演武试炼中，于成百上千名敌兵间冲锋连招、骑马突击并释放无双必杀。画面为低多边形方块人，旗帜、城池与战场氛围完整，打开网页即可体验一骑当千的爽快感。",
+  "entry": "index.html",
+  "attribution_status": "MIT 协议开源，已随包保留原始 LICENSE 与作者署名（Copyright (c) 2026 BubuAi，GitHub 用户 mike007jd）。本自托管仅用于站内免费游玩。三国历史人物属公有领域；游戏名称 Voxel Musou 与全部方块美术、音频均为原创程序化资产，未使用任何第三方厂商的商标或受版权保护的资源。",
+  "workflow": "纯静态、无构建步骤（No build step）：根目录 index.html + src + media + vendor，ES Module 直接运行，Three.js 已 vendored 到 vendor/ 离线可用。收录时应用了一处兼容性修复：原版 src/audio/bank.js 将混响脉冲响应采样率写死为 48000，在 AudioContext 为 44100Hz 的浏览器上 ConvolverNode 会抛 NotSupportedError 并导致启动白屏；已改为 makeIR(sr) 按 ctx.sampleRate 动态生成（bank.js）并在 audio.js 以 makeIR(ctx.sampleRate) 调用，其余逻辑与资产未改动，该修复对 48000Hz 环境无副作用。",
+  "technologies": [
+    "HTML",
+    "JavaScript",
+    "ES Modules",
+    "Three.js",
+    "WebGL",
+    "Web Audio API"
+  ],
+  "external_dependencies": [
+    "Three.js 及 addons（已 vendored 到 vendor/，离线可用）"
+  ],
+  "external_assets": [],
+  "requires": [
+    "现代浏览器与 WebGL 支持",
+    "鼠标 + 键盘",
+    "纯单机，无需联网、无需账号"
+  ],
+  "submitter": {
+    "name": "BubuAi",
+    "url": "https://github.com/mike007jd/voxel-musou"
+  },
+  "demo_url": "https://voxel-musou.vercel.app",
+  "creator": {
+    "name": "BubuAi"
+  }
+}

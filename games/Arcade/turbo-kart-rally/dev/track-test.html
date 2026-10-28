@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>track test</title>
+<style>body{margin:0;overflow:hidden}#log{position:fixed;top:0;left:0;color:#fff;font:12px monospace;background:rgba(0,0,0,.5);white-space:pre;max-height:50vh;overflow:auto}</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head><body><div id="log"></div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { createTrack } from '../src/track.js';
+const log = (...a) => { console.log(...a); document.getElementById('log').textContent += a.join(' ') + '\n'; };
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 3000);
+const t0 = performance.now();
+const track = createTrack(scene, renderer);
+log('build ms', (performance.now() - t0).toFixed(0), 'length', track.length.toFixed(1), 'items', track.itemBoxPositions.length);
+window.track = track; window.THREE = THREE; window.scene = scene; window.camera = camera; window.renderer = renderer;
+// sanity
+const sp = track.startPositions;
+sp.forEach((s, i) => { const inf = track.getSurfaceInfo(s.position); const f = new THREE.Vector3(Math.sin(s.heading),0,Math.cos(s.heading)); const tg = track.getTangentAt(inf.t);
+  log('slot', i, 'onRoad', inf.onRoad, 't', inf.t.toFixed(4), 'lat', inf.lateral.toFixed(2), 'h', inf.height.toFixed(2), 'dot', f.dot(tg).toFixed(3), 'wall', track.resolveWall(s.position, 1.3)); });
+let bad = 0, prevT = 0, mono = 0;
+for (let k = 0; k < 1000; k++) { const t = k / 1000; const p = track.getPointAt(t); const inf = track.getSurfaceInfo(p, prevT);
+  if (Math.abs(inf.t - t) > 0.002 && Math.abs(Math.abs(inf.t - t) - 1) > 0.002) bad++; if (track.resolveWall(p, 1.3)) bad++; if (Math.abs(inf.lateral) > 0.05) bad++; prevT = inf.t;
+  const rl = track.getRacingLine(t); const ri = track.getSurfaceInfo(rl); if (!ri.onRoad) mono++; }
+log('centerline mismatches', bad, 'racing line offroad', mono);
+// lateral sign: point to right of heading
+{ const s = sp[0]; const h = s.heading; const r = new THREE.Vector3(-Math.cos(h),0,Math.sin(h)); const p = s.position.clone().addScaledVector(r, 3); log('lat right +?', track.getSurfaceInfo(p).lateral.toFixed(2) - track.getSurfaceInfo(s.position).lateral.toFixed(2)); }
+// perf
+{ const p = new THREE.Vector3(); let t = performance.now(); let hint = 0; for (let k = 0; k < 20000; k++) { const q = track.getPointAt((k % 1000) / 1000); p.set(q.x + 3, 0, q.z); const r = track.getSurfaceInfo(p, hint); hint = r.t; } log('20k hinted queries ms', (performance.now() - t).toFixed(1));
+  t = performance.now(); for (let k = 0; k < 20000; k++) { const q = track.getPointAt((k % 1000) / 1000); p.set(q.x + 3, 0, q.z); track.resolveWall(p, 1.3); } log('20k resolveWall ms', (performance.now() - t).toFixed(1)); }
+const controls = new OrbitControls(camera, renderer.domElement);
+camera.position.set(-200, 250, -300); controls.target.set(100, 0, 0);
+window.view = (x, y, z, tx, ty, tz) => { camera.position.set(x, y, z); controls.target.set(tx, ty, tz); controls.update(); };
+window.kartView = (t, lat = 0, back = 9, up = 4) => { const p = track.getPointAt(t), tg = track.getTangentAt(t); const r = new THREE.Vector3(-tg.z,0,tg.x).normalize(); p.addScaledVector(r, lat);
+  camera.position.copy(p).addScaledVector(tg, -back).add(new THREE.Vector3(0, up, 0)); controls.target.copy(p).addScaledVector(tg, 20).add(new THREE.Vector3(0, 1.5, 0)); controls.update(); track.setShadowFocus(p); };
+const clock = new THREE.Clock(); let time = 0;
+function loop() { const dt = Math.min(clock.getDelta(), 1/30); time += dt; track.update(dt, time); controls.update(); renderer.render(scene, camera); window.drawCalls = renderer.info.render.calls; window.tris = renderer.info.render.triangles; requestAnimationFrame(loop); }
+loop();
+</script></body></html>

@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://suipce.com/</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://suipce.com/ai-games</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.95</priority></url>
+  <url><loc>https://suipce.com/best-ai-browser-games</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://suipce.com/free-ai-games-online</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://suipce.com/ai-opponent-games</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://suipce.com/vibe-coded-games</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://suipce.com/arcade-games</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://suipce.com/action-games</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
   <url><loc>https://suipce.com/puzzle-games</loc><lastmod>2026-10-20</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
@@ -403,10 +408,12 @@
   <url><loc>https://suipce.com/games/Board/Crazy-Eights/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Freecell/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Gomoku/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://suipce.com/games/Board/Late-Eastern-Han-Dynasty/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Ludo/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Mahjong-Connect/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Mahjong-Solitaire-Game/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Poker/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://suipce.com/games/Board/Pomax-Mahjong/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Reversi/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Rock-Paper-Scissors/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Board/Solitaire/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
@@ -532,7 +539,6 @@
   <url><loc>https://suipce.com/games/Casual/the-free-game-web/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Casual/the-legend-of-deller/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Casual/the-sunshard/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://suipce.com/games/Casual/three-kingdoms/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Casual/tidehook/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Casual/tidelands/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://suipce.com/games/Casual/tower/</loc><lastmod>2026-10-20</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>

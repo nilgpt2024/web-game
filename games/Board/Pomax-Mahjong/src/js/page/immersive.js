@@ -719,23 +719,46 @@
   var BASE_BOARD = 720; // 上游 .board = 45em，默认 html font-size 16px
   var fitPending = false;
 
+  // 部分移动 WebView / 页面被缩放时，布局视口(window.innerWidth)会明显
+  // 大于真正看得见的区域(visualViewport)。此时按 innerWidth 布局会让牌桌、
+  // 弹窗、工具栏统统溢出屏幕右侧。统一以可见视口为准，并写进 CSS 变量，
+  // 让 fixed 定位的元素也能用同一套尺寸。正常手机上两者相等，行为不变。
+  function viewportSize() {
+    var w = window.innerWidth, h = window.innerHeight;
+    var vv = window.visualViewport;
+    if (vv && vv.width > 0 && vv.height > 0) {
+      w = Math.min(w, vv.width);
+      h = Math.min(h, vv.height);
+    }
+    return { w: w, h: h };
+  }
+
+  function syncViewportVars() {
+    var v = viewportSize();
+    var root = document.documentElement;
+    root.style.setProperty("--mj-vw", v.w.toFixed(1) + "px");
+    root.style.setProperty("--mj-vh", v.h.toFixed(1) + "px");
+  }
+
   function fit() {
     if (fitPending) return;
     fitPending = true;
     requestAnimationFrame(function () {
       fitPending = false;
       var root = document.documentElement;
+      syncViewportVars();
       if (!document.body || !document.body.classList.contains("mj-immersive")) {
         root.style.fontSize = "";
         return;
       }
-      var narrow = window.innerWidth < 760;
+      var v = viewportSize();
+      var narrow = v.w < 760;
       // 宽屏多留一点，给拟真牌桌的胡桃木外框（box-shadow 不占布局）
       var pad = narrow ? 22 : 56;
       var reserve = narrow ? 62 : 46; // 与 CSS 的 padding-top 保持一致
       var scale = Math.min(
-        (window.innerWidth - pad) / BASE_BOARD,
-        (window.innerHeight - pad - reserve) / BASE_BOARD
+        (v.w - pad) / BASE_BOARD,
+        (v.h - pad - reserve) / BASE_BOARD
       );
       scale = Math.max(0.42, Math.min(scale, 2.4));
       root.style.fontSize = (16 * scale).toFixed(3) + "px";
@@ -969,6 +992,19 @@
     }
   });
 
+  // 可见视口变化（WebView 缩放、地址栏收放）未必触发 window.resize，
+  // 单独监听一次，同步 CSS 变量并整体重排；正常视口下这些都是幂等的。
+  function refreshViewport() {
+    syncViewportVars();
+    fit();
+    try { updateTurnMarker(); } catch (e) {}
+    try { syncMobileHand(); } catch (e) {}
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", refreshViewport);
+  }
+  syncViewportVars();
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", function () {
       buildToolbar();
@@ -1197,20 +1233,21 @@
       var tr = tb.getBoundingClientRect();
       if (tr.height > 0) minY = tr.bottom + halfH + 4;
     }
-    mx = Math.max(halfW + 4, Math.min(window.innerWidth - halfW - 4, mx));
-    my = Math.max(minY, Math.min(window.innerHeight - halfH - 4, my));
+    var vs = viewportSize();
+    mx = Math.max(halfW + 4, Math.min(vs.w - halfW - 4, mx));
+    my = Math.max(minY, Math.min(vs.h - halfH - 4, my));
     // 手机横屏时牌桌被压得很小，贴底部座位的指示牌会正好盖住自己要点的手牌。
     // 横屏左右各有一大片空白，把指示牌挪到较宽那侧的空白带，不挡任何牌。
-    if (window.innerWidth > window.innerHeight && window.innerHeight < 560) {
+    if (vs.w > vs.h && vs.h < 560) {
       var coversBoard = !(mx + halfW < br.left || mx - halfW > br.right ||
                           my + halfH < br.top || my - halfH > br.bottom);
       if (coversBoard) {
-        var rightGap = window.innerWidth - br.right;
+        var rightGap = vs.w - br.right;
         var leftGap = br.left;
         if (Math.max(rightGap, leftGap) > halfW * 2 + 8) {
           mx = rightGap >= leftGap ? br.right + rightGap / 2 : leftGap / 2;
-          my = window.innerHeight / 2;
-          mx = Math.max(halfW + 4, Math.min(window.innerWidth - halfW - 4, mx));
+          my = vs.h / 2;
+          mx = Math.max(halfW + 4, Math.min(vs.w - halfW - 4, mx));
         }
       }
     }

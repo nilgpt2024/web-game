@@ -93,9 +93,10 @@
 /* ---------- 沉浸模式 ---------- */
 body.mj-immersive {
   box-sizing: border-box;
-  width: 100vw;
+  /* 可见视口尺寸由 immersive.js 写入；正常浏览器下等于 100vw/100vh */
+  width: var(--mj-vw, 100vw);
   max-width: none;
-  height: 100vh;
+  height: var(--mj-vh, 100vh);
   margin: 0;
   /* 顶部预留给悬浮控制条，避免压住对家手牌 */
   padding: 46px 0 0 0;
@@ -139,8 +140,9 @@ body.mj-immersive #mj-toolbar.mj-fresh {
   body.mj-immersive { padding-top: 62px; }
   #mj-toolbar {
     top: 6px;
-    right: 6px;
     left: 6px;
+    right: auto;
+    width: calc(var(--mj-vw, 100vw) - 12px);
     justify-content: center;
     flex-wrap: wrap;
     border-radius: 14px;
@@ -163,7 +165,8 @@ body.mj-immersive #mj-toolbar.mj-fresh {
 #mj-mobile-hand {
   position: fixed;
   left: 0;
-  right: 0;
+  right: auto;
+  width: var(--mj-vw, 100vw);
   bottom: 0;
   z-index: 9996;
   display: none;
@@ -236,14 +239,18 @@ body.mj-mobile-hand-on .player[id="0"] game-tile { opacity: .3; }
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    right: auto;
+    bottom: auto;
+    /* 用可见视口而非布局视口，WebView 缩放时弹窗也不会溢出右侧 */
+    width: var(--mj-vw, 100vw);
+    height: var(--mj-vh, 100vh);
     z-index: 10000;
   }
   body.mj-immersive .modal .panel {
     font-size: 13px;
-    max-height: 86vh;
-    overflow-y: auto;
+    max-width: calc(var(--mj-vw, 100vw) - 20px);
+    max-height: calc(var(--mj-vh, 100vh) - 24px);
+    overflow: auto;
   }
   body.mj-immersive .modal .panel h1 { font-size: 15px; }
   body.mj-immersive .modal .panel button {

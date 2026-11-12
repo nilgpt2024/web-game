@@ -8,11 +8,17 @@ import { join } from "node:path";
 
 const URL = process.argv[2] || "http://localhost:8774/";
 const PORT = Number(process.argv[3] || 9261);
+// 公网验证时本机默认代理可能已失效，显式指定可用代理，
+// 否则 mp3 全部拉不到，会把「网络问题」误判成「语音被打断」。
+const PROXY = process.argv[5] || "";
 const chromeExe = ["C:/Program Files/Google/Chrome/Application/chrome.exe",
   "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe"].find(existsSync);
 const profile = mkdtempSync(join(tmpdir(), "mj-voice-pace-"));
-const chrome = spawn(chromeExe, ["--headless=new", "--disable-gpu", "--mute-audio", "--no-first-run",
-  "--window-size=1280,800", `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`, "about:blank"], { stdio: "ignore" });
+const chromeArgs = ["--headless=new", "--disable-gpu", "--mute-audio", "--no-first-run",
+  "--window-size=1280,800", `--remote-debugging-port=${PORT}`, `--user-data-dir=${profile}`];
+if (PROXY) chromeArgs.push(`--proxy-server=${PROXY}`);
+chromeArgs.push("about:blank");
+const chrome = spawn(chromeExe, chromeArgs, { stdio: "ignore" });
 await new Promise(r => setTimeout(r, 2500));
 
 let targets = null;

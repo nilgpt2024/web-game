@@ -345,6 +345,9 @@
   // 打下一张牌；voiceChain 是播放链，showtime.js 靠它排队下一条报牌。
   var voiceChain = Promise.resolve();
   var voicePending = 0;
+  // 连续几段语音连「开始播放」都没做到（弱网/被浏览器拒绝）时，
+  // 节奏闸不再空等，退回最小间隔，避免无声还每家卡好几秒。
+  var voiceFailStreak = 0;
 
   function packInfo() {
     var p = window.MJ_VOICE_PACK;
@@ -396,7 +399,7 @@
   // 拒绝自动播放或文件加载失败，也不会把整局游戏永久卡住。
   function playOne(a) {
     return new Promise(function (resolve) {
-      var done = false, timer = 0, readyTimer = 0, armed = false;
+      var done = false, timer = 0, readyTimer = 0, armed = false, startedOk = false;
       function finish() {
         if (done) return;
         done = true;
@@ -417,6 +420,8 @@
         // 牌名会在刚开口时被掐掉。
         a.addEventListener("playing", function () {
           if (done) return;
+          startedOk = true;
+          voiceFailStreak = 0;
           clearTimeout(timer);
           var d = a.duration;
           var ms = (d && isFinite(d) && d > 0.1)
@@ -430,6 +435,7 @@
         // 别让这一段把整局游戏卡死。
         timer = setTimeout(function () {
           if (done) return;
+          if (!startedOk) voiceFailStreak++;
           try { a.pause(); } catch (e) {}
           finish();
         }, 4200);
@@ -482,7 +488,8 @@
     return new Promise(function (resolve) {
       (function check() {
         var elapsed = Date.now() - t0;
-        if (elapsed >= maxMs || (elapsed >= floor && voicePending <= 0)) {
+        if (elapsed >= maxMs ||
+            (elapsed >= floor && (voicePending <= 0 || voiceFailStreak >= 3))) {
           resolve(elapsed);
           return;
         }

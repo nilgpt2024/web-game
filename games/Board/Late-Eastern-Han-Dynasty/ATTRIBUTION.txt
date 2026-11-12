@@ -1,0 +1,10 @@
+Late Eastern Han Dynasty / 晚东汉末·大战略 (Phase 0-A playable prototype)
+Upstream: https://github.com/CtxPilot/Late-Eastern-Han-Dynasty
+Live demo: https://ctxpilot.github.io/Late-Eastern-Han-Dynasty/
+Copyright (c) 2026 CtxPilot — SPDX-License-Identifier: MIT
+Fonts: Noto Serif CJK SC (Regular/Bold) and Ma Shan Zheng — SIL Open Font License 1.1,
+license text in fonts/OFL-1.1.txt, provenance in fonts/README.md.
+This is the unmodified GitHub Pages build except: absolute /Late-Eastern-Han-Dynasty/
+base paths rewritten to relative paths (index.html, main bundle, CSS, sw.js) and
+site SEO/meta tags added to index.html.
+NOTE: fonts are mandatory - the app refuses to boot if document.fonts.load() fails.

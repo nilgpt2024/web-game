@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>四人麻将 · 全中文 | AIGameHub</title>
+  <meta name="description" content="与三家电脑对手同桌打四人麻将，开局可选中国古典或广东规则，离开时可让电脑代玩。拟真牌桌、全屏胡牌演出、四位玩家各有音色的中文语音包，附独立游戏手册。原作 Pomax。" />
+  <link rel="canonical" href="https://suipce.com/games/Board/Pomax-Mahjong/" />
+  <meta property="og:image" content="https://suipce.com/games/Board/Pomax-Mahjong/preview.webp" />
+  <meta name="twitter:image" content="https://suipce.com/games/Board/Pomax-Mahjong/preview.webp" />
+  <link rel="shortcut icon" type="image/jpeg" href="img/tiles/small/31.jpg">
+  <link rel="stylesheet" href="src/css/base-colors.css">
+  <link rel="stylesheet" href="src/css/colors.css">
+  <link rel="stylesheet" href="src/css/index.css">
+  <!-- AIGameHub 本地增强层：全屏沉浸 + 打牌音效 + 中文化 + 拟真牌桌 + 胡牌演出
+       （不修改上游源码；顺序依赖：immersive.js 必须先于 showtime.js 加载） -->
+  <link rel="stylesheet" href="src/css/immersive.css?v=17">
+  <link rel="stylesheet" href="src/css/zh-CN.css">
+  <link rel="stylesheet" href="src/css/showtime.css">
+  <!-- 固定中文报牌语音包：真人感神经语音预生成 MP3，随站离线分发，不依赖系统 TTS -->
+  <!-- 预览服务不发缓存头，本地增强层改动必须带版本参数防浏览器缓存旧 JS -->
+  <script src="voice/manifest.js?v=5"></script>
+  <script src="src/js/page/immersive.js?v=17"></script>
+  <script type="module" src="src/js/page/autopilot.js?v=9"></script>
+  <script src="src/js/page/zh-CN.js?v=9"></script>
+  <script src="src/js/page/showtime.js?v=9"></script>
+  <script src="src/js/page/tiles-locknum.js" async></script>
+  <script src="src/js/page/play-or-watch.js" type="module"></script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Board &amp; Strategy Games","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Four-Player Mahjong","item":"https://suipce.com/games/Board/Pomax-Mahjong/"}]}</script>
+  <style>
+    .aigamehub-credit{font-size:13px;opacity:.75;margin-left:.6em}
+    .aigamehub-credit a{color:inherit}
+  </style>
+</head>
+
+<body>
+  <main class="board" tabindex="0">
+    <div class="players">
+      <div class="player" id="0" data-wincount="0" data-score="2000"></div>
+      <div class="player" id="1" data-wincount="0" data-score="2000"></div>
+      <div class="player" id="2" data-wincount="0" data-score="2000"></div>
+      <div class="player" id="3" data-wincount="0" data-score="2000"></div>
+    </div>
+
+    <div class="corner wall data"></div>
+    <div class="corner settings">设置</div>
+    <div class="corner theming">外观</div>
+    <div class="discards"></div>
+    <div class="sidebar">
+      <div class="knowledge"></div>
+    </div>
+
+    <div class="windicator">
+      <div class="player-wind tc e">西</div>
+      <div class="player-wind rc">南</div>
+      <div class="player-wind bc">東</div>
+      <div class="player-wind lc">北</div>
+      <div class="wind-of-the-round">東　南　西　北</div>
+      <div class="hand-counter"></div>
+    </div>
+
+    <div class="hidden modal"></div>
+  </main>
+
+  <!-- 规则说明、操作教程与原作署名已迁往独立手册 manual.html；本页只保留棋盘。
+       上游 src/ 下的游戏源码未做任何改动。 -->
+
+</body>
+
+</html>

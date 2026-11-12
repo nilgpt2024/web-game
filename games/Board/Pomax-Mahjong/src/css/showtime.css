@@ -1,0 +1,384 @@
+/* ------------------------------------------------------------------
+   AIGameHub 本地增强层 2：拟真牌桌皮肤 + 胡牌结算演出
+   - 不修改上游任何 CSS，仅由 index.html 额外引入
+   - 皮肤只覆盖 .board 自身的背景/描边，不覆盖 .discards/.player 的
+     background-image，保证上游「外观」面板里用户自定义底图仍然生效
+   - 全部纹理用 CSS 渐变 + 内嵌 SVG 噪点生成，不新增任何图片文件
+   ------------------------------------------------------------------ */
+
+/* ==================================================================
+   1. 拟真牌桌：胡桃木外框 + 墨绿绒面 + 铜钉 + 顶灯晕影
+   ================================================================== */
+body.mj-table-skin.mj-immersive {
+  background:
+    radial-gradient(1100px 700px at 50% 0%, rgba(255, 214, 150, .08), transparent 65%),
+    radial-gradient(900px 700px at 50% 112%, rgba(0, 0, 0, .62), transparent 70%),
+    repeating-linear-gradient(93deg, #1d130d 0 18px, #24170f 18px 34px, #1b110b 34px 52px),
+    #17100a;
+}
+
+body.mj-table-skin.mj-immersive > main.board {
+  /* 三层：顶灯高光 / 绒布噪点 / 桌面深浅退晕 */
+  background-color: #0b4a31;
+  background-image:
+    radial-gradient(ellipse 110% 85% at 50% 38%, rgba(255, 248, 214, .13), rgba(255, 248, 214, 0) 62%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.26'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 50% 44%, #1a7550 0%, #0d5538 46%, #063424 100%);
+  background-size: 100% 100%, 170px 170px, 100% 100%;
+  background-blend-mode: screen, soft-light, normal;
+  /* 用多层 box-shadow 做木框，不占布局、不改变上游 45em 尺寸计算 */
+  box-shadow:
+    0 0 0 .55em #33200f,
+    0 0 0 .72em #6f4520,
+    0 0 0 .84em #24160c,
+    0 0 0 1.02em rgba(0, 0, 0, .55),
+    0 26px 72px rgba(0, 0, 0, .78);
+  border-radius: 7px;
+}
+
+/* 四角铜钉 */
+body.mj-table-skin .board::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle 6px at 15px 15px, #ffe1a0 0 35%, #a9762e 52%, #4a2c12 72%, transparent 80%),
+    radial-gradient(circle 6px at calc(100% - 15px) 15px, #ffe1a0 0 35%, #a9762e 52%, #4a2c12 72%, transparent 80%),
+    radial-gradient(circle 6px at 15px calc(100% - 15px), #ffe1a0 0 35%, #a9762e 52%, #4a2c12 72%, transparent 80%),
+    radial-gradient(circle 6px at calc(100% - 15px) calc(100% - 15px), #ffe1a0 0 35%, #a9762e 52%, #4a2c12 72%, transparent 80%);
+  opacity: .85;
+}
+
+/* 顶灯 + 四周暗角，轻微呼吸，不影响点击 */
+body.mj-table-skin .board::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 4px;
+  background:
+    radial-gradient(ellipse 78% 68% at 50% 34%, rgba(255, 240, 198, .12), transparent 62%),
+    radial-gradient(ellipse 122% 118% at 50% 50%, transparent 52%, rgba(0, 0, 0, .46) 100%);
+  animation: mj-lamp 7s ease-in-out infinite alternate;
+}
+
+@keyframes mj-lamp {
+  from { opacity: .72; }
+  to   { opacity: 1; }
+}
+
+/* 中央出牌区：加内阴影与木质压边，保留用户自定义底图 */
+body.mj-table-skin .board .discards {
+  border-color: #2c7049;
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, .34),
+    inset 0 0 58px rgba(0, 0, 0, .42);
+}
+
+/* 一层极淡的墨绿釉色，把上游山水底图统一到桌面色调；
+   ::before 在牌之前绘制，且 [tile] 自带 z-index:1，牌面不会被盖住 */
+body.mj-table-skin .board .discards::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 42%, rgba(12, 88, 52, .16), rgba(3, 28, 18, .46) 100%);
+}
+
+/* 右侧记牌条也镶上木边，和整张桌子连成一体 */
+body.mj-table-skin .board .sidebar {
+  border: 2px solid #6b4524;
+  border-radius: 3px;
+  box-shadow: 0 0 0 .18em #33200f, 0 8px 22px rgba(0, 0, 0, .5);
+}
+
+/* 手牌区改成暖木推牌槽；赢家/等待/总冠军的高亮色由上游保留 */
+body.mj-table-skin .players .player:not(.winner):not(.waiting):not(.game-winner) {
+  background-color: #e7d8b8;
+  border-color: #6b4524;
+  box-shadow:
+    inset 0 2px 6px rgba(66, 42, 18, .34),
+    inset 0 -3px 9px rgba(66, 42, 18, .24);
+}
+
+/* 牌面浮起一点，更像实体麻将 */
+body.mj-table-skin .board game-tile {
+  box-shadow: 0 2px 3px rgba(0, 0, 0, .42);
+}
+
+/* ==================================================================
+   2. 胡牌演出层：全屏光效 + 金色大字 + 分数卡 + 礼花 canvas
+   ================================================================== */
+#mj-showtime {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  overflow: hidden;
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  transition: opacity .35s ease;
+}
+
+#mj-showtime.mj-active {
+  visibility: visible;
+  opacity: 1;
+}
+
+#mj-showtime.mj-leaving {
+  opacity: 0;
+}
+
+#mj-showtime canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 放射光束 */
+.mj-rays {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 190vmax;
+  height: 190vmax;
+  margin: -95vmax 0 0 -95vmax;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 214, 108, .34) 0deg 5deg,
+    rgba(255, 214, 108, 0) 5deg 15deg
+  );
+  -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, .9) 0%, transparent 62%);
+  mask-image: radial-gradient(circle, rgba(0, 0, 0, .9) 0%, transparent 62%);
+  opacity: 0;
+}
+
+.mj-active .mj-rays { animation: mj-rays 3.2s ease-out both; }
+@keyframes mj-rays {
+  0%   { opacity: 0; transform: rotate(-24deg) scale(.5); }
+  18%  { opacity: .85; }
+  100% { opacity: 0; transform: rotate(28deg) scale(1.15); }
+}
+
+/* 压暗底层的弹窗/牌桌，让金字和礼花跳出来 */
+.mj-veil {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 43%, rgba(24, 12, 2, .34) 0%, rgba(4, 10, 7, .76) 78%);
+  opacity: 0;
+}
+.mj-active .mj-veil { animation: mj-veil 3.2s ease-out both; }
+@keyframes mj-veil {
+  0%   { opacity: 0; }
+  12%  { opacity: 1; }
+  74%  { opacity: .88; }
+  100% { opacity: 0; }
+}
+
+/* 白金闪光 */
+.mj-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 44%, rgba(255, 246, 208, .95), rgba(255, 196, 74, .42) 28%, transparent 68%);
+  opacity: 0;
+}
+.mj-active .mj-flash { animation: mj-flash .75s ease-out both; }
+@keyframes mj-flash {
+  0%   { opacity: 0; transform: scale(.4); }
+  16%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.6); }
+}
+
+/* 中央横幅 */
+.mj-banner {
+  position: absolute;
+  left: 50%;
+  top: 43%;
+  width: min(92vw, 760px);
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #fff6d8;
+  text-shadow: 0 4px 22px rgba(0, 0, 0, .8);
+}
+
+.mj-kicker {
+  font-size: clamp(13px, 1.7vw, 20px);
+  letter-spacing: .42em;
+  color: #ffe6a6;
+  opacity: 0;
+}
+.mj-active .mj-kicker { animation: mj-fade-in .5s .12s ease-out both; }
+
+.mj-title {
+  font-size: clamp(88px, 15vw, 190px);
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: .04em;
+  color: #ffd45e;
+  -webkit-text-stroke: 3px #7a3210;
+  text-shadow:
+    0 0 18px rgba(255, 190, 60, .95),
+    0 0 52px rgba(255, 138, 30, .75),
+    0 8px 0 #8c3b0e,
+    0 14px 30px rgba(0, 0, 0, .75);
+  transform-origin: 50% 60%;
+}
+.mj-active .mj-title { animation: mj-pop .95s cubic-bezier(.16, 1.5, .3, 1) both; }
+@keyframes mj-pop {
+  0%   { opacity: 0; transform: scale(.12) rotate(-16deg); }
+  45%  { opacity: 1; transform: scale(1.22) rotate(4deg); }
+  65%  { transform: scale(.94) rotate(-2deg); }
+  80%  { transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.mj-sub {
+  display: inline-block;
+  margin-top: .34em;
+  padding: .04em .42em .1em;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 202, 96, .38);
+  background: rgba(48, 20, 4, .66);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .45);
+  font-size: clamp(22px, 3.4vw, 44px);
+  font-weight: 800;
+  letter-spacing: .22em;
+  color: #fff2c4;
+  -webkit-text-stroke: 1px rgba(112, 48, 8, .85);
+  text-shadow:
+    0 0 20px rgba(255, 170, 40, .95),
+    0 3px 0 #7a3210,
+    0 8px 20px rgba(0, 0, 0, .9);
+  opacity: 0;
+}
+.mj-active .mj-sub { animation: mj-fade-in .5s .34s ease-out both; }
+
+.mj-score {
+  margin-top: .25em;
+  font-size: clamp(30px, 5.2vw, 64px);
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: .06em;
+  text-shadow: 0 0 24px rgba(255, 208, 90, .9), 0 5px 16px rgba(0, 0, 0, .85);
+  opacity: 0;
+}
+.mj-active .mj-score { animation: mj-rise .55s .52s ease-out both; }
+
+.mj-fan {
+  margin-top: .35em;
+  font-size: clamp(12px, 1.8vw, 19px);
+  color: #ffe9bd;
+  letter-spacing: .1em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .95), 0 0 16px rgba(0, 0, 0, .8);
+  opacity: 0;
+}
+.mj-active .mj-fan { animation: mj-fade-in .55s .7s ease-out both; }
+
+.mj-hint {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, .62);
+  letter-spacing: .08em;
+}
+
+@keyframes mj-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes mj-rise {
+  from { opacity: 0; transform: translateY(26px) scale(.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 「杠上开花」专属：更红的底色 + 金色印章 */
+#mj-showtime[data-mode="kong-bloom"] .mj-title { color: #ffb03a; }
+#mj-showtime[data-mode="kong-bloom"] .mj-flash {
+  background: radial-gradient(circle at 50% 44%, rgba(255, 235, 180, .95), rgba(255, 92, 40, .5) 30%, transparent 70%);
+}
+.mj-stamp {
+  position: absolute;
+  left: 50%;
+  top: 43%;
+  width: min(70vw, 520px);
+  height: min(70vw, 520px);
+  margin: calc(min(70vw, 520px) / -2) 0 0 calc(min(70vw, 520px) / -2);
+  border: 6px solid rgba(255, 208, 96, .72);
+  border-radius: 50%;
+  box-shadow: 0 0 0 14px rgba(255, 160, 40, .14), inset 0 0 60px rgba(255, 160, 40, .2);
+  opacity: 0;
+}
+.mj-active[data-mode="kong-bloom"] .mj-stamp { animation: mj-stamp 2.4s .1s ease-out both; }
+@keyframes mj-stamp {
+  0%   { opacity: 0; transform: scale(.2) rotate(-25deg); }
+  22%  { opacity: .9; transform: scale(1.08) rotate(0deg); }
+  38%  { opacity: .8; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: scale(1.3) rotate(12deg); }
+}
+
+/* 震屏：只作用于棋盘容器，工具条不跟着晃 */
+body.mj-shake > main.board { animation: mj-shake .62s cubic-bezier(.36, .07, .19, .97) both; }
+@keyframes mj-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-7px, 4px); }
+  22% { transform: translate(6px, -5px); }
+  36% { transform: translate(-5px, -3px); }
+  50% { transform: translate(5px, 4px); }
+  64% { transform: translate(-3px, 2px); }
+  78% { transform: translate(2px, -2px); }
+}
+
+/* 流局 / 整局结束的轻量提示条 */
+#mj-toast {
+  position: fixed;
+  left: 50%;
+  top: 76px;
+  z-index: 9998;
+  transform: translate(-50%, -14px);
+  padding: 9px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 214, 130, .4);
+  background: rgba(22, 34, 27, .9);
+  color: #ffe9bd;
+  font: 700 15px/1.4 "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  letter-spacing: .16em;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  white-space: nowrap;
+}
+#mj-toast.mj-on { opacity: 1; transform: translate(-50%, 0); }
+
+/* 演出期间不改变工具条层级，保证按钮仍可点击 */
+body.mj-showing #mj-toolbar { z-index: 10002; }
+
+/* 尊重系统「减少动态效果」偏好 */
+@media (prefers-reduced-motion: reduce) {
+  body.mj-table-skin .board::after { animation: none; }
+  body.mj-shake > main.board { animation: none; }
+  .mj-active .mj-rays,
+  .mj-active .mj-flash,
+  .mj-active .mj-veil,
+  .mj-active .mj-stamp { animation-duration: .01s; }
+}
+
+/* ---------- 喊牌公告放大：老年人也能看清谁碰谁吃谁杠 ---------- */
+.board .announcement {
+  font-size: clamp(17px, 2.8vw, 30px);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: .14em;
+  padding: 6px 14px 8px;
+  border-radius: 10px;
+  border-width: 2px;
+  width: auto;
+  min-width: calc(var(--ph) * 0.85);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .35);
+}

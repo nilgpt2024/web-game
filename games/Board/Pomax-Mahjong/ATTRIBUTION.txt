@@ -1,0 +1,85 @@
+Four-Player Mahjong (Chinese Classical / Cantonese rules)
+Original work by Pomax: https://github.com/Pomax/mahjong
+Live demo: https://pomax.github.io/mahjong/
+Pure HTML/CSS/JS, no build step. The upstream JS/CSS sources under src/ are
+left untouched (verified file-by-file). Local changes on this mirror:
+  - index.html: localised <head> SEO/meta block, favicon path, lang/title/
+    description and the two board-corner labels. The long static tutorial,
+    rules and footer sections were REMOVED from the game page (they are now
+    in manual.html); extra <link>/<script> tags load the enhancement layer
+    and the bundled voice manifest. The page now contains only the board.
+  - manual.html + src/css/manual.css (NEW, AIGameHub-only): a standalone,
+    fully Chinese game manual. Operations and shortcuts are visible by
+    default; tile/rule/scoring details are collapsed in <details>. Original
+    author credit and project links live here.
+  - src/css/immersive.css + src/js/page/immersive.js (NEW, AIGameHub-only):
+    the board-only layout is now the DEFAULT (viewport-fitted, centred, no
+    scrolling); a small floating bar offers the manual, browser fullscreen,
+    sound/voice/table-skin/showtime toggles and volume; louder discard-tile
+    feedback, autoplay unlock, and a say() helper that plays the bundled
+    Chinese voice pack first, falling back to system zh TTS only for text
+    not present in the pack. It emits an "mj:clip" event for every upstream
+    playClip() call, so downstream effects need no hooks inside the engine.
+  - src/css/showtime.css + src/js/page/showtime.js (NEW, AIGameHub-only):
+    a realistic table skin (walnut frame, green felt, brass studs, lamp
+    vignette - all CSS gradients + an inline SVG noise texture, no new
+    image files) and a full-screen win celebration: rays, gold lettering,
+    confetti canvas, screen shake, score roll-up, plus a "kong bloom"
+    variant. All celebratory sounds (gong, drum, coin jingles, applause,
+    firecrackers, pentatonic fanfare) are synthesised live with Web Audio.
+    Spoken calls are served from the bundled voice/*.mp3 pack (see below);
+    browser Chinese TTS is only a fallback for phrases outside the pack.
+    Events are inferred purely from the upstream mp3 filenames and DOM;
+    no game rule, scoring or engine code is touched, and the "kong bloom"
+    effect is presentation-only.
+  - src/css/zh-CN.css + src/js/page/zh-CN.js (NEW, AIGameHub-only):
+    complete Chinese localisation of runtime UI (welcome dialog, claim/win/
+    kong prompts, HUD, score tables, settings/theme/colour panels, tile
+    tooltips, scoring-pattern names) via a phrase map + MutationObserver.
+    Only text nodes and display-only attributes are rewritten; <option> and
+    <input> value attributes are deliberately left in English so that upstream
+    settings submission keeps working.
+  - voice/*.mp3 + voice/manifest.js (NEW, AIGameHub-only): 248 short Chinese
+    spoken clips (~2.3 MB): per-seat tile-name sets (all 42 tiles read in
+    each of the 4 player voices, plus one unified fallback set), per-seat
+    call sets (each of the 4 players has its own voice - you = lively
+    female, CPU 1 = passionate
+    male, CPU 2 = Northeastern-Mandarin dialect, CPU 3 = Shaanxi dialect -
+    with peng/chi/gang x2/hu x2/zimo lines each) and system narration
+    (deal, draw, end, kong-bloom). These are SYNTHESISED speech, not
+    recordings taken from any commercial mahjong game. Generated once with
+    Microsoft Edge online neural voices through the open-source `edge-tts`
+    package (zh-CN-XiaoxiaoNeural / YunjianNeural / YunyangNeural /
+    XiaoyiNeural / liaoning-XiaobeiNeural / shaanxi-XiaoniNeural), then
+    shipped as fixed MP3 files so playback is offline and identical on
+    every machine. The generating script is kept at tools/gen_voice_pack.py.
+    NOTE: Edge read-aloud is a Microsoft online service with its own terms;
+    its output is used here for a local/personal demo only. Re-check
+    Microsoft's terms before any commercial redistribution. No audio from
+    Happy Mahjong, Mahjong Soul or other commercial titles is included -
+    the "ready-made voice packs" found online are copyrighted or of
+    unclear provenance and were deliberately avoided.
+  - tools/gen_voice_pack.py (NEW, AIGameHub-only): regenerates voice/.
+  - src/js/page/autopilot.js (NEW, AIGameHub-only): a one-line ES-module
+    bridge that exposes the upstream `config` object to the classic-script
+    enhancement layer. Used by immersive.js to add two features that ride
+    entirely on upstream behaviour: (1) an "autopilot" toggle that flips
+    config.BOT_PLAY at runtime so the HumanPlayer (which extends
+    BotPlayer upstream) plays by itself and end-of-hand score panels
+    auto-dismiss via the existing botDismissible footer logic; and
+    (2) a ruleset chooser (Chinese Classical / Cantonese) injected into
+    the upstream welcome dialog plus a mid-session overlay - switching
+    reloads the page with ?rules=..., which is the upstream-supported
+    way to change RULES. No game logic, scoring or rules code is touched.
+  The upstream engine (src/js/core/, src/js/page/modal/, src/js/page/audio.js,
+  src/config.js, all upstream css except the 4 new files, audio/, img/) is
+  byte-for-byte identical to the downloaded demo; all local changes are
+  confined to index.html, manual.html, the AIGameHub-only src/css and
+  src/js/page files listed above, voice/, and tools/. Game logic and rules
+  are unmodified. To restore the original page, re-download index.html
+  from the upstream repo and remove the extra <link>/<script> tags.
+
+NOTE: the upstream repository does not declare a LICENSE file.
+The upstream README explicitly allows saving a full local copy of the game.
+Public re-distribution is not explicitly licensed; consider asking the author
+for permission, or replace this mirror with a link/iframe to the live demo.

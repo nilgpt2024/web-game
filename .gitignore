@@ -73,3 +73,6 @@ coverage/
 
 # Other
 .history/
+
+# 本地 CDP 验证截图（诊断产物，不属于站点资源）
+**/proof_*.png

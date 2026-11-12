@@ -1,0 +1,95 @@
+/* ------------------------------------------------------------------
+   AIGameHub 中文化层：中文字体与排版微调
+   不改变上游布局尺寸（全部为 em/rem），只覆盖字体栈与换行行为。
+   ------------------------------------------------------------------ */
+:root {
+  --mj-zh-font: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC",
+                "Source Han Sans SC", "Hiragino Sans GB", "Heiti SC", sans-serif;
+}
+
+html,
+body,
+h1, h2, h3, h4, h5, h6,
+p, li,
+footer,
+.modal .panel,
+.modal .panel h1,
+.modal .panel h3,
+.modal .panel p,
+.modal .panel button,
+.modal .panel input,
+.modal .panel table,
+.modal .panel select,
+.board .corner,
+.windicator,
+.announcement,
+#mj-toolbar {
+  font-family: var(--mj-zh-font);
+}
+
+/* 中文按钮文字略宽，禁止折行 */
+.modal .panel button,
+.modal .panel input[type="button"],
+.modal .panel input[type="submit"],
+.modal .panel input[type="reset"],
+.options-dialog button {
+  white-space: nowrap;
+}
+
+/* 中文段落首行缩进更自然 */
+#tutorial p,
+#explanation p,
+#gameplay p,
+#rules p,
+#scoring p,
+#this-game p,
+#controls p,
+#tutorial li p,
+#explanation li p,
+#rules li p,
+#scoring li p,
+#controls li p {
+  text-indent: 0;
+  text-align: left;
+  line-height: 1.75;
+}
+
+#tutorial h1,
+#explanation h1,
+#this-game h1,
+#gameplay h2,
+#rules h2,
+#scoring h2,
+#controls h2,
+#controls h3 {
+  font-family: var(--mj-zh-font);
+  font-size: 1.45rem;
+  margin: 1.1em 0 .5em;
+}
+
+#controls h3 { font-size: 1.15rem; }
+
+/* 公告气泡（吃/碰/杠/胡）中文字号 */
+.announcement {
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+footer {
+  line-height: 1.9;
+}
+
+/* 中文笔画比拉丁字母密，HUD 略微放大加粗，保持可读 */
+.board .corner {
+  font-size: .86rem;
+  letter-spacing: .02em;
+}
+
+.windicator .hand-counter {
+  height: auto;
+  min-height: 2em;
+  font-size: .85rem;
+  line-height: 1.15;
+  font-weight: 700;
+  white-space: nowrap;
+}

@@ -1,0 +1,167 @@
+/* ------------------------------------------------------------------
+   AIGameHub 本地新增：独立游戏手册页样式
+   与游戏桌面同一套深绿配色，纯静态、不依赖上游 CSS。
+   ------------------------------------------------------------------ */
+:root {
+  --bg: #101713;
+  --card: #1a251f;
+  --card-2: #213029;
+  --line: rgba(160, 214, 180, .14);
+  --text: #e3ece6;
+  --muted: #9fb2a6;
+  --accent: #78d6a0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 32px 18px 48px;
+  background: radial-gradient(1100px 620px at 50% -12%, #1d3227 0%, var(--bg) 68%) no-repeat, var(--bg);
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", "Source Han Sans SC", sans-serif;
+  font-size: 15px;
+  line-height: 1.8;
+  min-height: 100vh;
+}
+
+.wrap { max-width: 820px; margin: 0 auto; }
+
+.head { margin-bottom: 22px; }
+
+.back {
+  display: inline-block;
+  padding: 7px 15px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .06);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+}
+.back:hover { background: rgba(120, 214, 160, .18); color: #fff; }
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 27px;
+  letter-spacing: .04em;
+}
+
+.head p { margin: 0; color: var(--muted); font-size: 13px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .22);
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: var(--accent);
+  letter-spacing: .04em;
+}
+
+.card h3 {
+  margin: 16px 0 6px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.card h3:first-of-type { margin-top: 4px; }
+
+ul, ol { margin: 0; padding-left: 22px; }
+li { margin: 5px 0; }
+.card p { margin: 10px 0 0; }
+.card p:first-of-type { margin-top: 0; }
+
+.steps { counter-reset: step; list-style: none; padding-left: 0; }
+.steps li {
+  position: relative;
+  padding-left: 36px;
+  margin: 10px 0;
+}
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #2f7d55;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 24px;
+}
+
+b { color: #fff; font-weight: 600; }
+
+kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 6px;
+  margin: 0 1px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--card-2);
+  color: var(--text);
+  font: 12px/1.6 Consolas, "Microsoft YaHei", monospace;
+  text-align: center;
+}
+
+table { width: 100%; border-collapse: collapse; }
+td { padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { width: 130px; white-space: nowrap; color: var(--accent); }
+
+.tip { color: var(--muted); font-size: 13px; }
+
+/* 详细规则默认折叠，手册打开时只看到操作相关的最短内容 */
+.fold { padding: 0; }
+.fold > summary {
+  padding: 15px 22px;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  list-style: none;
+  user-select: none;
+}
+.fold > summary::-webkit-details-marker { display: none; }
+.fold > summary::before { content: "▸ "; font-size: 13px; }
+.fold[open] > summary::before { content: "▾ "; }
+.fold > summary:hover { background: rgba(120, 214, 160, .07); border-radius: 14px 14px 0 0; }
+.fold > :not(summary) { margin-left: 22px; margin-right: 22px; }
+.fold > p:last-child, .fold > ul:last-child { margin-bottom: 20px; }
+.fold ul { padding-left: 22px; }
+
+footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 2;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+@media (max-width: 560px) {
+  body { padding: 20px 12px 36px; font-size: 14px; }
+  h1 { font-size: 22px; }
+  .card { padding: 15px 16px; }
+  .fold > summary { padding: 13px 16px; }
+  .fold > :not(summary) { margin-left: 16px; margin-right: 16px; }
+  td:first-child { width: 96px; }
+}

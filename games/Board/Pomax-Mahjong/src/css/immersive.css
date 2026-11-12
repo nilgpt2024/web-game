@@ -1,0 +1,516 @@
+/* ------------------------------------------------------------------
+   AIGameHub 本地增强层：全屏沉浸模式 + 悬浮控制条
+   本文件不修改上游任何 CSS，仅由 index.html 额外引入。
+   ------------------------------------------------------------------ */
+
+/* ---------- 悬浮控制条 ---------- */
+#mj-toolbar {
+  position: fixed;
+  top: 10px;
+  right: max(8px, calc(50vw - 480px));
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 999px;
+  background: rgba(18, 26, 22, .82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, .35);
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  color: #f2f6f3;
+  user-select: none;
+}
+
+#mj-toolbar button,
+#mj-toolbar a.mj-link {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: rgba(255, 255, 255, .1);
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .16s ease, transform .16s ease;
+}
+
+#mj-toolbar button:hover,
+#mj-toolbar a.mj-link:hover {
+  background: rgba(255, 255, 255, .22);
+}
+
+#mj-toolbar button:active { transform: scale(.94); }
+
+#mj-toolbar button.mj-on {
+  background: #2f7d55;
+  color: #fff;
+}
+
+#mj-toolbar button.mj-off {
+  background: rgba(255, 255, 255, .06);
+  color: #9aa9a0;
+}
+
+#mj-toolbar .mj-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, .18);
+  margin: 0 2px;
+}
+
+#mj-toolbar input[type="range"] {
+  width: 68px;
+  height: 4px;
+  accent-color: #4fbf82;
+  cursor: pointer;
+}
+
+#mj-volume-label {
+  min-width: 30px;
+  text-align: right;
+  opacity: .75;
+  font-variant-numeric: tabular-nums;
+}
+
+#mj-toolbar .mj-credit {
+  font-size: 11px;
+  opacity: .6;
+  color: inherit;
+  text-decoration: none;
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+#mj-toolbar .mj-credit:hover { opacity: 1; text-decoration: underline; }
+
+/* ---------- 沉浸模式 ---------- */
+body.mj-immersive {
+  box-sizing: border-box;
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  margin: 0;
+  /* 顶部预留给悬浮控制条，避免压住对家手牌 */
+  padding: 46px 0 0 0;
+  overflow: hidden;
+  background: #101713;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 游戏页只保留棋盘：静态长文说明全部移到独立手册 manual.html。
+   这里全局隐藏（不限定沉浸 class），避免首屏加载瞬间闪出一整页文字。 */
+body > br,
+body > footer,
+body > section {
+  display: none !important;
+}
+
+body.mj-immersive > main.board {
+  flex: 0 0 auto;
+  border-radius: 10px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .6);
+}
+
+body.mj-immersive #mj-toolbar {
+  top: 6px;
+  right: 8px;
+  background: rgba(12, 18, 15, .78);
+  /* 手册入口要始终可辨，只做轻微淡化 */
+  opacity: .9;
+  transition: opacity .2s ease;
+}
+body.mj-immersive #mj-toolbar:hover,
+body.mj-immersive #mj-toolbar:focus-within,
+body.mj-immersive #mj-toolbar.mj-fresh {
+  opacity: 1;
+}
+
+/* ---------- 窄屏适配 ---------- */
+@media (max-width: 760px) {
+  body.mj-immersive { padding-top: 62px; }
+  #mj-toolbar {
+    top: 6px;
+    right: 6px;
+    left: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    border-radius: 14px;
+    font-size: 11px;
+    padding: 4px;
+    gap: 3px;
+  }
+  #mj-toolbar button,
+  #mj-toolbar a.mj-link { padding: 4px 6px; }
+  #mj-toolbar .mj-credit,
+  #mj-toolbar .mj-sep,
+  #mj-toolbar #mj-volume,
+  #mj-volume-label { display: none; }
+}
+
+/* ---------- 手机端：把牌看清 ---------- */
+/* 竖屏时牌桌是正方形、左右刚好占满，但上下留着大片空白。
+   轮到你出牌时，把 14 张手牌放大成屏幕底部一条「大手牌区」，
+   点它等价于点桌上原牌（事件转发，上游逻辑/长辈模式原样生效）。 */
+#mj-mobile-hand {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9996;
+  display: none;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 10px 6px 12px;
+  background: linear-gradient(to top, rgba(0, 0, 0, .62), rgba(0, 0, 0, 0));
+  touch-action: manipulation;
+}
+
+body.mj-mobile-hand-on #mj-mobile-hand { display: flex; }
+
+/* [tile="N"] 的牌面规则对任何带 tile 属性的元素都生效，
+   这里只覆盖尺寸即可复用同一套牌图，不必复制图片。 */
+#mj-mobile-hand [tile] {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  max-width: 30px;
+  height: 46px;
+  min-height: 46px;
+  max-height: 46px;
+  margin: 0;
+  border: 1px solid #d8c9a0;
+  border-radius: 3px;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .55);
+  cursor: pointer;
+}
+
+#mj-mobile-hand [tile].highlight {
+  box-shadow: 0 0 3px 3px var(--tile-highlight);
+  position: relative;
+  z-index: 2;
+}
+
+#mj-mobile-hand [tile].suggestion { border-top: 3px solid var(--tile-suggestion); }
+
+#mj-mobile-hand [tile].mj-armed {
+  box-shadow: 0 0 4px 5px #ffc54a, 0 0 20px rgba(255, 197, 74, .8);
+  filter: brightness(1.18);
+}
+
+/* 横屏手机：宽度富余，把放大牌再放大到接近 56px，一眼能认出牌面 */
+@media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
+  #mj-mobile-hand {
+    padding: 6px 10px 8px;
+    gap: 3px;
+    /* 横屏大牌区会盖住牌桌下沿，做成独立托盘，视觉上不像是牌被切掉 */
+    background: rgba(24, 17, 11, .92);
+    border-top: 2px solid rgba(255, 215, 130, .4);
+  }
+  #mj-mobile-hand [tile] {
+    max-width: 56px;
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
+  }
+}
+
+/* 大牌区出现时，桌上那排小手牌淡化，避免两排牌重复干扰 */
+body.mj-mobile-hand-on .player[id="0"] game-tile { opacity: .3; }
+
+/* 小屏弹窗：不再跟着牌桌缩到 6~8px，脱离牌桌定位到视口中央 */
+@media (max-width: 900px) {
+  body.mj-immersive .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10000;
+  }
+  body.mj-immersive .modal .panel {
+    font-size: 13px;
+    max-height: 86vh;
+    overflow-y: auto;
+  }
+  body.mj-immersive .modal .panel h1 { font-size: 15px; }
+  body.mj-immersive .modal .panel button {
+    font-size: 14px;
+    height: 2.2em;
+    min-height: 34px;
+  }
+}
+
+/* ---------- 电脑代玩角标 ---------- */
+#mj-autopilot-badge {
+  position: fixed;
+  left: 14px;
+  bottom: 14px;
+  z-index: 9998;
+  display: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(47, 125, 85, .92);
+  color: #fff;
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: .05em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+  user-select: none;
+  pointer-events: none;
+}
+
+body.mj-autopilot #mj-autopilot-badge { display: block; }
+
+/* ---------- 玩法选择（注入上游开局弹窗） ---------- */
+.mj-rules-choose {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px dashed rgba(255, 255, 255, .28);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, .18);
+  text-align: center;
+}
+
+.mj-rules-choose .mj-rc-head {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 10px;
+  letter-spacing: .12em;
+}
+
+.mj-rules-choose button {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 999px;
+  margin: 0 5px 6px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, .1);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+
+.mj-rules-choose button:hover { background: rgba(255, 255, 255, .24); }
+
+.mj-rules-choose button.mj-cur {
+  background: #2f7d55;
+  border-color: #3fa26c;
+  color: #fff;
+  cursor: default;
+}
+
+.mj-rules-choose .mj-rc-hint {
+  font-size: 12px;
+  opacity: .72;
+  margin-top: 4px;
+}
+
+/* ---------- 玩法切换浮层（对局中） ---------- */
+#mj-rules-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .55);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+#mj-rules-overlay .mj-ro-card {
+  min-width: 250px;
+  padding: 22px 26px;
+  border-radius: 16px;
+  background: #16211b;
+  border: 1px solid rgba(255, 255, 255, .18);
+  color: #f2f6f3;
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  text-align: center;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .55);
+}
+
+#mj-rules-overlay h3 {
+  margin: 0 0 14px;
+  letter-spacing: .18em;
+  font-size: 17px;
+}
+
+#mj-rules-overlay button {
+  appearance: none;
+  display: block;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, .3);
+  border-radius: 999px;
+  margin: 0 0 9px;
+  padding: 10px 18px;
+  background: rgba(255, 255, 255, .1);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .16s ease;
+}
+
+#mj-rules-overlay button:hover { background: rgba(255, 255, 255, .24); }
+
+#mj-rules-overlay button.mj-cur {
+  background: #2f7d55;
+  border-color: #3fa26c;
+  color: #fff;
+  cursor: default;
+}
+
+#mj-rules-overlay .mj-ro-note {
+  font-size: 12px;
+  opacity: .75;
+  margin: 4px 0 12px;
+}
+
+#mj-rules-overlay .mj-ro-cancel {
+  background: transparent;
+  border-color: transparent;
+  opacity: .8;
+}
+
+/* ---------- 轻量提示条 ---------- */
+#mj-hint-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 64px;
+  z-index: 10001;
+  transform: translateX(-50%) translateY(8px);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(18, 26, 22, .92);
+  border: 1px solid rgba(255, 255, 255, .2);
+  color: #f2f6f3;
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: .04em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+#mj-hint-toast.mj-on {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---------- 回合指示：贴在出牌玩家座位旁的浮动指示牌 ---------- */
+#mj-turn-marker {
+  position: fixed;
+  z-index: 9997;
+  display: none;
+  transform: translate(-50%, -50%);
+  padding: 11px 24px;
+  border-radius: 999px;
+  background: rgba(198, 40, 40, .95);
+  border: 2px solid rgba(255, 205, 130, .8);
+  color: #fff;
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .1em;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .5);
+  user-select: none;
+  pointer-events: none;
+}
+
+#mj-turn-marker.mj-on {
+  display: block;
+}
+
+#mj-turn-marker.mj-you {
+  background: rgba(47, 125, 85, .96);
+  border-color: rgba(150, 235, 190, .75);
+}
+
+@keyframes mj-turn-pulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.08); }
+}
+
+#mj-turn-marker.mj-you {
+  font-size: 23px;
+  padding: 13px 28px;
+  animation: mj-turn-pulse 1.5s ease-in-out infinite;
+}
+
+/* ---------- 长辈模式 ---------- */
+/* 出牌二次确认：举牌状态用金色描边 + 提亮，一眼能看出「点了但还没打」 */
+game-tile.mj-armed {
+  box-shadow: 0 0 4px 5px #ffc54a, 0 0 20px rgba(255, 197, 74, .75) !important;
+  filter: brightness(1.18);
+}
+
+/* 举牌气泡提示：跟着牌走，告诉用户还要再点一下 */
+#mj-elder-hint {
+  position: fixed;
+  z-index: 9998;
+  transform: translate(-50%, -100%);
+  background: #1b5e20;
+  color: #fff;
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 9px 16px;
+  border-radius: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  transition: opacity .15s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .5);
+}
+
+#mj-elder-hint.mj-on { opacity: 1; }
+
+#mj-elder-hint::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: #1b5e20;
+}
+
+/* 弹窗按钮加大加亮：碰/过/胡、结算确认等，老人看得清点得准 */
+body.mj-immersive .modal .panel button {
+  font-size: 130%;
+  height: 2.5em;
+  letter-spacing: .12em;
+}
+
+/* 上游弃牌区的回合进度条：用户反馈鸡肋，直接隐藏 */
+.discards .countdown-bar { display: none !important; }
+
+/* 当前出牌玩家：强高亮（上游只有极淡的色块变化，基本看不出） */
+body.mj-immersive .player.active {
+  box-shadow: 0 0 0 3px rgba(255, 197, 61, .9), 0 0 20px rgba(255, 197, 61, .45);
+  border-radius: 10px;
+}

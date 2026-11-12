@@ -34,11 +34,17 @@ await new Promise(r => { ws.addEventListener("open", r, { once: true }); });
 let seq = 0;
 const pending = new Map();
 const errors = [];
+const netFail = [];
+const netResp = [];
 ws.addEventListener("message", ev => {
   const m = JSON.parse(ev.data);
   if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
   if (m.method === "Runtime.exceptionThrown") errors.push(m.params?.exceptionDetails?.text || "exception");
   if (m.method === "Log.entryAdded" && m.params?.entry?.level === "error") errors.push(m.params.entry.text);
+  if (m.method === "Network.loadingFailed") netFail.push((m.params?.errorText || "") + " / " + (m.params?.type || ""));
+  if (m.method === "Network.responseReceived" && /immersive/.test(m.params?.response?.url || "")) {
+    netResp.push(m.params.response.status + " " + m.params.response.mimeType + " " + (m.params.response.url.split("?")[1] || ""));
+  }
 });
 const send = (method, params = {}) => new Promise(res => {
   const id = ++seq; pending.set(id, res); ws.send(JSON.stringify({ id, method, params }));
@@ -50,10 +56,11 @@ const evalJs = async expr => {
 
 await send("Runtime.enable");
 await send("Log.enable");
+await send("Network.enable");
 await send("Page.enable");
 await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 await send("Page.navigate", { url: URL });
-await sleep(7000);
+await sleep(16000);
 
 const report = await evalJs(`(() => {
   const el = id => document.getElementById(id);
@@ -65,13 +72,23 @@ const report = await evalJs(`(() => {
     mobileHand: !!el("mj-mobile-hand"),
     voicePack: !!document.querySelector("script[src*='zh-CN']") || !!el("mj-voice"),
     tileStyles: document.querySelectorAll("link[rel=stylesheet]").length,
-    bodyClass: document.body.className
+    bodyClass: document.body.className,
+    readyState: document.readyState,
+    rootVars: document.documentElement.style.cssText.slice(0, 120),
+    playWrapped: HTMLMediaElement.prototype.play.toString().indexOf("nativePlay") >= 0,
+    scriptCount: document.scripts.length
   });
 })()`);
 const shot = await send("Page.captureScreenshot", { format: "png" });
 if (shot.result?.data) writeFileSync("proof_live_deploy.png", Buffer.from(shot.result.data, "base64"));
 
+const res = await evalJs(`JSON.stringify(performance.getEntriesByType("resource")
+  .filter(e => /immersive|zh-CN|showtime|autopilot/.test(e.name))
+  .map(e => ({ n: e.name.split("/").pop().split("?")[0], status: e.responseStatus, ms: Math.round(e.duration), bytes: e.transferSize })))`);
 console.log("LIVE:", report);
+console.log("RESOURCES:", res);
+console.log("IMMERSIVE-RESPONSES:", JSON.stringify(netResp));
+console.log("NETWORK-FAILURES:", JSON.stringify(netFail.slice(0, 6)));
 console.log("JS-ERRORS:", errors.length, errors.slice(0, 3));
 ws.close();
 chrome.kill();

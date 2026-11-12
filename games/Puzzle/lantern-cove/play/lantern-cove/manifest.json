@@ -1,0 +1,48 @@
+{
+  "name": "Lantern Cove",
+  "reference": "reference.png",
+  "background": "harbor.png",
+  "sourceModel": "gemini-omni-1.1-flash",
+  "states": {
+    "idle": {
+      "image": "idle.png",
+      "video": "idle.mp4",
+      "count": 36,
+      "columns": 6,
+      "size": 256,
+      "fps": 12,
+      "sourceDuration": 3.008,
+      "alpha": true
+    },
+    "walk": {
+      "image": "walk.png",
+      "video": "walk.mp4",
+      "count": 36,
+      "columns": 6,
+      "size": 256,
+      "fps": 12,
+      "sourceDuration": 3.008,
+      "alpha": true
+    },
+    "interact": {
+      "image": "interact.png",
+      "video": "interact.mp4",
+      "count": 36,
+      "columns": 6,
+      "size": 256,
+      "fps": 12,
+      "sourceDuration": 3.008,
+      "alpha": true
+    },
+    "talk": {
+      "image": "talk.png",
+      "video": "talk.mp4",
+      "count": 36,
+      "columns": 6,
+      "size": 256,
+      "fps": 12,
+      "sourceDuration": 3.008,
+      "alpha": true
+    }
+  }
+}

@@ -1,0 +1,4 @@
+@font-face{font-family:"Press Start 2P";src:url("./press-start-2p.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+:root{--pixel-font:"Press Start 2P",monospace}
+
+@font-face{font-family:"Tiny5";src:url("./tiny5.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}

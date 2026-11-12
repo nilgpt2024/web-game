@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head>
+<meta name="robots" content="noindex,nofollow"><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/><meta name="theme-color" content="#10232b"/><title>VESPER — The Last Light</title><link rel="icon" type="image/svg+xml" href="/games/Puzzle/vesper/play/favicon.svg"/><style>html,body{margin:0;background:#071016}#loading{position:fixed;inset:0;z-index:100;background:#071016;color:#eee6d3;font-family:serif;padding:12vh 8vw}#loading h1{font-size:72px;font-weight:300;letter-spacing:.2em}.loading-bottom{position:absolute;bottom:8vh}</style>  <script type="module" crossorigin src="/games/Puzzle/vesper/play/assets/main-B5kbBsIA.js"></script>
+  <link rel="modulepreload" crossorigin href="/games/Puzzle/vesper/play/assets/three-core-CzxqDMdf.js">
+  <link rel="modulepreload" crossorigin href="/games/Puzzle/vesper/play/assets/three-effects-CaJlptfa.js">
+  <link rel="modulepreload" crossorigin href="/games/Puzzle/vesper/play/assets/surface-ao-BCh5ghf2.js">
+  <link rel="modulepreload" crossorigin href="/games/Puzzle/vesper/play/assets/physics-iRel_T-y.js">
+  <link rel="stylesheet" crossorigin href="/games/Puzzle/vesper/play/assets/main-DqyRV_Ie.css">
+</head><body data-phase="loading">
+
+<canvas id="world" tabindex="0" aria-label="Vesper third-person game. WASD moves, mouse aims, left click shoots, Space jumps, Q changes mode, E interacts, Escape pauses."></canvas>
+
+<div id="loading" role="status" aria-live="polite"><div class="loading-kicker">VESPER / EXPEDITION <span id="loading-chapter">01</span></div><h1>VESPER</h1><h2 id="loading-title">THE FLOODED GATE</h2><p class="loading-copy" id="loading-copy">A drowned world remembers the sun.<br>Carry its last light beyond the gate.</p><div class="loading-bottom"><div class="loading-status"><span id="loading-stage">Opening the expedition</span><span id="loading-percent">0%</span></div><progress id="loading-progress" max="1" value="0" aria-label="Expedition preparation"></progress><small>PREPARING YOUR CHAPTER</small></div></div><script>{const n=Math.max(1,Math.min(3,Number(new URLSearchParams(location.search).get('level'))||1)),names=['gate','observatory','hollow'];document.documentElement.style.setProperty('--chapter-art','url("/games/Puzzle/vesper/play/ui/loading-'+names[n-1]+'.webp")');document.getElementById('loading-chapter').textContent='0'+n;document.getElementById('loading-title').textContent=['THE FLOODED GATE','THE TIDAL OBSERVATORY','THE HOLLOW SUN'][n-1];document.getElementById('loading-copy').innerHTML=['A drowned world remembers the sun.<br>Carry its last light beyond the gate.','The tides have silenced the stars.<br>Return the light. Awaken the machine.','One ember in the heart of a star.<br>Choose what wakes.'][n-1];}</script>
+
+<main id="hud"><header class="identity"><div class="eyebrow"><span class="live-dot"></span> EXPEDITION <span class="muted">/</span> <span id="expedition-id">01</span></div><h1>VESPER</h1><div class="subtitle">THE LAST LIGHT</div></header>
+
+<div class="objective"><span>◇</span><div><div class="eyebrow" id="objective-title">THE FLOODED GATE</div><p id="objective-text">Restore three seals · Open the passage</p></div></div>
+
+<div id="seal-tracker"><span id="seal-grove">◇ GROVE</span><span id="seal-lighthouse">◇ LIGHTHOUSE</span><span id="seal-temple">◇ TEMPLE</span></div><div id="region-banner"><span class="eyebrow">NACRE EXPANSE</span><h2 id="region-name">THE FLOODED GATE</h2></div><div id="attention"><span>◇</span> <b id="attention-text">SEEN</b></div>
+
+<div id="aim-feedback" aria-live="off"></div><div id="crosshair"><i></i><i></i><i></i><i></i><span></span></div><div id="threat-direction" aria-hidden="true"></div><div id="hitmarker">×</div><div id="target"><span id="target-name"></span><div><i id="target-health"></i></div></div><div id="waypoints"></div>
+
+<div id="interact"><kbd>E</kbd><div><strong id="interact-title"></strong><small id="interact-detail"></small></div></div>
+
+<section class="core-status" aria-label="Core status">
+
+  <div id="light-meter" role="meter" aria-label="Light" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+
+    <img src="/games/Puzzle/vesper/play/ui/core-bezel.svg" width="112" height="112" alt="" aria-hidden="true">
+
+    <svg viewBox="0 0 112 112" aria-hidden="true"><circle class="light-track" cx="56" cy="56" r="46"/><circle id="light-fill" cx="56" cy="56" r="46" pathLength="100"/></svg>
+
+  </div>
+
+  <div class="core-readout"><div class="light-number"><b id="light-value">100</b><small>/ <span id="light-capacity">100</span></small></div><div class="light-label">LIGHT</div>
+
+    <div class="mode-row"><span data-mode="dim">1 DIM</span><span data-mode="glow">2 GLOW</span><span data-mode="blaze">3 BLAZE</span><kbd>Q</kbd></div>
+
+    <div id="decay"><span>CORE DECAY</span> −1.25 LIGHT / SEC</div>
+
+  </div>
+
+  <div id="reserve-warning" role="status" hidden></div><div class="jump-row"><span>JUMP · 3</span><i id="jump-ready"></i><span id="core-caption">Health · ammunition · currency</span></div>
+
+</section>
+
+<div class="control-strip"><span><kbd>LMB</kbd> fire</span><span><kbd>SPACE</kbd> jump</span><span><kbd>F</kbd> melee</span><span><kbd>ESC</kbd> pause</span></div><div class="performance" hidden><span id="fps">— FPS</span><span id="coordinates"></span></div><div class="toast" id="toast" role="status"></div></main>
+
+<div id="damage-vignette"></div><div id="decay-vignette"></div><div id="critical-vignette"></div>
+
+<section id="menu" class="overlay" role="dialog" aria-modal="true" aria-labelledby="menu-title"><div class="menu-panel"><div class="eyebrow" id="menu-kicker">A LIGHT IN THE DROWNED WORLD</div><h1 id="menu-title">VESPER</h1><div id="menu-subtitle">THE LAST LIGHT</div><p id="menu-copy">Your light is your health,<br/>your ammunition, and your money.<br/><em>Restore three seals. Earn your passage.<br/>The sea will take everything.</em></p><div id="run-result"></div><button class="primary" id="play-button" disabled>ENTER THE EXPANSE <span>↗</span></button><button class="secondary" id="restart-button" hidden>Begin a new expedition</button><p class="capture-note" id="capture-note">Mouse & keyboard · Tab to choose · Enter to activate · Esc to pause</p>
+
+<details id="field-guide"><summary>Controls & settings <span>+</span></summary><dl><dt>WASD</dt><dd>Move / strafe</dd><dt>Mouse / left click</dt><dd>Aim / continuous beam</dd><dt>Scroll wheel</dt><dd>Zoom in / out</dd><dt>Right click</dt><dd>Focus aim</dd><dt>Shift / Space</dt><dd>Sprint (1 Light/s) / jump (3 Light, hold for height)</dd><dt>Q or 1 / 2 / 3</dt><dd>Dim / Glow / Blaze (passive 1 Light/s)</dd><dt>E / F</dt><dd>Interact / free melee</dd><dt>H / Esc / Tab</dt><dd>Photo / pause / menu navigation</dd></dl><label>Mouse sensitivity <input id="sensitivity" type="range" min="0.5" max="3" step="0.1" value="1"/></label><label>Master volume <input id="master-volume" type="range" min="0" max="1" step="0.05" value="1"/></label><label>Sound effects <input id="volume" type="range" min="0" max="1" step="0.05" value="1"/></label><p id="audio-status" role="status" hidden>Some sound effects could not load. Simplified cues are active; reload to retry.</p><label>Music <input id="music-volume" type="range" min="0" max="1" step="0.05" value="1"/></label><label>Invert vertical look <input id="invert-y" type="checkbox"/></label><label>Camera recoil <input id="camera-shake" type="checkbox" checked/></label><label>Show performance <input id="show-fps" type="checkbox"/></label><p id="music-status" role="status" hidden>Some music could not load. Affected passages stay quiet; reload to retry.</p><p class="music-credit">Music: Vesper / Ember Variations · <a href="/games/Puzzle/vesper/play/licenses/MUSIC.txt" target="_blank" rel="noopener">Original synthesized score &amp; credits</a></p><p class="music-credit">Water footsteps: <a href="/games/Puzzle/vesper/play/licenses/WATER-FOOTSTEPS.txt" target="_blank" rel="noopener">Recordings, authors &amp; licenses</a></p></details><div class="menu-footer">NACRE EXPANSE <span>01 / THE FLOODED GATE</span></div></div></section>
+
+<section id="altar-menu" class="overlay" role="dialog" aria-modal="true" aria-labelledby="station-title" hidden><div class="altar-panel"><div class="eyebrow">THE SHATTERED LIGHTHOUSE</div><h2 id="station-title">Choose your module</h2><p>One modification. Paid from the Light keeping you alive.</p><div id="upgrade-options"></div><button id="leave-altar" class="secondary">Leave the core untouched</button></div></section>
+
+<div id="photo-overlay" hidden><span>PHOTO MODE</span><button id="leave-photo">Return to expedition ↗</button></div><div id="fallback" hidden><h1>The core could not ignite.</h1><p id="fallback-message">This game needs WebGL 2 and hardware acceleration. Reload to try again.</p></div><script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594bf72f85dbaf5',t:'MTc5NDQ3ODIzNg=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594bf72f85dbaf5',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body></html>
+
+
+

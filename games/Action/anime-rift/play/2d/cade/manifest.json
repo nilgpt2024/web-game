@@ -1,0 +1,1139 @@
+{
+  "version": 2,
+  "height": 132,
+  "frameCount": 64,
+  "sheets": {
+    "movement": {
+      "src": "/games/Action/anime-rift/play/2d/cade/movement-polish.webp",
+      "columns": 4,
+      "rows": 4,
+      "root": {
+        "x": 0.5,
+        "y": 0.87890625,
+        "scale": 1.3016949152542372
+      },
+      "cells": [
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.3016949152542372
+        }
+      ],
+      "sha256": "5409636bae0d2c5795673074a61ef220f294e4f87d4b732fffeab882c4c871c2"
+    },
+    "combat": {
+      "pages": [
+        {
+          "src": "/games/Action/anime-rift/play/2d/cade/combat-polish-a.webp",
+          "columns": 4,
+          "rows": 4,
+          "root": {
+            "x": 0.5,
+            "y": 0.8984375,
+            "scale": 1
+          },
+          "cells": [
+            {
+              "x": 0.47802734375,
+              "y": 0.8802083333333334,
+              "scale": 0.9933049300060864
+            },
+            {
+              "x": 0.43007220643939387,
+              "y": 0.8802083333333334,
+              "scale": 0.9809986743261158
+            },
+            {
+              "x": 0.4766390931372549,
+              "y": 0.8802083333333334,
+              "scale": 0.9809986743261158
+            },
+            {
+              "x": 0.47093860815602834,
+              "y": 0.87890625,
+              "scale": 0.9967242240852813
+            },
+            {
+              "x": 0.47441582207207206,
+              "y": 0.8984375,
+              "scale": 0.9816571790006324
+            },
+            {
+              "x": 0.4484984485815602,
+              "y": 0.8984375,
+              "scale": 0.9731270788237157
+            },
+            {
+              "x": 0.419677734375,
+              "y": 0.8893229166666666,
+              "scale": 0.9907602528772896
+            },
+            {
+              "x": 0.4686216255868545,
+              "y": 0.890625,
+              "scale": 0.9926221121223545
+            },
+            {
+              "x": 0.5285011574074074,
+              "y": 0.87890625,
+              "scale": 1.1086558214424518
+            },
+            {
+              "x": 0.38207197867298576,
+              "y": 0.8776041666666666,
+              "scale": 1.1052280311457174
+            },
+            {
+              "x": 0.5299781976744186,
+              "y": 0.87109375,
+              "scale": 1.130050933786078
+            },
+            {
+              "x": 0.4876760563380282,
+              "y": 0.8723958333333334,
+              "scale": 1.0990300022558088
+            },
+            {
+              "x": 0.4298930921052631,
+              "y": 0.8424479166666666,
+              "scale": 0.8847926267281107
+            },
+            {
+              "x": 0.504181338028169,
+              "y": 0.890625,
+              "scale": 1.1115299693036782
+            },
+            {
+              "x": 0.4960193452380952,
+              "y": 0.8893229166666666,
+              "scale": 1.2480310713129787
+            },
+            {
+              "x": 0.5162332725060828,
+              "y": 0.875,
+              "scale": 0.964039270687237
+            }
+          ],
+          "start": 0,
+          "count": 16,
+          "sha256": "b9b55f498f32100e554c62dda05e3db448af86895166e8d6d87005b4140cb8e8"
+        },
+        {
+          "src": "/games/Action/anime-rift/play/2d/cade/combat-polish-b.webp",
+          "columns": 4,
+          "rows": 4,
+          "root": {
+            "x": 0.5,
+            "y": 0.8984375,
+            "scale": 1
+          },
+          "cells": [
+            {
+              "x": 0.4567430025445292,
+              "y": 0.8802083333333334,
+              "scale": 0.7529827662395051
+            },
+            {
+              "x": 0.37065272177419367,
+              "y": 0.75,
+              "scale": 1.075381116819675
+            },
+            {
+              "x": 0.4393547661870503,
+              "y": 0.8697916666666666,
+              "scale": 0.7100187745349036
+            },
+            {
+              "x": 0.46157852564102564,
+              "y": 0.8802083333333334,
+              "scale": 0.7436507497371769
+            },
+            {
+              "x": 0.46230949384787473,
+              "y": 0.8893229166666666,
+              "scale": 1.092674506419247
+            },
+            {
+              "x": 0.49816069347319347,
+              "y": 0.8919270833333334,
+              "scale": 1.0717621169019376
+            },
+            {
+              "x": 0.4290364583333333,
+              "y": 0.8723958333333334,
+              "scale": 1.1369275885404917
+            },
+            {
+              "x": 0.5353565705128206,
+              "y": 0.8854166666666666,
+              "scale": 1.135135135135135
+            },
+            {
+              "x": 0.5202339616402116,
+              "y": 0.8583667200854701,
+              "scale": 1.0520400134876924
+            },
+            {
+              "x": 0.48973582957957956,
+              "y": 0.8621995192307693,
+              "scale": 1.0520400134876924
+            },
+            {
+              "x": 0.45555763473053895,
+              "y": 0.8460109396792189,
+              "scale": 1.2294502196977817
+            },
+            {
+              "x": 0.506343482905983,
+              "y": 0.8076434142969985,
+              "scale": 1.0836141871288716
+            },
+            {
+              "x": 0.4819940476190476,
+              "y": 0.8710870726495726,
+              "scale": 0.9851076145871706
+            },
+            {
+              "x": 0.5086773165422885,
+              "y": 0.9132874503968255,
+              "scale": 1.0749133564382831
+            },
+            {
+              "x": 0.4739160579004329,
+              "y": 0.8643148625429552,
+              "scale": 1.0182613449972662
+            },
+            {
+              "x": 0.49220708020050125,
+              "y": 0.8567708333333334,
+              "scale": 0.8024487873793266
+            }
+          ],
+          "start": 16,
+          "count": 16,
+          "sha256": "1770fd5b59ba927a9dc1089e9a16327821084ae5825426a7464ecef05e7388ba"
+        }
+      ]
+    },
+    "specials": {
+      "src": "/games/Action/anime-rift/play/2d/cade/specials-polish.webp",
+      "columns": 4,
+      "rows": 4,
+      "root": {
+        "x": 0.5,
+        "y": 0.87890625,
+        "scale": 1.28
+      },
+      "cells": [
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        },
+        {
+          "x": 0.5,
+          "y": 0.87890625,
+          "scale": 1.28
+        }
+      ],
+      "sha256": "2ead820e314d850f637aaec11d3b7184fc8378bce318517e6eb4be25acb4761c"
+    },
+    "ranged": {
+      "src": "/games/Action/anime-rift/play/2d/cade/assets/ranged-v25.webp",
+      "columns": 4,
+      "rows": 2,
+      "count": 7,
+      "cellWidth": 512,
+      "cellHeight": 512,
+      "width": 2048,
+      "height": 1024,
+      "root": {
+        "x": 0.5,
+        "y": 0.9,
+        "scale": 1
+      },
+      "cells": [
+        {
+          "index": 0,
+          "sourceFrame": 0,
+          "name": "Aim",
+          "x": 0.5,
+          "y": 0.919921875,
+          "scale": 0.8930232558139535,
+          "visibleBounds": [
+            73,
+            41,
+            440,
+            471
+          ],
+          "sourceBounds": [
+            38,
+            15,
+            405,
+            445
+          ],
+          "sourcePelvisX": 221,
+          "sourceVirtualFeetY": 445,
+          "sourceStandingAnatomyHeight": 430,
+          "nativeVisibleWidth": 367,
+          "nativeVisibleHeight": 430,
+          "nativeRasterPreserved": true,
+          "storageScale": 1
+        },
+        {
+          "index": 1,
+          "sourceFrame": 1,
+          "name": "Coil",
+          "x": 0.501953125,
+          "y": 0.91796875,
+          "scale": 0.897196261682243,
+          "visibleBounds": [
+            84,
+            42,
+            428,
+            470
+          ],
+          "sourceBounds": [
+            504,
+            16,
+            848,
+            444
+          ],
+          "sourcePelvisX": 677,
+          "sourceVirtualFeetY": 444,
+          "sourceStandingAnatomyHeight": 428,
+          "nativeVisibleWidth": 344,
+          "nativeVisibleHeight": 428,
+          "nativeRasterPreserved": true,
+          "storageScale": 1
+        },
+        {
+          "index": 2,
+          "sourceFrame": 2,
+          "name": "Charge",
+          "x": 0.501953125,
+          "y": 0.916015625,
+          "scale": 0.9014084507042254,
+          "visibleBounds": [
+            83,
+            43,
+            429,
+            469
+          ],
+          "sourceBounds": [
+            945,
+            18,
+            1291,
+            444
+          ],
+          "sourcePelvisX": 1119,
+          "sourceVirtualFeetY": 444,
+          "sourceStandingAnatomyHeight": 426,
+          "nativeVisibleWidth": 346,
+          "nativeVisibleHeight": 426,
+          "nativeRasterPreserved": true,
+          "storageScale": 1
+        },
+        {
+          "index": 3,
+          "sourceFrame": 3,
+          "name": "Release",
+          "x": 0.486328125,
+          "y": 0.916015625,
+          "scale": 0.9014084507042254,
+          "visibleBounds": [
+            73,
+            43,
+            440,
+            469
+          ],
+          "sourceBounds": [
+            1385,
+            19,
+            1752,
+            445
+          ],
+          "sourcePelvisX": 1561,
+          "sourceVirtualFeetY": 445,
+          "sourceStandingAnatomyHeight": 426,
+          "nativeVisibleWidth": 367,
+          "nativeVisibleHeight": 426,
+          "nativeRasterPreserved": true,
+          "storageScale": 1
+        },
+        {
+          "index": 4,
+          "sourceFrame": 4,
+          "name": "Follow-through",
+          "x": 0.4765625,
+          "y": 0.908203125,
+          "scale": 0.9186602870813397,
+          "visibleBounds": [
+            59,
+            47,
+            454,
+            465
+          ],
+          "sourceBounds": [
+            38,
+            459,
+            433,
+            877
+          ],
+          "sourcePelvisX": 223,
+          "sourceVirtualFeetY": 877,
+          "sourceStandingAnatomyHeight": 418,
+          "nativeVisibleWidth": 395,
+          "nativeVisibleHeight": 418,
+          "nativeRasterPreserved": true,
+          "storageScale": 1
+        },
+        {
+          "index": 5,
+          "sourceFrame": 5,
+          "name": "Recoil",
+          "x": 0.46875,
+          "y": 0.908203125,
+          "scale": 0.9186602870813397,
+          "visibleBounds": [
+            61,
+            47,
+            451,
+            465
+          ],
+          "sourceBounds": [
+            498,
+            459,
+            888,
+            877
+          ],
+          "sourcePelvisX": 677,
+          "sourceVirtualFeetY": 877,
+          "sourceStandingAnatomyHeight": 418,
+          "nativeVisibleWidth": 390,
+          "nativeVisibleHeight": 418,
+          "nativeRasterPreserved": true,
+          "storageScale": 1
+        },
+        {
+          "index": 6,
+          "sourceFrame": 7,
+          "name": "Recover",
+          "x": 0.5,
+          "y": 0.908203125,
+          "scale": 0.9186602870813397,
+          "visibleBounds": [
+            80,
+            47,
+            433,
+            465
+          ],
+          "sourceBounds": [
+            1379,
+            458,
+            1732,
+            876
+          ],
+          "sourcePelvisX": 1555,
+          "sourceVirtualFeetY": 876,
+          "sourceStandingAnatomyHeight": 418,
+          "nativeVisibleWidth": 353,
+          "nativeVisibleHeight": 418,
+          "nativeRasterPreserved": true,
+          "storageScale": 1
+        }
+      ]
+    }
+  },
+  "style": "Painted 2D sprites with native-resolution combat redraws",
+  "attachments": {
+    "combat:1": {
+      "point": [
+        0.825,
+        0.26875
+      ],
+      "kind": "fist",
+      "angle": 0.0,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "combat:6": {
+      "point": [
+        0.853125,
+        0.2875
+      ],
+      "kind": "fist",
+      "angle": 0.0,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "combat:9": {
+      "point": [
+        0.8375,
+        0.221875
+      ],
+      "kind": "foot",
+      "angle": -0.436332,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "combat:14": {
+      "point": [
+        0.628125,
+        0.134375
+      ],
+      "kind": "fist",
+      "angle": -1.396263,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "combat:17": {
+      "point": [
+        0.8625,
+        0.5875
+      ],
+      "kind": "foot",
+      "angle": 0.0,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "combat:22": {
+      "point": [
+        0.86875,
+        0.175
+      ],
+      "kind": "foot",
+      "angle": -0.436332,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "combat:26": {
+      "point": [
+        0.76875,
+        0.153125
+      ],
+      "kind": "foot",
+      "angle": -1.047198,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "combat:30": {
+      "point": [
+        0.778125,
+        0.80625
+      ],
+      "kind": "foot",
+      "angle": 0.872665,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "specials:9": {
+      "point": [
+        0.771875,
+        0.746875
+      ],
+      "kind": "fist",
+      "angle": 0.488692,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "specials:15": {
+      "point": [
+        0.534375,
+        0.275
+      ],
+      "kind": "fist",
+      "angle": -1.570796,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "specials:8": {
+      "point": [
+        0.51875,
+        0.259375
+      ],
+      "kind": "fist",
+      "angle": -1.570796,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "specials:14": {
+      "point": [
+        0.5375,
+        0.465625
+      ],
+      "kind": "palm",
+      "angle": 0.0,
+      "confidence": "visually measured; approximately 6 native pixels"
+    },
+    "ranged:0": {
+      "point": [
+        0.810546875,
+        0.275390625
+      ],
+      "kind": "palm",
+      "angle": 0,
+      "worldOffset": [
+        48.80930232558139,
+        -101.30232558139535
+      ],
+      "confidence": "Casting palm visually measured within 5 native pixels; root under pelvis"
+    },
+    "ranged:1": {
+      "point": [
+        0.58203125,
+        0.341796875
+      ],
+      "kind": "palm",
+      "angle": 0,
+      "worldOffset": [
+        12.644859813084112,
+        -90.98130841121495
+      ],
+      "confidence": "Casting palm visually measured within 5 native pixels; root under pelvis"
+    },
+    "ranged:2": {
+      "point": [
+        0.482421875,
+        0.298828125
+      ],
+      "kind": "palm",
+      "angle": 0,
+      "worldOffset": [
+        -3.0985915492957745,
+        -97.91549295774648
+      ],
+      "confidence": "Casting palm visually measured within 5 native pixels; root under pelvis"
+    },
+    "ranged:3": {
+      "point": [
+        0.8125,
+        0.2890625
+      ],
+      "kind": "palm",
+      "angle": 0,
+      "worldOffset": [
+        51.74647887323944,
+        -99.46478873239437
+      ],
+      "confidence": "Casting palm visually measured within 5 native pixels; root under pelvis"
+    },
+    "ranged:4": {
+      "point": [
+        0.84765625,
+        0.271484375
+      ],
+      "kind": "palm",
+      "angle": 0,
+      "worldOffset": [
+        60,
+        -102.94736842105263
+      ],
+      "confidence": "Casting palm visually measured within 5 native pixels; root under pelvis"
+    },
+    "ranged:5": {
+      "point": [
+        0.82421875,
+        0.27734375
+      ],
+      "kind": "palm",
+      "angle": 0,
+      "worldOffset": [
+        57.473684210526315,
+        -102
+      ],
+      "confidence": "Casting palm visually measured within 5 native pixels; root under pelvis"
+    },
+    "ranged:6": {
+      "point": [
+        0.677734375,
+        0.306640625
+      ],
+      "kind": "palm",
+      "angle": 0,
+      "worldOffset": [
+        28.736842105263158,
+        -97.26315789473684
+      ],
+      "confidence": "Casting palm visually measured within 5 native pixels; root under pelvis"
+    }
+  },
+  "runPage": {
+    "start": 0,
+    "count": 8,
+    "src": "/games/Action/anime-rift/play/2d/cade/assets/run-v20.webp",
+    "columns": 4,
+    "rows": 2,
+    "cellWidth": 512,
+    "cellHeight": 512,
+    "width": 2048,
+    "height": 1024,
+    "root": {
+      "x": 0.5,
+      "y": 0.9,
+      "scale": 1
+    },
+    "cells": [
+      {
+        "index": 0,
+        "runtimeIndex": 4,
+        "x": 0.466796875,
+        "y": 0.88671875,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          76,
+          70,
+          436,
+          442
+        ],
+        "sourceBounds": [
+          47,
+          56,
+          407,
+          428
+        ],
+        "sourcePelvisX": 210,
+        "sourceVirtualFeetY": 440,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 372,
+        "nativeVisibleWidth": 360,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      },
+      {
+        "index": 1,
+        "runtimeIndex": 5,
+        "x": 0.5341796875,
+        "y": 0.8828125,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          139,
+          64,
+          373,
+          448
+        ],
+        "sourceBounds": [
+          528,
+          52,
+          762,
+          436
+        ],
+        "sourcePelvisX": 662.5,
+        "sourceVirtualFeetY": 440,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 384,
+        "nativeVisibleWidth": 234,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      },
+      {
+        "index": 2,
+        "runtimeIndex": 6,
+        "x": 0.556640625,
+        "y": 0.880859375,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          123,
+          66,
+          389,
+          446
+        ],
+        "sourceBounds": [
+          948,
+          55,
+          1214,
+          435
+        ],
+        "sourcePelvisX": 1110,
+        "sourceVirtualFeetY": 440,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 380,
+        "nativeVisibleWidth": 266,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      },
+      {
+        "index": 3,
+        "runtimeIndex": 7,
+        "x": 0.5166015625,
+        "y": 0.888671875,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          87,
+          69,
+          425,
+          443
+        ],
+        "sourceBounds": [
+          1386,
+          54,
+          1724,
+          428
+        ],
+        "sourcePelvisX": 1563.5,
+        "sourceVirtualFeetY": 440,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 374,
+        "nativeVisibleWidth": 338,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      },
+      {
+        "index": 4,
+        "runtimeIndex": 8,
+        "x": 0.494140625,
+        "y": 0.892578125,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          80,
+          65,
+          432,
+          447
+        ],
+        "sourceBounds": [
+          40,
+          472,
+          392,
+          854
+        ],
+        "sourcePelvisX": 213,
+        "sourceVirtualFeetY": 864,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 382,
+        "nativeVisibleWidth": 352,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      },
+      {
+        "index": 5,
+        "runtimeIndex": 9,
+        "x": 0.4990234375,
+        "y": 0.88671875,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          152,
+          64,
+          360,
+          449
+        ],
+        "sourceBounds": [
+          557,
+          474,
+          765,
+          859
+        ],
+        "sourcePelvisX": 660.5,
+        "sourceVirtualFeetY": 864,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 385,
+        "nativeVisibleWidth": 208,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      },
+      {
+        "index": 6,
+        "runtimeIndex": 10,
+        "x": 0.5390625,
+        "y": 0.89453125,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          129,
+          62,
+          384,
+          451
+        ],
+        "sourceBounds": [
+          962,
+          468,
+          1217,
+          857
+        ],
+        "sourcePelvisX": 1109,
+        "sourceVirtualFeetY": 864,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 389,
+        "nativeVisibleWidth": 255,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      },
+      {
+        "index": 7,
+        "runtimeIndex": 11,
+        "x": 0.4990234375,
+        "y": 0.892578125,
+        "scale": 1.0105263157894737,
+        "visibleBounds": [
+          84,
+          65,
+          428,
+          448
+        ],
+        "sourceBounds": [
+          1392,
+          472,
+          1736,
+          855
+        ],
+        "sourcePelvisX": 1563.5,
+        "sourceVirtualFeetY": 864,
+        "sourceStandingAnatomyHeight": 380,
+        "nativeVisibleHeight": 383,
+        "nativeVisibleWidth": 344,
+        "nativeRasterPreserved": true,
+        "storageScale": 1
+      }
+    ]
+  },
+  "hoverPage": {
+    "start": 0,
+    "count": 4,
+    "src": "/games/Action/anime-rift/play/2d/cade/assets/hover-v20.webp",
+    "columns": 4,
+    "rows": 1,
+    "cellWidth": 512,
+    "cellHeight": 512,
+    "width": 2048,
+    "height": 512,
+    "root": {
+      "x": 0.5,
+      "y": 0.95,
+      "scale": 1
+    },
+    "cells": [
+      {
+        "index": 0,
+        "x": 0.51287095323741,
+        "y": 1.00666029676259,
+        "scale": 0.7954694485842028,
+        "visibleBounds": [
+          152,
+          16,
+          360,
+          497
+        ],
+        "sourceBounds": [
+          200,
+          31,
+          437,
+          579
+        ],
+        "sourcePelvisX": 326,
+        "sourceVirtualFeetY": 600,
+        "sourceStandingAnatomyHeight": 550,
+        "nativeVisibleWidth": 237,
+        "nativeVisibleHeight": 548,
+        "nativeRasterPreserved": false,
+        "storageScale": 0.8776978417266187
+      },
+      {
+        "index": 1,
+        "x": 0.5871459082733813,
+        "y": 1.0130395683453237,
+        "scale": 0.7954694485842028,
+        "visibleBounds": [
+          140,
+          14,
+          373,
+          498
+        ],
+        "sourceBounds": [
+          763,
+          25,
+          1029,
+          577
+        ],
+        "sourcePelvisX": 946,
+        "sourceVirtualFeetY": 600,
+        "sourceStandingAnatomyHeight": 550,
+        "nativeVisibleWidth": 266,
+        "nativeVisibleHeight": 552,
+        "nativeRasterPreserved": false,
+        "storageScale": 0.8776978417266187
+      },
+      {
+        "index": 2,
+        "x": 0.5425753147482014,
+        "y": 1.02113309352518,
+        "scale": 0.7954694485842028,
+        "visibleBounds": [
+          140,
+          12,
+          373,
+          500
+        ],
+        "sourceBounds": [
+          171,
+          638,
+          437,
+          1194
+        ],
+        "sourcePelvisX": 328,
+        "sourceVirtualFeetY": 1220,
+        "sourceStandingAnatomyHeight": 550,
+        "nativeVisibleWidth": 266,
+        "nativeVisibleHeight": 556,
+        "nativeRasterPreserved": false,
+        "storageScale": 0.8776978417266187
+      },
+      {
+        "index": 3,
+        "x": 0.5599145683453237,
+        "y": 1.0149926933453237,
+        "scale": 0.7954694485842028,
+        "visibleBounds": [
+          148,
+          15,
+          365,
+          497
+        ],
+        "sourceBounds": [
+          789,
+          645,
+          1036,
+          1194
+        ],
+        "sourcePelvisX": 947,
+        "sourceVirtualFeetY": 1220,
+        "sourceStandingAnatomyHeight": 550,
+        "nativeVisibleWidth": 247,
+        "nativeVisibleHeight": 549,
+        "nativeRasterPreserved": false,
+        "storageScale": 0.8776978417266187
+      }
+    ]
+  }
+}

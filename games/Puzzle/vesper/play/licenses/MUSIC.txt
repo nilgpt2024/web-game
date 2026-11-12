@@ -1,0 +1,16 @@
+Ember Variations - original Vesper score (Phase 16, recipe 1)
+
+Ten original compositions and additive-synthesis WAVs created locally for Vesper
+with scripts/generate-music.mjs. No third-party music, samples, audio model,
+paid service or recorded performance is used in these files.
+
+The Vesper project owner may use, modify and distribute these generated assets
+with the project. No third-party attribution or royalty obligation is introduced.
+The reproducible recipe, note counts, parameters and SHA256 hashes are recorded
+in docs/asset-provenance/phase16-music.json. The UI identifies the score here.
+
+The previous Hiraeth MP3 by Scott Buckley is no longer shipped or played.
+Historical review recordings retain its original attribution where applicable:
+'Hiraeth' by Scott Buckley - released under CC-BY 4.0. www.scottbuckley.com.au
+Source: https://www.scottbuckley.com.au/library/hiraeth/
+License: https://creativecommons.org/licenses/by/4.0/

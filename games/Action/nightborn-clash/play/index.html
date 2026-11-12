@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta name="robots" content="noindex,nofollow"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0a0a13"><meta name="description" content="四位斗篷吸血鬼的血月决斗。角色选择、练习场与人机对战。"><title>血裔决斗 · Nightborn Clash</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<main>
+ <section id="select-screen">
+  <header class="selection-header"><div><span class="eyebrow">NIGHTBORN CLASH</span><h1>血裔决斗<span>Ⅱ</span></h1></div><p>血月已升。选择你的血统。</p></header>
+  <div id="roster" class="roster" aria-label="选择角色"></div>
+  <div class="selection-bottom">
+    <div class="mode-select" role="group" aria-label="战斗模式"><button id="training-btn" class="selected" aria-pressed="true">练习场 <small>无限时间 · 聚气恢复</small></button><button id="duel-btn" aria-pressed="false">人机决斗 <small>99 秒 · 击败对手</small></button></div>
+    <label class="opponent">对手<select id="opponent"></select></label>
+    <button id="start-btn" class="primary" disabled>正在载入美术…</button>
+  </div>
+  <p id="load-status" role="status">首次载入角色与场景素材。</p>
+  <p class="select-hint"><b>A / D</b> 移动　<b>Shift</b> 奔跑　<b>W</b> 跳跃　<b>S</b> 防御　<b>Q</b> 聚气<br>进入练习场后，可直接点击下方招式按钮。按 <b>H</b> 显示判定框。</p>
+ </section>
+ <section id="game-screen" class="hidden">
+  <header class="game-topbar"><button id="quit-btn">← 选择角色</button><span id="mode-label">血月练习场</span><nav><button id="debug-btn" aria-pressed="false">判定框 H</button><button id="sound-btn" aria-pressed="true">音效 开</button><button id="pause-btn">暂停 Esc</button><button id="reset-btn">重开 R</button></nav></header>
+  <div id="arena-wrap">
+   <canvas id="game" width="1280" height="640" aria-label="血裔决斗竞技场"></canvas>
+   <div class="battle-hud">
+    <div class="fighter-hud player-hud"><div class="name-row"><span id="player-name"></span><b id="player-hp-value"></b></div><div class="health-track" role="progressbar" aria-label="你的生命" id="player-life"><div class="health-lag" id="player-lag"></div><div class="health-fill" id="player-hp"></div></div><div class="energy-track" role="progressbar" aria-label="你的聚气" id="player-energy"><div id="player-meter"></div></div><div class="status-row"><span id="player-state">待机</span><span id="player-meter-value">聚气</span></div></div>
+    <div class="clock"><small id="round-label">TRAINING</small><strong id="timer">∞</strong><span id="fps">60 FPS</span></div>
+    <div class="fighter-hud enemy-hud"><div class="name-row"><span id="enemy-name"></span><b id="enemy-hp-value"></b></div><div class="health-track" role="progressbar" aria-label="对手生命" id="enemy-life"><div class="health-lag" id="enemy-lag"></div><div class="health-fill" id="enemy-hp"></div></div><div class="energy-track" role="progressbar" aria-label="对手聚气" id="enemy-energy"><div id="enemy-meter"></div></div><div class="status-row"><span id="enemy-state">待机</span><span id="enemy-meter-value">聚气</span></div></div>
+   </div>
+   <div id="banner" aria-live="polite"></div>
+   <div id="combo"></div>
+   <div class="arena-bottom"><span id="skill-readout">准备战斗</span><span id="training-readout">伤害 0 · 命中 0</span></div>
+   <div id="modal" class="modal hidden"><div><small id="modal-kicker"></small><h2 id="modal-title"></h2><p id="modal-note"></p><button id="modal-primary" class="primary">继续</button><button id="modal-select">选择角色</button></div></div>
+  </div>
+  <div id="skillbar" class="skillbar" aria-label="攻击与技能"></div>
+  <div class="control-strip"><span><b>A / D</b> 移动　<b>Shift</b> 奔跑　<b>W</b> 跳跃　<b>S</b> 防御　<b>Q</b> 聚气</span><span id="skill-tip">轻重攻击命中可积累聚气，满 100 发动超必杀。</span></div>
+  <div class="touch-movement"><button data-key="a">←</button><button data-key="d">→</button><button data-key="w">跳跃</button><button data-key="s">防御</button><button data-key="q">聚气</button></div>
+ </section>
+</main>
+<script src="combat.js"></script><script src="game.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594b87e6c04ea17',t:'MTc5NDQ3Nzk1MQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594b87e6c04ea17',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body></html>

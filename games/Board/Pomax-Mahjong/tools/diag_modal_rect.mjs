@@ -46,7 +46,8 @@ await send("Emulation.setDeviceMetricsOverride", noMobile
   ? { width: 390, height: 844, deviceScaleFactor: 1, mobile: false }
   : { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
 await send("Page.navigate", { url: URL });
-await sleep(6500);
+// 公网 CDN 上 module 依赖链会推迟 DOMContentLoaded，留足初始化时间
+await sleep(URL.indexOf("localhost") >= 0 ? 6500 : 16000);
 // 确保开局弹窗处于显示态（有些流程会自动点掉）
 await evalJs(`(() => { const m = document.querySelector(".modal"); if (m) m.classList.remove("hidden"); return !!m; })()`);
 await sleep(400);

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta name="robots" content="noindex,nofollow">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#211b14">
+  <title>热血归来 · 神炼争锋 8.4</title>
+  <meta name="description" content="Godot 引擎单人怀旧打宝游戏。30 个大地图副本、战法道三职业、12 绝世神兵、六系神装、三阶段首领、神怒一刀999、转生与无尽秘境。">
+  <style>
+    *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;background:#100e0b;color:#d6c59d;overflow:hidden}
+    body{display:grid;place-items:center;font-family:'Songti SC','Noto Serif SC',serif}
+    #canvas{display:block;width:min(100vw,160vh);height:min(100vh,62.5vw);outline:0;image-rendering:auto;touch-action:none}
+    #loading{position:fixed;inset:0;display:grid;place-content:center;text-align:center;background:radial-gradient(ellipse at 50% 55%,#49301d,#100e0b 70%);z-index:10}
+    .version{letter-spacing:10px;color:#9c8b5d;font-size:16px;margin:0 0 26px}h1{font-size:56px;letter-spacing:12px;font-weight:500;margin:0 0 16px;color:#dabb7c}
+    .sub{font-size:13px;letter-spacing:4px;color:#b1a8ac;margin:0 0 48px}
+    progress{width:300px;height:4px;border:0;background:#38303b;accent-color:#bba36a}progress::-webkit-progress-bar{background:#38303b}progress::-webkit-progress-value{background:#bba36a}
+    #status{font-size:12px;color:#a4aabd;margin:19px 0 0;max-width:460px;line-height:1.8}
+    .ornament{font-size:20px;color:#9a834a;margin:0 0 24px;letter-spacing:15px}
+    #restore{position:fixed;right:22px;bottom:14px;z-index:20;background:#242018;color:#e7d3a7;border:1px solid #77634a;padding:6px 12px;font-size:12px;cursor:pointer;display:none}
+    #import-file{display:none}
+    @media(max-aspect-ratio:1/1){#mobile{display:block!important;position:fixed;bottom:12px;left:0;right:0;text-align:center;font-size:12px;color:#8d9678}}
+  </style>
+  <link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
+<link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
+
+</head>
+<body>
+  <canvas id="canvas" width="1440" height="900" tabindex="0" aria-label="热血归来游戏画布，WASD移动，按住空格连续攻击，Q E R技能，T神怒，K战神衣橱，L神炼工坊，V热血擂台，P开红，Tab全图，F自动战斗，Esc暂停。">浏览器需要支持 WebGL 2 才能运行此游戏。</canvas>
+  <div id="loading" role="status"><div><p class="version">1 . 7 6 / 神 炼 争 锋</p><div class="ornament">— ◇ —</div><h1>热血归来</h1><p class="sub">四档战力匹配 · 稀有神兵逐级合成 · 开红混战</p><progress id="progress"></progress><p id="status">正在唤醒玛法世界…</p></div></div>
+  <div id="mobile" style="display:none">建议横屏，使用键盘与鼠标获得完整体验</div>
+  <button id="restore" type="button">恢复存档备份</button><input id="import-file" type="file" accept=".json,application/json">
+  <script src="sites-loader.js"></script>
+  <script src="index.js"></script>
+  <script>
+    const config = {"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":50633616,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+    const engine = new Engine(config);
+    const errors=[];window.mir176Errors=errors;
+    addEventListener('error',e=>errors.push(e.message));
+    addEventListener('unhandledrejection',e=>errors.push(String(e.reason)));
+    const fail=error=>{document.getElementById('status').textContent='加载失败：'+(error.message||error)+'。请使用最新版 Chrome / Edge，并开启硬件加速后重试。';document.getElementById('progress').hidden=true};
+    const missing=Engine.getMissingFeatures({threads:false});
+    if(missing.length){fail(new Error(missing.join('、')))}else{
+      engine.startGame({canvas:document.getElementById('canvas'),onProgress:(current,total)=>{
+        const p=document.getElementById('progress');if(p&&total){p.value=current;p.max=total;document.getElementById('status').textContent='正在载入角色与地牢… '+Math.round(current/total*100)+'%'}
+      }}).then(()=>{document.getElementById('loading')?.remove();document.title='热血归来 · 神炼争锋 8.4';document.getElementById('canvas').focus();},fail);
+    }
+    document.getElementById('canvas').addEventListener('contextmenu',e=>e.preventDefault());
+    // Only expose the restore action while the game itself is paused.
+    setInterval(()=>{document.getElementById('restore').style.display=['welcome','pause'].includes(window.mir176State?.modal)?'block':'none'},600);
+    document.getElementById('restore').onclick=()=>document.getElementById('import-file').click();
+    document.getElementById('import-file').onchange=async event=>{
+      const file=event.target.files[0];if(!file)return;
+      try{
+        if(file.size>4*1024*1024)throw Error('文件过大');
+        const data=JSON.parse(await file.text());
+        const validItem=item=>item&&Number.isInteger(item.uid)&&Number.isInteger(item.slot)&&item.slot>=0&&item.slot<6&&Number.isInteger(item.quality)&&item.quality>=0&&item.quality<6&&typeof item.name==='string'&&['atk','def','hp','crit'].every(k=>Number.isFinite(item[k])&&item[k]>=0);
+        const professions=['warrior','mage','taoist'];
+        const validCharacter=c=>c&&[1,2,3,4].includes(c.version)&&Array.isArray(c.gear)&&c.gear.length===6&&Array.isArray(c.bag)&&c.bag.length<=3600&&c.gear.concat(c.bag).every(validItem)&&Number.isInteger(c.level)&&c.level>=1&&c.level<=9999&&(c.profession===undefined||professions.includes(c.profession))&&(c.forge===undefined||(Array.isArray(c.forge)&&c.forge.length===6&&c.forge.every(v=>Number.isInteger(v)&&v>=0&&v<=99)));
+        const roster=data.other_characters??{};
+        if(!validCharacter(data)||!roster||Array.isArray(roster)||typeof roster!=='object'||Object.keys(roster).length>2)throw Error('不是有效的热血归来角色存档');
+        if(!Object.entries(roster).every(([id,c])=>professions.includes(id)&&id!==data.profession&&validCharacter(c)&&c.profession===id&&c.class_selected===true&&c.other_characters===undefined))throw Error('角色列表数据无效');
+        if(!confirm('恢复此备份会替换本地角色列表。当前所有角色会自动保留一份浏览器备份，确定恢复吗？'))return;
+        const old=localStorage.getItem('mir176-save-v1');if(old)localStorage.setItem('mir176-save-before-import',old);
+        let revision=0;try{revision=Number(JSON.parse(old)?.save_revision||0)}catch{}
+        data.save_revision=revision+1;
+        window.mir176Importing=true;localStorage.setItem('mir176-save-v1',JSON.stringify(data));location.reload();
+      }catch(error){alert('恢复失败：'+error.message)}finally{event.target.value=''}
+    };
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594bd7f1b360fff',t:'MTc5NDQ3ODE1Ng=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594bd7f1b360fff',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
+

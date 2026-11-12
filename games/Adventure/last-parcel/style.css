@@ -1,0 +1,375 @@
+:root {
+  --ink: #0a1018;
+  --ink-2: #0f1a26;
+  --paper: #e9eff6;
+  --muted: #93a6b8;
+  --street: #bfd0de;
+  --warm: #ffb765;
+  --cold: #7fb6e8;
+  --danger: #e8553f;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app { position: fixed; inset: 0; }
+#app canvas { display: block; }
+
+.hidden { display: none !important; }
+
+/* ---------- HUD ---------- */
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 22px 0;
+  gap: 20px;
+}
+
+.objective {
+  max-width: 48ch;
+  padding: 10px 14px;
+  background: rgba(10, 16, 24, 0.55);
+  border-left: 2px solid var(--warm);
+  backdrop-filter: blur(6px);
+}
+
+.obj-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--warm);
+  margin-bottom: 4px;
+}
+
+#objText { font-size: 14px; line-height: 1.35; color: var(--paper); }
+
+.meters { width: 210px; display: flex; flex-direction: column; gap: 8px; }
+
+.meter { display: flex; flex-direction: column; gap: 3px; }
+
+.meter-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+.bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--warm), #ffe0b0);
+  transition: width 0.12s linear, background 0.2s linear;
+}
+
+.bar.breath i { background: linear-gradient(90deg, #6f9dc4, #cfe6ff); }
+
+.hud-bottom {
+  position: absolute;
+  left: 0; right: 0; bottom: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.prompt {
+  padding: 8px 14px;
+  background: rgba(10, 16, 24, 0.72);
+  border: 1px solid rgba(255, 183, 101, 0.5);
+  font-size: 13px;
+  color: #ffd9ab;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 2px 5px;
+  margin: 0 2px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+  font: inherit;
+  font-size: 11px;
+  text-align: center;
+  color: #dbe7f2;
+}
+
+.route { display: flex; gap: 8px; align-items: center; }
+.route-label { font-size: 9px; letter-spacing: 0.2em; color: var(--muted); }
+#stopDots { display: flex; gap: 6px; }
+.dot {
+  width: 8px; height: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+}
+.dot.done { background: var(--warm); border-color: var(--warm); }
+.dot.next { border-color: #ffd9ab; box-shadow: 0 0 8px rgba(255, 183, 101, 0.7); }
+
+#crosshair {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 4px; height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.ammo {
+  position: absolute;
+  right: 28px; bottom: 26px;
+  font-size: 15px;
+  letter-spacing: 0.06em;
+  color: #cfe0ee;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.85);
+}
+.ammo b { font-size: 22px; color: #ffe0b0; }
+.ammo span { opacity: 0.4; margin: 0 2px; }
+.ammo em { font-style: normal; font-size: 13px; color: #7f93a6; }
+
+.hitmark {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 22px; height: 22px;
+  margin: -11px 0 0 -11px;
+  opacity: 0;
+  transform: rotate(45deg) scale(0.6);
+  transition: opacity 0.12s linear, transform 0.12s ease-out;
+}
+.hitmark::before, .hitmark::after {
+  content: "";
+  position: absolute;
+  background: #ffd9a0;
+  box-shadow: 0 0 8px rgba(255, 180, 110, 0.7);
+}
+.hitmark::before { left: 50%; top: 0; width: 2px; height: 100%; margin-left: -1px; }
+.hitmark::after { top: 50%; left: 0; height: 2px; width: 100%; margin-top: -1px; }
+.hitmark.on { opacity: 1; transform: rotate(45deg) scale(1); }
+
+.alert {
+  position: absolute;
+  left: 50%; top: 22%;
+  transform: translateX(-50%);
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  color: #ff8f7a;
+  text-shadow: 0 0 18px rgba(232, 85, 63, 0.8);
+}
+
+.vignette {
+  position: absolute; inset: 0;
+  box-shadow: inset 0 0 160px 40px rgba(120, 176, 96, 0.5);
+  opacity: 0;
+  transition: opacity 0.35s linear;
+}
+
+.flash {
+  position: absolute; inset: 0;
+  background: #e8553f;
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 0.25s linear;
+}
+
+/* ---------- act card: the film cut between scenes ---------- */
+.act-card {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6vw;
+  background: radial-gradient(120% 90% at 50% 45%, rgba(9, 16, 24, 0.86), rgba(3, 6, 10, 0.94) 70%);
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  pointer-events: none;
+}
+.act-card.show { opacity: 1; }
+
+.act-card .bar {
+  position: absolute;
+  left: 0; right: 0;
+  height: 0;
+  background: #000;
+  transition: height 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.act-card .bar.top { top: 0; }
+.act-card .bar.bot { bottom: 0; }
+.act-card.show .bar { height: 11vh; }
+
+.act-copy {
+  max-width: 54ch;
+  text-align: left;
+  transform: translateY(6px);
+  transition: transform 0.9s ease;
+}
+.act-card.show .act-copy { transform: translateY(0); }
+
+.act-no {
+  margin: 0 0 12px;
+  font-size: 10px;
+  letter-spacing: 0.34em;
+  color: var(--warm);
+}
+
+.act-title {
+  margin: 0 0 18px;
+  font-size: clamp(26px, 4.6vw, 44px);
+  line-height: 1.04;
+  letter-spacing: 0.12em;
+  color: var(--paper);
+}
+
+.act-lines p {
+  margin: 0 0 10px;
+  color: #b8c8d8;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.act-bc {
+  margin: 26px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 11.5px;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: #7d93a7;
+  font-style: italic;
+}
+
+/* ---------- screens ---------- */
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(30, 58, 84, 0.55), rgba(6, 10, 16, 0.94) 60%),
+    #060a10;
+}
+
+.card {
+  width: min(620px, 100%);
+  padding: 34px 34px 28px;
+  background: linear-gradient(180deg, rgba(16, 26, 36, 0.94), rgba(8, 13, 19, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+}
+
+.card.small { width: min(380px, 100%); text-align: center; }
+
+.kicker {
+  margin: 0 0 10px;
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: var(--warm);
+}
+
+h1 {
+  margin: 0 0 10px;
+  font-size: clamp(30px, 6vw, 52px);
+  line-height: 0.98;
+  letter-spacing: 0.04em;
+}
+
+h2 { margin: 0 0 10px; font-size: 18px; letter-spacing: 0.3em; }
+
+.sub { margin: 0 0 16px; color: #ffd9ab; font-size: 14px; }
+
+.body {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.62;
+}
+
+.keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin-bottom: 22px;
+  font-size: 12px;
+  color: #c6d5e2;
+}
+
+button {
+  appearance: none;
+  border: 1px solid rgba(255, 183, 101, 0.55);
+  background: rgba(255, 183, 101, 0.12);
+  color: #ffe0b8;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  padding: 12px 22px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+button:hover { background: rgba(255, 183, 101, 0.24); }
+button:active { transform: translateY(1px); }
+
+.foot { margin: 14px 0 0; font-size: 11px; color: #5f7285; letter-spacing: 0.08em; }
+
+.stats { margin: 0 0 22px; padding: 0; list-style: none; }
+.stats li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 13px;
+  color: var(--muted);
+}
+.stats li b { color: var(--paper); font-weight: 500; }
+
+.load { width: min(420px, 100%); text-align: center; }
+.loadbar {
+  height: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 14px 0 8px;
+  overflow: hidden;
+}
+.loadbar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--warm);
+  transition: width 0.2s ease;
+}
+.loadnote { font-size: 11px; color: #5f7285; letter-spacing: 0.14em; margin: 0; }
+
+@media (max-width: 640px) {
+  .card { padding: 24px 20px 20px; }
+  .keys { font-size: 11px; }
+  .objective { max-width: 100%; }
+  .meters { width: 150px; }
+}

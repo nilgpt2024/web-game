@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta name="robots" content="noindex,nofollow">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#160d2e">
+  <meta name="description" content="Vuela por catorce mundos, descubre a Sonic y Tails, Son Goku y los ninjas de Konoha, abre el cofre dorado y juega al blackjack con tus estrellas en Miami Flap.">
+  <title>Miami Flap — Neon Arcade</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23160d2e'/%3E%3Cpath d='M12 38q19-33 40-9-7 27-34 18z' fill='%23ff79b8'/%3E%3Ccircle cx='43' cy='29' r='4' fill='%23140731'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body data-theme="pink">
+<svg xmlns="http://www.w3.org/2000/svg" class="icon-defs" aria-hidden="true"><defs>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14" stroke-width="4"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 15a8.7 8.7 0 0 1-11-11A9 9 0 1 0 20 15Z"/></symbol>
+  <symbol id="i-bat" viewBox="0 0 24 24"><path d="m10 10-7-5 1 10 4-2 4 6 4-6 4 2 1-10-7 5-2-4Z"/></symbol>
+  <symbol id="i-pumpkin" viewBox="0 0 24 24"><path d="M12 6c-8-5-13 11-5 14h10c8-3 3-19-5-14Zm0 0c-1-3 0-4 3-4M8 10l2 3H7Zm7 0 2 3h-3M8 16h8"/></symbol>
+  <symbol id="i-planet" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M5 9c-6 5-2 9 8 4S25 5 19 5"/></symbol>
+  <symbol id="i-hill" viewBox="0 0 24 24"><path d="M2 20c0-10 11-16 15 0m-4-9c4-6 9-5 9 9M2 20h20"/><circle cx="19" cy="5" r="2"/></symbol>
+  <symbol id="i-magnet" viewBox="0 0 24 24"><path d="M4 4v9a8 8 0 0 0 16 0V4h-5v9a3 3 0 0 1-6 0V4Zm0 5h5m6 0h5"/></symbol>
+  <symbol id="i-flower" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 7c-6-9-10 1-3 2-10 1-3 11 1 4 0 9 10 6 5 0 9 4 11-7 0-5 7-6-4-12-3-1m0 9v8m0-3c-4 0-6-3-6-3m6 5c4 0 6-3 6-3"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v6a5 5 0 0 1-10 0Zm5 11v7m-4 0h8M7 5H3v3c0 3 2 4 5 4m9-7h4v3c0 3-2 4-5 4"/></symbol>
+  <symbol id="i-skins" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Zm-9 9 9 5 9-5m-18 5 9 5 9-5"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5ZM16 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5ZM16 9l6 6m0-6-6 6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></symbol>
+  <symbol id="i-meteor" viewBox="0 0 24 24"><circle cx="16" cy="16" r="5"/><path d="m4 3 8 8M3 8l6 6m0-11 6 6m0 6 2 2"/></symbol>
+  <symbol id="i-mask" viewBox="0 0 24 24"><path d="M4 5h16v9c0 5-8 7-8 7s-8-2-8-7Z"/><path d="m7 9 3 1m4 0 3-1M7 15h10m-8-1v3m3-3v3m3-3v3"/></symbol>
+  <symbol id="i-torii" viewBox="0 0 24 24"><path d="M3 4c6 2 12 2 18 0M4 8h16M7 7v14M17 7v14M5 12h14"/></symbol>
+  <symbol id="i-waves" viewBox="0 0 24 24"><path d="M2 6q3-4 6 0t6 0 6 0M2 12q3-4 6 0t6 0 6 0M2 18q3-4 6 0t6 0 6 0"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M3 21 8 16M5 17C3 5 13 2 21 3c0 10-5 17-16 14Zm1-1L18 6m-8 6V7m4 1h4"/></symbol>
+  <symbol id="i-fist" viewBox="0 0 24 24"><path d="M7 12V6a2 2 0 0 1 4 0v5m0-5a2 2 0 0 1 4 0v5m0-4a2 2 0 0 1 4 0v7c0 4-2 6-6 6H9c-3-2-5-4-6-7-1-3 2-4 4-1Zm0-1h10M9 20v2m6-2v2"/></symbol>
+  <symbol id="i-dragonball" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 6 1 2 2 .3-1.5 1.4.4 2L8 10.6 6.1 11.7l.4-2L5 8.3 7 8Zm8 0 1 2 2 .3-1.5 1.4.4 2-1.9-1.1-1.9 1.1.4-2L13 8.3 15 8ZM8 13l1 2 2 .3-1.5 1.4.4 2L8 17.6l-1.9 1.1.4-2L5 15.3 7 15Zm8 0 1 2 2 .3-1.5 1.4.4 2-1.9-1.1-1.9 1.1.4-2-1.5-1.4 2-.3Z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-case" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="15" rx="3"/><path d="M3 12h18M9 6V3h6v3"/><rect x="10" y="10" width="4" height="5" rx="1"/></symbol>
+</defs></svg>
+<main class="page">
+  <section class="game-shell" aria-label="Miami Flap">
+    <header class="toolbar">
+      <a class="wordmark" href="#" id="homeBtn" aria-label="Miami Flap, inicio">MIAMI<span>FLAP</span><small>NEON ARCADE</small></a>
+      <div class="toolbar-actions">
+        <button class="icon-button mission-trigger" id="missionsBtn" title="Misiones" aria-label="Abrir misiones"><svg><use href="#i-target"/></svg><span class="mission-dot" id="missionDot" hidden></span></button>
+        <button class="icon-button" id="soundBtn" aria-label="Activar sonido" aria-pressed="false"><svg><use href="#i-mute"/></svg></button>
+        <button class="icon-button" id="pauseBtn" aria-label="Pausar partida" hidden><svg><use href="#i-pause"/></svg></button>
+      </div>
+    </header>
+    <section class="mode-picker" aria-label="Modo de juego">
+      <div class="mode-tabs" role="group" aria-label="Cambiar de modo inicia una partida nueva">
+        <button type="button" id="classicModeBtn" title="Clásico: niveles a los 20, 50, 100 y 120 puntos" aria-pressed="true" aria-describedby="modeHint">Clásico</button>
+        <button type="button" id="chaosModeBtn" title="Caos: velocidad cada 3 y hueco cada 5. Desde 60 puntos, cambios suaves cada 3; desde 69, solo velocidad. Zigzags de tres tubos cada 12 a partir del tubo 31; crúzalos sin golpes para ganar 2 estrellas." aria-pressed="false" aria-describedby="modeHint">Caos <span>3 / 5</span></button>
+      </div>
+      <p class="sr-only" id="modeHint">Niveles a los 20, 50, 100 y 120 puntos.</p>
+    </section>
+    <div class="arena" id="arena">
+      <canvas id="game" width="480" height="720" tabindex="0" aria-label="Zona de juego. Toca o pulsa espacio para volar. P para pausar."></canvas>
+      <div class="game-hud" id="hud" hidden>
+        <div class="hud-stat"><svg><use href="#i-trophy"/></svg><span id="bestHud">0</span></div>
+        <div class="score-stack"><div class="score" id="score">0</div><span id="levelBadge" class="level-badge">NIVEL 1</span></div>
+        <div class="shield-hud" id="shieldHud" aria-label="0 de 5 estrellas para el escudo"><div><svg><use href="#i-shield"/></svg><span id="shieldText">0/5</span></div><div class="charge-dots" id="chargeDots"><i></i><i></i><i></i><i></i><i></i></div></div>
+      </div>
+      <div class="ability-bar" id="abilityBar" hidden>
+        <button class="ability-button" id="magnetBtn" disabled><svg><use href="#i-magnet"/></svg><span><strong>Imán <kbd>E</kbd></strong><small id="magnetStatus">0/25 ✦</small></span></button>
+        <div class="combo-hud" id="comboHud" hidden><span id="comboText">×1</span><small>PERFECTOS</small></div>
+      </div>
+      <div class="screen home-screen" id="homeScreen"><div class="home-content">
+        <p class="eyebrow" id="sceneCaption">ATARDECER EN MIAMI</p>
+        <h1>MIAMI<br><span>FLAP</span></h1>
+        <button class="primary play-button" id="playBtn"><svg><use href="#i-play"/></svg><span id="playLabel">Jugar</span></button>
+        <p class="hint">Toca o pulsa <kbd>ESPACIO</kbd> para volar</p>
+        <div class="home-record"><svg><use href="#i-trophy"/></svg><span id="homeRecordLabel">Récord · Clásico</span> <strong id="homeBest">0</strong></div>
+        <p class="precision-hint">3 tubos seguidos por el centro = +1 ✦</p>
+      </div></div>
+      <div class="screen center-screen" id="pauseScreen" hidden><div class="panel"><p class="eyebrow">TÓMATE UN RESPIRO</p><h2>En pausa</h2><p>Tu vuelo sigue aquí.</p><button class="primary" id="resumeBtn"><svg><use href="#i-play"/></svg>Continuar</button><button class="text-button" id="pauseHomeBtn">Volver al inicio</button></div></div>
+      <div class="screen center-screen" id="overScreen" hidden><div class="panel results-panel">
+        <p class="eyebrow" id="resultEyebrow">FIN DEL VUELO</p><h2 id="resultTitle">Un vuelo más.</h2>
+        <div class="medal" id="resultMedal"><svg><use href="#i-trophy"/></svg><span id="medalName">En vuelo</span></div>
+        <div class="results"><div><strong id="resultScore">0</strong><span>Puntos</span></div><div><strong id="resultBest">0</strong><span id="resultRecordLabel">Récord · Clásico</span></div><div><strong id="resultStars">0</strong><span>Estrellas</span></div></div>
+        <p class="flight-summary" id="flightSummary"></p>
+        <p class="next-goal" id="nextGoal"></p>
+        <button class="primary" id="retryBtn"><svg><use href="#i-play"/></svg>Otra partida</button>
+        <button class="text-button" id="resultSkinsBtn">Ver mis skins</button>
+        <button class="text-button mission-result" id="resultMissionsBtn">Ver misiones</button>
+      </div></div>
+      <div class="toast" id="toast" role="status" hidden></div>
+    </div>
+    <footer class="dock">
+      <button class="dock-button" id="themeBtn" aria-label="Cambiar escena"><svg id="themeIcon"><use href="#i-sun"/></svg><span><small>ESCENA <span id="sceneIndex">1/14</span></small><strong id="themeName">Atardecer</strong></span></button>
+      <button class="dock-button" id="skinsBtn"><svg><use href="#i-skins"/></svg><span><small>SKINS <span id="skinCount">0/27</span></small><strong class="wallet-label">✦ <span id="wallet">0</span></strong></span></button>
+      <button class="dock-button arcade-trigger" id="arcadeBtn"><svg><use href="#i-case"/></svg><span><small>ARCADE</small><strong>Cofre · 21</strong></span></button>
+    </footer>
+  </section>
+</main>
+<dialog id="skinDialog" aria-labelledby="skinTitle">
+  <div class="dialog-head"><div><p class="eyebrow">LA COLECCIÓN</p><h2 id="skinTitle">Vuela a tu manera.</h2></div><button class="icon-button" id="closeSkinsBtn" aria-label="Cerrar skins"><svg><use href="#i-close"/></svg></button></div>
+  <div class="collection-wallet"><div><small>TUS ESTRELLAS</small><strong>✦ <span id="collectionWallet">0</span></strong></div><span id="collectionCount">0 de 27 skins</span></div>
+  <p id="shopMessage" class="shop-message" role="status">Cargando tu colección…</p>
+  <form id="promoForm" class="promo-form">
+    <label for="promoCode">Código promocional</label>
+    <div class="promo-controls"><input id="promoCode" name="code" type="text" required maxlength="64" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Tu código" aria-describedby="promoMessage"><button id="promoSubmit" type="submit">Activar</button></div>
+    <p id="promoMessage" class="promo-message" role="status">¿Tienes un código? Desbloquea una sorpresa.</p>
+  </form>
+  <div class="skin-grid" id="skinGrid"></div>
+  <p class="collection-note">Cada estrella cuenta para tu saldo y para el escudo. Encadena 3 tubos por el centro para ganar una estrella extra. Todos los skins vuelan igual.</p>
+  <p class="collection-note power-note">25 estrellas en una partida cargan un imán de 8 segundos. Actívalo con su botón o con E. Se usa una vez por partida, funciona con cualquier skin y conserva tu saldo.</p>
+  <p id="saveStatus" class="save-status">Tus estrellas se guardan entre partidas.</p>
+  <p class="collection-record"><span>Clásico <strong id="collectionBest">0</strong></span><span>Caos <strong id="collectionChaosBest">0</strong></span></p>
+  <button class="reset-link" id="resetBtn">Reiniciar progreso</button>
+  <div class="reset-confirm" id="resetConfirm" hidden><strong>¿Empezar desde cero?</strong><p>Se reiniciarán los récords de ambos modos, las estrellas, los skins, los cofres y las misiones. Terminarán el vuelo y cualquier mano de blackjack abierta.</p><div><button class="secondary" id="cancelResetBtn">Cancelar</button><button class="danger" id="confirmResetBtn">Sí, reiniciar</button></div></div>
+</dialog>
+<dialog id="arcadeDialog" class="arcade-dialog" aria-labelledby="arcadeTitle">
+  <div class="dialog-head"><div><p class="eyebrow">MIAMI ARCADE</p><h2 id="arcadeTitle">Cofre y blackjack.</h2></div><button class="icon-button" id="closeArcadeBtn" aria-label="Cerrar Arcade"><svg><use href="#i-close"/></svg></button></div>
+  <div class="arcade-wallet"><span>Tu saldo</span><strong>✦ <span id="arcadeWallet">0</span></strong></div>
+  <div class="arcade-tabs" role="tablist" aria-label="Juegos de Arcade"><button role="tab" id="caseTab" aria-controls="casePanel" aria-selected="true">Cofre dorado</button><button role="tab" id="blackjackTab" aria-controls="blackjackPanel" aria-selected="false" tabindex="-1">Blackjack</button></div>
+  <p id="arcadeMessage" class="arcade-message" role="status"></p><button id="arcadeRetryBtn" class="secondary" hidden>Confirmar jugada</button>
+  <section id="casePanel" role="tabpanel" aria-labelledby="caseTab">
+    <div class="case-intro"><svg aria-hidden="true"><use href="#i-case"/></svg><div><h3>Cofre dorado</h3><p>3 skins exclusivos. Solo salen aquí.</p></div><strong>50 ✦</strong></div>
+    <div class="roulette-window" id="rouletteWindow" aria-label="Ruleta del cofre"><div class="roulette-track" id="rouletteTrack" aria-hidden="true"></div><span class="roulette-marker" aria-hidden="true"></span></div>
+    <div class="case-result" id="caseResult" hidden aria-live="polite"><canvas id="caseResultPreview" width="204" height="144" aria-hidden="true"></canvas><div><span class="rarity-label" id="caseResultRarity"></span><h3 id="caseResultName"></h3><p id="caseResultText"></p></div><button class="secondary" id="caseEquipBtn">Usar skin</button></div>
+    <button id="caseOpenBtn" class="gold-button">Abrir cofre · 50 ✦</button>
+    <p class="case-guarantee" id="caseGuarantee"></p>
+    <p class="case-odds-label">Probabilidades del próximo cofre</p>
+    <div class="case-loot" id="caseLoot" aria-label="Probabilidades del próximo cofre"></div>
+    <details class="arcade-rules"><summary>Probabilidades y repetidos</summary><p>Después del primer cofre: común 60%, épico 25%, legendario 15%. El primero: común 75%, épico 25%, legendario 0%. Si aún no tienes el Ángel, el octavo cofre lo garantiza. Cada repetido devuelve 25 ✦. Las estrellas se descuentan al abrir; la animación muestra un resultado ya guardado.</p></details>
+  </section>
+  <section id="blackjackPanel" role="tabpanel" aria-labelledby="blackjackTab" hidden>
+    <div class="blackjack-table"><div class="hand-head"><span>CRUPIER</span><strong id="dealerTotal">—</strong></div><div class="card-hand" id="dealerHand" aria-label="Cartas del crupier"></div><div class="table-stamp">BLACKJACK <span>PAGA 3:2 · EL CRUPIER SE PLANTA EN 17</span></div><div class="card-hand" id="playerHand" aria-label="Tus cartas"></div><div class="hand-head"><span>TÚ <small id="tableBet"></small></span><strong id="playerTotal">—</strong></div></div>
+    <div id="blackjackResult" class="blackjack-result" role="status">Llega a 21 sin pasarte.</div>
+    <fieldset id="betPicker" class="bet-picker"><legend>Apuesta en estrellas</legend><label><input type="radio" name="blackjackBet" value="10" checked><span>10 ✦</span></label><label><input type="radio" name="blackjackBet" value="20"><span>20 ✦</span></label><label><input type="radio" name="blackjackBet" value="50"><span>50 ✦</span></label></fieldset>
+    <button id="dealBtn" class="gold-button">Repartir · 10 ✦</button>
+    <div class="blackjack-actions" id="blackjackActions" hidden><button id="hitBtn" class="secondary">Pedir</button><button id="standBtn" class="secondary">Plantarse</button><button id="doubleBtn" class="secondary">Doblar</button></div>
+    <p id="blackjackHint" class="blackjack-hint"></p>
+    <details class="arcade-rules"><summary>Cómo jugar y pagos</summary><p>Una baraja de 52 cartas, barajada en cada mano. As = 1 u 11; J, Q y K = 10. Victoria: beneficio de tu apuesta. Blackjack con las dos primeras cartas: beneficio de 1,5 veces tu apuesta. Empate: recuperas la apuesta. Doblar duplica la apuesta, da una sola carta y termina tu turno. El crupier se planta en cualquier 17. Sin división ni seguro. Puedes cerrar y continuar la misma mano después.</p></details>
+    <p class="arcade-note">Solo estrellas del juego. Sin dinero real ni premios en dinero.</p>
+  </section>
+</dialog>
+<dialog id="missionDialog" aria-labelledby="missionTitle">
+  <div class="dialog-head"><div><p class="eyebrow">TU PRÓXIMO OBJETIVO</p><h2 id="missionTitle">Misiones de vuelo.</h2></div><button class="icon-button" id="closeMissionsBtn" aria-label="Cerrar misiones"><svg><use href="#i-close"/></svg></button></div>
+  <div class="mission-overview"><span id="missionCount">0 de 3 completadas</span><strong>✦ <span id="missionWallet">0</span></strong></div>
+  <p class="mission-intro">Gana estrellas para tu colección. Cada recompensa se recoge una vez; tus avances se guardan.</p>
+  <div class="mission-list" id="missionList"></div>
+  <p class="shop-message" id="missionMessage" role="status"></p>
+  <div class="pilot-stats"><div><strong id="pilotCombo">0</strong><span>Mejor combo</span></div><div><strong id="pilotStars">0</strong><span>Estrellas reunidas</span></div></div>
+</dialog>
+<p class="sr-only" id="announcer" aria-live="polite"></p>
+<script type="module" src="./app.mjs"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594b8333dfa51cf',t:'MTc5NDQ3NzkzOQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594b8333dfa51cf',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

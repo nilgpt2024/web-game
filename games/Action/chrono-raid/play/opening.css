@@ -1,0 +1,19 @@
+.opening-active{overflow:hidden}
+#opening{position:fixed;inset:0;z-index:100;background:#050608;display:grid;grid-template-rows:minmax(0,1fr) auto;height:100%;height:100dvh;opacity:1;transition:opacity .35s ease;padding-top:env(safe-area-inset-top)}
+.opening-stage{position:relative;min-height:0;display:grid;place-items:center;overflow:hidden}
+#openingVideo{width:100%;height:100%;min-height:0;object-fit:contain;transition:opacity .25s ease;background:#050608}
+#opening[data-state=ready] #openingVideo{opacity:.65}
+#openingTitle{position:absolute;bottom:5%;left:0;right:0;text-align:center;padding:32px 12px 16px;background:linear-gradient(transparent,#050608e6);pointer-events:none;text-shadow:0 2px 12px #000}
+#openingTitle small{font-size:14px;letter-spacing:.18em;color:#ebd3a4}
+#openingTitle h1{font-size:clamp(28px,6vw,76px);line-height:1.1;letter-spacing:.04em;margin:8px 0}
+.opening-controls{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;padding:14px max(12px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));background:#101116;border-top:1px solid #665431}
+.opening-controls button{min-height:44px;font-size:14px}
+#openingPlay{background:#e4bc65;border-color:#e4bc65;color:#151515;font-weight:bold;min-width:180px}
+#openingStatus{width:100%;text-align:center;font-size:14px;color:#ccc9c2;margin:0;min-height:1.5em}
+#opening[data-state=playing] #openingTitle,#opening[data-state=loading] #openingTitle,#opening[data-state=paused] #openingTitle{display:none}
+#opening[data-state=playing] #openingPlay{visibility:hidden;pointer-events:none}
+#opening[data-state=leaving]{opacity:0;pointer-events:none}
+#openingReplay{font-size:14px;margin:10px 0;min-height:44px;background:transparent}
+@media(max-width:420px){.opening-controls{gap:8px}.opening-controls button{padding:10px}#openingPlay{min-width:0;flex:1}#openingTitle{bottom:12%}}
+@media(max-height:500px) and (orientation:landscape){.opening-controls{padding-top:6px;padding-bottom:max(6px,env(safe-area-inset-bottom));gap:8px}#openingStatus{width:auto;min-height:0}#openingTitle{bottom:0;padding-top:20px}#openingTitle h1{font-size:32px}}
+@media(prefers-reduced-motion:reduce){#opening,#openingVideo{transition:none}}

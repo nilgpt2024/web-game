@@ -1,0 +1,40 @@
+'use strict';
+const mediumBrood={bellguard:{name:'Gloam Bellguard',hp:17,color:'#c7b993',hint:'Vault the low bell waves, then strike its open shell.'},shardlancer:{name:'Shard Lancer',hp:15,color:'#a9ccd8',hint:'Its aimed rush ends in a fan of glass. Pogo its recovery.'},mirecantor:{name:'Mire Cantor',hp:18,color:'#c0b4d5',hint:'Leave the three marked blooms before their spores erupt.'}};
+function populateMediumBrood(){if(currentNode.type!=='combat'||room<4)return;const rng=rootRandom((currentNode.encounterSeed||currentNode.seed)^0x36a4579);if(rng()>=.32)return;const kind=Object.keys(mediumBrood)[Math.floor(rng()*3)],spec=mediumBrood[kind],floors=platforms.filter(f=>f.y===650&&f.w>=400&&f.x+f.w>850),f=floors[Math.floor(rng()*floors.length)];if(!f)return;
+ const hp=(spec.hp+Math.floor(room/3))*(1+runDifficulty*.18),x=Math.max(f.x+90,Math.min(f.x+f.w-90,1100+rng()*450));
+ const captain={...makeEnemy('crawler',x,f.y),kind,name:spec.name,hp,maxHp:hp,w:35,h:38,y:f.y-38,minX:Math.max(450,f.x+44),maxX:f.x+f.w-44,medium:true,clock:0,attack:1.8,cycle:0};
+ enemies=[captain,...enemies.filter(e=>Math.abs(e.x-x)>150).slice(0,rng()<.5?1:2)];currentNode.mediumEncounter=kind;toast(spec.name+' commands this hunt. '+spec.hint);
+}
+function tickMediumBrood(e,dt){if(!mediumBrood[e.kind])return false;e.clock+=dt;e.stun=Math.max(0,e.stun-dt);if(e.stun>0)return true;const dir=Math.sign(player.x-e.x)||1;
+ if(!e.active){if(Math.abs(player.x-e.x)>820)return true;e.active=true}
+ if(e.mode==='idle'){e.x+=dir*(e.kind==='shardlancer'?48:24)*dt;if(e.attack<=0){e.direction=dir;wardenMode(e,'signal');if(e.kind==='mirecantor')for(const [i,offset] of [-130,0,130].entries())addArea(Math.max(80,Math.min(2120,player.x+offset)),player.y,66,.95+i*.22,'spore')}}
+ else if(e.mode==='signal'&&e.clock>.95){if(e.kind==='bellguard'){for(const d of [-1,1])enemyOrb(e.x,e.floorY-23,d*235,0,{wave:true});wardenMode(e,'recover')}else if(e.kind==='shardlancer')wardenMode(e,'rush');else wardenMode(e,'recover')}
+ else if(e.mode==='rush'){e.x+=e.direction*440*dt;if(e.clock>.55||e.x<=e.minX||e.x>=e.maxX){for(const a of [-.36,0,.36])aimedBrood(e,195,a,{glass:true});wardenMode(e,'recover')}}
+ else if(e.mode==='recover'&&e.clock>1.45){e.attack=1.15;wardenMode(e,'idle')}
+ e.x=Math.max(e.minX,Math.min(e.maxX,e.x));e.y=e.floorY-e.h;return true;
+}
+function drawMediumBrood(e){const def=mediumBrood[e.kind];if(!def)return false;const c=e.hit>0?'#fff3d8':def.color,wind=e.mode==='signal';ctx.save();ctx.translate(e.x,e.y);if(wind)glow(0,0,100,c,.14+Math.sin(time*15)*.04);
+ for(const side of [-1,1])for(let i=0;i<3;i++){line(side*19,8+i*5,side*(40-i*3),25+i*5,'#15232b',6);line(side*19,8+i*5,side*(40-i*3),25+i*5,c,2)}
+ if(e.kind==='bellguard'){ctx.beginPath();ctx.moveTo(-35,20);ctx.quadraticCurveTo(-42,-47,0,-55);ctx.quadraticCurveTo(42,-47,35,20);ctx.closePath();finishInk('#5b6868',c,3);for(let i=0;i<5;i++)line(-24+i*12,-25,-27+i*14,17,c+'88',2);outlinedEllipse(0,19,38,11,c,'#152830',3);outlinedEllipse(0,24,7,10,'#ebd2a1','#555b50',1);if(wind){ctx.beginPath();ctx.ellipse(0,28,60+Math.sin(time*9)*12,12,0,0,Math.PI*2);ctx.strokeStyle=c;ctx.stroke()}}
+ if(e.kind==='shardlancer'){outlinedEllipse(0,4,28,34,'#4c6575',c,3);for(const side of [-1,1]){ctx.beginPath();ctx.moveTo(side*13,-15);ctx.lineTo(side*33,-62);ctx.lineTo(side*29,5);ctx.closePath();finishInk(c,'#1a303d',2)}line(0,15,e.direction*73||73,-14,c,5);ctx.save();if(wind){ctx.setLineDash([8,7]);line(0,0,e.direction*270,0,c+'aa',1)}ctx.restore()}
+ if(e.kind==='mirecantor'){outlinedEllipse(0,9,30,28,'#74627e',c,3);for(let i=0;i<5;i++){const x=-28+i*14;line(x*.7,-7,x,-48-Math.sin(i)*12,c,3);outlinedEllipse(x,-48-Math.sin(i)*12,10,13,c,'#3b344e',2)}outlinedEllipse(0,-12,25,15,'#95849e',c,2);if(wind)for(let i=0;i<4;i++)worldLabel(Math.sin(time+i)*36,-72-i*9,'·')}
+ ellipse(-10,-13,4,6,'#0d2430');ellipse(10,-13,4,6,'#0d2430');ctx.restore();worldLabel(e.x,e.y-91,e.mode==='recover'?'EXPOSED':def.name.toUpperCase());ctx.fillStyle='#162730';ctx.fillRect(e.x-35,e.y-78,70,4);ctx.fillStyle=def.color;ctx.fillRect(e.x-35,e.y-78,70*Math.max(0,e.hp/e.maxHp),4);return true;
+}
+let wovenBoss=null;
+function webPosition(n){if(n.depth===16)return{x:450,y:395};const count=routeGraph[n.depth-1].length,lane=(n.lane-(count-1)/2)*39,r=100+(15-n.depth)*17+lane,a=-Math.PI/2+(n.depth-1)*.8;return{x:450+Math.cos(a)*r,y:395+Math.sin(a)*r}}
+function orbWeaverSvg(){let web='',paths='',nodes='';const cx=450,cy=395;
+ for(let i=0;i<14;i++){const a=i*Math.PI/7;web+=`<path d="M450 395L${cx+Math.cos(a)*370} ${cy+Math.sin(a)*370}"/>`}
+ for(const r of [76,128,180,232,284,338,370])for(let i=0;i<14;i++){const a=i*Math.PI/7,b=(i+1)*Math.PI/7,m=(a+b)/2;web+=`<path d="M${cx+Math.cos(a)*r} ${cy+Math.sin(a)*r}Q${cx+Math.cos(m)*r*.88} ${cy+Math.sin(m)*r*.88} ${cx+Math.cos(b)*r} ${cy+Math.sin(b)*r}"/>`}
+ for(const layer of routeGraph)for(const n of layer){const a=webPosition(n);for(const next of connectedRooms(n)){const b=webPosition(next),used=n.visited&&next.visited;paths+=`<path class="${used?'orb-traveled':'orb-future'}" d="M${a.x} ${a.y}Q${(a.x+b.x)/2+9} ${(a.y+b.y)/2+12} ${b.x} ${b.y}"/>`}
+ const available=connectedRooms().some(to=>to.id===n.id)&&state==='route',now=n===currentNode,hidden=n.type==='boss'&&!n.visited,label=hidden?'The Sealed Heart · an unknown final guardian':n.title+' · '+roomTypes[n.type].name,color=hidden?'#c9b58f':roomTypes[n.type].color;
+ nodes+=`<g class="orb-node ${now?'orb-current':n.visited?'orb-visited':''} ${available?'orb-next':''} ${!n.visited&&!reachableWeb().has(n.id)?'orb-abandoned':''}" transform="translate(${a.x} ${a.y})" ${available?`role="button" tabindex="0" data-webpath="${n.lane}" aria-label="Enter ${label}"`: `role="img" aria-label="${label}"`}><circle r="${n.depth===16?29:18}" fill="#10232b" stroke="${color}"/><ellipse rx="${n.depth===16?23:13}" ry="${n.depth===16?25:16}" fill="none" stroke="${color}" opacity=".35"/><text text-anchor="middle" y="-3" fill="${color}">${hidden?'?':n.dark?'◐':roomTypes[n.type].icon}</text><text class="orb-depth" text-anchor="middle" y="${n.depth===16?46:11}">${String(n.depth).padStart(2,'0')}</text><title>${label}</title></g>`;
+ }
+ return`<div class="orb-map"><div class="silk-map-header"><span>THE ORB WEAVER’S DESCENT</span><small>${room} / 16 ROOMS</small></div><svg viewBox="0 0 900 795" role="group" aria-label="Spiral paths through an orb weaver web converge on one hidden final guardian."><defs><radialGradient id="orbglow"><stop stop-color="#7f79672a"/><stop offset="1" stop-color="#07131c00"/></radialGradient></defs><circle cx="450" cy="395" r="380" fill="url(#orbglow)"/><g class="orb-silk">${web}</g><g>${paths}</g>${nodes}<text x="450" y="777" text-anchor="middle" class="orb-caption">FOLLOW THE LIT THREADS · ONE HEART WAITS WITHIN</text></svg><p>Gold threads remember your route. Dim cocoons are beyond your chosen path.<br>Some threads commit you to several rooms; others fork into two or three choices.<br>The final guardian is chosen when your run begins. Its identity stays sealed until you enter.</p></div>`;
+}
+function installWebbound(){
+ const init=initCampaign;initCampaign=function(){init();wovenBoss=chooseHiddenCrown();const base=routeGraph[15][0];routeGraph[15]=[{...base,id:'16-heart',lane:0,finalBoss:undefined,title:'The Sealed Heart',theme:'silk',music:'silk',visited:false}];};
+ const make=makeRoom;makeRoom=function(n=currentNode){if(n.type==='boss'&&!n.finalBoss){n.finalBoss=wovenBoss;const b=lastBrood[wovenBoss];n.title=b.name;n.theme=b.theme;n.music=b.music}make(n);populateMediumBrood();hud()};
+ const tick=tickBrood;tickBrood=function(e,dt){return tickMediumBrood(e,dt)||tick(e,dt)};const draw=drawBrood;drawBrood=function(e){return drawMediumBrood(e)||draw(e)};
+ routeSvg=orbWeaverSvg;
+ const show=showRoute;showRoute=function(viewOnly=false){show(viewOnly);$('panelcontent').querySelectorAll('[data-webpath]').forEach(n=>{n.onclick=()=>choosePath(Number(n.dataset.webpath));n.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choosePath(Number(n.dataset.webpath))}}})};
+}

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0a1018" />
+<title>Last Parcel — Outbreak Night | AIGameHub</title>
+<meta name="description" content="Play Last Parcel free in your browser: a low-poly first-person survival shooter on a tiny spherical planet. Carry serum samples through an outbreak night, shoot the infected off the street, and reach the evacuation checkpoint before the infection takes you." />
+<meta property="og:title" content="Last Parcel — Outbreak Night" />
+<meta property="og:description" content="A first-person outbreak-night run around a small spherical city. Three serum drops, a street full of infected, one sidearm and eight rounds." />
+<meta property="og:type" content="website" />
+<link rel="stylesheet" href="./style.css?v=14" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.js",
+    "three/addons/": "./vendor/addons/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="hud" class="hidden">
+  <div class="hud-top">
+    <div class="objective">
+      <span class="obj-label">OBJECTIVE</span>
+      <span id="objText">Pick up the first parcel</span>
+    </div>
+    <div class="meters">
+      <div class="meter">
+        <span class="meter-label">INFECTION</span>
+        <div class="bar"><i id="warmBar"></i></div>
+      </div>
+      <div class="meter">
+        <span class="meter-label">BREATH</span>
+        <div class="bar breath"><i id="stamBar"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="hud-bottom">
+    <div id="prompt" class="prompt hidden"><kbd>E</kbd> <span id="promptText">Deliver the parcel</span></div>
+    <div class="route">
+      <span class="route-label">STOPS</span>
+      <span id="stopDots"></span>
+    </div>
+  </div>
+  <div id="alert" class="alert hidden">SPOTTED</div>
+  <div id="ammo" class="ammo hidden"><b id="ammoNow">8</b><span>/</span><em id="ammoRes">16</em></div>
+  <div id="coldVignette" class="vignette"></div>
+  <div id="flash" class="flash"></div>
+  <div id="hitMark" class="hitmark"></div>
+  <div id="crosshair"></div>
+</div>
+
+<div id="title" class="screen">
+  <div class="card">
+    <p class="kicker">COLD OPEN · ALDER STREET · 03:40 AM · BLIZZARD</p>
+    <h1>LAST PARCEL</h1>
+    <p class="sub">One night. Three acts. The street stops being yours somewhere in the middle.</p>
+    <p class="body">
+      The sirens start three blocks east and then they stop. Somewhere between the corner clinic,
+      the quarantine cordon and the east gate is a street that used to belong to the people who
+      lived on it. Carry three serum samples through it, shoot what stands between you and the
+      drop point, and get through before the infection finishes what the night started.
+    </p>
+    <div class="keys">
+      <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
+      <span><kbd>Shift</kbd> run</span>
+      <span><kbd>C</kbd> crouch</span>
+      <span><kbd>E</kbd> pick up / deliver</span>
+      <span><kbd>LMB</kbd> fire</span>
+      <span><kbd>R</kbd> reload</span>
+      <span><kbd>Mouse</kbd> look</span>
+      <span><kbd>Space</kbd> skip act card</span>
+    </div>
+    <button id="startBtn">Roll the night</button>
+    <p class="foot">Headphones recommended · Desktop, keyboard + mouse</p>
+  </div>
+</div>
+
+<div id="pause" class="screen hidden">
+  <div class="card small">
+    <h2>PAUSED</h2>
+    <p class="body">Click to get back on the street.</p>
+    <button id="resumeBtn">Resume</button>
+  </div>
+</div>
+
+<div id="end" class="screen hidden">
+  <div class="card">
+    <p class="kicker" id="endKicker">SHIFT COMPLETE</p>
+    <h1 id="endTitle">DELIVERED</h1>
+    <p class="body" id="endBody"></p>
+    <ul class="stats" id="endStats"></ul>
+    <button id="againBtn">Run it again</button>
+  </div>
+</div>
+
+<div id="loading" class="screen">
+  <div class="load">
+    <p class="kicker">LOADING THE STREET</p>
+    <div class="loadbar"><i id="loadFill"></i></div>
+    <p class="loadnote" id="loadNote">building the block…</p>
+  </div>
+</div>
+
+<script type="module" src="./game.js?v=14"></script>
+</body>
+</html>

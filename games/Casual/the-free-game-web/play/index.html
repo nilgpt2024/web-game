@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta name="robots" content="noindex,nofollow">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123535">
+  <title>The Free Game</title>
+  <link rel="icon" href="index.icon.png">
+  <link rel="apple-touch-icon" href="index.apple-touch-icon.png">
+  <link rel="stylesheet" href="vila-css-cd0a5510a67f.css">
+</head>
+<body>
+  <canvas id="canvas" aria-label="The Free Game, cenário da vila" tabindex="0">Seu navegador não consegue exibir o jogo. Tente abrir o link em um navegador atualizado.</canvas>
+  <main id="status" aria-labelledby="game-title">
+    <div class="entry">
+      <div class="entry-copy">
+        <p class="eyebrow">THE FREE GAME <span>VERSÃO DE TESTES</span></p>
+        <h1 id="game-title">The Free<br>Game</h1>
+        <p class="intro">Você planeja a vila.<br>Seus moradores dão vida a ela.</p>
+        <div class="loading" id="loading-state">
+          <div class="progress-heading"><p id="status-label" role="status">Preparando o jogo…</p><span id="status-percent" aria-hidden="true"></span></div>
+          <progress id="status-progress" aria-label="Download do jogo"></progress>
+          <p id="status-detail">O primeiro carregamento pode levar um pouco mais de tempo.</p>
+        </div>
+        <section id="failure-state" aria-labelledby="failure-title" hidden>
+          <h2 id="failure-title" tabindex="-1">Não foi possível abrir a vila</h2>
+          <p id="failure-message">Confira sua conexão e tente novamente.</p>
+          <details id="technical-details"><summary>Detalhes do erro</summary><pre id="failure-detail"></pre></details>
+        </section>
+        <button id="retry" class="primary" type="button" hidden>Tentar novamente</button>
+        <p id="loading-tip" class="tip">Seu primeiro caminho: ligue a praça à escola com uma estrada.</p>
+      </div>
+      <figure class="village-art" aria-label="Modelos 3D usados no jogo">
+        <img class="hall" src="vila-hall-a09dcbc2fc04.png" width="384" height="320" alt="Prédio principal de pedra e madeira, com telhados de barro e uma torre de relógio">
+        <img class="servant" src="vila-servant-fdc94250ed61.png" width="256" height="320" alt="" aria-hidden="true">
+      </figure>
+    </div>
+    <footer><span>Lucas Marques, from Shiva</span><a href="https://github.com/LucasMarquesShiva/the-free-game" target="_blank" rel="noopener noreferrer">Código e artes · construa sua versão ↗</a></footer>
+  </main>
+  <aside id="screen-hint" aria-label="Tamanho da janela" hidden>
+    <p>Amplie a janela para ver todos os controles.</p>
+    <button id="fullscreen" type="button">Tela cheia</button>
+    <button id="dismiss-hint" type="button" aria-label="Fechar aviso">×</button>
+    <p id="screen-status" role="status"></p>
+  </aside>
+  <noscript><section class="noscript"><h1>Ative o JavaScript para jogar</h1><p>O The Free Game precisa dele para abrir a vila. Ative-o neste site e recarregue a página.</p></section></noscript>
+  <script>
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":false,"executable":"index","experimentalVK":false,"fileSizes":{"index.wasm":39514754,"the-free-game-4e83a4e9569e.pck":52814180},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4,"mainPack":"the-free-game-4e83a4e9569e.pck"};
+const GODOT_THREADS_ENABLED = false;
+function showShellLoadError() {
+  document.getElementById('loading-state').hidden = true;
+  document.getElementById('failure-state').hidden = false;
+  document.getElementById('technical-details').hidden = true;
+  document.getElementById('loading-tip').hidden = true;
+  document.getElementById('failure-message').textContent = 'Não conseguimos baixar a tela de entrada. Confira sua conexão e tente novamente.';
+  const retry = document.getElementById('retry');
+  retry.hidden = false;
+  retry.onclick = () => window.location.reload();
+  document.getElementById('failure-title').focus({preventScroll:true});
+}
+  </script>
+  <script src="download-034b3fca132f.js" onerror="showShellLoadError()"></script>
+  <script src="vila-js-0194305fd1c6.js" onerror="showShellLoadError()"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594be56dd24e731',t:'MTc5NDQ3ODE5MQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594be56dd24e731',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

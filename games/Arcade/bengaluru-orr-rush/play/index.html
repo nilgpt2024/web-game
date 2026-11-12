@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex,nofollow">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111c23" />
+  <meta name="description" content="Race from Bellandur to Marathahalli through Bengaluru's Outer Ring Road, flyovers, underpasses, and the Metro corridor." />
+  <title>ORR Rush · Bengaluru</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <canvas id="world" aria-label="Three-dimensional car race through Bengaluru's Outer Ring Road"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="wordmark"><span class="road-icon" aria-hidden="true">//</span> ORR<span class="wordmark-light">RUSH</span><span class="city-tag">BENGALURU</span></div>
+    <div class="top-actions"><button id="sound" class="icon-button" aria-label="Mute driving sounds" aria-pressed="true" title="Driving sounds (M)"><span id="sound-label">SFX ON</span></button><button id="music" class="icon-button" aria-label="Turn music on" aria-pressed="false" title="Music (N)"><span id="music-label">MUSIC OFF</span></button><button id="pause" class="icon-button" aria-label="Pause race" title="Pause (P)" hidden>Ⅱ</button></div>
+  </header>
+  <main id="start-screen" class="start-screen">
+    <div class="route-pill"><span>01</span> THE ORR RUN <span class="pill-line"></span> 4.8 KM</div>
+    <h1><span class="title-city">BENGALURU</span><br/><em>ORR RUSH</em></h1>
+    <p class="route-title">Bellandur <span>→</span> Marathahalli</p>
+    <p class="intro-copy">Race Bengaluru’s tech corridor.<br/>Finish the run. Drive clean. Climb the leaderboard.</p>
+    <div class="start-row"><button id="start" class="primary-button" disabled>LOADING THE ROAD…</button><span class="start-hint">4.8 km.<br/>Three rivals.</span></div>
+    <div class="control-guide"><span><kbd>W A S D</kbd> / arrows to drive</span><span><kbd>SPACE</kbd> boost</span><span><kbd>H</kbd> yield horn</span><span><kbd>Q / E</kbd> side swing</span><span class="mobile-guide">Touch controls · auto throttle<br/>Horn clears gaps · Swing hits alongside<br/><span class="rotate-hint">Turn your phone sideways for a wider view.</span></span></div>
+    <button id="leaderboard-menu" class="leaderboard-link">GLOBAL LEADERBOARD <span>↗</span></button>
+    <p class="approximation">A stylized ORR course. Street details are approximated.</p>
+  </main>
+  <aside class="route-card" id="route-card" aria-label="Race route">
+    <div class="card-heading"><span>THE CORRIDOR</span><span class="route-distance">4.8 KM</span></div>
+    <canvas id="minimap" width="240" height="210" aria-label="Route map with racer positions"></canvas>
+    <div class="route-stops"><span>Bellandur flyover</span><span>Embassy TechVillage</span><span>Kadubeesanahalli</span><span>Marathahalli</span></div>
+    <div class="route-note"><span class="construction-mark">▰</span> METRO WORKS IN PROGRESS</div>
+  </aside>
+  <div id="race-hud" class="race-hud" hidden>
+    <aside class="landmark-card" id="landmark-card" aria-label="Upcoming tech park"><div><span id="landmark-label">NEXT TECH PARK</span><span id="landmark-count">01 / 08</span></div><strong id="landmark-name">MICROSOFT</strong><small id="landmark-distance">120 m ahead · right side →</small></aside>
+    <div class="action-controls" role="group" aria-label="Passing actions">
+      <button id="swing-left" class="action-button desktop-swing" data-label="← HIT" title="Swing rod left (Q)" aria-label="Swing rod left"><span class="action-label">← HIT</span><kbd>Q</kbd></button>
+      <button id="swing-right" class="action-button desktop-swing" data-label="HIT →" title="Swing rod right (E)" aria-label="Swing rod right"><span class="action-label">HIT →</span><kbd>E</kbd></button>
+      <button id="swing-auto" class="action-button mobile-swing" data-label="SWING" title="Swing at the nearest vehicle alongside" aria-label="Swing rod at the nearest vehicle alongside"><span class="action-label">SWING</span></button>
+      <button id="horn" class="action-button horn-button" data-label="HORN" title="Ask traffic ahead to yield (H)" aria-label="Sound horn to ask traffic to yield"><span class="action-label">HORN</span><kbd>H</kbd></button>
+    </div>
+    <div class="race-stats"><div class="position-stat"><span class="stat-label">POSITION</span><strong><span id="position">4</span><small>/4</small></strong></div><div class="time-stat"><span class="stat-label">RACE TIME</span><strong id="time">00:00.00</strong></div></div>
+    <div class="checkpoint"><span id="checkpoint-number">01 / 04</span><strong id="checkpoint-name">Bellandur flyover</strong><div class="race-progress"><i id="race-progress"></i></div><small id="remaining">4.8 km to Marathahalli</small><span id="road-warning" class="road-warning" hidden>⚠ UNEVEN ROAD</span></div>
+    <div class="drive-status"><div class="speed"><strong id="speed">0</strong><span>KMPH</span></div><div class="gear"><span>GEAR</span><strong id="gear">N</strong></div><div class="meters"><div><span>BOOST <b>SPACE</b></span><div class="meter-track"><i id="boost-meter"></i></div></div><div class="points-meter"><span>POINTS</span><strong id="points">5,000</strong><small id="points-change" role="status" aria-live="polite"></small></div></div></div>
+    <div id="race-toast" class="race-toast" aria-live="polite"></div>
+    <button id="unstick" class="unstick-button" hidden>UNSTICK CAR <small>Move back into a clear space</small></button>
+    <button id="auto" class="auto-button" aria-pressed="false">AUTO THROTTLE OFF</button>
+  </div>
+  <div id="countdown" class="countdown" hidden aria-live="assertive"></div>
+  <div id="touch-controls" class="touch-controls" hidden><div class="steer-controls"><button data-control="left" aria-label="Steer left">‹</button><button data-control="right" aria-label="Steer right">›</button></div><div class="pedal-controls"><button data-control="brake" class="brake-control" aria-label="Brake">BRAKE</button><button data-control="boost" class="boost-control" aria-label="Boost">BOOST<br/><span>↑↑</span></button></div></div>
+  <div id="impact" class="impact" aria-hidden="true"></div>
+  <div id="pause-screen" class="overlay" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="pause-title"><span class="eyebrow">TAKE A BREATHER</span><h2 id="pause-title">Race paused.</h2><p>That gap will still be there.</p><button id="resume" class="primary-button">BACK TO THE ROAD <span>→</span></button><label class="graphics-setting" for="graphics-quality">Graphics<select id="graphics-quality"><option value="auto">Automatic</option><option value="smooth">Smoother · 30 FPS</option></select></label><button id="restart-pause" class="secondary-button">Restart race</button><div class="modal-controls">WASD / arrows · drive<br/>Space · boost &nbsp; H · yield horn<br/>Q / E · swing left / right (3s cooldown)<br/>P · pause &nbsp; R · restart<br/>M · driving sounds &nbsp; N · music<br/><a href="./credits.html" target="_blank" rel="noopener">Audio &amp; route credits ↗</a></div></section></div>
+  <div id="finish-screen" class="overlay" hidden><section class="modal finish-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="finish-title">
+    <div class="finish-heading"><span id="finish-eyebrow" class="eyebrow">MARATHAHALLI REACHED</span><span class="finish-rank" id="finish-rank">P1</span></div>
+    <h2 id="finish-title">You made it.</h2>
+    <div class="finish-points"><strong id="finish-points">5,000</strong><span>POINTS</span></div>
+    <div class="finish-stats"><div><span>RACE TIME</span><strong id="finish-time">00:00.00</strong></div><div><span>TOP SPEED</span><strong id="finish-speed">0 KMPH</strong></div><div><span>COLLISIONS</span><strong id="finish-collisions">0</strong></div></div>
+    <dl class="score-breakdown"><div><dt>Completed the corridor</dt><dd>+5,000</dd></div><div><dt>Time bonus</dt><dd id="finish-bonus">+0</dd></div><div><dt id="collision-summary">Vehicle / barrier contacts</dt><dd id="finish-contact-cost">−0</dd></div><div><dt id="pothole-summary">Potholes hit</dt><dd id="finish-pothole-cost">−0</dd></div></dl>
+    <p id="finish-road" class="road-summary">0 potholes avoided · 0 hit</p>
+    <form id="score-form" class="score-form">
+      <label for="nickname">Your name on the global leaderboard</label>
+      <div class="nickname-row"><input id="nickname" name="nickname" type="text" autocomplete="nickname" enterkeyhint="done" minlength="2" maxlength="40" placeholder="Enter a nickname" required aria-describedby="guest-note save-status"><button id="save-score" class="primary-button" type="submit" disabled>SAVE SCORE</button></div>
+      <small id="guest-note">No sign-up needed. Your nickname is public; this browser remembers your guest profile.</small>
+      <p id="save-status" role="status" aria-live="polite">Checking your completed run…</p>
+    </form>
+    <button id="leaderboard-finish" class="secondary-button">View global leaderboard</button>
+    <button id="restart" class="primary-button">RACE AGAIN <span>↗</span></button><button id="back-menu" class="secondary-button">Back to starting grid</button>
+  </section></div>
+  <dialog id="leaderboard-dialog" class="leaderboard-dialog" aria-labelledby="leaderboard-title">
+    <div class="board-heading"><div><span class="eyebrow">BELLANDUR → MARATHAHALLI</span><h2 id="leaderboard-title">Global leaderboard</h2></div><button id="board-close" class="icon-button" aria-label="Close leaderboard">✕</button></div>
+    <div class="board-tabs" role="group" aria-label="Leaderboard period"><button data-period="all" aria-pressed="true">All time</button><button data-period="week" aria-pressed="false">This week</button></div>
+    <p id="board-period-note" class="board-note">All-time bests · Arcade season</p>
+    <p id="your-best" class="your-best" hidden></p><p id="board-status" class="board-note" role="status" aria-live="polite">Loading the leaderboard…</p>
+    <div class="board-scroll"><table id="board-table" hidden><caption class="sr-only">Best score per guest profile, ordered by points and then finish time</caption><thead><tr><th scope="col">Rank</th><th scope="col">Racer</th><th scope="col">Points</th><th scope="col">Time</th></tr></thead><tbody id="board-rows"></tbody></table></div>
+    <nav id="board-pagination" class="board-pagination" aria-label="Leaderboard pages" hidden><button id="board-prev" type="button" aria-controls="board-table" disabled>Previous</button><span id="board-page" class="board-note"></span><button id="board-next" type="button" aria-controls="board-table" disabled>Next</button></nav>
+    <button id="board-retry" class="secondary-button" hidden>Retry loading</button>
+    <p class="board-note board-rules">Finish: +5,000 · Time bonus: up to +1,000<br>Contact: −150 · Heavy contact: −300 · Pothole: −75<br>One best score per guest profile. Matching names stay separate.</p>
+  </dialog>
+  <div id="error-screen" class="overlay" hidden><section class="modal"><span class="eyebrow">A SMALL ROADBLOCK</span><h2>3D is unavailable.</h2><p id="error-message">This game needs WebGL. Try opening it in Safari, Chrome, or another browser with hardware acceleration enabled.</p><button class="primary-button" onclick="location.reload()">TRY AGAIN</button></section></div>
+  <footer class="credit">ROUTE INSPIRED BY <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OPENSTREETMAP CONTRIBUTORS</a><span> · </span><a href="./credits.html" target="_blank" rel="noopener">AUDIO &amp; ROUTE CREDITS</a></footer>
+  <script type="module" src="./game.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594ba0acdce58e2',t:'MTc5NDQ3ODAxNQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594ba0acdce58e2',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

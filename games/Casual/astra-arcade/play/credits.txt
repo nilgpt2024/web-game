@@ -1,0 +1,37 @@
+ASTRA ARCADE — ORIGINAL GAMES
+
+Golden Hour, Whiteout, Null Vector, Last Signal, Astra and Ion Rally.
+Original games and adaptations created with Antonio and Codex.
+Original retro cover illustrations generated with OpenAI image generation.
+Covers are illustrated box art, not screenshots.
+
+MUSIC
+Arcade menu — One More Credit (Suno v5.5, instrumental, generated September 6, 2026).
+Source: https://suno.com/song/1c605db4-37a7-4bab-b13a-14280375528d
+Golden Hour — Suno soundtrack
+Whiteout — Blue Velocity
+Null Vector — Null Pressure
+Last Signal — Last Signal Rising
+Astra — Rooms That Remember
+Generated with the owner's Suno account; runtime sound effects remain original.
+Ion Rally uses synthesized game audio.
+
+ART AND DATA
+Golden Hour vegetation textures: CC0 (see licenses/pine-CC0.txt).
+Astra stone/concrete textures: Poly Haven CC0; source provenance in game materials.
+Ion Rally athletes: adapted MakeHuman CC0 data and original ION uniforms/materials.
+No MakeHuman application code is distributed. Artwork and characters are original
+adaptations, not affiliated with Windjammers or another videogame franchise.
+
+ION RALLY motion data: CMU 09_01 and124_09, integrated into the game; not offered
+as an independent motion-data product.
+The data used in this project was obtained from mocap.cs.cmu.edu. The database was
+created with funding from NSF EIA-0196217.
+
+SOFTWARE
+Three.js, Meshoptimizer and React: MIT. See bundled notices under /licenses/.
+Rapier: Apache2.0. Barlow and Barlow Condensed: SIL Open Font License.
+
+Arcade-room environment: original AI-generated artwork, built-in ImageGen.
+Photoreal arcade cabinet: original AI-generated artwork, built-in ImageGen.
+Layered cabinet and moving controls: original ImageGen artwork; browser presentation masks provide cutouts without altering the source PNGs.

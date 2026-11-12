@@ -1,0 +1,20 @@
+Vesper shallow-water footsteps
+
+Five mastered variations, distributed unchanged as audio/water/step-0..4.ogg.
+Selected from "Footsteps on different surfaces" by congusbongus (C-Dogs SDL):
+https://opengameart.org/content/footsteps-on-different-surfaces
+Compilation license: Creative Commons Attribution 3.0
+https://creativecommons.org/licenses/by/3.0/
+
+Water recording: "Water Footsteps" by EminYILDIRIM
+https://freesound.org/people/EminYILDIRIM/sounds/608663/
+Source page license: Creative Commons Attribution 4.0
+https://creativecommons.org/licenses/by/4.0/
+
+Foot contact: "footstep-concrete.wav" by swuing
+https://freesound.org/people/swuing/sounds/38873/
+Pack credits identify Creative Commons Attribution 3.0.
+
+Mastering and variation edits were made by the pack author. Vesper plays the
+five files with bounded gain/pitch variation and no synthetic water overlay.
+Original pack credits are preserved above. No endorsement is implied.

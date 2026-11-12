@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta name="robots" content="noindex,nofollow">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0c1a">
+  <title>FANG · STARLIGHT RUN</title>
+  <meta name="description" content="FANGと星のかけらを集める2D横スクロールアクション。全3ステージ。キーボードでもスマホでも遊べます。">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="FANG STARLIGHT RUN ホーム"><span class="brand-mark">✦</span><span class="brand-word">FANG<span class="brand-sub">STARLIGHT RUN</span></span></a>
+      <div class="top-actions">
+        <button class="tool-button" id="soundButton" aria-label="音をオンにする" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path class="sound-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/><path class="sound-cross" d="m16 9 6 6m0-6-6 6"/></svg><span id="soundLabel">音 OFF</span></button>
+        <button class="tool-button" id="fullscreenButton" aria-label="全画面に切り替え"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>全画面</span></button>
+      </div>
+    </header>
+    <main>
+      <section class="game-frame" id="gameFrame" aria-label="FANG STARLIGHT RUN ゲーム">
+        <canvas id="game" width="1280" height="720" tabindex="0" aria-label="横スクロールアクションゲーム。矢印キーで移動、スペースでジャンプ。もう一度押すと2段ジャンプ。シフトでダッシュ。"></canvas>
+        <div class="game-vignette"></div>
+        <div class="hud" id="hud">
+          <div class="stage-info"><span class="eyebrow" id="worldNumber">WORLD 01 / 03</span><strong id="worldName">月あかりの浮遊島</strong></div>
+          <div class="hud-counters">
+            <div class="collectible coin-counter" aria-label="コイン"><span class="coin-symbol">✦</span><span id="coinCount">00</span></div>
+            <div class="collectible gem-counter" aria-label="星のかけら"><span class="gem-symbol">◆</span><span><b id="gemCount">0</b><span class="counter-total"> / 3</span></span></div>
+            <div class="hearts" id="hearts" aria-label="ライフ3"><span>♥</span><span>♥</span><span>♥</span></div>
+            <button id="pauseButton" class="pause-button" aria-label="一時停止" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+          </div>
+        </div>
+        <div class="start-screen" id="startScreen">
+          <div class="start-copy">
+            <div class="adventure-label"><span></span> A LITTLE WOLF. A BIG ADVENTURE.</div>
+            <h1>FANG<span>STARLIGHT RUN</span></h1>
+            <p>星のかけらを集めて、<br>月あかりの世界を駆け抜けよう。</p>
+            <button id="startButton" class="primary-button" disabled><span id="startLabel">冒険の準備中…</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+            <span class="start-hint">全3ステージ <i>·</i> 2段ジャンプで、もっと遠くへ</span>
+          </div>
+          <div class="start-character"><div class="character-glow"></div><img id="heroArt" src="assets/hero.png" alt="青い瞳と白いジャケットのオオカミ、FANG"><span class="character-note">一緒なら、なんでもできる！</span></div>
+          <div class="start-bottom"><span>01 — MOONLIT ISLANDS</span><span class="start-bottom-right">COLLECT. JUMP. EXPLORE.</span></div>
+        </div>
+        <div class="modal-scrim hidden" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <div class="game-modal"><span class="modal-eyebrow" id="modalEyebrow">TAKE A BREATHER</span><div id="modalIcon" class="modal-icon">Ⅱ</div><h2 id="modalTitle">ひとやすみ</h2><p id="modalText">冒険の続きは、いつでも。</p><div id="resultStats" class="result-stats hidden"></div><button id="modalPrimary" class="primary-button">冒険に戻る</button><button id="modalSecondary" class="secondary-button">このステージをやり直す</button></div>
+        </div>
+        <div id="toast" class="game-toast" role="status" aria-live="polite"></div>
+        <div class="progress-track"><div id="progressFill"></div></div>
+      </section>
+      <div class="touch-controls" id="touchControls" aria-label="タッチ操作">
+        <div class="move-controls"><button data-input="left" class="touch-button direction" aria-label="左へ移動">◀</button><button data-input="right" class="touch-button direction" aria-label="右へ移動">▶</button></div>
+        <span class="touch-tip">もう一度押すと<br>2段ジャンプ</span>
+        <div class="action-controls"><button data-input="dash" class="touch-button dash" aria-label="押している間ダッシュ">DASH</button><button data-input="jump" class="touch-button jump" aria-label="ジャンプ">JUMP<span>↑</span></button></div>
+      </div>
+      <footer class="game-footer">
+        <div class="keyboard-guide"><span><kbd>←</kbd><kbd>→</kbd> 移動</span><span><kbd>SPACE</kbd> ジャンプ <small>×2で2段</small></span><span><kbd>SHIFT</kbd> ダッシュ</span></div>
+        <span class="footer-mission"><span>✦</span> コインを集めて、光のゲートへ。</span>
+      </footer>
+      <div class="mobile-note">スマホは横向きがおすすめ。敵は上から踏むと倒せるよ。</div>
+      <div id="loadError" class="load-error hidden" role="alert">画像を読み込めませんでした。通信を確認して再読み込みしてください。<button onclick="location.reload()">再読み込み</button></div>
+    </main>
+    <div class="page-bottom"><span>FANG'S ADVENTURE</span><span>小さな一歩が、大きな冒険に。</span><span>✦</span></div>
+  </div>
+  <script type="module" src="game.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594ba522a43eaa1',t:'MTc5NDQ3ODAyNg=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594ba522a43eaa1',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

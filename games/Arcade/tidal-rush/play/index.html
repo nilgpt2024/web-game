@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+<meta name="robots" content="noindex,nofollow">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#079dc8" />
+    <meta name="description" content="Tidal Rush: Paradise GP — an entirely procedural Three.js tropical kart racer." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Tidal Rush" />
+    <meta property="og:title" content="Tidal Rush — Paradise Grand Prix" />
+    <meta property="og:description" content="Race eight rivals across Sunbreak Cove. Drift through tropical corners, grab power-ups, and own the tide." />
+    <meta property="og:image" content="https://tidal-rush-paradise-gp.chatgpt.site/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tidal Rush: Paradise Grand Prix tropical kart racing game" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Tidal Rush — Paradise Grand Prix" />
+    <meta name="twitter:description" content="A little salt. A lot of speed. Race the complete tropical Paradise Grand Prix." />
+    <meta name="twitter:image" content="https://tidal-rush-paradise-gp.chatgpt.site/og.png" />
+    <title>TIDAL RUSH — Paradise GP</title>
+    <script type="module" crossorigin src="/games/Arcade/tidal-rush/play/assets/index-2jdH-c9V.js"></script>
+    <link rel="modulepreload" crossorigin href="/games/Arcade/tidal-rush/play/assets/three-core-DhTiTlGu.js">
+    <link rel="modulepreload" crossorigin href="/games/Arcade/tidal-rush/play/assets/three-effects-hZwAHoWs.js">
+    <link rel="stylesheet" crossorigin href="/games/Arcade/tidal-rush/play/assets/index-BKeKpLS2.css">
+  </head>
+  <body>
+    <main id="game" aria-label="Tidal Rush tropical kart racing game">
+      <div id="scene"></div>
+
+      <section id="intro" class="screen screen--intro" aria-label="Start race">
+        <div class="intro-copy">
+          <p class="eyebrow">SALTWATER CIRCUIT · ROUND 01</p>
+          <div class="logo" aria-label="Tidal Rush">
+            <span class="logo__tidal">TIDAL</span>
+            <span class="logo__rush">RUSH<span class="logo__spark">✦</span></span>
+          </div>
+          <p class="subtitle">PARADISE GRAND PRIX</p>
+
+          <button id="start-button" class="start-button" type="button">
+            <span>START YOUR ENGINES</span><span class="button-arrow">→</span>
+          </button>
+
+          <div class="controls-overview">
+            <div><span class="keycap">W</span><span class="keycap">A</span><span class="keycap">S</span><span class="keycap">D</span><span>DRIVE</span></div>
+            <div><span class="keycap keycap--wide">SPACE</span><span>DRIFT</span></div>
+            <div><span class="keycap">E</span><span>ITEM</span></div>
+          </div>
+        </div>
+
+        <div class="course-card">
+          <div class="course-card__number">01</div>
+          <div>
+            <p class="course-card__label">TODAY'S COURSE</p>
+            <p class="course-card__name">SUNBREAK COVE</p>
+            <div class="course-card__difficulty"><i></i><i></i><i></i><i></i><i></i><span>3 LAPS · 8 RACERS</span></div>
+          </div>
+        </div>
+
+        <p class="intro-footer">A LITTLE SALT. A LOT OF SPEED.</p>
+      </section>
+
+      <div id="hud" class="hud is-hidden" aria-label="Race information">
+        <div class="hud-top">
+          <div class="position-card"><span id="place">8</span><span id="place-suffix">TH</span><span class="position-card__of">/ 8</span></div>
+          <div class="race-status"><span>PARADISE GP</span><strong id="race-time">00:00.000</strong></div>
+          <div class="lap-card"><span>LAP</span><strong><span id="lap">1</span><span>/3</span></strong></div>
+        </div>
+
+        <div class="item-slot" id="item-slot"><div class="item-slot__inner"><span id="item-icon">?</span></div><span id="item-label">EMPTY</span></div>
+
+        <div class="race-toast" id="race-toast"></div>
+        <div class="countdown" id="countdown"></div>
+        <div class="drift-feedback" id="drift-feedback"></div>
+
+        <div class="hud-bottom">
+          <div class="minimap-shell"><canvas id="minimap" width="220" height="220"></canvas><span>SUNBREAK COVE</span></div>
+
+          <div class="speedometer">
+            <div class="speedometer__number"><span id="speed">000</span><small>KM/H</small></div>
+            <div class="speedometer__meter"><i id="speed-fill"></i></div>
+            <div class="boost-meter"><span>DRIFT</span><div><i id="boost-fill"></i></div></div>
+          </div>
+
+          <div class="mango-counter"><span>✹</span><strong id="mango-count">00</strong><small>/ 10</small></div>
+        </div>
+      </div>
+
+      <div id="touch-controls" class="touch-controls is-hidden" aria-label="Touch controls">
+        <div class="touch-steering"><button type="button" data-control="left">◀</button><button type="button" data-control="right">▶</button></div>
+        <div class="touch-actions"><button type="button" data-control="drift">DRIFT</button><button type="button" data-control="item">ITEM</button><button type="button" class="touch-throttle" data-control="accelerate">GO</button></div>
+      </div>
+
+      <section id="finish" class="screen screen--finish is-hidden" aria-label="Race results">
+        <p class="eyebrow">SUNBREAK COVE · FINAL RESULT</p>
+        <div class="finish-place"><strong id="finish-position">1</strong><span id="finish-suffix">ST</span></div>
+        <h2 id="finish-title">COVE CHAMPION!</h2>
+        <div class="finish-stats"><div><span>TOTAL TIME</span><strong id="finish-time">00:00.000</strong></div><div><span>MANGOES</span><strong id="finish-mangoes">00</strong></div><div><span>BEST LAP</span><strong id="finish-best-lap">00:00.000</strong></div></div>
+        <button id="restart-button" class="start-button" type="button"><span>ONE MORE RUN</span><span class="button-arrow">↻</span></button>
+      </section>
+
+      <div id="pause-overlay" class="pause-overlay is-hidden"><strong>PAUSED</strong><span>PRESS P OR ESC TO GET BACK OUT THERE</span></div>
+      <div id="flash" class="flash"></div>
+    </main>
+  <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a594b4822e46ff3e',t:'MTc5NDQ3Nzc4OA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a594b4822e46ff3e',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

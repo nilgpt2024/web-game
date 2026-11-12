@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "weapons": {
+    "ak": {
+      "src": "/games/Action/anime-rift/play/2d/roster/devin/weapons/ak.webp",
+      "width": 808,
+      "height": 286,
+      "grip": {
+        "x": 249,
+        "y": 148
+      },
+      "supportGrip": {
+        "x": 515,
+        "y": 93
+      },
+      "muzzle": {
+        "x": 805,
+        "y": 62
+      },
+      "worldWidth": 88,
+      "pointSpace": "native-asset-pixels",
+      "sourceBounds": [
+        19,
+        132,
+        827,
+        418
+      ]
+    },
+    "bat": {
+      "src": "/games/Action/anime-rift/play/2d/roster/devin/weapons/bat.webp",
+      "width": 668,
+      "height": 93,
+      "grip": {
+        "x": 95,
+        "y": 50
+      },
+      "tip": {
+        "x": 660,
+        "y": 45
+      },
+      "worldWidth": 66,
+      "pointSpace": "native-asset-pixels",
+      "sourceBounds": [
+        846,
+        200,
+        1514,
+        293
+      ]
+    },
+    "knuckles": {
+      "src": "/games/Action/anime-rift/play/2d/roster/devin/weapons/knuckles.webp",
+      "width": 651,
+      "height": 364,
+      "grip": {
+        "x": 326,
+        "y": 178
+      },
+      "worldWidth": 13,
+      "pointSpace": "native-asset-pixels",
+      "sourceBounds": [
+        90,
+        534,
+        741,
+        898
+      ]
+    },
+    "grenade": {
+      "src": "/games/Action/anime-rift/play/2d/roster/devin/weapons/grenade.webp",
+      "width": 356,
+      "height": 462,
+      "grip": {
+        "x": 203,
+        "y": 252
+      },
+      "worldWidth": 16,
+      "pointSpace": "native-asset-pixels",
+      "sourceBounds": [
+        988,
+        471,
+        1344,
+        933
+      ]
+    }
+  },
+  "matting": {
+    "width": 1536,
+    "height": 1024,
+    "mode": "magenta",
+    "dropped": 1228525,
+    "unmixed": 12089
+  }
+}

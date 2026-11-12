@@ -60,6 +60,11 @@
   // game.js 每个回合都实时读 config.BOT_PLAY_DELAY，改了立即生效。
   var paceDefault = null;
   var AUTOPILOT_PACE = 2300;
+  // 兜底节奏：万一 CDN 边缘节点还缓存着旧版 game.js（没有 __mjPace
+  // 门控），上游 PLAY_INTERVAL=100 会让三家 AI 半秒打完一圈，报牌根本
+  // 来不及念。手动模式把它抬到一张报牌的长度；新版 game.js 由语音闸
+  // 精确控速，会忽略这个值。代玩仍走自己的 2.3s。
+  var MANUAL_PACE_FALLBACK = 1400;
 
   function applyAutopilot() {
     var cfg = cfgBridge();
@@ -85,7 +90,8 @@
         cfg.set({
           BOT_PLAY: state.autopilot,
           PAUSE_ON_BLUR: false,
-          BOT_PLAY_DELAY: state.autopilot ? AUTOPILOT_PACE : paceDefault
+          BOT_PLAY_DELAY: state.autopilot ? AUTOPILOT_PACE : paceDefault,
+          PLAY_INTERVAL: state.autopilot ? 100 : MANUAL_PACE_FALLBACK
         });
         if (!state.autopilot && botHooked) {
           // 交还控制权：摘掉访问器，恢复普通属性（config.set 会跳过
@@ -334,6 +340,12 @@
   var packFallback = 0;
   var lastFallback = "";
 
+  // 长辈/移动端节奏：报牌串行播放，绝不「后一张掐掉前一张」。
+  // voicePending = 已入队但还没播完的段数，game.js 靠它决定何时
+  // 打下一张牌；voiceChain 是播放链，showtime.js 靠它排队下一条报牌。
+  var voiceChain = Promise.resolve();
+  var voicePending = 0;
+
   function packInfo() {
     var p = window.MJ_VOICE_PACK;
     return p && p.map ? p : null;
@@ -370,6 +382,54 @@
     }
   }
 
+  // 播完一段才播下一段：返回 Promise，等 ended / error / 超时。
+  // 超时按音频真实时长算，覆盖移动端首次按需加载的等待；万一浏览器
+  // 拒绝自动播放或文件加载失败，也不会把整局游戏永久卡住。
+  function playOne(a) {
+    return new Promise(function (resolve) {
+      var done = false, timer = 0, armed = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        a.removeEventListener("ended", finish);
+        a.removeEventListener("error", finish);
+        voicePending = Math.max(0, voicePending - 1);
+        resolve();
+      }
+      function arm() {
+        if (done || armed) return;
+        armed = true;
+        var d = a.duration;
+        var ms = (d && isFinite(d) && d > 0.1)
+          ? Math.min(2600, Math.round(d * 1000) + 400) : 2400;
+        timer = setTimeout(function () {
+          try { a.pause(); } catch (e) {} // 超时就掐掉，避免和下一段叠音
+          finish();
+        }, ms);
+        a.addEventListener("ended", finish);
+        a.addEventListener("error", finish);
+        try { a.currentTime = 0; } catch (e) {}
+        a.volume = Math.min(1, state.volume * 0.95 + 0.05);
+        packAudio = a;
+        try {
+          var pr = a.play();
+          // 自动播放策略拒绝时静默降级，不抛 unhandledrejection
+          if (pr && typeof pr.catch === "function") pr.catch(finish);
+        } catch (e) { finish(); }
+      }
+      // 还没拿到元数据时先等一小会儿，才能按真实时长计时（移动端
+      // 首次 new Audio() 会现连现下，直接 play() 常常来不及出声）。
+      if (a.readyState >= 1) arm();
+      else {
+        var wait = setTimeout(arm, 700);
+        a.addEventListener("loadedmetadata", function () { clearTimeout(wait); arm(); }, { once: true });
+        a.addEventListener("error", function () { clearTimeout(wait); arm(); }, { once: true });
+        try { a.load(); } catch (e) {}
+      }
+    });
+  }
+
   function playFile(f) {
     try {
       var a = packCache[f];
@@ -378,18 +438,28 @@
         a.preload = "auto";
         packCache[f] = a;
       }
-      if (packAudio && packAudio !== a) {
-        try { packAudio.pause(); } catch (e) {}
-      }
-      try { a.currentTime = 0; } catch (e) {}
-      a.volume = Math.min(1, state.volume * 0.95 + 0.05);
-      packAudio = a;
-      var pr = a.play();
-      // 自动播放策略拒绝时静默降级，不抛 unhandledrejection
-      if (pr && typeof pr.catch === "function") pr.catch(function () {});
+      voicePending++;
+      voiceChain = voiceChain.then(function () { return playOne(a); });
       packPlayed++;
       return true;
     } catch (e) { return false; }
+  }
+
+  // 出牌节奏闸：game.js 每打一张牌前调用，等已入队的报牌全部念完。
+  // maxMs 是硬上限——音频被浏览器拦截 / 静音 / 加载异常时游戏照常推进。
+  function settleVoice(maxMs, minMs) {
+    var t0 = Date.now();
+    var floor = Math.max(0, minMs || 0);
+    return new Promise(function (resolve) {
+      (function check() {
+        var elapsed = Date.now() - t0;
+        if (elapsed >= maxMs || (elapsed >= floor && voicePending <= 0)) {
+          resolve(elapsed);
+          return;
+        }
+        setTimeout(check, 40);
+      })();
+    });
   }
 
   function playPack(text) {
@@ -621,6 +691,9 @@
     if ("speechSynthesis" in window) {
       try { window.speechSynthesis.cancel(); } catch (e) {}
     }
+    // 静音 / 关报牌：立刻丢弃还没开口的语音，节奏闸也要能放行
+    voiceChain = Promise.resolve();
+    voicePending = 0;
   }
 
   function classify(file) {
@@ -666,6 +739,15 @@
     }
   };
   window.__mjEnhance = debug;
+
+  // 供 game.js（出牌节奏）与 showtime.js（报牌队列）共用的节拍接口。
+  // settle: 等当前报牌念完，最多等 maxMs；quiet: 当前播放链，用于排队；
+  // pending: 还没播完的段数，供验证与调试。
+  window.__mjPace = {
+    settle: settleVoice,
+    quiet: function () { return voiceChain; },
+    pending: function () { return voicePending; }
+  };
 
   function onClip(kind, file) {
     if (debug.clips.length > 200) debug.clips.shift();
@@ -1290,6 +1372,9 @@
       if (cfg) {
         try { cfg.set({ PAUSE_ON_BLUR: false }); } catch (e) {}
         try { cfg.PAUSE_ON_BLUR = false; } catch (e) {}
+        // config 是 ES module 异步挂载的；拿到后补一次节奏配置，
+        // 保证手动模式的 PLAY_INTERVAL 兜底一定生效。
+        try { applyAutopilot(); } catch (e) {}
       }
       if ((!cfg || cfg.PAUSE_ON_BLUR !== false) && ++tries < 12) {
         setTimeout(forceConfig, 400);

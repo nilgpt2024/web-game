@@ -423,6 +423,15 @@ class Game {
     // 个 play），导致「该谁出牌」的提示总是慢一步（用户反馈）。
     if (config.BOT_PLAY) {
       await new Promise(resolve => setTimeout(resolve, config.BOT_PLAY_DELAY));
+    } else {
+      // 长辈 / 移动端：等上一张牌的中文报牌念完，再打这一张。
+      // 回合指示牌在本轮 activate() 时已经切到下一位（提示不延迟），
+      // 这里只让「出牌动作」跟着语音走，避免一圈打完了还没听见报牌。
+      // 2200ms 硬上限：音频被浏览器拦截 / 静音 / 加载异常时照常推进。
+      var pace = window.__mjPace;
+      if (pace && typeof pace.settle === "function") {
+        await pace.settle(2200, 900);
+      }
     }
 
     do {
@@ -484,7 +493,9 @@ class Game {
       this.play();
       // 用户要求「出牌后立即提示下一位」：这里不留呼吸拍，30ms 仅够
       // disable→activate 两次 DOM 变更不落在同一帧
-    }, config.BOT_PLAY ? 30 : this.playDelay);
+      // 有语音闸时节奏由 settle() 精确控制；没有（旧 CDN 缓存的
+      // immersive.js）才退回 PLAY_INTERVAL 的 1400ms 兜底节奏。
+    }, (config.BOT_PLAY || !!window.__mjPace) ? 30 : this.playDelay);
   }
 
   /**
@@ -678,7 +689,8 @@ class Game {
     //console.log(`${claim.p} wants ${discard.getTileFace()} for ${claim.claimtype}`);
     player.disable();
     // 代玩：等待已挪进 play() 的出牌之前；切换间隔压到 30ms，出牌后立即提示下一位
-    setTimeout(() => this.play(claim), config.BOT_PLAY ? 30 : this.playDelay);
+    setTimeout(() => this.play(claim),
+      (config.BOT_PLAY || !!window.__mjPace) ? 30 : this.playDelay);
   }
 }
 

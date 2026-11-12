@@ -371,11 +371,12 @@
     // 全桌报牌：上游只给真人玩家的 UI 播落牌音效（AI 出牌静默），
     // 所以逐张念牌改为监听弃牌堆 DOM——任何一家打出牌都会插入
     // <game-tile class="discard" from="玩家号">，在这里统一报牌。
-    // 注意：AI 出牌间隔只有 ~100ms（上游 PLAY_INTERVAL=100），按时间节流
-    // 会把 AI 的牌全部吞掉，逐张打断念又是碎片噪声。所以用小队列：
-    // 弃牌元素同步入队（只保留最近 3 张防积压），每 ~1.05s 播一条，
-    // 播报时直接从元素读牌名/出牌人（元素一直在弃牌堆里，无竞态）。
-    // AI 连出时形成连续报牌流，四家轮转都能被念到。
+    // 弃牌元素同步入队，播报时直接从元素读牌名/出牌人（元素一直在
+    // 弃牌堆里，无竞态）。关键是**不按固定定时抢播**：牌名音频实测
+    // 1.1~1.4s，原先每 1.05s 塞下一条会把上一句掐成碎片，四家一圈
+    // 打完只听得见半句。现在跟着 immersive 的语音链走，等这一句
+    // 真正 ended 再念下一句；音频不可用时 quiet() 立即 resolve，
+    // 由 140ms 呼吸间隔兜底。
     var voiceQueue = [];
     var queueBusy = false;
     function drainVoiceQueue() {
@@ -385,7 +386,13 @@
       var pid = el.getAttribute("from") || "0";
       var name = tileNameFrom(el);
       if (name) sayTile(pid, name, { rate: 1.16, pitch: 1.0, interrupt: true });
-      setTimeout(drainVoiceQueue, 1050); // 一条牌名 ~0.9s + 呼吸间隔
+      var P = window.__mjPace;
+      var wait = P && typeof P.quiet === "function" ? P.quiet() : null;
+      if (wait && typeof wait.then === "function") {
+        wait.then(function () { setTimeout(drainVoiceQueue, 140); });
+      } else {
+        setTimeout(drainVoiceQueue, 1050); // 老版增强层：保留原节奏
+      }
     }
     new MutationObserver(function (records) {
       for (var i = 0; i < records.length; i++) {
@@ -397,7 +404,9 @@
           var tail = voiceQueue[voiceQueue.length - 1];
           if (tail === n) continue; // 同一张牌的重复触发
           voiceQueue.push(n);
-          if (voiceQueue.length > 3) voiceQueue.shift();
+          // 节奏已由语音闸控速，正常不会积压；放宽上限，别再把
+          // 玩家自己打的那张牌挤出队列（原上限 3 会丢最老一张）。
+          if (voiceQueue.length > 8) voiceQueue.shift();
           if (!queueBusy) drainVoiceQueue();
         }
       }

@@ -80,11 +80,11 @@
             set: function (v) { backing = v; }
           });
         }
-        // 代玩时一并关掉「失焦暂停」：用户暂时离开（切标签页/最小化）
-        // 游戏也要继续打，否则 AI 会被暂停等回来
+        // 「失焦暂停」已整体移除，手动/代玩两种模式都恒关：
+        // 牌桌失焦（点工具栏、设置、弹窗、切标签页）不再冻结对局。
         cfg.set({
           BOT_PLAY: state.autopilot,
-          PAUSE_ON_BLUR: !state.autopilot,
+          PAUSE_ON_BLUR: false,
           BOT_PLAY_DELAY: state.autopilot ? AUTOPILOT_PACE : paceDefault
         });
         if (!state.autopilot && botHooked) {
@@ -1270,8 +1270,42 @@
     updateTurnMarker();
   }
 
+  // ----------------------------------------------------------------
+  // 彻底禁用「失焦暂停」的运行时兜底。
+  // 上游 config.js / client-ui-master.js 是无版本参数的 ES module，
+  // 浏览器或 CDN 可能仍缓存旧版；这里在带版本号的 immersive.js 里
+  // 再加两层拦截，保证线上旧缓存也不会再出现 "GAME PAUSED"。
+  // ----------------------------------------------------------------
+  function disablePauseOnBlur() {
+    // 1) 配置层：bridge 由 type=module 异步挂载，重试直到拿到为止
+    var tries = 0;
+    var forceConfig = function () {
+      var cfg = cfgBridge();
+      if (cfg) {
+        try { cfg.set({ PAUSE_ON_BLUR: false }); } catch (e) {}
+        try { cfg.PAUSE_ON_BLUR = false; } catch (e) {}
+      }
+      if ((!cfg || cfg.PAUSE_ON_BLUR !== false) && ++tries < 12) {
+        setTimeout(forceConfig, 400);
+      }
+    };
+    forceConfig();
+
+    // 2) DOM 层：即便旧上游已给 .board 注册 blur→game.pause()，
+    //    捕获阶段先拦掉，其后所有监听器都收不到这个事件。
+    //    本函数在开局前执行，注册顺序一定早于 ClientUIMaster。
+    var board = document.querySelector(".board");
+    if (board && !board.__mjNoPauseBlur) {
+      board.__mjNoPauseBlur = true;
+      board.addEventListener("blur", function (evt) {
+        evt.stopImmediatePropagation();
+      }, true);
+    }
+  }
+
   // 开始弹窗注入玩法选择 + 应用记忆中的代玩状态
   function bootExtras() {
+    disablePauseOnBlur();
     applyAutopilot();
     guardAutopilotOnStart();
     try { panelObserver.observe(document.body, { childList: true, subtree: true }); } catch (e) {}

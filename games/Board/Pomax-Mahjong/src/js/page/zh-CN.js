@@ -74,7 +74,6 @@
     "💬 Show bot play suggestions": "💬 显示电脑出牌建议",
     "🎵 Play sounds": "🎵 播放音效",
     "🟢 Start play immediately": "🟢 打开即直接开局",
-    "⏸️ Pause game unless focused": "⏸️ 窗口失焦时暂停",
     "💻 Turn on debug mode": "💻 开启调试模式",
     "❌ Pretend previous round was a draw": "❌ 假装上一局流局",
     "📃 Generate game log after play": "📃 对局后生成日志",

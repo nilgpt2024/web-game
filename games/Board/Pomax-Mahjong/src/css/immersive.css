@@ -521,3 +521,6 @@ body.mj-immersive .player.active {
   box-shadow: 0 0 0 3px rgba(255, 197, 61, .9), 0 0 20px rgba(255, 197, 61, .45);
   border-radius: 10px;
 }
+
+/* 「失焦暂停」已移除：即便上游残留 paused 类，也不再显示英文 GAME PAUSED 遮罩 */
+body.mj-immersive .discards.paused::after { display: none !important; }

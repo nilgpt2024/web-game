@@ -25,19 +25,9 @@ class ClientUIMaster {
     this.theming = document.querySelector(`.theming`);
 
     this.gameBoard = document.querySelector(`.board`);
-    if (config.PAUSE_ON_BLUR) {
-      this.gameBoard.addEventListener(`blur`, async (evt) => {
-        let resume = await this.player.game.pause();
-
-        let handleResume = () => {
-          this.gameBoard.removeEventListener(`focus`, handleResume);
-          resume();
-          this.pause_protection = true;
-        };
-
-        this.gameBoard.addEventListener(`focus`, handleResume);
-      });
-    }
+    // 「失焦即暂停」已移除：牌桌带 tabindex，点工具栏/设置/弹窗都会 blur，
+    // 对长辈是高频误触，且暂停后必须再点回牌桌才恢复，体验很差。
+    // 即使有人从 URL / localStorage 把 PAUSE_ON_BLUR 改回 true 也不再注册。
 
     this.settings.addEventListener(`click`, () => modal.pickPlaySettings());
     this.theming.addEventListener(`click`, () => modal.pickTheming());

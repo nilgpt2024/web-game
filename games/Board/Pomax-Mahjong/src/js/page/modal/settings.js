@@ -95,11 +95,6 @@ class SettingsModal {
         toggle: true,
       },
       {
-        label: `⏸️ Pause game unless focused`,
-        key: `pause_on_blur`,
-        toggle: true,
-      },
-      {
         label: `💻 Turn on debug mode`,
         key: `debug`,
         toggle: true,

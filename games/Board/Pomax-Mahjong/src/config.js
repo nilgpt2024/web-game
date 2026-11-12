@@ -27,8 +27,9 @@ const DEFAULT_CONFIG = {
   // load the page.
   PLAY_IMMEDIATELY: false,
 
-  // Do not pause games when the page loses focus
-  PAUSE_ON_BLUR: true,
+  // 长辈友好：窗口失焦暂停已彻底移除（误触率极高）。
+  // 保留键名只为兼容上游 settings 面板 / URL 参数解析，运行时恒为 false。
+  PAUSE_ON_BLUR: false,
 
   // Debugging around drawn hands requires
   // being able to force a draw
@@ -123,6 +124,9 @@ for (const [key, value] of Object.entries(currentConfig)) {
   if (value == parseFloat(value)) currentConfig[key] = parseFloat(value); // note: == rather than ===
 }
 
+// 永久关闭「失焦暂停」：无论 localStorage 还是 ?pause_on_blur=true
+// 都不能把它重新打开。误触暂停对长辈是纯负收益，且已无 UI 入口。
+currentConfig.PAUSE_ON_BLUR = false;
 
 console.log("playing with", currentConfig);
 

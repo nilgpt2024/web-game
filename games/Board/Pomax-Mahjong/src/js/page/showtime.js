@@ -22,6 +22,8 @@
   };
   // 按玩家音色念牌名（v3 语音包）；基础层未提供时降级为统一女声
   var sayTile = E.sayTile || function (pid, text, opts) { return say(text, opts); };
+  // 阜阳牌桌俚语（基础层未加载时静默跳过）
+  var chatter = E.chatter || function () {};
   var audio = E.audio;
 
   // ----------------------------------------------------------------
@@ -734,6 +736,8 @@
         // 赢家用自己的音色喊胡 / 自摸
         var wi = winInfo();
         sayFor(wi.pid, wi.zimo ? "zimo" : "hu", { priority: true });
+        // 阜阳话：自己胡了夸「过劲」，别人胡了自嘲「也熊吧」
+        chatter(wi.pid === 0 ? "win" : "lose", { cooldown: 2500 });
         if (bloom) setTimeout(function () {
           announce(pick(LINES.bloom), true, 1.1);
           setTimeout(function () { announce("这一手太漂亮了！", false, 1.04); }, 1400);

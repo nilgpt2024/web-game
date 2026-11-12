@@ -166,7 +166,8 @@ const raw = await evalJs(`JSON.stringify({
   discards: window.__paceLog.discards,
   turns: window.__paceLog.turns,
   voicePack: window.__mjEnhance ? window.__mjEnhance.voicePack() : null,
-  pending: window.__mjPace ? window.__mjPace.pending() : -1
+  pending: window.__mjPace ? window.__mjPace.pending() : -1,
+  thinks: window.__mjPace && window.__mjPace.thinks ? window.__mjPace.thinks() : []
 })`);
 const L = JSON.parse(raw);
 console.log("AUTOPLAY-ACTIONS:", JSON.stringify(actions));
@@ -176,15 +177,26 @@ for (let i = 1; i < L.discards.length; i++) gaps.push(Math.round(L.discards[i].t
 const laps = [];
 for (let i = 4; i < L.discards.length; i++) laps.push(Math.round(L.discards[i].t - L.discards[i-4].t));
 const played = L.clips.filter(c => c.ended !== null);
-const cut = L.clips.filter(c => c.pause !== null && (c.ended === null || c.pause < c.ended - 80));
+const paused = L.clips.filter(c => c.pause !== null);
+// 抢播掐断：下一句把上一句提前 pause（通常几百毫秒内），这是报牌碎片的根因。
+// 加载超时：等不到 playing、兜底主动放弃（>=1000ms），属于另一类问题，单列统计。
+const cut = paused.filter(c => (c.ended === null || c.pause < c.ended - 80) && c.pause - c.t0 < 1000);
+const stalled = paused.filter(c => c.ended === null && c.pause - c.t0 >= 1000);
 const full = played.filter(c => c.ended - c.t0 >= 800);
 const median = a => { if (!a.length) return 0; const s = [...a].sort((x,y)=>x-y); return s[Math.floor(s.length/2)]; };
 
 console.log("DISCARDS:", L.discards.length, "TURNS:", L.turns.length, "VOICE-CLIPS:", L.clips.length);
 console.log("弃牌间隔(ms):", JSON.stringify(gaps.slice(0, 16)), "median=", median(gaps));
 console.log("一圈4张耗时(ms):", JSON.stringify(laps.slice(0, 8)), "median=", median(laps));
-console.log("语音播完:", played.length, "完整>=800ms:", full.length, "被打断:", cut.length);
+console.log("语音播完:", played.length, "完整>=800ms:", full.length, "抢播打断:", cut.length, "加载超时放弃:", stalled.length);
 console.log("被打断明细:", JSON.stringify(cut.map(c => ({ f: c.f, t0: Math.round(c.t0), pause: c.pause ? Math.round(c.pause - c.t0) : null, ended: c.ended ? Math.round(c.ended - c.t0) : null }))));
+console.log("超时明细:", JSON.stringify(stalled.map(c => ({ f: c.f, wait: c.pause ? Math.round(c.pause - c.t0) : null }))));
+const thinks = L.thinks || [];
+const thinkDistinct = new Set(thinks.map(v => Math.round(v / 50))).size;
+const thinkSpread = thinks.length ? Math.max(...thinks) - Math.min(...thinks) : 0;
+const gapDistinct = new Set(gaps.map(g => Math.round(g / 100))).size;
+console.log("拟人思考停顿(ms):", JSON.stringify(thinks), "去重档位=", thinkDistinct, "极差=", thinkSpread);
+console.log("弃牌间隔去重档位(100ms):", gapDistinct);
 console.log("VOICE-PACK:", JSON.stringify(L.voicePack), "pending:", L.pending);
 console.log("JS-ERRORS:", errors.length);
 errors.slice(0, 5).forEach(e => console.log("  ", e));
@@ -196,6 +208,10 @@ const checks = {
   "报牌无被打断": cut.length === 0,
   "多数报牌播完整": L.clips.length === 0 || full.length / Math.max(1, L.clips.length) >= 0.7,
   "报牌数跟得上弃牌": L.clips.length >= Math.min(4, L.discards.length),
+  "拟人停顿已启用": thinks.length >= 6,
+  "停顿有随机性": thinkDistinct >= 4 && thinkSpread >= 250,
+  "间隔不匀速": gapDistinct >= 4,
+  "节奏未失控": median(gaps) >= 900 && median(gaps) <= 3400,
   "无 JS 异常": errors.length === 0
 };
 console.log("CHECKS:", JSON.stringify(checks));

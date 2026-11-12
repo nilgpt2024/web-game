@@ -103,6 +103,11 @@ class Game {
   async startHand(result = {}) {
     await this.continue();
 
+    // 每局重洗三家 AI 的快慢脾性（增强层可选，旧版缓存时静默跳过）
+    if (window.__mjPace && typeof window.__mjPace.reset === "function") {
+      window.__mjPace.reset();
+    }
+
     let players = this.players;
 
     if (result.winner) {
@@ -430,7 +435,8 @@ class Game {
       // 2800ms 硬上限：音频被浏览器拦截 / 静音 / 加载异常时照常推进。
       var pace = window.__mjPace;
       if (pace && typeof pace.settle === "function") {
-        await pace.settle(2800, 900);
+        // 传入当前出牌者：三家 AI 各有脾性，轮到真人自己则不加思考停顿
+        await pace.settle(2800, 900, currentPlayerId);
       }
     }
 

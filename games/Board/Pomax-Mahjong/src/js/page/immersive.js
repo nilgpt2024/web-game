@@ -349,6 +349,14 @@
   // 节奏闸不再空等，退回最小间隔，避免无声还每家卡好几秒。
   var voiceFailStreak = 0;
 
+  // 拟人化出牌节奏：真人不会按固定节拍打牌。报牌念完之后，
+  // 每家再随机「想一下」才落牌——三家各有脾性、越到后盘越谨慎、
+  // 偶尔长考、偶尔秒打。轮到玩家自己(0)时不替他思考。
+  var tempoTraits = null;   // [4] 每家的快慢性格，每局重洗
+  var tempoTurns = 0;       // 本局已打张数，用于局势加权
+  var tempoQuick = 0;       // 连续秒打次数，避免连着几次都像机器
+  var thinkLog = [];        // 最近若干次思考停顿，供验证 / 调试
+
   function packInfo() {
     var p = window.MJ_VOICE_PACK;
     return p && p.map ? p : null;
@@ -392,6 +400,13 @@
         Object.keys(table).forEach(function (name) { warm(table[name]); });
       });
     }
+    // 阜阳俚语搭话也一起预热，免得第一次催牌时现连现下、念不出来
+    var c = window.MJ_CHATTER;
+    if (c && c.groups) {
+      Object.keys(c.groups).forEach(function (kind) {
+        c.groups[kind].forEach(function (line) { warm(line.f); });
+      });
+    }
   }
 
   // 播完一段才播下一段：返回 Promise，等 ended / error / 超时。
@@ -432,13 +447,15 @@
           }, ms);
         }, { once: true });
         // 缓冲兜底：连 playing 都等不到（加载失败/被浏览器拒绝）时，
-        // 别让这一段把整局游戏卡死。
+        // 别让这一段把整局游戏卡死。整包已预热，正常几十毫秒就出声；
+        // 给 1.8s 足够覆盖首次缓冲，超时就放弃这一句，避免出现三四秒
+        // 的空档盖过拟人节奏（原先 4.2s 会明显「卡一下」）。
         timer = setTimeout(function () {
           if (done) return;
           if (!startedOk) voiceFailStreak++;
           try { a.pause(); } catch (e) {}
           finish();
-        }, 4200);
+        }, 1800);
         try { a.currentTime = 0; } catch (e) {}
         a.volume = Math.min(1, state.volume * 0.95 + 0.05);
         packAudio = a;
@@ -454,7 +471,7 @@
       if (a.readyState >= 2) arm();
       else {
         var go = function () { clearTimeout(readyTimer); arm(); };
-        readyTimer = setTimeout(go, 1800);
+        readyTimer = setTimeout(go, 1200);
         a.addEventListener("canplay", go, { once: true });
         a.addEventListener("loadeddata", go, { once: true });
         a.addEventListener("error", go, { once: true });
@@ -480,19 +497,142 @@
     } catch (e) { return false; }
   }
 
-  // 出牌节奏闸：game.js 每打一张牌前调用，等已入队的报牌全部念完。
-  // maxMs 是硬上限——音频被浏览器拦截 / 静音 / 加载异常时游戏照常推进。
-  function settleVoice(maxMs, minMs) {
+  // ----------------------------------------------------------------
+  // 阜阳牌桌俚语：等你出牌、碰杠、胡牌时，同桌的人偶尔搭一句话。
+  // 语音走报牌的串行队列（不叠音、不抢报牌），字幕单独气泡（不挡底部手牌）。
+  // 低频 + 冷却，避免吵到长辈；代玩演示模式保持安静、不打乱 2.3s 节奏。
+  // ----------------------------------------------------------------
+  var chatterLast = 0;
+  var chatterLastText = "";
+  var chatterCount = {};
+  var chatterBubble = null;
+  var chatterBubbleTimer = null;
+  var chatterWaitTimer = null;
+
+  function showChatterBubble(text, who) {
+    if (!chatterBubble) {
+      chatterBubble = document.createElement("div");
+      chatterBubble.id = "mj-chatter-bubble";
+      (document.body || document.documentElement).appendChild(chatterBubble);
+    }
+    chatterBubble.textContent = "";
+    var tag = document.createElement("span");
+    tag.className = "mj-chatter-who";
+    tag.textContent = (who || "牌桌") + " · 阜阳话";
+    var line = document.createElement("span");
+    line.className = "mj-chatter-line";
+    line.textContent = "「" + text + "」";
+    chatterBubble.appendChild(tag);
+    chatterBubble.appendChild(line);
+    chatterBubble.classList.add("mj-on");
+    clearTimeout(chatterBubbleTimer);
+    chatterBubbleTimer = setTimeout(function () {
+      if (chatterBubble) chatterBubble.classList.remove("mj-on");
+    }, 3400);
+  }
+
+  function chatter(kind, opts) {
+    var c = window.MJ_CHATTER;
+    if (!c || !c.groups || !state.sound || state.autopilot) return false;
+    var list = c.groups[kind];
+    if (!list || !list.length) return false;
+    var now = Date.now();
+    var cooldown = opts && typeof opts.cooldown === "number" ? opts.cooldown : 11000;
+    if (now - chatterLast < cooldown) return false;
+    var line = list[Math.floor(Math.random() * list.length)];
+    if (line.t === chatterLastText && list.length > 1) {
+      line = list[(list.indexOf(line) + 1) % list.length];
+    }
+    chatterLast = now;
+    chatterLastText = line.t;
+    chatterCount[kind] = (chatterCount[kind] || 0) + 1;
+    showChatterBubble(line.t, line.who);
+    return playFile(line.f);
+  }
+
+  function cancelChatterWait() {
+    if (chatterWaitTimer) { clearTimeout(chatterWaitTimer); chatterWaitTimer = null; }
+  }
+
+  // 轮到你却迟迟没出牌：5.2s 后催一句，再过 10s 换一句（最多两次）。
+  // 触发前复查「还轮到你 + 弃牌数没变」，避免已经出过牌还被催。
+  function armChatterWait(round) {
+    cancelChatterWait();
+    var n = document.querySelectorAll(".discards game-tile.discard").length;
+    chatterWaitTimer = setTimeout(function () {
+      chatterWaitTimer = null;
+      if (state.autopilot || !window.MJ_CHATTER) return;
+      var active = document.querySelector(".player.active");
+      if (!active || active.getAttribute("id") !== "0") return;
+      if (document.querySelectorAll(".discards game-tile.discard").length !== n) return;
+      chatter("wait", { cooldown: 0 });
+      if ((round || 0) < 1) armChatterWait((round || 0) + 1);
+    }, (round || 0) === 0 ? 5200 : 10000);
+  }
+
+  // 每局开局重洗三家 AI 的脾性，让同一局内「谁快谁慢」稳定可感知，
+  // 换一局又不一样。
+  function resetTempo() {
+    var bag = [0.65, 0.95, 1.12, 1.38]; // 急性子 / 偏快 / 平稳 / 慢想
+    for (var i = bag.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = bag[i]; bag[i] = bag[j]; bag[j] = t;
+    }
+    tempoTraits = bag;
+    tempoTurns = 0;
+    tempoQuick = 0;
+    thinkLog = [];
+  }
+
+  // 生成本轮「人在想」的停顿（毫秒）。分布刻意偏态：多数 0.1~0.5s，
+  // 少量秒打，偶尔一次长考，这样一圈下来快慢不一才不像机器。
+  function rollThink(pid) {
+    if (!tempoTraits) resetTempo();
+    tempoTurns++;
+    // 轮到真人自己：控制权在用户手上，不额外加机器的思考时间。
+    if (!state.autopilot && (pid === 0 || pid === undefined || pid === null)) return 0;
+
+    // 开局随手打，越到中后盘（要听牌、怕点炮）越慢。
+    var phase = 0.84 + 0.52 * Math.min(1, tempoTurns / 55);
+    var r = Math.random();
+    var ms;
+    if (r > 0.93) ms = 800 + Math.random() * 800;        // 7% 长考 0.8~1.6s
+    else if (r < 0.16) ms = 40 + Math.random() * 110;     // 16% 秒打
+    else ms = 120 + Math.random() * 360;                  // 常规 0.12~0.48s
+
+    // 连续秒打不自然，第三张起至少缓一下。
+    if (tempoQuick >= 2 && ms < 300) ms = 300 + Math.random() * 240;
+    tempoQuick = ms < 220 ? tempoQuick + 1 : 0;
+
+    var trait = tempoTraits[(pid | 0) % 4] || 1;
+    // 硬上限 1.5s：慢性子 + 后盘 + 长考叠加时也不让长辈干等太久
+    ms = Math.round(Math.min(1500, ms * trait * phase));
+    thinkLog.push(ms);
+    if (thinkLog.length > 40) thinkLog.shift();
+    return ms;
+  }
+
+  // 出牌节奏闸：game.js 每打一张牌前调用。先等上一句中文报牌念完，
+  // 再留一段随机思考停顿；提示牌早已切到下一位，这里只压「落牌动作」。
+  // maxMs 只约束等语音的部分——音频被拦截 / 静音 / 加载异常时照常推进，
+  // 且不再叠加思考，避免无声时每家干等好几秒。
+  function settleVoice(maxMs, minMs, pid) {
     var t0 = Date.now();
     var floor = Math.max(0, minMs || 0);
+    var muted = voiceFailStreak >= 3;
+    var think = muted ? Math.round(rollThink(pid) * 0.35) : rollThink(pid);
+    var voiceDoneAt = null;
+    var cap = maxMs + think + 200;
     return new Promise(function (resolve) {
       (function check() {
         var elapsed = Date.now() - t0;
-        if (elapsed >= maxMs ||
-            (elapsed >= floor && (voicePending <= 0 || voiceFailStreak >= 3))) {
-          resolve(elapsed);
-          return;
-        }
+        var voiceDone = voicePending <= 0 || voiceFailStreak >= 3;
+        if (voiceDoneAt === null && voiceDone) voiceDoneAt = elapsed;
+        // 语音始终没念完：到硬上限直接放行，不再叠加思考。
+        if (elapsed >= maxMs && voiceDoneAt === null) { resolve(elapsed); return; }
+        if (elapsed >= cap) { resolve(elapsed); return; }
+        if (voiceDoneAt !== null &&
+            elapsed >= Math.max(floor, voiceDoneAt) + think) { resolve(elapsed); return; }
         setTimeout(check, 40);
       })();
     });
@@ -772,17 +912,25 @@
         dur: packAudio && packAudio.duration ? Math.round(packAudio.duration * 100) / 100 : 0,
         cached: Object.keys(packCache).length
       };
+    },
+    chatter: chatter,
+    chatterStats: function () {
+      return { counts: chatterCount, last: chatterLastText, lastAt: chatterLast,
+        pack: !!(window.MJ_CHATTER && window.MJ_CHATTER.groups) };
     }
   };
   window.__mjEnhance = debug;
 
   // 供 game.js（出牌节奏）与 showtime.js（报牌队列）共用的节拍接口。
-  // settle: 等当前报牌念完，最多等 maxMs；quiet: 当前播放链，用于排队；
-  // pending: 还没播完的段数，供验证与调试。
+  // settle: 等报牌念完 + 拟人思考停顿；quiet: 当前播放链，用于排队；
+  // pending: 还没播完的段数；reset: 每局重洗三家脾性；
+  // thinks: 最近各轮思考停顿，供验证与调试。
   window.__mjPace = {
     settle: settleVoice,
     quiet: function () { return voiceChain; },
-    pending: function () { return voicePending; }
+    pending: function () { return voicePending; },
+    reset: resetTempo,
+    thinks: function () { return thinkLog.slice(); }
   };
 
   function onClip(kind, file) {
@@ -792,8 +940,9 @@
     switch (kind) {
       case "thud":    slap(1.0); break;                 // 每手第一张：原有重拍 + 强调
       case "discard": slap(0.78); break;               // 后续打牌：补上一致的落牌声
-      case "multi":   ding(2); break;                  // 碰 / 吃
-      case "kong":    slap(1.0); ding(3); break;       // 杠：清脆三连
+      case "multi":   ding(2); chatter("meld"); break; // 碰 / 吃：同桌夸一句
+      case "kong":    slap(1.0); ding(3); chatter("meld"); break; // 杠：清脆三连
+      case "start":   chatter("start"); break;         // 开局：白作假，斗两圈
     }
 
     // 演出层订阅这个事件，负责胡牌动画、夸张音效与真人感报牌
@@ -1323,7 +1472,11 @@
     if (pid !== lastActivePid) {
       lastActivePid = pid;
       clearElderArmed();
-      if (pid === 0) say("该你出牌了", { rate: 0.95 });
+      cancelChatterWait();
+      if (pid === 0) {
+        say("该你出牌了", { rate: 0.95 });
+        armChatterWait(0); // 迟迟不出牌，同桌就用阜阳话催一句
+      }
       syncMobileHand();
     }
     var board = document.querySelector(".board");

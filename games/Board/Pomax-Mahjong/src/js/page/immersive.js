@@ -400,7 +400,7 @@
         Object.keys(table).forEach(function (name) { warm(table[name]); });
       });
     }
-    // 阜阳俚语搭话也一起预热，免得第一次催牌时现连现下、念不出来
+    // 三方俚语搭话也一起预热，免得第一次催牌时现连现下、念不出来
     var c = window.MJ_CHATTER;
     if (c && c.groups) {
       Object.keys(c.groups).forEach(function (kind) {
@@ -498,18 +498,21 @@
   }
 
   // ----------------------------------------------------------------
-  // 阜阳牌桌俚语：等你出牌、碰杠、胡牌时，同桌的人偶尔搭一句话。
-  // 语音走报牌的串行队列（不叠音、不抢报牌），字幕单独气泡（不挡底部手牌）。
-  // 低频 + 冷却，避免吵到长辈；代玩演示模式保持安静、不打乱 2.3s 节奏。
+  // 牌桌搭话：等你出牌、碰杠、胡牌时，同桌的人偶尔搭一句话。
+  // 口音与俚语配套，不串味：东北大姐只讲东北话、陕西老姐只讲陕西话、
+  // 阜阳老哥只讲阜阳话（三副嗓子与报牌包四家音色一致）。
+  // 语音走报牌的串行队列（不叠音、不抢报牌），字幕单独气泡（不挡底部手牌），
+  // 并标出说话人的籍贯。低频 + 冷却，避免吵到长辈；代玩演示保持安静。
   // ----------------------------------------------------------------
   var chatterLast = 0;
   var chatterLastText = "";
+  var chatterLastDialect = "";
   var chatterCount = {};
   var chatterBubble = null;
   var chatterBubbleTimer = null;
   var chatterWaitTimer = null;
 
-  function showChatterBubble(text, who) {
+  function showChatterBubble(item) {
     if (!chatterBubble) {
       chatterBubble = document.createElement("div");
       chatterBubble.id = "mj-chatter-bubble";
@@ -518,10 +521,10 @@
     chatterBubble.textContent = "";
     var tag = document.createElement("span");
     tag.className = "mj-chatter-who";
-    tag.textContent = (who || "牌桌") + " · 阜阳话";
+    tag.textContent = (item.who || "同桌") + " · " + (item.dialect || "阜阳话");
     var line = document.createElement("span");
     line.className = "mj-chatter-line";
-    line.textContent = "「" + text + "」";
+    line.textContent = "「" + item.t + "」";
     chatterBubble.appendChild(tag);
     chatterBubble.appendChild(line);
     chatterBubble.classList.add("mj-on");
@@ -534,8 +537,13 @@
   function chatter(kind, opts) {
     var c = window.MJ_CHATTER;
     if (!c || !c.groups || !state.sound || state.autopilot) return false;
-    var list = c.groups[kind];
-    if (!list || !list.length) return false;
+    var all = c.groups[kind];
+    if (!all || !all.length) return false;
+    // 可按方言点名：第一次催牌固定由阜阳老哥开口（主场），
+    // 之后同桌才随机插话，东北 / 陕西各讲各的家乡话。
+    var want = opts && opts.dialect;
+    var list = want ? all.filter(function (x) { return x.dialect === want; }) : all;
+    if (!list.length) list = all;
     var now = Date.now();
     var cooldown = opts && typeof opts.cooldown === "number" ? opts.cooldown : 11000;
     if (now - chatterLast < cooldown) return false;
@@ -545,8 +553,9 @@
     }
     chatterLast = now;
     chatterLastText = line.t;
+    chatterLastDialect = line.dialect || "";
     chatterCount[kind] = (chatterCount[kind] || 0) + 1;
-    showChatterBubble(line.t, line.who);
+    showChatterBubble(line);
     return playFile(line.f);
   }
 
@@ -565,7 +574,8 @@
       var active = document.querySelector(".player.active");
       if (!active || active.getAttribute("id") !== "0") return;
       if (document.querySelectorAll(".discards game-tile.discard").length !== n) return;
-      chatter("wait", { cooldown: 0 });
+      // 第一句必须是本地（阜阳）话；再催一次才让同桌别的口音插话
+      chatter("wait", { cooldown: 0, dialect: (round || 0) === 0 ? "阜阳话" : null });
       if ((round || 0) < 1) armChatterWait((round || 0) + 1);
     }, (round || 0) === 0 ? 5200 : 10000);
   }
@@ -915,8 +925,10 @@
     },
     chatter: chatter,
     chatterStats: function () {
-      return { counts: chatterCount, last: chatterLastText, lastAt: chatterLast,
-        pack: !!(window.MJ_CHATTER && window.MJ_CHATTER.groups) };
+      return { counts: chatterCount, last: chatterLastText,
+        dialect: chatterLastDialect, lastAt: chatterLast,
+        pack: !!(window.MJ_CHATTER && window.MJ_CHATTER.groups),
+        version: window.MJ_CHATTER ? window.MJ_CHATTER.version : 0 };
     }
   };
   window.__mjEnhance = debug;
@@ -942,7 +954,7 @@
       case "discard": slap(0.78); break;               // 后续打牌：补上一致的落牌声
       case "multi":   ding(2); chatter("meld"); break; // 碰 / 吃：同桌夸一句
       case "kong":    slap(1.0); ding(3); chatter("meld"); break; // 杠：清脆三连
-      case "start":   chatter("start"); break;         // 开局：白作假，斗两圈
+      case "start":   chatter("start"); break;         // 开局：三方各来一句家乡话
     }
 
     // 演出层订阅这个事件，负责胡牌动画、夸张音效与真人感报牌
@@ -1475,7 +1487,7 @@
       cancelChatterWait();
       if (pid === 0) {
         say("该你出牌了", { rate: 0.95 });
-        armChatterWait(0); // 迟迟不出牌，同桌就用阜阳话催一句
+        armChatterWait(0); // 迟迟不出牌，先由阜阳老哥催，再让同桌别的口音插话
       }
       syncMobileHand();
     }

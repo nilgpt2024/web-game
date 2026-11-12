@@ -1,5 +1,6 @@
-// 验证阜阳牌桌俚语：等人出牌会自动催一句、字幕气泡不挡手牌、
-// 五组俚语都能播出对应 mp3，且不破坏节奏 / 不产生 JS 异常。
+// 验证牌桌方言俚语：口音与俚语配套（东北/陕西/阜阳各讲各的家乡话）、
+// 等人出牌先由阜阳老哥催、字幕标籍贯且不挡手牌、五组俚语都能播出
+// 对应 mp3，且不破坏节奏 / 不产生 JS 异常。
 // 用法: node tools/verify_chatter.mjs [url] [port] [bootMs] [proxy]
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync, existsSync } from "node:fs";
@@ -78,7 +79,8 @@ await evalJs(`(() => {
   const native = HTMLMediaElement.prototype.play;
   HTMLMediaElement.prototype.play = function () {
     const s = this.currentSrc || this.src || "";
-    if (/fy-[a-z]+-\\d+\\.mp3/.test(s)) window.__fyLog.push(s.split("/").pop());
+    const f = s.split("/").pop().split("?")[0];
+    if (/^(db|sx|fy)-/.test(f)) window.__fyLog.push(f);
     return native.apply(this, arguments);
   };
   return true;
@@ -117,6 +119,8 @@ console.log("MY-TURN:", myTurn);
 await sleep(7000); // 5.2s 后应自动催一句
 
 const auto = JSON.parse(await evalJs(`JSON.stringify({
+  version: window.MJ_CHATTER ? window.MJ_CHATTER.version : 0,
+  dialects: window.MJ_CHATTER ? window.MJ_CHATTER.dialects : [],
   groups: window.MJ_CHATTER ? Object.keys(window.MJ_CHATTER.groups) : [],
   lines: window.MJ_CHATTER ? Object.values(window.MJ_CHATTER.groups).reduce((n, a) => n + a.length, 0) : 0,
   stats: window.__mjEnhance && window.__mjEnhance.chatterStats ? window.__mjEnhance.chatterStats() : null,
@@ -139,12 +143,24 @@ const manual = JSON.parse(await evalJs(`(() => {
   });
   return JSON.stringify(out);
 })()`));
-// 语音是串行队列，六段各约 2~3s，等它们依次播完再统计，别把「还在排队」
+// 按方言点名触发，确认字幕的籍贯与播出的音频前缀是一致的：
+// 阜阳 -> fy-*.mp3、东北 -> db-*.mp3、陕西 -> sx-*.mp3
+const byDialect = JSON.parse(await evalJs(`(() => {
+  const E = window.__mjEnhance, out = [];
+  ["阜阳话", "东北话", "陕西话"].forEach(function (d) {
+    const ok = E.chatter("meld", { cooldown: 0, dialect: d });
+    const el = document.querySelector("#mj-chatter-bubble");
+    out.push({ d: d, ok: ok, text: el ? el.textContent : "" });
+  });
+  return JSON.stringify(out);
+})()`));
+// 语音是串行队列，八段各约 2~3s，等它们依次播完再统计，别把「还在排队」
 // 误判成「没播出来」。
-await sleep(17000);
+await sleep(26000);
 const audioAfter = JSON.parse(await evalJs(`JSON.stringify(window.__fyLog.slice())`));
 console.log("MANUAL:", JSON.stringify(manual));
-console.log("FY-AUDIO:", JSON.stringify(audioAfter));
+console.log("BY-DIALECT:", JSON.stringify(byDialect));
+console.log("CHATTER-AUDIO:", JSON.stringify(audioAfter));
 
 // 移动端：气泡不能压住放大后的手牌
 await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
@@ -161,13 +177,20 @@ console.log("MOBILE-OVERLAP:", JSON.stringify(overlap));
 console.log("JS-ERRORS:", errors.length);
 errors.slice(0, 5).forEach(e => console.log("  ", e));
 
+const hasPrefix = p => audioAfter.some(f => f.startsWith(p));
 const checks = {
-  "俚语包已加载": auto.groups.length === 5 && auto.lines === 14,
+  "俚语包 v2 已加载": auto.version === 2 && auto.groups.length === 5 && auto.lines === 32,
+  "三种方言都在": auto.dialects.length === 3 &&
+    ["阜阳话", "东北话", "陕西话"].every(d => auto.dialects.includes(d)),
   "节奏闸仍在": auto.pace === true,
   "等人出牌自动催话": (auto.stats?.counts?.wait || 0) >= 1,
-  "字幕气泡已弹出": /阜阳话/.test(auto.bubble?.text || ""),
-  "催的是阜阳俚语": /羊熊样|恁肉|肉叽/.test(auto.bubble?.text || ""),
-  "俚语音频已播放": audioAfter.length >= 6,
+  "第一句由阜阳老哥催": auto.stats?.dialect === "阜阳话" &&
+    /阜阳话/.test(auto.bubble?.text || "") &&
+    /羊熊样|恁肉|肉叽|快点呗/.test(auto.bubble?.text || ""),
+  "字幕标出说话人籍贯": /东北大姐|陕西老姐|阜阳老哥/.test(auto.bubble?.text || ""),
+  "三方字幕各自对应": byDialect.every(x => x.ok && x.text.includes(x.d)),
+  "三方音频都播过": ["fy-", "db-", "sx-"].every(hasPrefix),
+  "俚语音频已播放": audioAfter.length >= 8,
   "五组字幕各不相同": new Set(manual.map(m => m.text)).size === 5 && manual.every(m => m.ok),
   "移动端不挡手牌": !overlap.found || overlap.overlap === false,
   "无 JS 异常": errors.length === 0

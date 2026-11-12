@@ -427,10 +427,10 @@ class Game {
       // 长辈 / 移动端：等上一张牌的中文报牌念完，再打这一张。
       // 回合指示牌在本轮 activate() 时已经切到下一位（提示不延迟），
       // 这里只让「出牌动作」跟着语音走，避免一圈打完了还没听见报牌。
-      // 2200ms 硬上限：音频被浏览器拦截 / 静音 / 加载异常时照常推进。
+      // 2800ms 硬上限：音频被浏览器拦截 / 静音 / 加载异常时照常推进。
       var pace = window.__mjPace;
       if (pace && typeof pace.settle === "function") {
-        await pace.settle(2200, 900);
+        await pace.settle(2800, 900);
       }
     }
 

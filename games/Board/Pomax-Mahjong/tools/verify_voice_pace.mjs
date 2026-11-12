@@ -50,8 +50,8 @@ async function evalJs(expr) {
 await send("Page.enable");
 await send("Runtime.enable");
 await send("Page.navigate", { url: URL });
-// 本地 ES module 依赖链较长，等增强层与配置桥都挂载完再注入探针
-await sleep(8000);
+// 本地 ES module 依赖链较长；公网 CDN 还要更久（第 4 个参数可加大）
+await sleep(Number(process.argv[4] || 8000));
 
 // 手动开局：依次点「亲自打一局」和「准备好开局了吗 / 开始」
 let started = false;
@@ -178,6 +178,7 @@ console.log("DISCARDS:", L.discards.length, "TURNS:", L.turns.length, "VOICE-CLI
 console.log("弃牌间隔(ms):", JSON.stringify(gaps.slice(0, 16)), "median=", median(gaps));
 console.log("一圈4张耗时(ms):", JSON.stringify(laps.slice(0, 8)), "median=", median(laps));
 console.log("语音播完:", played.length, "完整>=800ms:", full.length, "被打断:", cut.length);
+console.log("被打断明细:", JSON.stringify(cut.map(c => ({ f: c.f, t0: Math.round(c.t0), pause: c.pause ? Math.round(c.pause - c.t0) : null, ended: c.ended ? Math.round(c.ended - c.t0) : null }))));
 console.log("VOICE-PACK:", JSON.stringify(L.voicePack), "pending:", L.pending);
 console.log("JS-ERRORS:", errors.length);
 errors.slice(0, 5).forEach(e => console.log("  ", e));

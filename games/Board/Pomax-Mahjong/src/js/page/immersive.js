@@ -356,7 +356,11 @@
     return (p && p.base ? p.base : "voice/") + file;
   }
 
-  // 首次用户手势时预热喊牌与系统短句（42 个牌名按需加载，避免开局全量请求）
+  // 首次用户手势时预热**整包**语音（含四家各自音色的牌名）。
+  // 原先牌名按需 new Audio()，公网 CDN 首次要现连现下，等轮到这张牌
+  // 时音频还没数据，播放被计时器掐断 → 手机上一整圈听不到报牌。
+  // 全包 1.88MB / 248 个小文件，配合 Cloudflare 静态缓存，开局点按钮
+  // 到第一张牌之间有足够的预热时间。
   function prewarmPack() {
     var p = packInfo();
     if (!p) return;
@@ -369,15 +373,20 @@
         packCache[f] = a;
       } catch (e) {}
     }
-    Object.keys(p.map).forEach(function (text) {
-      if (/^(start|bloom|draw|end|extra)-/.test(p.map[text])) warm(p.map[text]);
-    });
+    // map 里既有系统旁白也有统一牌名回退，全部预热
+    Object.keys(p.map).forEach(function (text) { warm(p.map[text]); });
     if (p.calls) {
       Object.keys(p.calls).forEach(function (pid) {
         var set = p.calls[pid];
         Object.keys(set).forEach(function (action) {
           set[action].forEach(function (line) { warm(line.f); });
         });
+      });
+    }
+    if (p.tilesByPid) {
+      Object.keys(p.tilesByPid).forEach(function (pid) {
+        var table = p.tilesByPid[pid];
+        Object.keys(table).forEach(function (name) { warm(table[name]); });
       });
     }
   }
@@ -387,11 +396,12 @@
   // 拒绝自动播放或文件加载失败，也不会把整局游戏永久卡住。
   function playOne(a) {
     return new Promise(function (resolve) {
-      var done = false, timer = 0, armed = false;
+      var done = false, timer = 0, readyTimer = 0, armed = false;
       function finish() {
         if (done) return;
         done = true;
         clearTimeout(timer);
+        clearTimeout(readyTimer);
         a.removeEventListener("ended", finish);
         a.removeEventListener("error", finish);
         voicePending = Math.max(0, voicePending - 1);
@@ -401,8 +411,10 @@
         if (done || armed) return;
         armed = true;
         var d = a.duration;
+        // 已知时长按真实时长 + 收尾余量；未知（CDN 慢）给足 3.2s，
+        // 别在音频还在缓冲时就把自己掐断。
         var ms = (d && isFinite(d) && d > 0.1)
-          ? Math.min(2600, Math.round(d * 1000) + 400) : 2400;
+          ? Math.min(3200, Math.round(d * 1000) + 600) : 3200;
         timer = setTimeout(function () {
           try { a.pause(); } catch (e) {} // 超时就掐掉，避免和下一段叠音
           finish();
@@ -418,13 +430,16 @@
           if (pr && typeof pr.catch === "function") pr.catch(finish);
         } catch (e) { finish(); }
       }
-      // 还没拿到元数据时先等一小会儿，才能按真实时长计时（移动端
-      // 首次 new Audio() 会现连现下，直接 play() 常常来不及出声）。
-      if (a.readyState >= 1) arm();
+      // 等「真的有数据可播」再开始计时。公网首次按需加载时
+      // loadedmetadata 会先到但数据未必够，原先 700ms 就 arm 会让
+      // 计时器在音频还没出声时跑完，把每一句都掐断。
+      if (a.readyState >= 2) arm();
       else {
-        var wait = setTimeout(arm, 700);
-        a.addEventListener("loadedmetadata", function () { clearTimeout(wait); arm(); }, { once: true });
-        a.addEventListener("error", function () { clearTimeout(wait); arm(); }, { once: true });
+        var go = function () { clearTimeout(readyTimer); arm(); };
+        readyTimer = setTimeout(go, 1800);
+        a.addEventListener("canplay", go, { once: true });
+        a.addEventListener("loadeddata", go, { once: true });
+        a.addEventListener("error", go, { once: true });
         try { a.load(); } catch (e) {}
       }
     });

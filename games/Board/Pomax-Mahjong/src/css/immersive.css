@@ -3,6 +3,9 @@
    本文件不修改上游任何 CSS，仅由 index.html 额外引入。
    ------------------------------------------------------------------ */
 
+/* 兜底：任何子元素都不得让页面产生横向滚动（游戏是整屏，不需要横滚） */
+html { overflow-x: hidden; }
+
 /* ---------- 悬浮控制条 ---------- */
 #mj-toolbar {
   position: fixed;
@@ -136,13 +139,28 @@ body.mj-immersive #mj-toolbar.mj-fresh {
 }
 
 /* ---------- 窄屏适配 ---------- */
+/* 上游 .board .sidebar 被 relative 推到牌桌右侧外面，窄屏时整条
+   被裁在屏幕外、还把文档撑宽约 31px（页面「看不全」的真正原因）。 */
 @media (max-width: 760px) {
   body.mj-immersive { padding-top: 62px; }
+  body.mj-immersive .board .sidebar { display: none; }
+}
+/* 竖屏给底部大手牌托盘预留空间，牌桌上移且不缩小；
+   用可见视口高度的比例，避免矮屏把牌桌挤出可视区。 */
+@media (max-width: 760px) and (orientation: portrait) {
+  body.mj-immersive {
+    padding-bottom: min(148px, calc(var(--mj-vh, 100vh) * .22));
+  }
+}
+/* 工具栏：横屏 844px 也要走窄屏规则，否则内容宽度 984px 左右两头溢出。
+   box-sizing 必须补上，padding 才不会把宽度再撑出去。 */
+@media (max-width: 900px) {
   #mj-toolbar {
     top: 6px;
     left: 6px;
     right: auto;
     width: calc(var(--mj-vw, 100vw) - 12px);
+    box-sizing: border-box;
     justify-content: center;
     flex-wrap: wrap;
     border-radius: 14px;
@@ -159,40 +177,65 @@ body.mj-immersive #mj-toolbar.mj-fresh {
 }
 
 /* ---------- 手机端：把牌看清 ---------- */
-/* 竖屏时牌桌是正方形、左右刚好占满，但上下留着大片空白。
-   轮到你出牌时，把 14 张手牌放大成屏幕底部一条「大手牌区」，
-   点它等价于点桌上原牌（事件转发，上游逻辑/长辈模式原样生效）。 */
+/* 轮到你出牌时把 14 张手牌放大成底部「大手牌区」托盘，点它等价于
+   点桌上原牌（事件转发，上游逻辑/长辈模式原样生效）。
+   竖屏两行 7 张、横屏一行 14 张，牌面保持 36:50 正常比例不变形。 */
 #mj-mobile-hand {
   position: fixed;
   left: 0;
-  right: auto;
-  width: var(--mj-vw, 100vw);
   bottom: 0;
   z-index: 9996;
   display: none;
-  justify-content: center;
-  align-items: flex-end;
-  gap: 2px;
-  padding: 10px 6px 12px;
-  background: linear-gradient(to top, rgba(0, 0, 0, .62), rgba(0, 0, 0, 0));
+  width: var(--mj-vw, 100vw);
+  max-width: 100%;
+  box-sizing: border-box; /* 不补这条，padding 会把宽度撑出屏幕、裁掉最后一张 */
+  /* 固定 7 列：14 张牌必然两行，不靠「宽度够不够」碰运气 */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-items: center;
+  align-items: end;
+  align-content: end;
+  gap: 3px;
+  padding: 6px 6px 10px;
+  background: linear-gradient(to top, rgba(0, 0, 0, .78), rgba(0, 0, 0, .34));
   touch-action: manipulation;
 }
 
-body.mj-mobile-hand-on #mj-mobile-hand { display: flex; }
+body.mj-mobile-hand-on #mj-mobile-hand { display: grid; }
+
+/* 托盘标题：轮到你时「该你出牌」就在手牌正上方，视线不用离开牌 */
+#mj-mobile-hand-title {
+  display: none;
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #eafff1;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 1px 0 4px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, .7);
+}
+@media (max-width: 760px) and (orientation: portrait) {
+  body.mj-mobile-hand-on #mj-mobile-hand-title { display: block; }
+  /* 标题已写明「该你出牌」，浮动指示牌不再多占一块地方 */
+  body.mj-mobile-hand-on #mj-turn-marker.mj-you { display: none !important; }
+}
 
 /* [tile="N"] 的牌面规则对任何带 tile 属性的元素都生效，
-   这里只覆盖尺寸即可复用同一套牌图，不必复制图片。 */
+   这里只覆盖尺寸即可复用同一套牌图，不必复制图片。
+   aspect-ratio 保证是正常麻将牌比例，不再被压成细条或方块。 */
 #mj-mobile-hand [tile] {
-  flex: 1 1 0;
-  width: auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 48px;
+  height: auto;
+  aspect-ratio: 36 / 50;
   min-width: 0;
-  max-width: 30px;
-  height: 46px;
-  min-height: 46px;
-  max-height: 46px;
+  min-height: 0;
+  max-height: none;
+  justify-self: center;
   margin: 0;
   border: 1px solid #d8c9a0;
-  border-radius: 3px;
+  border-radius: 4px;
   background-size: contain;
   background-position: center center;
   background-repeat: no-repeat;
@@ -213,21 +256,19 @@ body.mj-mobile-hand-on #mj-mobile-hand { display: flex; }
   filter: brightness(1.18);
 }
 
-/* 横屏手机：宽度富余，把放大牌再放大到接近 56px，一眼能认出牌面 */
+/* 横屏：宽度富余，一行 14 张居中摆放，比例不变、最后一张不裁 */
 @media (orientation: landscape) and (max-height: 500px) and (max-width: 900px) {
   #mj-mobile-hand {
+    grid-template-columns: repeat(14, minmax(0, 1fr));
     padding: 6px 10px 8px;
     gap: 3px;
-    /* 横屏大牌区会盖住牌桌下沿，做成独立托盘，视觉上不像是牌被切掉 */
+    align-content: center;
+    /* 独立深色托盘，视觉上不像牌桌被切掉一块 */
     background: rgba(24, 17, 11, .92);
     border-top: 2px solid rgba(255, 215, 130, .4);
   }
-  #mj-mobile-hand [tile] {
-    max-width: 56px;
-    height: 56px;
-    min-height: 56px;
-    max-height: 56px;
-  }
+  #mj-mobile-hand-title { display: none !important; }
+  #mj-mobile-hand [tile] { max-width: 48px; }
 }
 
 /* 大牌区出现时，桌上那排小手牌淡化，避免两排牌重复干扰 */

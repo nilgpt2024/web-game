@@ -1159,7 +1159,13 @@
     }
     mobileOrigTiles = Array.prototype.slice.call(tiles);
     var frag = document.createDocumentFragment();
+    // 托盘标题：竖屏时替代浮动指示牌，直接压在手牌上方（CSS 决定显隐）
+    var title = document.createElement("div");
+    title.id = "mj-mobile-hand-title";
+    title.textContent = "▶ 该你出牌";
+    frag.appendChild(title);
     mobileOrigTiles.forEach(function (t, i) {
+      // 竖屏 7 列网格自动排成两行，横屏 14 列一行；无需手动插隔断
       var big = document.createElement("div");
       big.className = "mj-big-tile";
       big.setAttribute("tile", t.getAttribute("tile"));

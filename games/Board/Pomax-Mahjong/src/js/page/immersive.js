@@ -410,17 +410,29 @@
       function arm() {
         if (done || armed) return;
         armed = true;
-        var d = a.duration;
-        // 已知时长按真实时长 + 收尾余量；未知（CDN 慢）给足 3.2s，
-        // 别在音频还在缓冲时就把自己掐断。
-        var ms = (d && isFinite(d) && d > 0.1)
-          ? Math.min(3200, Math.round(d * 1000) + 600) : 3200;
-        timer = setTimeout(function () {
-          try { a.pause(); } catch (e) {} // 超时就掐掉，避免和下一段叠音
-          finish();
-        }, ms);
         a.addEventListener("ended", finish);
         a.addEventListener("error", finish);
+        // 关键：从「真正出声」才开始按音频时长计时。play() 之后往往还要
+        // 缓冲几百毫秒（公网 CDN 更久），若把缓冲算进超时，一句 1.3s 的
+        // 牌名会在刚开口时被掐掉。
+        a.addEventListener("playing", function () {
+          if (done) return;
+          clearTimeout(timer);
+          var d = a.duration;
+          var ms = (d && isFinite(d) && d > 0.1)
+            ? Math.min(3200, Math.round(d * 1000) + 700) : 2600;
+          timer = setTimeout(function () {
+            try { a.pause(); } catch (e) {}
+            finish();
+          }, ms);
+        }, { once: true });
+        // 缓冲兜底：连 playing 都等不到（加载失败/被浏览器拒绝）时，
+        // 别让这一段把整局游戏卡死。
+        timer = setTimeout(function () {
+          if (done) return;
+          try { a.pause(); } catch (e) {}
+          finish();
+        }, 4200);
         try { a.currentTime = 0; } catch (e) {}
         a.volume = Math.min(1, state.volume * 0.95 + 0.05);
         packAudio = a;
@@ -440,7 +452,9 @@
         a.addEventListener("canplay", go, { once: true });
         a.addEventListener("loadeddata", go, { once: true });
         a.addEventListener("error", go, { once: true });
-        try { a.load(); } catch (e) {}
+        // 预热时已经 load() 过；这里再 load() 会重置正在进行的加载，
+        // 反而让随后的 play() 等不到数据（偶发整句没出声）。
+        // 交给 play() 自己驱动加载即可。
       }
     });
   }

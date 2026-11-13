@@ -429,15 +429,15 @@ class Game {
     if (config.BOT_PLAY) {
       await new Promise(resolve => setTimeout(resolve, config.BOT_PLAY_DELAY));
     } else {
-      // 长辈 / 移动端：等上一张牌的中文报牌念完，再打这一张。
-      // 回合指示牌在本轮 activate() 时已经切到下一位（提示不延迟），
-      // 这里只让「出牌动作」跟着语音走，避免一圈打完了还没听见报牌。
-      // 硬上限 1700ms：用户反馈「出过牌了还要干等一会儿」很怪，
-      // 报牌之外不再叠加长考；音频异常时也照常推进。
+      // 严格报牌同步：必须等上一张牌的中文报牌「真正播完」，
+      // 下家才落牌，否则报牌队列会越积越远、念的牌和桌面上的牌对不上。
+      // 回合指示牌在本轮 activate() 时已切到下一位（提示不延迟），
+      // 这里只压「出牌动作」。增强层按报牌票 + 播放链严格等待，
+      // 不再有「到点就放行」的硬截断；6000ms 只是防死锁兜底。
       var pace = window.__mjPace;
       if (pace && typeof pace.settle === "function") {
         // 传入当前出牌者：三家 AI 各有轻微快慢差异，轮到真人不加停顿
-        await pace.settle(1700, 650, currentPlayerId);
+        await pace.settle(6000, 650, currentPlayerId);
       }
     }
 

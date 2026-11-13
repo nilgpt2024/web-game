@@ -387,13 +387,19 @@
       var el = voiceQueue.shift();
       var pid = el.getAttribute("from") || "0";
       var name = tileNameFrom(el);
-      if (name) sayTile(pid, name, { rate: 1.16, pitch: 1.0, interrupt: true });
       var P = window.__mjPace;
+      if (name) sayTile(pid, name, { rate: 1.16, pitch: 1.0, interrupt: true });
       var wait = P && typeof P.quiet === "function" ? P.quiet() : null;
+      function done() {
+        // 这段报牌真正结束（或确认无需播放）才销票；settle() 等票清零
+        // 才放行下家出牌，保证「念的牌」和「桌面上的牌」始终同步。
+        if (P && typeof P.endReport === "function") P.endReport();
+        setTimeout(drainVoiceQueue, 40);
+      }
       if (wait && typeof wait.then === "function") {
-        wait.then(function () { setTimeout(drainVoiceQueue, 140); });
+        wait.then(done, done);
       } else {
-        setTimeout(drainVoiceQueue, 1050); // 老版增强层：保留原节奏
+        setTimeout(done, 1050); // 老版增强层：保留原节奏
       }
     }
     new MutationObserver(function (records) {
@@ -406,9 +412,16 @@
           var tail = voiceQueue[voiceQueue.length - 1];
           if (tail === n) continue; // 同一张牌的重复触发
           voiceQueue.push(n);
-          // 节奏已由语音闸控速，正常不会积压；放宽上限，别再把
-          // 玩家自己打的那张牌挤出队列（原上限 3 会丢最老一张）。
-          if (voiceQueue.length > 8) voiceQueue.shift();
+          var P = window.__mjPace;
+          // 每张落桌的弃牌登记一张报牌票：settle() 必须等票播完才
+          // 放行下家，出牌与报牌才不会错拍。
+          if (P && typeof P.beginReport === "function") P.beginReport();
+          // 严格闸下正常不会积压；万一积压，丢最老一张时也要销票，
+          // 否则那张票永不关闭、整局会卡住。
+          if (voiceQueue.length > 24) {
+            voiceQueue.shift();
+            if (P && typeof P.endReport === "function") P.endReport();
+          }
           if (!queueBusy) drainVoiceQueue();
         }
       }

@@ -349,6 +349,14 @@
   // 节奏闸不再空等，退回最小间隔，避免无声还每家卡好几秒。
   var voiceFailStreak = 0;
 
+  // 严格报牌同步：每张落桌的弃牌由 showtime.js 登记一张「票」，
+  // 只有这段报牌真正播完（或确认无需播放）才销票。settle() 必须等
+  // 所有票销完才放行下家出牌，不再靠时间猜「大概念完了」。
+  // 这是「报牌音频远落后于出牌」的根治：以前硬上限会在音频播到
+  // 一半时放行，下一张牌随即入队，串行队列越排越长、越落越远。
+  var pendingReports = 0;
+  var paceWaiters = [];
+
   // 拟人化出牌节奏：真人不会按固定节拍打牌。报牌念完之后，
   // 每家再随机「想一下」才落牌——三家各有脾性、越到后盘越谨慎、
   // 偶尔长考、偶尔秒打。轮到玩家自己(0)时不替他思考。
@@ -450,12 +458,16 @@
         // 别让这一段把整局游戏卡死。整包已预热，正常几十毫秒就出声；
         // 给 1.8s 足够覆盖首次缓冲，超时就放弃这一句，避免出现三四秒
         // 的空档盖过拟人节奏（原先 4.2s 会明显「卡一下」）。
+        // 连续几次连 playing 都等不到，说明这台设备/网络根本放不出音频。
+        // 此时把兜底缩到 350ms：票会立刻销掉，既不放行到「音频还在播」，
+        // 也不会无声时每张牌都空等 1.8s。
+        var bufferMs = voiceFailStreak >= 2 ? 350 : 1800;
         timer = setTimeout(function () {
           if (done) return;
           if (!startedOk) voiceFailStreak++;
           try { a.pause(); } catch (e) {}
           finish();
-        }, 1800);
+        }, bufferMs);
         try { a.currentTime = 0; } catch (e) {}
         a.volume = Math.min(1, state.volume * 0.95 + 0.05);
         packAudio = a;
@@ -598,6 +610,10 @@
     tempoTurns = 0;
     tempoQuick = 0;
     thinkLog = [];
+    // 跨局保险：上一局结算时若还有报牌票没销（胡牌/流局中断），
+    // 不能让它把新一局的第一张牌卡住。
+    pendingReports = 0;
+    paceWaiters.slice().forEach(function (fn) { fn(); });
   }
 
   // 生成本轮「人在想」的停顿（毫秒）。分布刻意偏态：多数 0.1~0.5s，
@@ -628,29 +644,38 @@
     return ms;
   }
 
-  // 出牌节奏闸：game.js 每打一张牌前调用。先等上一句中文报牌念完，
-  // 再留一段随机思考停顿；提示牌早已切到下一位，这里只压「落牌动作」。
-  // maxMs 只约束等语音的部分——音频被拦截 / 静音 / 加载异常时照常推进，
-  // 且不再叠加思考，避免无声时每家干等好几秒。
+  // 出牌节奏闸（严格同步）：game.js 每打一张牌前调用。
+  // 必须等「上一张牌的报牌音频真正播完」才放行下家落牌：
+  //   1) pendingReports 归零 —— 每张弃牌的报牌票都已销掉；
+  //   2) voiceChain 快照 resolve —— 已入队的音频都 ended/error。
+  // 不再有任何「到点就放行」的硬截断：一句牌名 1.3~1.5s，
+  // 旧版 1700ms 上限含缓冲常常先截断，报牌队列就此越积越远。
+  // 只有防死锁兜底（音频链异常永不 resolve）才会提前放行。
   function settleVoice(maxMs, minMs, pid) {
     var t0 = Date.now();
     var floor = Math.max(0, minMs || 0);
-    var muted = voiceFailStreak >= 3;
-    var think = muted ? Math.round(rollThink(pid) * 0.35) : rollThink(pid);
-    var voiceDoneAt = null;
-    var cap = maxMs + think + 200;
+    var think = rollThink(pid);
     return new Promise(function (resolve) {
+      var done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        var i = paceWaiters.indexOf(finish);
+        if (i >= 0) paceWaiters.splice(i, 1);
+        resolve(Date.now() - t0);
+      }
+      paceWaiters.push(finish);
       (function check() {
-        var elapsed = Date.now() - t0;
-        var voiceDone = voicePending <= 0 || voiceFailStreak >= 3;
-        if (voiceDoneAt === null && voiceDone) voiceDoneAt = elapsed;
-        // 语音始终没念完：到硬上限直接放行，不再叠加思考。
-        if (elapsed >= maxMs && voiceDoneAt === null) { resolve(elapsed); return; }
-        if (elapsed >= cap) { resolve(elapsed); return; }
-        if (voiceDoneAt !== null &&
-            elapsed >= Math.max(floor, voiceDoneAt) + think) { resolve(elapsed); return; }
-        setTimeout(check, 40);
+        if (done) return;
+        if (pendingReports > 0) { setTimeout(check, 30); return; }
+        // 取此刻最新的播放链：所有报牌票销完时，链上不应再有音频。
+        voiceChain.then(function () {
+          var rest = Math.max(0, floor - (Date.now() - t0));
+          setTimeout(finish, rest + think);
+        }, finish);
       })();
+      // 防死锁：CDN 全挂 / 音频对象永久卡住时也不让整局停摆。
+      setTimeout(finish, Math.max(6000, (maxMs || 0) + 1000));
     });
   }
 
@@ -883,9 +908,12 @@
     if ("speechSynthesis" in window) {
       try { window.speechSynthesis.cancel(); } catch (e) {}
     }
-    // 静音 / 关报牌：立刻丢弃还没开口的语音，节奏闸也要能放行
+    // 静音 / 关报牌：立刻丢弃还没开口的语音，节奏闸也要能放行。
+    // 已丢弃的报牌票不再算「还没念完」，否则会白等到防死锁兜底。
     voiceChain = Promise.resolve();
     voicePending = 0;
+    pendingReports = 0;
+    paceWaiters.slice().forEach(function (fn) { fn(); });
   }
 
   function classify(file) {
@@ -940,13 +968,16 @@
   window.__mjEnhance = debug;
 
   // 供 game.js（出牌节奏）与 showtime.js（报牌队列）共用的节拍接口。
-  // settle: 等报牌念完 + 拟人思考停顿；quiet: 当前播放链，用于排队；
-  // pending: 还没播完的段数；reset: 每局重洗三家脾性；
-  // thinks: 最近各轮思考停顿，供验证与调试。
+  // beginReport/endReport: 每张弃牌的报牌票，settle 严格等票销完；
+  // settle: 等报牌播完 + 轻微抖动；quiet: 当前播放链；pending: 未播完段数；
+  // reports: 未销票数（供验证）；reset: 每局重洗脾性；thinks: 最近停顿。
   window.__mjPace = {
     settle: settleVoice,
     quiet: function () { return voiceChain; },
     pending: function () { return voicePending; },
+    beginReport: function () { pendingReports++; },
+    endReport: function () { pendingReports = Math.max(0, pendingReports - 1); },
+    reports: function () { return pendingReports; },
     reset: resetTempo,
     thinks: function () { return thinkLog.slice(); }
   };

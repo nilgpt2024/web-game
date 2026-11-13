@@ -167,6 +167,7 @@ const raw = await evalJs(`JSON.stringify({
   turns: window.__paceLog.turns,
   voicePack: window.__mjEnhance ? window.__mjEnhance.voicePack() : null,
   pending: window.__mjPace ? window.__mjPace.pending() : -1,
+  reports: window.__mjPace && window.__mjPace.reports ? window.__mjPace.reports() : -1,
   thinks: window.__mjPace && window.__mjPace.thinks ? window.__mjPace.thinks() : []
 })`);
 const L = JSON.parse(raw);
@@ -197,7 +198,21 @@ const thinkSpread = thinks.length ? Math.max(...thinks) - Math.min(...thinks) : 
 const gapDistinct = new Set(gaps.map(g => Math.round(g / 100))).size;
 console.log("拟人思考停顿(ms):", JSON.stringify(thinks), "去重档位=", thinkDistinct, "极差=", thinkSpread);
 console.log("弃牌间隔去重档位(100ms):", gapDistinct);
-console.log("VOICE-PACK:", JSON.stringify(L.voicePack), "pending:", L.pending);
+// 严格同步判据：任意一张牌落桌的那一刻，不允许还有上一轮报牌在播。
+// 直接对应「都出过牌了报牌还在念、越落越远」，且不依赖猜哪段音频
+// 属于哪张牌（pX-chi/peng/hu 等喊牌音频会混进牌名序列，按索引配对会错位）。
+const overlaps = [];
+for (let i = 1; i < L.discards.length; i++) {
+  const t = L.discards[i].t;
+  const busy = L.clips.filter(c => c.t0 < t - 30 && (c.ended === null || c.ended > t + 120));
+  if (busy.length) overlaps.push({ discard: i,
+    busy: busy.map(c => ({ f: c.f, startedAgo: Math.round(t - c.t0),
+      endsIn: c.ended === null ? null : Math.round(c.ended - t) })) });
+}
+const syncOk = L.discards.length >= 5 && overlaps.length === 0;
+console.log("落牌时仍在播的音频(应为空):", JSON.stringify(overlaps.slice(0, 8)));
+console.log("检查落牌时刻:", L.discards.length - 1, "重叠次数:", overlaps.length);
+console.log("VOICE-PACK:", JSON.stringify(L.voicePack), "pending:", L.pending, "reports:", L.reports);
 console.log("JS-ERRORS:", errors.length);
 errors.slice(0, 5).forEach(e => console.log("  ", e));
 
@@ -208,8 +223,12 @@ const checks = {
   "报牌无被打断": cut.length === 0,
   "多数报牌播完整": L.clips.length === 0 || full.length / Math.max(1, L.clips.length) >= 0.7,
   "报牌数跟得上弃牌": L.clips.length >= Math.min(4, L.discards.length),
+  "报牌播完才轮下家": syncOk,
+  // 采样瞬间可能正好有一张牌在报（票未销），允许 1 张；持续 >1 才是积压
+  "报牌票无积压": L.reports >= 0 && L.reports <= 1,
   "拟人停顿已启用": thinks.length >= 6,
-  "停顿有随机性": thinkDistinct >= 4 && thinkSpread >= 250,
+  // v28 起已按用户要求取消长考，抖动上限 300ms，极差门槛相应下调
+  "停顿有随机性": thinkDistinct >= 4 && thinkSpread >= 150,
   "间隔不匀速": gapDistinct >= 4,
   "节奏未失控": median(gaps) >= 900 && median(gaps) <= 3400,
   "无 JS 异常": errors.length === 0

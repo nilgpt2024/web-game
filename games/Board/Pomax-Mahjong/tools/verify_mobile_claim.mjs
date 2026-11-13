@@ -245,8 +245,10 @@ const checks = {
   "没有重复弹窗": duplicateModals === 0,
   "点「不要」立即过牌(不用等5秒)": noTaps >= 1 && noLatency !== null && noLatency < 1500,
   "俚语合成语音已停播": chatterAudio.length === 0,
-  "典型出牌间隔≤1.7秒、长等待只出现在局间": normalGaps.length >= 8 &&
-    medianGap <= 1700 && longWaits.length <= Math.max(1, handEnds),
+  // v29 起严格等报牌播完才轮下家，间隔≈一句(1.3~1.5s)+轻微抖动，
+  // 中位约 1.55s；阈值随之上调，但不允许出现无声干等。
+  "典型出牌间隔≤2.2秒、长等待只出现在局间": normalGaps.length >= 8 &&
+    medianGap <= 2200 && longWaits.length <= Math.max(1, handEnds),
   "无 JS 异常": errors.length === 0
 };
 console.log("CHECKS:", JSON.stringify(checks));

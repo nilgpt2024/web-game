@@ -458,10 +458,12 @@
         // 别让这一段把整局游戏卡死。整包已预热，正常几十毫秒就出声；
         // 给 1.8s 足够覆盖首次缓冲，超时就放弃这一句，避免出现三四秒
         // 的空档盖过拟人节奏（原先 4.2s 会明显「卡一下」）。
-        // 连续几次连 playing 都等不到，说明这台设备/网络根本放不出音频。
-        // 此时把兜底缩到 350ms：票会立刻销掉，既不放行到「音频还在播」，
-        // 也不会无声时每张牌都空等 1.8s。
-        var bufferMs = voiceFailStreak >= 2 ? 350 : 1800;
+        // 连续 3 次连 playing 都等不到，说明网络/设备放音频很吃力：
+        // 兜底缩到 900ms（不是 350ms）——350ms 会在 CDN 刚要返回数据时
+        // 把语音掐掉，而 playing 永远来不及触发，voiceFailStreak 就再也
+        // 清零不了，后面每一句都没声音。900ms 既给首次加载留机会，
+        // 又不会在彻底无声时让每张牌干等 1.8s。
+        var bufferMs = voiceFailStreak >= 3 ? 900 : 1800;
         timer = setTimeout(function () {
           if (done) return;
           if (!startedOk) voiceFailStreak++;

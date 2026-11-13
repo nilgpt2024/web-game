@@ -45,6 +45,10 @@ console.log("STATE:", await evalJs(`JSON.stringify({
   bodyClass: document.body && document.body.className,
   scripts: document.scripts.length,
   immersiveScript: [...document.scripts].filter(s => /immersive/.test(s.src)).map(s => s.src),
+  currentGame: typeof window.currentGame,
+  active: !!document.querySelector(".player.active"),
+  modals: [...document.querySelectorAll(".modal")].map(m => ({ cls: m.className, hidden: m.classList.contains("hidden"), buttons: [...m.querySelectorAll("button")].map(b => (b.textContent||"").trim()) })),
+  allButtons: [...document.querySelectorAll("button")].slice(0, 14).map(b => (b.textContent||"").trim()),
   res: performance.getEntriesByType("resource").filter(e => /immersive|showtime|autopilot/.test(e.name)).map(e => ({n:e.name.split("/").pop(), st:e.responseStatus, size:e.transferSize}))
 })`));
 const voice = log.filter(l => /^RESP \d+ .*\.mp3/.test(l));

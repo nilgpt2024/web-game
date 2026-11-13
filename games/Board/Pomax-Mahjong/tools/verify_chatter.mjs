@@ -154,9 +154,8 @@ const byDialect = JSON.parse(await evalJs(`(() => {
   });
   return JSON.stringify(out);
 })()`));
-// 语音是串行队列，八段各约 2~3s，等它们依次播完再统计，别把「还在排队」
-// 误判成「没播出来」。
-await sleep(26000);
+// v28 起俚语只留字幕、不再播放合成方言语音；等 2 秒确认没有音频被启动。
+await sleep(2000);
 const audioAfter = JSON.parse(await evalJs(`JSON.stringify(window.__fyLog.slice())`));
 console.log("MANUAL:", JSON.stringify(manual));
 console.log("BY-DIALECT:", JSON.stringify(byDialect));
@@ -177,7 +176,6 @@ console.log("MOBILE-OVERLAP:", JSON.stringify(overlap));
 console.log("JS-ERRORS:", errors.length);
 errors.slice(0, 5).forEach(e => console.log("  ", e));
 
-const hasPrefix = p => audioAfter.some(f => f.startsWith(p));
 // 公网无头环境偶尔起不来局（模块链加载慢 / CDN 偶发截断），此时
 // 「等你出牌自动催话」无法实测，单独标 SKIP，别混成功能失败。
 const skipped = [];
@@ -193,8 +191,7 @@ const checks = {
     /羊熊样|恁肉|肉叽|快点呗/.test(auto.bubble?.text || "")),
   "字幕标出说话人籍贯": !started || /东北大姐|陕西老姐|阜阳老哥/.test(auto.bubble?.text || ""),
   "三方字幕各自对应": byDialect.every(x => x.ok && x.text.includes(x.d)),
-  "三方音频都播过": ["fy-", "db-", "sx-"].every(hasPrefix),
-  "俚语音频已播放": audioAfter.length >= 8,
+  "合成方言语音已停播": audioAfter.length === 0,
   "五组字幕各不相同": new Set(manual.map(m => m.text)).size === 5 && manual.every(m => m.ok),
   "移动端不挡手牌": !overlap.found || overlap.overlap === false,
   "无 JS 异常": errors.length === 0

@@ -513,6 +513,8 @@
   var chatterWaitTimer = null;
 
   function showChatterBubble(item) {
+    // 声明（碰/杠/胡）操作窗口只有几秒，这时不弹字幕打扰用户
+    if (document.querySelector(".discards game-tile.selectable")) return;
     if (!chatterBubble) {
       chatterBubble = document.createElement("div");
       chatterBubble.id = "mj-chatter-bubble";
@@ -545,7 +547,7 @@
     var list = want ? all.filter(function (x) { return x.dialect === want; }) : all;
     if (!list.length) list = all;
     var now = Date.now();
-    var cooldown = opts && typeof opts.cooldown === "number" ? opts.cooldown : 11000;
+    var cooldown = opts && typeof opts.cooldown === "number" ? opts.cooldown : 22000;
     if (now - chatterLast < cooldown) return false;
     var line = list[Math.floor(Math.random() * list.length)];
     if (line.t === chatterLastText && list.length > 1) {
@@ -556,7 +558,11 @@
     chatterLastDialect = line.dialect || "";
     chatterCount[kind] = (chatterCount[kind] || 0) + 1;
     showChatterBubble(line);
-    return playFile(line.f);
+    // 用户反馈：合成方言音色不像皖北、听着串味；免费 TTS 又没有
+    // 中原官话商阜片可用。这里只留字幕文字，不再播放语音，也不占用
+    // 报牌的串行语音链（否则一句闲话会把下一张牌硬生生卡住）。
+    // 素材与生成脚本仍保留，日后拿到真人录音 / 方言音色可一键接回。
+    return true;
   }
 
   function cancelChatterWait() {
@@ -575,9 +581,9 @@
       if (!active || active.getAttribute("id") !== "0") return;
       if (document.querySelectorAll(".discards game-tile.discard").length !== n) return;
       // 第一句必须是本地（阜阳）话；再催一次才让同桌别的口音插话
-      chatter("wait", { cooldown: 0, dialect: (round || 0) === 0 ? "阜阳话" : null });
-      if ((round || 0) < 1) armChatterWait((round || 0) + 1);
-    }, (round || 0) === 0 ? 5200 : 10000);
+      chatter("wait", { cooldown: 0, dialect: "阜阳话" });
+      // 只催一次：再催第二遍会显得吵，也让长辈分心
+    }, 5200);
   }
 
   // 每局开局重洗三家 AI 的脾性，让同一局内「谁快谁慢」稳定可感知，
@@ -603,20 +609,20 @@
     if (!state.autopilot && (pid === 0 || pid === undefined || pid === null)) return 0;
 
     // 开局随手打，越到中后盘（要听牌、怕点炮）越慢。
-    var phase = 0.84 + 0.52 * Math.min(1, tempoTurns / 55);
+    var phase = 0.84 + 0.32 * Math.min(1, tempoTurns / 55);
     var r = Math.random();
     var ms;
-    if (r > 0.93) ms = 800 + Math.random() * 800;        // 7% 长考 0.8~1.6s
-    else if (r < 0.16) ms = 40 + Math.random() * 110;     // 16% 秒打
-    else ms = 120 + Math.random() * 360;                  // 常规 0.12~0.48s
+    if (r < 0.18) ms = 0;                                // 18% 秒打
+    else ms = 40 + Math.random() * 180;                   // 常规 0.04~0.22s
 
     // 连续秒打不自然，第三张起至少缓一下。
-    if (tempoQuick >= 2 && ms < 300) ms = 300 + Math.random() * 240;
-    tempoQuick = ms < 220 ? tempoQuick + 1 : 0;
+    if (tempoQuick >= 2 && ms < 90) ms = 90 + Math.random() * 90;
+    tempoQuick = ms < 70 ? tempoQuick + 1 : 0;
 
     var trait = tempoTraits[(pid | 0) % 4] || 1;
-    // 硬上限 1.5s：慢性子 + 后盘 + 长考叠加时也不让长辈干等太久
-    ms = Math.round(Math.min(1500, ms * trait * phase));
+    // 上限 300ms：用户反馈「他都出过牌了为什么还要等待」，长考已取消。
+    // 现在只留一点呼吸抖动，间隔基本等于一句报牌的长度。
+    ms = Math.round(Math.min(300, ms * trait * phase));
     thinkLog.push(ms);
     if (thinkLog.length > 40) thinkLog.shift();
     return ms;
@@ -952,9 +958,10 @@
     switch (kind) {
       case "thud":    slap(1.0); break;                 // 每手第一张：原有重拍 + 强调
       case "discard": slap(0.78); break;               // 后续打牌：补上一致的落牌声
-      case "multi":   ding(2); chatter("meld"); break; // 碰 / 吃：同桌夸一句
-      case "kong":    slap(1.0); ding(3); chatter("meld"); break; // 杠：清脆三连
-      case "start":   chatter("start"); break;         // 开局：三方各来一句家乡话
+      // 碰/杠瞬间正是要动手声明的时候，不再弹搭话字幕分散注意力
+      case "multi":   ding(2); break;                  // 碰 / 吃
+      case "kong":    slap(1.0); ding(3); break;       // 杠：清脆三连
+      case "start":   chatter("start"); break;         // 开局一句家乡话字幕
     }
 
     // 演出层订阅这个事件，负责胡牌动画、夸张音效与真人感报牌
@@ -1289,11 +1296,13 @@
       buildToolbar();
       buildElderGuard();
       buildMobileHand();
+      buildClaimBar();
     });
   } else {
     buildToolbar();
     buildElderGuard();
     buildMobileHand();
+    buildClaimBar();
   }
 
   // ----------------------------------------------------------------
@@ -1457,6 +1466,107 @@
     });
     mobileHand.replaceChildren(frag);
     document.body.classList.add("mj-mobile-hand-on");
+  }
+
+  // ----------------------------------------------------------------
+  // 移动端声明操作条：上游把「能碰/杠/胡」的弃牌做成 18×27px 的小牌，
+  // 手指几乎点不中；点偏超过 40px 还会被直接判成「过」，5 秒窗口白白
+  // 耗完（用户反馈「碰牌根本无法点击」「出过牌还要干等」）。
+  // 这里在窄屏给两个大按钮：点「要这张牌」直接转发到那张弃牌，让上游
+  // 弹出碰/杠/胡选择框；点「不要」立即过牌，不必等倒计时走完。
+  // ----------------------------------------------------------------
+  var claimBar = null;
+  var claimBarRaf = 0;
+  var claimHideTimer = 0;
+  var claimDeadTile = null;   // 声明窗口已过期的那张牌，不再挂浮层
+
+  function claimTile() {
+    // 上游 listenForClaim 绑的是 this.discards.lastChild；弃牌堆里可能
+    // 残留上一轮没清干净的 selectable 旧牌，取第一个会转发到已解绑的元素，
+    // 点了完全没反应。这里一律取最后一张，与上游保持一致。
+    var list = document.querySelectorAll(".discards game-tile.selectable");
+    return list.length ? list[list.length - 1] : null;
+  }
+
+  function buildClaimBar() {
+    if (claimBar) return;
+    claimBar = document.createElement("div");
+    claimBar.id = "mj-claim-bar";
+    claimBar.innerHTML =
+      '<div class="mj-claim-tip">这张牌你可以要</div>' +
+      '<button type="button" class="mj-claim-yes">要这张牌（碰 / 杠 / 胡）</button>' +
+      '<button type="button" class="mj-claim-no">不要，过</button>' +
+      '<div class="mj-claim-timer"><i></i></div>';
+    document.body.appendChild(claimBar);
+
+    claimBar.querySelector(".mj-claim-yes").addEventListener("click", function (evt) {
+      evt.stopPropagation();
+      var t = claimTile();
+      if (!t) return;
+      var b = t.getBoundingClientRect();
+      // 不冒泡：只触发弃牌牌自己的 handler（上游 triggerClaimDialog），
+      // 避开绑在 .discards 上的 safelyIgnoreDicard，不会重复弹窗。
+      t.dispatchEvent(new MouseEvent("click", {
+        bubbles: false, cancelable: true,
+        clientX: b.left + b.width / 2, clientY: b.top + b.height / 2
+      }));
+      claimDeadTile = t;   // 这次窗口已消费，浮层不要因为弹窗关闭又冒出来
+      scheduleClaimSync();
+    });
+
+    claimBar.querySelector(".mj-claim-no").addEventListener("click", function (evt) {
+      evt.stopPropagation();
+      var t = claimTile();
+      var d = document.querySelector(".discards");
+      if (!t || !d) return;
+      var b = t.getBoundingClientRect();
+      // 坐标远离该牌中心 → 上游 safelyIgnoreDicard 判定为「过」
+      d.dispatchEvent(new MouseEvent("click", {
+        bubbles: false, cancelable: true,
+        clientX: b.left - 120, clientY: b.top - 120
+      }));
+      claimDeadTile = t;
+      scheduleClaimSync();
+    });
+
+    var obs = new MutationObserver(scheduleClaimSync);
+    obs.observe(document.body, { childList: true, subtree: true,
+      attributes: true, attributeFilter: ["class"] });
+    window.addEventListener("resize", scheduleClaimSync);
+    syncClaimBar();
+  }
+
+  function scheduleClaimSync() {
+    if (claimBarRaf) return;
+    claimBarRaf = requestAnimationFrame(function () {
+      claimBarRaf = 0;
+      syncClaimBar();
+    });
+  }
+
+  function syncClaimBar() {
+    if (!claimBar) return;
+    var t = claimTile();
+    if (!t) claimDeadTile = null;   // 旧窗口彻底结束，复位
+    // 声明选择框弹出后立刻收起，别挡住里面的「碰 / 不要」按钮
+    var on = !!t && t !== claimDeadTile &&
+      !document.querySelector(".modal:not(.hidden)");
+    var was = claimBar.classList.contains("mj-on");
+    if (on === was) return;
+    clearTimeout(claimHideTimer);
+    claimBar.classList.toggle("mj-on", on);
+    if (on) {
+      var bar = claimBar.querySelector(".mj-claim-timer i");
+      bar.style.animation = "none";
+      void bar.offsetWidth;   // 强制重排，重置 5 秒倒计时动画
+      bar.style.animation = "";
+      // 上游 CLAIM_INTERVAL=5000，到点后按钮 handler 已被清理，再点也不会
+      // 弹框。提前 400ms 收起，不给用户一个「点了没反应」的假按钮。
+      claimHideTimer = setTimeout(function () {
+        claimDeadTile = claimTile();
+        claimBar.classList.remove("mj-on");
+      }, 4600);
+    }
   }
 
   // ----------------------------------------------------------------

@@ -594,6 +594,7 @@ game-tile.mj-armed {
 body.mj-immersive .modal .panel button {
   font-size: 130%;
   height: 2.5em;
+  min-height: 48px;   /* 移动端声明框的碰/胡按钮也要够手指点 */
   letter-spacing: .12em;
 }
 
@@ -608,3 +609,81 @@ body.mj-immersive .player.active {
 
 /* 「失焦暂停」已移除：即便上游残留 paused 类，也不再显示英文 GAME PAUSED 遮罩 */
 body.mj-immersive .discards.paused::after { display: none !important; }
+
+/* ---------- 移动端声明操作条：碰 / 杠 / 胡的大按钮 ----------
+   上游那张可声明弃牌只有 18×27px，手指点不中，点偏即被判「过」。
+   给两个大按钮，并把 5 秒声明窗口画成看得见的倒计时条。 */
+#mj-claim-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 17%;
+  z-index: 10003;
+  display: none;
+  width: min(88vw, 420px);
+  box-sizing: border-box;
+  transform: translateX(-50%);
+  padding: 12px 14px 13px;
+  border: 2px solid rgba(255, 197, 61, .8);
+  border-radius: 18px;
+  background: rgba(20, 32, 24, .97);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .62);
+  font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+  text-align: center;
+  color: #fff6e6;
+  touch-action: manipulation;
+}
+#mj-claim-bar.mj-on { display: block; }
+@media (min-width: 901px) {
+  #mj-claim-bar { display: none !important; }
+}
+#mj-claim-bar .mj-claim-tip {
+  font-size: 15px;
+  letter-spacing: .08em;
+  color: #ffd27a;
+  margin-bottom: 9px;
+}
+#mj-claim-bar button {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 56px;
+  margin: 0 0 8px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+#mj-claim-bar .mj-claim-yes {
+  border: 1px solid #5cc98f;
+  background: #2f7d55;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(47, 125, 85, .5);
+}
+#mj-claim-bar .mj-claim-yes:active { background: #3c9c6c; }
+#mj-claim-bar .mj-claim-no {
+  min-height: 46px;
+  margin-bottom: 0;
+  border: 1px solid rgba(255, 255, 255, .38);
+  background: rgba(255, 255, 255, .1);
+  color: #f2f6f3;
+  font-size: 16px;
+}
+#mj-claim-bar .mj-claim-timer {
+  height: 4px;
+  margin-top: 11px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .16);
+  overflow: hidden;
+}
+#mj-claim-bar .mj-claim-timer i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #ffc54a;
+  transform-origin: left center;
+  animation: mjClaimTimer 5s linear forwards;
+}
+@keyframes mjClaimTimer { to { transform: scaleX(0); } }

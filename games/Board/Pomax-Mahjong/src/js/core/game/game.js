@@ -432,11 +432,12 @@ class Game {
       // 长辈 / 移动端：等上一张牌的中文报牌念完，再打这一张。
       // 回合指示牌在本轮 activate() 时已经切到下一位（提示不延迟），
       // 这里只让「出牌动作」跟着语音走，避免一圈打完了还没听见报牌。
-      // 2800ms 硬上限：音频被浏览器拦截 / 静音 / 加载异常时照常推进。
+      // 硬上限 1700ms：用户反馈「出过牌了还要干等一会儿」很怪，
+      // 报牌之外不再叠加长考；音频异常时也照常推进。
       var pace = window.__mjPace;
       if (pace && typeof pace.settle === "function") {
-        // 传入当前出牌者：三家 AI 各有脾性，轮到真人自己则不加思考停顿
-        await pace.settle(2800, 900, currentPlayerId);
+        // 传入当前出牌者：三家 AI 各有轻微快慢差异，轮到真人不加停顿
+        await pace.settle(1700, 650, currentPlayerId);
       }
     }
 

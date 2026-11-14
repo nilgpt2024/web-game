@@ -1690,6 +1690,57 @@
         }
       }
     }
+    // 轮到自己：桌面/宽屏不启用放大手牌区，按「座位外侧 +34」算出的位置
+    // 会被 clamp 到屏幕底部，正好压在自己的 14 张手牌上（用户截图反馈）。
+    // 收集所有牌面矩形，依次试候选位，取第一个一张牌都不压的位置。
+    // 只处理 pid 0，其它座位的指示牌位置保持原样，避免回归。
+    if (pid === 0) {
+      var tileRects = [];
+      var tileNodes = document.querySelectorAll(".board game-tile, #mj-mobile-hand [tile]");
+      for (var ni = 0; ni < tileNodes.length; ni++) {
+        var tileR = tileNodes[ni].getBoundingClientRect();
+        if (tileR.width > 0 && tileR.height > 0) tileRects.push(tileR);
+      }
+      // .mj-you 有 1.08 倍脉冲动画，留 6px 余量，别让放大时又蹭到牌
+      var hitsTiles = function (x, y) {
+        var l = x - halfW - 6, r = x + halfW + 6;
+        var t = y - halfH - 6, b = y + halfH + 6;
+        for (var k = 0; k < tileRects.length; k++) {
+          var q = tileRects[k];
+          if (r > q.left && l < q.right && b > q.top && t < q.bottom) return true;
+        }
+        return false;
+      };
+      if (hitsTiles(mx, my)) {
+        var own = document.querySelectorAll(".player[id='0'] game-tile");
+        var hTop = Infinity, hBottom = -Infinity, hLeft = Infinity, hRight = -Infinity;
+        for (var oi = 0; oi < own.length; oi++) {
+          var ob = own[oi].getBoundingClientRect();
+          hTop = Math.min(hTop, ob.top);
+          hBottom = Math.max(hBottom, ob.bottom);
+          hLeft = Math.min(hLeft, ob.left);
+          hRight = Math.max(hRight, ob.right);
+        }
+        var clampX = function (x) { return Math.max(halfW + 4, Math.min(vs.w - halfW - 4, x)); };
+        var clampY = function (y) { return Math.max(minY, Math.min(vs.h - halfH - 4, y)); };
+        var above = clampY(hTop - halfH - 10);
+        // 优先级：手牌正上方 → 手牌下方 → 工具栏下方 → 手牌左右两侧
+        var spots = [
+          [mx, above],
+          [mx, clampY(hBottom + halfH + 10)],
+          [mx, clampY(minY)],
+          [clampX(hLeft - halfW - 12), above],
+          [clampX(hRight + halfW + 12), above]
+        ];
+        for (var si = 0; si < spots.length; si++) {
+          if (!hitsTiles(spots[si][0], spots[si][1])) {
+            mx = spots[si][0];
+            my = spots[si][1];
+            break;
+          }
+        }
+      }
+    }
     turnMarker.style.left = mx.toFixed(0) + "px";
     turnMarker.style.top = my.toFixed(0) + "px";
   }

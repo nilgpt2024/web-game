@@ -202,9 +202,11 @@ body.mj-immersive #mj-toolbar.mj-fresh {
 
 body.mj-mobile-hand-on #mj-mobile-hand { display: grid; }
 
-/* 托盘标题：轮到你时「该你出牌」就在手牌正上方，视线不用离开牌 */
+/* 托盘标题：轮到你时「该你出牌」就在手牌正上方，视线不用离开牌。
+   只要放大手牌区开着就统一用托盘标题，浮动指示牌一律收起——
+   否则在平板竖屏 / 中屏横屏上它会压住 4 张放大牌。 */
 #mj-mobile-hand-title {
-  display: none;
+  display: block;
   grid-column: 1 / -1;
   text-align: center;
   color: #eafff1;
@@ -214,10 +216,11 @@ body.mj-mobile-hand-on #mj-mobile-hand { display: grid; }
   padding: 1px 0 4px;
   text-shadow: 0 2px 6px rgba(0, 0, 0, .7);
 }
-@media (max-width: 760px) and (orientation: portrait) {
-  body.mj-mobile-hand-on #mj-mobile-hand-title { display: block; }
-  /* 标题已写明「该你出牌」，浮动指示牌不再多占一块地方 */
-  body.mj-mobile-hand-on #mj-turn-marker.mj-you { display: none !important; }
+/* 标题已写明「该你出牌」，浮动指示牌不再压住手牌 */
+body.mj-mobile-hand-on #mj-turn-marker.mj-you { display: none !important; }
+/* 横屏高度紧张：标题收成一行小字，别把放大牌的行高挤掉 */
+@media (orientation: landscape) and (max-height: 600px) {
+  #mj-mobile-hand-title { font-size: 15px; letter-spacing: .04em; padding: 0 0 2px; }
 }
 
 /* [tile="N"] 的牌面规则对任何带 tile 属性的元素都生效，
@@ -268,6 +271,9 @@ body.mj-mobile-hand-on #mj-mobile-hand { display: grid; }
     border-top: 2px solid rgba(255, 215, 130, .4);
   }
   #mj-mobile-hand-title { display: none !important; }
+  /* 横屏托盘塞不下标题，仍用右侧空白处的浮动指示牌提示「该你出牌」，
+     它不压任何牌；其它有标题的场景一律收起指示牌。 */
+  body.mj-mobile-hand-on #mj-turn-marker.mj-you.mj-on { display: block !important; }
   #mj-mobile-hand [tile] { max-width: 48px; }
 }
 

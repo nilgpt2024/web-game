@@ -205,7 +205,9 @@
       try { return decodeURIComponent(raw); } catch (e) { return raw; }
     }
     var cfg = cfgBridge();
-    return (cfg && cfg.RULES) || "Chinese Classical";
+    // 与 config.js 的 DEFAULT_CONFIG.RULES 保持一致（阜阳为默认），
+    // 避免 module 桥还没建立时工具条临时显示成「中国古典」。
+    return (cfg && cfg.RULES) || "Fuyang Mahjong";
   }
 
   function rulesLabel(name) {
@@ -1525,9 +1527,14 @@
     if (claimBar) return;
     claimBar = document.createElement("div");
     claimBar.id = "mj-claim-bar";
+    // 阜阳麻将只许碰/杠：不许吃、也不能点炮胡，按钮别写「胡」误导长辈；
+    // 其他规则保留吃/胡。规则名与 config 默认值、工具条口径一致。
+    var claimYes = /Fuyang/i.test(currentRules())
+      ? "要这张牌（碰 / 杠）"
+      : "要这张牌（吃 / 碰 / 杠 / 胡）";
     claimBar.innerHTML =
       '<div class="mj-claim-tip">这张牌你可以要</div>' +
-      '<button type="button" class="mj-claim-yes">要这张牌（碰 / 杠 / 胡）</button>' +
+      '<button type="button" class="mj-claim-yes">' + claimYes + '</button>' +
       '<button type="button" class="mj-claim-no">不要，过</button>' +
       '<div class="mj-claim-timer"><i></i></div>';
     document.body.appendChild(claimBar);

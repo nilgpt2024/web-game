@@ -3,10 +3,22 @@
 
 <head>
   <meta charset="utf-8" />
+  <script>
+    // 阜阳老人手机单机：裸链接一律按阜阳规则开局。
+    // 只改地址栏参数、不做跳转（跳转会多一次导航，增强层可能来不及初始化）；
+    // 随后加载的 config.js 直接读 location.search，即便 config.js 命中旧缓存
+    // 也照样生效。已有 rules= 参数（玩法切换）时不介入。
+    if (!/[?&]rules=/.test(location.search)) {
+      var u = new URL(location.href);
+      u.searchParams.set("rules", "Fuyang Mahjong");
+      history.replaceState(null, "", u.toString());
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>四人麻将 · 全中文 | AIGameHub</title>
-  <meta name="description" content="与三家电脑对手同桌打四人麻将，开局可选中国古典或广东规则，离开时可让电脑代玩。拟真牌桌、全屏胡牌演出、四位玩家各有音色的中文语音包，附独立游戏手册。原作 Pomax。" />
+  <title>阜阳麻将 · 手机单机不用下载 | AIGameHub</title>
+  <meta name="description" content="阜阳麻将手机单机：不带花牌、只碰不吃、只能自摸，与三家电脑同桌，中文语音报牌，牌面放大、点开就能玩，不用下载。原作 Pomax。" />
   <link rel="canonical" href="https://suipce.com/games/Board/Pomax-Mahjong/" />
+  <meta property="og:title" content="阜阳麻将 · 手机单机不用下载 | AIGameHub" />
   <meta property="og:image" content="https://suipce.com/games/Board/Pomax-Mahjong/preview.webp" />
   <meta name="twitter:image" content="https://suipce.com/games/Board/Pomax-Mahjong/preview.webp" />
   <link rel="shortcut icon" type="image/jpeg" href="img/tiles/small/31.jpg">
@@ -15,7 +27,7 @@
   <link rel="stylesheet" href="src/css/index.css">
   <!-- AIGameHub 本地增强层：全屏沉浸 + 打牌音效 + 中文化 + 拟真牌桌 + 胡牌演出
        （不修改上游源码；顺序依赖：immersive.js 必须先于 showtime.js 加载） -->
-  <link rel="stylesheet" href="src/css/immersive.css?v=30">
+  <link rel="stylesheet" href="src/css/immersive.css?v=31">
   <link rel="stylesheet" href="src/css/zh-CN.css">
   <link rel="stylesheet" href="src/css/showtime.css">
   <!-- 固定中文报牌语音包：真人感神经语音预生成 MP3，随站离线分发，不依赖系统 TTS -->
@@ -23,13 +35,13 @@
   <script src="voice/manifest.js?v=5"></script>
   <!-- 阜阳/皖北牌桌俚语语音包：等人出牌、碰杠、胡牌时同桌搭话 -->
   <script src="voice/chatter.js?v=2"></script>
-  <script src="src/js/page/immersive.js?v=30"></script>
-  <script type="module" src="src/js/page/autopilot.js?v=9"></script>
-  <script src="src/js/page/zh-CN.js?v=9"></script>
-  <script src="src/js/page/showtime.js?v=30"></script>
+  <script src="src/js/page/immersive.js?v=31"></script>
+  <script type="module" src="src/js/page/autopilot.js?v=31"></script>
+  <script src="src/js/page/zh-CN.js?v=10"></script>
+  <script src="src/js/page/showtime.js?v=31"></script>
   <script src="src/js/page/tiles-locknum.js" async></script>
-  <script src="src/js/page/play-or-watch.js" type="module"></script>
-  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Board &amp; Strategy Games","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"Four-Player Mahjong","item":"https://suipce.com/games/Board/Pomax-Mahjong/"}]}</script>
+  <script src="src/js/page/play-or-watch.js?v=31" type="module"></script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://suipce.com/"},{"@type":"ListItem","position":2,"name":"Board &amp; Strategy Games","item":"https://suipce.com/board-games"},{"@type":"ListItem","position":3,"name":"阜阳麻将（四人）","item":"https://suipce.com/games/Board/Pomax-Mahjong/"}]}</script>
   <style>
     .aigamehub-credit{font-size:13px;opacity:.75;margin-left:.6em}
     .aigamehub-credit a{color:inherit}

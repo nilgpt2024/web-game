@@ -15,7 +15,7 @@
   var EXACT = {
     // 首屏
     "Welcome! What would you like to do?": "欢迎！想怎么玩？",
-    "There are currently two modes of play on offer:": "本游戏提供两种玩法：",
+    "There are currently two modes of play on offer:": "想自己打，还是看三家电脑打？",
     "I'd like to play some mahjong!": "我要亲自打一局麻将",
     "I just want to watch the bots play": "看三家电脑自动对局",
     "Alternatively, you can modify the game settings:": "也可以先调整游戏设置：",
@@ -50,7 +50,7 @@
     "I'm declaring a kong": "我要杠牌",
     "I just won": "我胡了",
     "Declare a kong or win?": "要杠牌还是胡牌？",
-    "What kind of claim are you making?": "这张牌要怎么吃碰？",
+    "What kind of claim are you making?": "这张牌你要不要？",
     "Ignore": "不要",
     "Chow (▮▯▯)": "吃（▮▯▯）",
     "Chow (▯▮▯)": "吃（▯▮▯）",
@@ -120,6 +120,7 @@
     // 规则名（option 显示文本；value 属性保持英文原值不动）
     "Chinese Classical": "中国古典麻将",
     "Cantonese": "广东麻将",
+    "Fuyang Mahjong": "阜阳麻将",
     "true": "开",
     "false": "关",
 
@@ -369,11 +370,8 @@
       .forEach(function (el) { el.textContent = el.textContent.replace(/東/g, "东"); });
 
     document.documentElement.setAttribute("lang", "zh-CN");
-    document.title = "四人麻将 · 全中文 | AIGameHub";
-    var desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute("content", "与三家电脑对手同桌打四人麻将，开局可选中国古典或广东规则，离开时可让电脑代玩。拟真牌桌、全屏胡牌演出、四位玩家各有音色的中文语音包，附独立游戏手册。原作 Pomax。");
-    var ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) ogTitle.setAttribute("content", "四人麻将 · 全中文 | AIGameHub");
+    // 页面标题与分享描述只由 index.html 维护，这里不再覆盖，
+    // 避免改成阜阳口径后又被本层写回旧的「中国古典 / 广东」文案。
   }
 
   // ----------------------------------------------------------------

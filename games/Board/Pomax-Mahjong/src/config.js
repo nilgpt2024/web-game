@@ -20,7 +20,10 @@ const DEFAULT_CONFIG = {
   SEED: 0,
 
   // The ruleset to play with.
-  RULES: `Chinese Classical`,
+  // 阜阳老人手机单机：裸链接（含游戏库卡片）必须直接进阜阳规则，
+  // 否则会打成 144 张带花牌、能吃、能点炮的中国古典。
+  // 仍可用 ?rules=Chinese Classical / Cantonese 显式切换。
+  RULES: `Fuyang Mahjong`,
 
   // This determines whether you get asked to
   // choose normal vs. automated play when you

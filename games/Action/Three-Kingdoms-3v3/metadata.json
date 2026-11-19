@@ -1,0 +1,32 @@
+{
+  "id": "three-kingdoms-3v3",
+  "title": "Three Kingdoms 3v3（三国烽火）— 网页 3v3 三路 MOBA，7 位可选武将",
+  "created_at": "2026-11-19",
+  "category": "action",
+  "description": "浏览器里的 3v3 三路 MOBA：你与两名 AI 队友对阵三名 AI 武将，可选 7 位武将（曹仁、关羽、诸葛亮、黄忠、赵云、司马懿、郭嘉），有兵线、塔、经验、金币与装备。全 3D 角色由代码程序化生成，无外部模型与贴图文件；游戏内界面为中文。",
+  "entry": "index.html",
+  "attribution_status": "玩法设计、英雄数值、技能与 UI 为原创；3D 渲染基座与角色骨架改造自第三方公开演示版本，授权状态尚未确认，正式商业分发前应与原权利人沟通。",
+  "workflow": "Three.js + WebGL 单文件实现：程序化人物骨架、卡通材质与粒子特效，WebAudio 实时合成音效，AI 队友与对手由行为状态机驱动。",
+  "technologies": [
+    "HTML",
+    "JavaScript",
+    "Three.js",
+    "WebGL",
+    "WebAudio"
+  ],
+  "external_dependencies": [],
+  "external_assets": [],
+  "requires": [
+    "支持 WebGL 的浏览器",
+    "桌面端键鼠，或移动端横屏触控（虚拟摇杆 + 技能键）",
+    "建议 4GB 以上内存的独立/集成显卡"
+  ],
+  "interface_language": "zh-CN",
+  "submitter": {
+    "name": "suipce",
+    "url": "https://suipce.com"
+  },
+  "creator": {
+    "name": "suipce"
+  }
+}

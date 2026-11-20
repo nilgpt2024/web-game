@@ -9858,7 +9858,7 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
       var nowMs = Date.now();
       if (!this.waitFrom) this.waitFrom = nowMs;
       var miss = this.missing(T);
-      if (this.seat === 0 && miss.length && nowMs - this.waitFrom > 5000) {
+      if (this.seat === 0 && miss.length && nowMs - this.waitFrom > 8000) {
         // 房主裁决：等满 5 秒仍无帧，判定掉线，广播让全房一起放行（避免整房死锁）
         this.dropSeats(miss);
         this.send({ k: 'drop', seats: miss });
@@ -9986,7 +9986,7 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
         stallTimer = 0;
         stallEl.style.display = 'flex';
         var who = (missing || []).map(function (s) { return '玩家' + (s + 1); }).join('、');
-        stallEl.textContent = who ? ('等待 ' + who + ' 的同步…') : '同步中…';
+        stallEl.textContent = who ? ('等待 ' + who + ' 的同步…（对方可能切到后台或掉线，全房一起等待）') : '同步中…';
       }, 700);
     }
   }
@@ -10181,18 +10181,31 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
     send({ k: 'lobby', seats: seats });
   }
 
+  var helloTimer = 0;
+  var helloN = 0;
+  function stopHello() {
+    if (helloTimer) { clearTimeout(helloTimer); helloTimer = 0; }
+  }
+
   function guestJoin(input) {
     var p = parseCode(input);
     if (!p) { alert('房间码格式不对，应为 A7K2-1f9c3a2b 这样的形式'); return; }
     mySeat = -1;
     openRoom(p.code, p.token, false);
     renderJoinWait();
-    var tries = 0;
+    stopHello();
+    helloN = 0;
     var hello = function () {
       if (!room) return;
+      if (mySeat >= 0) { stopHello(); return; }
       send({ k: 'hello', cid: myCid, name: myName });
-      tries++;
-      if (tries < 20) setTimeout(hello, 700);
+      helloN++;
+      if (UI.hint) {
+        UI.hint.textContent = helloN <= 3
+          ? '正在联系房主…'
+          : '正在联系房主…（第 ' + helloN + ' 次，若一直无响应，请确认房间码正确、房主仍在这个房间）';
+      }
+      helloTimer = setTimeout(hello, 700);
     };
     hello();
   }
@@ -10209,7 +10222,8 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
       return;
     }
     if (m.k === 'hello') {
-      if (!isHost || !lobbyState || lobbyState.started) return;
+      if (!isHost || !lobbyState) return;
+      if (lobbyState.started) { send({ k: 'late', cid: m.cid }); return; }
       var found = -1;
       for (var j = 0; j < 6; j++) if (lobbyState.seats[j].cid === m.cid) found = j;
       if (found < 0) {
@@ -10256,12 +10270,25 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
       if (m.cid === myCid) { UI.foot.textContent = '该英雄已被其他玩家选走，换一个吧。'; renderRoom(); }
       return;
     }
+    if (m.k === 'late') {
+      if (m.cid && m.cid !== myCid) return;
+      stopHello();
+      if (UI.hint) UI.hint.textContent = '这一局已经开始，进不去了 —— 请让房主重开一局后重新加入。';
+      if (UI.foot) UI.foot.textContent = '对局已开始，本局未进入。';
+      return;
+    }
     if (m.k === 'start' && m.cfg) {
       if (navigating) return;
       navigating = true;
       var c = {}, kk;
       for (kk in m.cfg) c[kk] = m.cfg[kk];
-      if (typeof c.seat !== 'number') c.seat = (mySeat >= 0 ? mySeat : 0);
+      if (c.map && myCid && typeof c.map[myCid] === 'number') c.seat = c.map[myCid];
+      if (typeof c.seat !== 'number') c.seat = (mySeat >= 0 ? mySeat : -1);
+      if (!(c.seat >= 0)) {
+        navigating = false;
+        if (UI.foot) UI.foot.textContent = '没能确认你的座位，本局无法进入，请让房主重开。';
+        return;
+      }
       if (!c.myHero) c.myHero = c.roster[c.seat < 3 ? 0 : 1][c.seat % 3];
       goMatch(c);
       return;
@@ -10294,7 +10321,9 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
     UI.mask.style.display = 'flex';
     UI.body.innerHTML = '';
     UI.body.appendChild(mk('div', 'mp-code', room ? (room.code + '-' + room.token) : ''));
-    UI.body.appendChild(mk('div', 'mp-hint', '正在连接房间，等待房主响应…'));
+    var hi = mk('div', 'mp-hint', '正在连接房间，等待房主响应…');
+    UI.body.appendChild(hi);
+    UI.hint = hi;
   }
 
   function renderRoom() {
@@ -10427,7 +10456,9 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
       if (s.cid) humans.push(i);
     }
     var seed = Math.floor(Math.random() * 2147483000);
-    var cfgBase = { roster: roster, humans: humans, seed: seed, code: room.code, token: room.token };
+    var smap = {};
+    for (var i2 = 0; i2 < 6; i2++) if (seats[i2].cid) smap[seats[i2].cid] = i2;
+    var cfgBase = { roster: roster, humans: humans, seed: seed, code: room.code, token: room.token, map: smap };
     var msg = { k: 'start', cfg: cfgBase };
     send(msg);
     setTimeout(function () { send(msg); }, 200);
@@ -10463,7 +10494,29 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
 
   var mpStats = { rx: 0, tx: 0, lastRx: '', sub: 0 };
 
+  function sanitizeCfg(cfg) {
+    if (!cfg || !Array.isArray(cfg.roster)) return cfg;
+    var used = {}, out = [[], []];
+    for (var t = 0; t < 2; t++) {
+      for (var i = 0; i < 3; i++) {
+        var id = cfg.roster[t] && cfg.roster[t][i];
+        var valid = false;
+        for (var h = 0; h < HEROES.length; h++) if (HEROES[h][0] === id) valid = true;
+        if (!valid || used[id]) {
+          var pick = '';
+          for (var k = 0; k < HEROES.length; k++) { if (!used[HEROES[k][0]]) { pick = HEROES[k][0]; break; } }
+          id = pick || HEROES[0][0];
+        }
+        used[id] = 1;
+        out[t].push(id);
+      }
+    }
+    cfg.roster = out;
+    return cfg;
+  }
+
   function startMatchNet(cfg) {
+    sanitizeCfg(cfg);
     if (netClient) { netClient.close(); netClient = null; }
     var topic = 'sg3v3/' + cfg.code + '/' + cfg.token;
     netClient = new Client('sg3-' + cfg.code + '-s' + cfg.seat + '-' + randCode(4, 'abcdefghijkmnpqrstuvwxyz23456789'), function (m) {
@@ -10474,6 +10527,16 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
       if (mpStats.kinds.length > 120) mpStats.kinds = mpStats.kinds.slice(-120);
       if (m.k === 'f' && lock) lock.onFrame(m);
       else if (m.k === 'req' && lock) lock.onReq(m);
+      else if (m.k === 'drop' && lock && Array.isArray(m.seats)) {
+        if (m.seats.indexOf(cfg.seat) >= 0) {
+          lock.over = true;
+          try { sessionStorage.removeItem(CFG_KEY); } catch (e) { }
+          alert('你被判定掉线了（常见原因：切到后台、断网或窗口长时间非活动）。本局已退出，请重新进房。');
+          location.href = location.pathname;
+          return;
+        }
+        lock.dropSeats(m.seats);
+      }
     }, function (st) {
       mpStats.status = st;
       if (st === 'up') pillText();
@@ -10636,6 +10699,7 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
         try {
           var els = window.__moba && window.__moba.errors ? window.__moba.errors : null;
           o.errs = els && els.length ? String(els[els.length - 1] && (els[els.length - 1].message || els[els.length - 1])).slice(0, 160) : '';
+          o.errst = els && els.length && els[els.length - 1] && els[els.length - 1].stack ? String(els[els.length - 1].stack).replace(/\s+/g, ' ').slice(0, 700) : '';
         } catch (e) { o.errs = 'probe-fail'; }
         o.wtick = (window.__moba && window.__moba.state) ? window.__moba.state.tick : -99;
         o.stepFn = (window.__moba && window.__moba.world) ? String(window.__moba.world.step).slice(0, 30) : '';

@@ -10920,7 +10920,7 @@ window.__QRM = qrMatrix;
   function openRoom(code, token, host) {
     if (room) { try { room.client.close(); } catch (e) { } room = null; }
     isHost = !!host;
-    if (isHost) kickBan = {};
+    if (isHost) { kickBan = {}; allowBack = true; allowSend = null; }
     var topic = 'sg3v3/' + code + '/' + token;
     var client = new Client('sg3-' + code + '-' + (host ? 'h' : myCid), onRoomMsg, function (s) {
       if (s === 'up' && isHost) broadcast();
@@ -10937,6 +10937,8 @@ window.__QRM = qrMatrix;
 
   var lobbyTimer = 0;
   var kickBan = {};   // 本房间内被房主请出去的人（防自动回流）
+  var allowBack = (bootCfg && bootCfg.allow !== undefined) ? !!bootCfg.allow : true;   // 房主设置：掉线的人还能不能回来接管
+  var allowSend = null;   // 对局中广播开关用（大厅阶段用 send）
 
   function hostRoom() {
     var code = randCode(4, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789');
@@ -11000,7 +11002,7 @@ window.__QRM = qrMatrix;
     var seats = lobbyState.seats.map(function (s) {
       return { cid: s.cid, name: s.name, hero: s.hero, ready: s.ready };
     });
-    send({ k: 'lobby', seats: seats });
+    send({ k: 'lobby', seats: seats, allow: allowBack ? 1 : 0 });
     saveHostRoom();
   }
 
@@ -11051,10 +11053,17 @@ window.__QRM = qrMatrix;
 
   function onRoomMsg(m) {
     if (!m || !m.k) return;
+    if (m.k === 'allow') {
+      allowBack = !!m.v;
+      if (!isHost) mpNotice(allowBack ? '房主已允许掉线玩家回来接管' : '房主已禁止掉线玩家回来接管', 3500);
+      if (lobbyState && !lobbyState.started) renderRoom();
+      return;
+    }
     if (m.k === 'lobby') {
       if (isHost) return;
       lastLobbyAt = Date.now();
       var wasSeat = mySeat;
+      if (m.allow !== undefined) allowBack = !!m.allow;
       lobbyState = { seats: m.seats, started: false };
       for (var i = 0; i < m.seats.length; i++) {
         if (m.seats[i] && m.seats[i].cid === myCid) mySeat = i;
@@ -11216,6 +11225,18 @@ window.__QRM = qrMatrix;
     }).join(';');
   }
 
+  function toggleAllow(v) {
+    allowBack = !!v;
+    if (isHost) {
+      var msg = { k: 'allow', v: allowBack ? 1 : 0, by: myCid };
+      if (allowSend) allowSend(msg);
+      else if (typeof send === 'function') send(msg);
+      mpNotice(allowBack ? '已允许：掉线的人可以回来接管' : '已禁止：掉线的人不能再回来接管', 2500);
+    }
+    if (lobbyState && !lobbyState.started) renderRoom();
+    if (UI.pill && UI.pill.style.display !== 'none') pillText();
+  }
+
   function renderRoom() {
     if (!lobbyState) return;
     lastSeatSig = seatSig(lobbyState.seats);
@@ -11241,8 +11262,17 @@ window.__QRM = qrMatrix;
       row.appendChild(bCopy);
       UI.body.appendChild(row);
       UI.body.appendChild(mk('div', 'mp-hint', '房主误刷新会自动回到这间房、房间码不变；点「离开房间」或关掉浏览器则房间结束。'));
+      var rowAllow = mk('div', 'mp-row');
+      var bAllow = mk('button', 'mp-btn mp-btn--ghost', '掉线玩家可回来接管：' + (allowBack ? '允许' : '禁止'));
+      bAllow.onclick = function () { toggleAllow(!allowBack); };
+      rowAllow.appendChild(bAllow);
+      UI.body.appendChild(rowAllow);
+      UI.body.appendChild(mk('div', 'mp-hint', allowBack
+        ? '现在：有人掉线后 AI 先代打，他刷新回来还能接管自己的英雄。'
+        : '现在：有人掉线后英雄直接归 AI，不再接受他回来接管。'));
     } else {
       UI.body.appendChild(mk('div', 'mp-hint', '你已加入房主的房间，选好英雄并准备，等待房主开始对局。'));
+      UI.body.appendChild(mk('div', 'mp-hint', '房主设置：掉线玩家' + (allowBack ? '可以' : '不能') + '回来接管。'));
     }
 
     var blue = mk('div', 'mp-lbl', '蜀汉（蓝方）');
@@ -11548,7 +11578,7 @@ window.__QRM = qrMatrix;
     var seed = Math.floor(Math.random() * 2147483000);
     var smap = {};
     for (var i2 = 0; i2 < 6; i2++) if (seats[i2].cid) smap[seats[i2].cid] = i2;
-    var cfgBase = { roster: roster, humans: humans, seed: seed, code: room.code, token: room.token, map: smap };
+    var cfgBase = { roster: roster, humans: humans, seed: seed, code: room.code, token: room.token, map: smap, allow: allowBack ? 1 : 0 };
     var msg = { k: 'start', cfg: cfgBase };
     send(msg);
     setTimeout(function () { send(msg); }, 200);
@@ -11557,7 +11587,7 @@ window.__QRM = qrMatrix;
     var me = humans.indexOf(0);
     var myCfg = {
       seat: 0, humans: humans, roster: roster, seed: seed, map: smap,
-      myHero: roster[0][0], code: room.code, token: room.token, name: seats[0].name
+      myHero: roster[0][0], code: room.code, token: room.token, name: seats[0].name, allow: allowBack ? 1 : 0
     };
     setTimeout(function () { goMatch(myCfg); }, 700);
   }
@@ -11625,6 +11655,20 @@ window.__QRM = qrMatrix;
       else if (m.k === 'rejoin' && lock) lock.onRejoin(m);
       else if (m.k === 'rep' && lock) { lock.lastRxT = Date.now(); lock.onRep(m); }
       else if (m.k === 'rel' && lock) { lock.lastRxT = Date.now(); lock.onRel(m); }
+      else if (m.k === 'allow') {
+        allowBack = !!m.v;
+        if (lock && lock.seat === 0) pillText();
+        else mpNotice(allowBack ? '房主已允许掉线玩家回来接管' : '房主已禁止掉线玩家回来接管', 4000);
+      }
+      else if (m.k === 'noback' && lock) {
+        if (m.cid && m.cid !== myCid) return;
+        lock.backStop = true;
+        if (stallEl) {
+          stallEl.style.display = 'flex';
+          stallEl.textContent = '房主设置了掉线后不能回来，本局由 AI 接管你的英雄。';
+        }
+        mpNotice('房主没让你回来，本局你无法再接管', 7000);
+      }
       else if (m.k === 'old' && lock) {
         lock.backStop = true;
         mpNotice('掉线时间太长，操作日志已经丢弃，这局无法续玩，请重新进房', 6000);
@@ -11632,7 +11676,13 @@ window.__QRM = qrMatrix;
       else if (m.k === 'back' && lock && lock.seat === 0) {
         // 身份核对：cid 必须与开局面板里这个座位的人一致，才允许接管
         var map = (cfg && cfg.map) || {};
-        if (typeof m.s === 'number' && m.cid && map[m.cid] === m.s) lock.ackBack(m.s, m.t);
+        if (!(typeof m.s === 'number' && m.cid && map[m.cid] === m.s)) return;
+        if (!allowBack) {
+          lock.send({ k: 'noback', cid: m.cid, s: m.s });
+          mpNotice('房主设置了不允许掉线玩家回来，已拒绝 玩家' + (m.s + 1), 3500);
+          return;
+        }
+        lock.ackBack(m.s, m.t);
       }
     }, function (st) {
       mpStats.status = st;
@@ -11640,6 +11690,7 @@ window.__QRM = qrMatrix;
     });
     netClient.start(topic);
     lock = new Lock(cfg, function (obj) { mpStats.tx++; netClient && netClient.publish(obj); });
+    allowSend = function (o) { try { netClient && netClient.publish(o); } catch (e) { } };
     lock.lastRxT = Date.now();
     // 断线自救：超过 1.6 秒收不到任何帧就认定自己掉线，带 cid 请求房主续接
     setInterval(function () {
@@ -11673,6 +11724,11 @@ window.__QRM = qrMatrix;
       location.href = location.pathname;
     };
     UI.pill.appendChild(q);
+    if (bootCfg && bootCfg.seat === 0) {
+      var bAllow2 = mk('button', null, '掉线回来：' + (allowBack ? '允许' : '禁止'));
+      bAllow2.onclick = function () { toggleAllow(!allowBack); };
+      UI.pill.appendChild(bAllow2);
+    }
     if (extra) UI.pill.appendChild(mk('span', null, extra));
   }
 

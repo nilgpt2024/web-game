@@ -10039,6 +10039,14 @@ window.__QRM = qrMatrix;
     this.over = false;
     this.hist = [];       // 最近发出的帧，供重发
     this.reqAt = 0;
+    this.lastSeen = {};   // seat -> 最近一次收到该座位帧的时间（房主用它判卡顿）
+    this.silentFrom = {}; // seat -> 开始持续静默的时间
+    this.lagWin = {};     // seat -> [t0, t1) 该座位此区间按“空输入”处理（房主裁决，全房一致）
+    this.lagSeen = {};    // seat -> 已就本次卡顿提示过（恢复后清除）
+    this.lagN = 0;        // 已下发的卡顿裁决次数
+    this.ckS = {};        // 本地状态校验和：tick -> hash
+    this.ckRef = {};      // 房主下发的校验和
+    this.desync = '';     // 最近一次不同步说明
   }
 
   Lock.prototype.install = function (world, sess) {
@@ -10101,13 +10109,27 @@ window.__QRM = qrMatrix;
 
   Lock.prototype.has = function (tick) {
     var f = this.frames[tick];
-    if (!f) return false;
     for (var i = 0; i < this.humans.length; i++) {
       var s = this.humans[i];
       if (s === this.seat) continue;
-      if (!f[s]) return false;
+      if (this.covered(s, tick)) continue;   // 已被房主裁决为“空输入”，不再等这个座位
+      if (!f || !f[s]) return false;
     }
     return true;
+  };
+
+  // 该座位在 tick 是否处于“卡顿裁决窗口”：窗口内他的英雄按空输入（原地不动）处理
+  Lock.prototype.covered = function (seat, tick) {
+    var w = this.lagWin[seat];
+    return !!(w && tick >= w[0] && tick < w[1]);
+  };
+
+  // 作废某座位在 [t0,t1) 区间内已缓存/已收到的输入帧
+  Lock.prototype.purge = function (seat, t0, t1) {
+    for (var t = t0; t < t1; t++) {
+      var f = this.frames[t];
+      if (f && f[seat]) delete f[seat];
+    }
   };
 
   Lock.prototype.queue = function (cmd) {
@@ -10123,20 +10145,22 @@ window.__QRM = qrMatrix;
     var st = this.state;
     if (st.over) { this.over = true; this.origStep(); return; }
     var T = st.tick;
+    if (this.seat === 0) this.judgeLag(T, Date.now());
     if (!this.has(T)) {
       var nowMs = Date.now();
       if (!this.waitFrom) this.waitFrom = nowMs;
       var miss = this.missing(T);
-      if (this.seat === 0 && miss.length && nowMs - this.waitFrom > 8000) {
-        // 房主裁决：等满 5 秒仍无帧，判定掉线，广播让全房一起放行（避免整房死锁）
+      if (this.seat === 0 && miss.length && nowMs - this.waitFrom > 6000) {
+        // 兜底：极端情况下仍被卡住，房主直接判掉线，AI 接管，全房放行
         this.dropSeats(miss);
         this.send({ k: 'drop', seats: miss });
+        mpNotice(miss.map(function (s) { return '玩家' + (s + 1); }).join('、') + ' 掉线，英雄由 AI 接管，本局继续', 3000);
       }
       if (nowMs - this.reqAt > 800) {
         this.reqAt = nowMs;
         this.send({ k: 'req', s: this.seat, t: T });
       }
-      mpStall(true, T, this.missing(T));
+      mpStall(true, T, this.missing(T), (this.seat !== 0 && miss.indexOf(0) >= 0) ? 'host' : '');
       return;
     }
     this.waitFrom = 0;
@@ -10144,7 +10168,7 @@ window.__QRM = qrMatrix;
     var f = this.frames[T];
     for (var i = 0; i < this.humans.length; i++) {
       var s = this.humans[i];
-      var cmds = f[s] || [];
+      var cmds = this.covered(s, T) ? [] : (f[s] || []);
       var hero = this.world.heroes[s];
       for (var j = 0; j < cmds.length; j++) {
         if (cmds[j]) this.origCommand(hero.id, cmds[j]);
@@ -10176,9 +10200,44 @@ window.__QRM = qrMatrix;
     var f = this.frames[T] || {}, list = [];
     for (var i = 0; i < this.humans.length; i++) {
       var s = this.humans[i];
-      if (s !== this.seat && !f[s]) list.push(s);
+      if (s === this.seat) continue;
+      if (this.covered(s, T)) continue;
+      if (!f[s]) list.push(s);
     }
     return list;
+  };
+
+  // 房主裁决：某座位静默超过 LAG_MS，就给它一段“空输入”窗口并广播给全房。
+  // 全房按同一窗口推进，卡住的玩家只是自己不动，其他人不必等他。
+  var LAG_MS = 500;        // 静默多久算卡顿
+  var LAG_WIN = 30;        // 裁决窗口长度（tick，30 tick = 1 秒）
+  var LAG_DROP_MS = 8000;  // 连续静默超过 8 秒才算真掉线
+  Lock.prototype.judgeLag = function (T, nowMs) {
+    for (var i = 0; i < this.humans.length; i++) {
+      var s = this.humans[i];
+      if (s === this.seat) continue;
+      var seen = this.lastSeen[s] || 0;
+      if (!this.silentFrom[s] && nowMs - seen > LAG_MS) {
+        this.silentFrom[s] = nowMs;
+        mpLagNotice(s);                  // 只在刚判卡顿时提示一次，续窗口不重复提示
+      }
+      if (!this.silentFrom[s]) continue;
+      if (nowMs - this.silentFrom[s] > LAG_DROP_MS) {
+        this.dropSeats([s]);
+        delete this.silentFrom[s];
+        delete this.lagWin[s];
+        this.send({ k: 'drop', seats: [s] });
+        mpNotice('玩家' + (s + 1) + ' 掉线，英雄由 AI 接管，本局继续', 3000);
+        continue;
+      }
+      var w = this.lagWin[s];
+      if (w && T >= w[0] && T < w[1]) continue;           // 窗口还在，无需重复裁决
+      var t1 = T + LAG_WIN;
+      this.lagWin[s] = [T, t1];
+      this.purge(s, T, t1);              // 窗口内已缓存的真实帧一律作废，保证各端口径一致
+      this.lagN++;
+      this.send({ k: 'lag', s: s, t0: T, t1: t1 });
+    }
   };
 
   Lock.prototype.after = function (cur) {
@@ -10219,6 +10278,16 @@ window.__QRM = qrMatrix;
     }
     for (var s2 in this.sent) if (+s2 < cur - 30) delete this.sent[s2];
     for (var s3 in this.frames) if (+s3 > cur + 120) delete this.frames[s3];
+
+    // 每 30 tick（1 秒）做一次状态校验和，房主下发，客户端对比，及时发现不同步
+    if (cur % 30 === 0) {
+      var hh = this.hash();
+      this.ckS[cur] = hh;
+      if (this.seat === 0) this.send({ k: 'ck', t: cur, h: hh });
+      else this.checkSync(cur);
+      for (var s4 in this.ckS) if (+s4 < cur - 90) delete this.ckS[s4];
+      for (var s5 in this.ckRef) if (+s5 < cur - 90) delete this.ckRef[s5];
+    }
   };
 
   Lock.prototype.onReq = function (m) {
@@ -10232,18 +10301,66 @@ window.__QRM = qrMatrix;
   Lock.prototype.onFrame = function (m) {
     var t0 = m.t0, n = m.n;
     if (typeof t0 !== 'number' || !Array.isArray(m.c)) return;
+    if (typeof m.s === 'number') {
+      this.lastSeen[m.s] = Date.now();
+      delete this.silentFrom[m.s];      // 该座位恢复上报
+      delete this.lagSeen[m.s];
+    }
     var cap = this.state.tick + 64;
     for (var i = 0; i < n; i++) {
       var t = t0 + i;
       if (t < this.state.tick) continue;
       if (t > cap) continue;             // 远期帧直接丢弃，防止帧表无限增长
+      if (this.covered(m.s, t)) continue; // 已裁决为空输入的区间，真实帧不再参与
       this.store(t, m.s, m.c[i] || []);
     }
   };
 
+  // 收到房主下发的“卡顿裁决”窗口
+  Lock.prototype.onLag = function (m) {
+    if (typeof m.s !== 'number' || typeof m.t0 !== 'number' || typeof m.t1 !== 'number') return;
+    if (m.s === this.seat) return;
+    var w = this.lagWin[m.s];
+    if (!w || m.t1 > w[1]) this.lagWin[m.s] = [m.t0, m.t1];
+    this.purge(m.s, m.t0, m.t1);         // 同样作废窗口内的真实帧
+    if (!this.lagSeen[m.s]) { this.lagSeen[m.s] = 1; mpLagNotice(m.s); }
+  };
+
+  // 轻量状态校验和（用于发现不同步；只在整数位置/存活上取，避免浮点抖动误报）
+  Lock.prototype.hash = function () {
+    var out = 0, M = 2147483647, h = this.world ? this.world.heroes : null;
+    if (!h) return 0;
+    for (var i = 0; i < this.humans.length; i++) {
+      var u = h[this.humans[i]];
+      if (!u || !u.pos) continue;
+      out = (out * 31 + (Math.round(u.pos.x) | 0)) % M;
+      out = (out * 31 + (Math.round(u.pos.y) | 0)) % M;
+      out = (out * 31 + (u.alive ? 1 : 0)) % M;
+      out = (out * 31 + (u.gold != null ? Math.round(u.gold) : 0)) % M;
+    }
+    return (out * 31 + (this.state ? this.state.tick : 0)) % M;
+  };
+
+  Lock.prototype.checkSync = function (t) {
+    var mine = this.ckS[t];
+    if (mine == null) return;
+    var ref = this.ckRef[t];
+    if (ref == null || ref === mine) return;
+    if (this.desync) return;
+    this.desync = t + ':' + mine + '/' + ref;
+    mpNotice('检测到状态不同步（tick ' + t + '），建议结束本局由房主重开', 5000);
+  };
+
+  Lock.prototype.onCk = function (m) {
+    if (typeof m.t !== 'number' || typeof m.h !== 'number') return;
+    if (this.seat === 0) return;         // 房主是基准
+    this.ckRef[m.t] = m.h;
+    this.checkSync(m.t);
+  };
+
   /* ---------- 4. 对局内的状态提示条 ---------- */
   var stallEl = null, stallTimer = 0;
-  function mpStall(on, tick, missing) {
+  function mpStall(on, tick, missing, reason) {
     if (!stallEl) return;
     if (!on) {
       if (stallTimer) { clearTimeout(stallTimer); stallTimer = 0; }
@@ -10254,10 +10371,37 @@ window.__QRM = qrMatrix;
       stallTimer = setTimeout(function () {
         stallTimer = 0;
         stallEl.style.display = 'flex';
+        if (reason === 'host') {
+          stallEl.textContent = '房主网络卡顿，本局暂停，等房主恢复后自动继续';
+          return;
+        }
         var who = (missing || []).map(function (s) { return '玩家' + (s + 1); }).join('、');
-        stallEl.textContent = who ? ('等待 ' + who + ' 的同步…（对方可能切到后台或掉线，全房一起等待）') : '同步中…';
+        stallEl.textContent = who ? ('正在对齐 ' + who + ' 的网络…') : '同步中…';
       }, 700);
     }
+  }
+
+  // 一次性对局内提示（掉线裁决等），几秒后自动消失
+  var noticeTimer = 0;
+  function mpNotice(text, ms) {
+    if (!stallEl) return;
+    if (stallTimer) { clearTimeout(stallTimer); stallTimer = 0; }
+    stallEl.style.display = 'flex';
+    stallEl.textContent = text;
+    if (noticeTimer) clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(function () {
+      noticeTimer = 0;
+      stallEl.style.display = 'none';
+    }, ms || 2500);
+  }
+
+  // 卡顿提示：同一座位 3 秒内只提示一次，避免刷屏
+  var lagNoticeAt = {}, lagNoticeT = 0;
+  function mpLagNotice(seat) {
+    var now = Date.now();
+    if (lagNoticeAt[seat] && now - lagNoticeAt[seat] < 3000) return;
+    lagNoticeAt[seat] = now;
+    mpNotice('玩家' + (seat + 1) + ' 网络卡顿，他的英雄暂停行动，其他人继续', 2200);
   }
 
   /* ---------- 5. 大厅 UI ---------- */
@@ -10925,6 +11069,8 @@ window.__QRM = qrMatrix;
       if (mpStats.kinds.length > 120) mpStats.kinds = mpStats.kinds.slice(-120);
       if (m.k === 'f' && lock) lock.onFrame(m);
       else if (m.k === 'req' && lock) lock.onReq(m);
+      else if (m.k === 'lag' && lock) lock.onLag(m);
+      else if (m.k === 'ck' && lock) lock.onCk(m);
       else if (m.k === 'drop' && lock && Array.isArray(m.seats)) {
         if (m.seats.indexOf(cfg.seat) >= 0) {
           lock.over = true;
@@ -10934,6 +11080,7 @@ window.__QRM = qrMatrix;
           return;
         }
         lock.dropSeats(m.seats);
+        mpNotice(m.seats.map(function (s) { return '玩家' + (s + 1); }).join('、') + ' 掉线，英雄由 AI 接管，本局继续', 3000);
       }
     }, function (st) {
       mpStats.status = st;

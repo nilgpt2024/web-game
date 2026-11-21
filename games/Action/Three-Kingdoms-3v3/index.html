@@ -9838,6 +9838,7 @@ window.__QRM = qrMatrix;
   var BROKER = 'wss://broker.emqx.io:8084/mqtt';
   var CFG_KEY = 'sg3_mp';
   var CID_KEY = 'sg3_cid';
+  var HROOM_KEY = 'sg3_hostroom';
   var TICK_DT = 1 / 30;
   var DELAY = 6;          // 输入延迟（tick）
   var PUB_EVERY = 3;      // 每 3 tick 发一帧，覆盖 3 tick
@@ -10268,6 +10269,8 @@ window.__QRM = qrMatrix;
   var mySeat = -1;
   var navigating = false;
   var myName = '';
+  var lastLobbyAt = 0;      // 客机最后一次收到房主大厅广播的时间
+  var mpGotStart = false;   // 客机已收到开局消息
 
   function cidInit() {
     var c = sessionStorage.getItem(CID_KEY);
@@ -10439,8 +10442,51 @@ window.__QRM = qrMatrix;
     mySeat = 0;
     openRoom(code, token, true);
     renderRoom();
+    saveHostRoom();
     if (lobbyTimer) clearInterval(lobbyTimer);
     lobbyTimer = setInterval(broadcast, 400);
+  }
+
+  // 房主房间持久化：刷新页面后能回到同一间房，客机不掉线
+  function saveHostRoom() {
+    if (!isHost || !lobbyState || !room) return;
+    try {
+      sessionStorage.setItem(HROOM_KEY, JSON.stringify({
+        code: room.code, token: room.token, name: myName,
+        seats: lobbyState.seats, ts: Date.now()
+      }));
+    } catch (e) { }
+  }
+
+  function clearHostRoom() {
+    try { sessionStorage.removeItem(HROOM_KEY); } catch (e) { }
+  }
+
+  function readHostRoom() {
+    try {
+      var raw = sessionStorage.getItem(HROOM_KEY);
+      if (!raw) return null;
+      var o = JSON.parse(raw);
+      if (!o || !o.code || !o.token || !o.seats || o.seats.length !== 6) return null;
+      if (!o.ts || Date.now() - o.ts > 15 * 60 * 1000) return null;
+      return o;
+    } catch (e) { return null; }
+  }
+
+  function resumeHostRoom(o) {
+    myName = o.name || myName;
+    lobbyState = { seats: o.seats, seed: 0, started: false };
+    lobbyState.seats[0].cid = myCid;
+    lobbyState.seats[0].name = myName;
+    lobbyState.seats[0].ready = true;
+    mySeat = 0;
+    isHost = true;
+    openRoom(o.code, o.token, true);
+    renderRoom();
+    UI.foot.textContent = '已恢复上次创建的房间（刷新前的座位都在）。请勿再刷新中途关闭页面。';
+    if (lobbyTimer) clearInterval(lobbyTimer);
+    lobbyTimer = setInterval(broadcast, 400);
+    broadcast();
   }
 
   function broadcast() {
@@ -10449,6 +10495,7 @@ window.__QRM = qrMatrix;
       return { cid: s.cid, name: s.name, hero: s.hero, ready: s.ready };
     });
     send({ k: 'lobby', seats: seats });
+    saveHostRoom();
   }
 
   var helloTimer = 0;
@@ -10457,8 +10504,7 @@ window.__QRM = qrMatrix;
     if (helloTimer) { clearTimeout(helloTimer); helloTimer = 0; }
   }
 
-  function guestJoin(input) {
-    var p = parseCode(input);
+  function guestJoin(input) {    var p = parseCode(input);
     if (!p) { alert('房间码格式不对，应为 A7K2-1f9c3a2b 这样的形式'); return; }
     mySeat = -1;
     openRoom(p.code, p.token, false);
@@ -10480,10 +10526,28 @@ window.__QRM = qrMatrix;
     hello();
   }
 
+  // 客机侧：房主不再广播超过 3 秒 = 房主掉线/刷新，明确提示而不是静默卡住
+  var mpLostShown = false;
+  function lobbyWatchdog() {
+    setInterval(function () {
+      if (isHost || !room || mySeat < 0 || mpGotStart || navigating || !lobbyState) return;
+      if (!lastLobbyAt) return;
+      var lost = Date.now() - lastLobbyAt > 3000;
+      if (lost && !mpLostShown) {
+        mpLostShown = true;
+        if (UI.foot) UI.foot.textContent = '与房主失去连接：房主可能刷新或关闭了页面。房主刷新会自动回到同一间房，请稍等；若房主已关闭，请让他重新建房。';
+      } else if (!lost && mpLostShown) {
+        mpLostShown = false;
+        renderRoom();
+      }
+    }, 500);
+  }
+
   function onRoomMsg(m) {
     if (!m || !m.k) return;
     if (m.k === 'lobby') {
       if (isHost) return;
+      lastLobbyAt = Date.now();
       lobbyState = { seats: m.seats, started: false };
       for (var i = 0; i < m.seats.length; i++) {
         if (m.seats[i] && m.seats[i].cid === myCid) mySeat = i;
@@ -10550,6 +10614,7 @@ window.__QRM = qrMatrix;
     }
     if (m.k === 'start' && m.cfg) {
       if (navigating) return;
+      mpGotStart = true;
       navigating = true;
       var c = {}, kk;
       for (kk in m.cfg) c[kk] = m.cfg[kk];
@@ -10643,6 +10708,7 @@ window.__QRM = qrMatrix;
       };
       row.appendChild(bCopy);
       UI.body.appendChild(row);
+      UI.body.appendChild(mk('div', 'mp-hint', '房主误刷新会自动回到这间房、房间码不变；点「离开房间」或关掉浏览器则房间结束。'));
     } else {
       UI.body.appendChild(mk('div', 'mp-hint', '你已加入房主的房间，选好英雄并准备，等待房主开始对局。'));
     }
@@ -10676,8 +10742,10 @@ window.__QRM = qrMatrix;
     var bLeave = mk('button', 'mp-btn mp-btn--ghost', '离开房间');
     bLeave.onclick = function () {
       send({ k: 'bye', cid: myCid });
+      if (isHost) clearHostRoom();
       if (room) room.client.close();
       room = null; lobbyState = null; mySeat = -1; isHost = false;
+      lastLobbyAt = 0; mpGotStart = false; mpLostShown = false;
       if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = 0; }
       showHome();
     };
@@ -10930,6 +10998,7 @@ window.__QRM = qrMatrix;
     myCid = cidInit();
     buildUI();
     mpMirror();
+    lobbyWatchdog();
     if (TESTQ && !bootCfg) { testMode(); return; }
 
     if (bootCfg) {
@@ -10954,6 +11023,13 @@ window.__QRM = qrMatrix;
       myName = '玩家' + Math.floor(Math.random() * 90 + 10);
       showHome();
       guestJoin(qs[1]);
+    } else {
+      // 房主刷新页面：自动回到刷新前的那间房，客机不受影响
+      var resume = readHostRoom();
+      if (resume) {
+        showHome();
+        resumeHostRoom(resume);
+      }
     }
 
     setInterval(function () {

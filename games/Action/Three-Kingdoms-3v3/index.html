@@ -10810,6 +10810,12 @@ window.__QRM = qrMatrix;
       '.mp-seat.is-me{background:rgba(217,164,65,.14)}',
       '.mp-seat .who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-seat select{background:#0d1730;color:#e8eefc;border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:5px 6px;font-size:12px}',
+      '.mp-kicknote{margin:0 0 10px;padding:9px 10px;border-radius:9px;background:rgba(255,90,79,.12);border:1px solid rgba(255,90,79,.45);color:#ffb3ad;font-size:12px;line-height:1.55}',
+      '.mp-confirm{position:fixed;left:0;top:0;right:0;bottom:0;z-index:10002;background:rgba(4,8,18,.82);display:flex;align-items:center;justify-content:center;padding:20px}',
+      '.mp-confirm__card{width:100%;max-width:420px;background:#0b1224;border:1px solid rgba(217,164,65,.45);border-radius:14px;padding:16px 18px;box-shadow:0 18px 50px rgba(0,0,0,.55)}',
+      '.mp-confirm__txt{font-size:13px;line-height:1.65;color:#dfe7f7;margin-bottom:14px}',
+      '.mp-kick{background:rgba(255,90,79,.12);color:#ff8f86;border:1px solid rgba(255,90,79,.45);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer}',
+      '.mp-kick:hover{background:rgba(255,90,79,.22);color:#ffd0cb}',
       '.mp-hero-btn{display:flex;align-items:center;gap:6px;background:#0d1730;color:#e8eefc;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:5px 9px;font-size:12px;cursor:pointer}',
       '.mp-hero-btn:hover{border-color:rgba(217,164,65,.6);color:#ffdf9e}',
       '.mp-hero-btn .rn{font-size:10px;color:#8a97b4}',
@@ -10914,6 +10920,7 @@ window.__QRM = qrMatrix;
   function openRoom(code, token, host) {
     if (room) { try { room.client.close(); } catch (e) { } room = null; }
     isHost = !!host;
+    if (isHost) kickBan = {};
     var topic = 'sg3v3/' + code + '/' + token;
     var client = new Client('sg3-' + code + '-' + (host ? 'h' : myCid), onRoomMsg, function (s) {
       if (s === 'up' && isHost) broadcast();
@@ -10929,6 +10936,7 @@ window.__QRM = qrMatrix;
   }
 
   var lobbyTimer = 0;
+  var kickBan = {};   // 本房间内被房主请出去的人（防自动回流）
 
   function hostRoom() {
     var code = randCode(4, 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789');
@@ -11057,6 +11065,7 @@ window.__QRM = qrMatrix;
     }
     if (m.k === 'hello') {
       if (!isHost || !lobbyState) return;
+      if (isHost && m.cid && kickBan[m.cid]) { send({ k: 'kick', cid: m.cid }); return; }
       if (lobbyState.started) { send({ k: 'late', cid: m.cid }); return; }
       var found = -1;
       for (var j = 0; j < 6; j++) if (lobbyState.seats[j].cid === m.cid) found = j;
@@ -11128,6 +11137,11 @@ window.__QRM = qrMatrix;
       if (!c.myHero) c.myHero = c.roster[c.seat < 3 ? 0 : 1][c.seat % 3];
       c.cid = myCid;                 // 带上自己的持久身份，断线重连时房主靠它认座位
       goMatch(c);
+      return;
+    }
+    if (m.k === 'kick') {
+      if (m.cid && m.cid !== myCid) return;
+      kickedOut();
       return;
     }
     if (m.k === 'bye') {
@@ -11290,6 +11304,12 @@ window.__QRM = qrMatrix;
       bHero.title = '打开英雄详情，换英雄';
       bHero.onclick = function () { openHeroPicker(i); };
       row.appendChild(bHero);
+      if (isHost && i !== 0 && s.cid) {
+        var bKick = mk('button', 'mp-kick', '踢');
+        bKick.title = '把他请出这间房';
+        bKick.onclick = function () { kickSeat(i); };
+        row.appendChild(bKick);
+      }
     } else {
       var hd2 = MP_HERO[s.hero];
       row.appendChild(mk('span', 'mp-tag', s.hero ? (heroName(s.hero) + (hd2 ? ' · ' + hd2.r : '')) : '待分配'));
@@ -11435,6 +11455,61 @@ window.__QRM = qrMatrix;
     x.onclick = close;
     document.addEventListener('keydown', onKey);
     document.body.appendChild(wrap);
+  }
+
+  function kickSeat(i) {
+    if (!isHost || !lobbyState || i === 0) return;
+    var s = lobbyState.seats[i];
+    if (!s || !s.cid) return;
+    var label = s.name || ('玩家' + (i + 1));
+    mpConfirm('把「' + label + '」请出房间？\n他会被断开连接，需要重新扫码或换新链接才能回来。', function () {
+      kickBan[s.cid] = 1;
+      send({ k: 'kick', cid: s.cid, by: myCid });
+      lobbyState.seats[i] = { cid: '', name: '', hero: '', ready: false };
+      renderRoom();
+      broadcast();
+      mpNotice('已把 ' + label + ' 请出房间', 2000);
+    });
+  }
+
+  function mpConfirm(text, onYes) {
+    var ov = mk('div', 'mp-confirm');
+    var card = mk('div', 'mp-confirm__card');
+    var lines = String(text).split('\n');
+    for (var li = 0; li < lines.length; li++) card.appendChild(mk('div', 'mp-confirm__txt', lines[li]));
+    var row = mk('div', 'mp-row');
+    var bNo = mk('button', 'mp-btn mp-btn--ghost', '取消');
+    var bYes = mk('button', 'mp-btn', '确定');
+    function close() { if (ov.parentNode) ov.parentNode.removeChild(ov); }
+    bNo.onclick = close;
+    bYes.onclick = function () { close(); if (onYes) onYes(); };
+    ov.onclick = function (e) { if (e.target === ov) close(); };
+    row.appendChild(bNo);
+    row.appendChild(bYes);
+    card.appendChild(row);
+    ov.appendChild(card);
+    document.body.appendChild(ov);
+  }
+
+  // 被房主请出去：断开连接、清状态、回标题页
+  function kickedOut() {
+    stopHello();
+    navigating = false;
+    if (room) { try { room.client.close(); } catch (e) { } }
+    room = null; lobbyState = null; mySeat = -1; isHost = false;
+    lastLobbyAt = 0; mpGotStart = false;
+    if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = 0; }
+    try { sessionStorage.removeItem(CFG_KEY); } catch (e) { }
+    hideLobby();
+    showHome();
+    setTimeout(function () {
+      if (UI.body) {
+        var note = mk('div', 'mp-kicknote', '你已被房主请出房间。要回去，得让房主重新把邀请链接发给你。');
+        UI.body.insertBefore(note, UI.body.firstChild);
+      }
+      if (UI.foot) UI.foot.textContent = '你已被房主请出房间。';
+      mpNotice('你已被房主请出房间', 6000);
+    }, 200);
   }
 
   function copyText(txt) {

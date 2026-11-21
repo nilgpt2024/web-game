@@ -9835,6 +9835,17 @@ window.__QRM = qrMatrix;
     ['panyue', '曹仁'], ['chijin', '关羽'], ['xingli', '诸葛亮'],
     ['fengling', '黄忠'], ['yeque', '赵云'], ['sima', '司马懿'], ['guojia', '郭嘉']
   ];
+
+  /* 联机大厅选将卡片用的英雄资料（与单机同一套：称号/职业/分路/被动/三个技能） */
+  var MP_HERO = {
+    panyue: { n: "曹仁", t: "天人将军", rc: "#5fa8d8", r: "坦克", lane: "下路", pv: ["鬼神之躯", "每第三下普攻更疼，还带减速"], s: [["八门金锁", "举盾冲过去，撞到人就击飞"], ["据守之志", "给自己加护盾，减速身边敌人"], ["鬼神降临", "跳进人堆砸地，击飞一大片"]] },
+    chijin: { n: "关羽", t: "威震华夏", rc: "#e0603c", r: "战士", lane: "上路", pv: ["醉拳", "放完技能的下一斧更疼还回血"], s: [["X字斩", "向前横扫一大片，砍中减速"], ["千里走单骑", "冲上去砍一路，攻速变快"], ["旋风斩", "抡斧转圈持续砍，可以边转边走"]] },
+    xingli: { n: "诸葛亮", t: "卧龙", rc: "#9a7bff", r: "法师", lane: "中路", pv: ["卧龙三叠", "技能打中同一人三次就眩晕"], s: [["卧龙光线", "弹出一道音波，穿透一整条线"], ["八阵图", "圈住一片，稍后把人拉到中间"], ["暴雷雨", "雁群一波波俯冲，覆盖一大片"]] },
+    fengling: { n: "黄忠", t: "定军山", rc: "#e0a13c", r: "射手", lane: "下路", pv: ["神射之誉", "连续普攻，越射越快越疼"], s: [["穿杨劲矢", "一支能穿兵的重箭，射中减速"], ["定军山", "翻身拉开距离，下一箭必暴击"], ["百步穿杨", "箭雨盖住一大片，持续减速"]] },
+    yeque: { n: "赵云", t: "一身是胆", rc: "#d84f7a", r: "刺客", lane: "打野", pv: ["常胜将军", "打残血更疼，杀人后刷新技能"], s: [["长枪突刺", "突刺穿过敌人，刺中英雄这招更快转好"], ["七进七出", "扇形丢出三把匕首，命中减速"], ["无双", "抖开图卷欺近目标，卷尽一匕"]] },
+    sima: { n: "司马懿", t: "鹰视狼顾", rc: "#9a7bff", r: "法师", lane: "中路", pv: ["鹰视狼顾", "技能命中同一人三次就眩晕"], s: [["焰击波", "推出一道火浪，穿透一整条线"], ["妖火缠身", "圈住一片，稍后把人拽到中间"], ["火焰雨", "妖火一波波砸下，覆盖一大片"]] },
+    guojia: { n: "郭嘉", t: "鬼才", rc: "#9a7bff", r: "法师", lane: "下路", pv: ["鬼谋", "技能命中同一人三次就眩晕"], s: [["霜冻之箭", "射出一道冰棱，穿透一整条线"], ["寒渊禁锢", "圈住一片，稍后把人拽回中心"], ["冰河爆裂", "冰河一波波炸开，冻住一大片"]] }
+  };
   var BROKER = 'wss://broker.emqx.io:8084/mqtt';
   var CFG_KEY = 'sg3_mp';
   var CID_KEY = 'sg3_cid';
@@ -10769,6 +10780,32 @@ window.__QRM = qrMatrix;
       '.mp-seat.is-me{background:rgba(217,164,65,.14)}',
       '.mp-seat .who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
       '.mp-seat select{background:#0d1730;color:#e8eefc;border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:5px 6px;font-size:12px}',
+      '.mp-hero-btn{display:flex;align-items:center;gap:6px;background:#0d1730;color:#e8eefc;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:5px 9px;font-size:12px;cursor:pointer}',
+      '.mp-hero-btn:hover{border-color:rgba(217,164,65,.6);color:#ffdf9e}',
+      '.mp-hero-btn .rn{font-size:10px;color:#8a97b4}',
+      '.mp-picker{position:fixed;left:0;top:0;right:0;bottom:0;z-index:10001;background:#05090f;display:flex;flex-direction:column;gap:10px;padding:14px 16px}',
+      '.mp-picker__head{display:flex;align-items:center;gap:10px;color:#ffdf9e;font-size:15px;flex-wrap:wrap}',
+      '.mp-picker__head small{color:#8a97b4;font-size:12px}',
+      '.mp-picker__x{margin-left:auto;background:none;border:1px solid rgba(255,255,255,.22);color:#c7d1e6;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer}',
+      '.mp-picker__grid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(238px,1fr));gap:10px;align-content:start}',
+      '.mp-hc{border-radius:12px;border:1px solid rgba(255,255,255,.13);background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));padding:10px 11px;cursor:pointer}',
+      '.mp-hc:hover{border-color:rgba(217,164,65,.65)}',
+      '.mp-hc.is-on{border-color:#ffdf9e;box-shadow:inset 0 0 0 1px rgba(255,223,158,.45),0 8px 22px rgba(0,0,0,.35)}',
+      '.mp-hc.is-off{opacity:.4;cursor:not-allowed}',
+      '.mp-hc__top{display:flex;align-items:center;gap:6px;font-size:11px}',
+      '.mp-hc__role{color:#06101f;background:var(--rc,#999);border-radius:5px;padding:1px 6px;font-weight:600}',
+      '.mp-hc__lane{color:#8a97b4}',
+      '.mp-hc__badge{margin-left:auto;color:#ffdf9e}',
+      '.mp-hc__name{font-size:19px;color:#fff;letter-spacing:1px;margin:6px 0 1px}',
+      '.mp-hc__title{font-size:11px;color:#c9b07a;letter-spacing:1px;margin-bottom:7px}',
+      '.mp-hc__pv{font-size:11px;color:#9fb0d0;line-height:1.45;padding-bottom:6px;margin-bottom:6px;border-bottom:1px dashed rgba(255,255,255,.12)}',
+      '.mp-hc__pv b{color:#8ff0bb;font-weight:600;margin-right:4px}',
+      '.mp-hc__sk{font-size:11px;line-height:1.45}',
+      '.mp-skrow{margin-bottom:3px}',
+      '.mp-sklb{display:inline-block;min-width:16px;color:#ffdf9e;font-weight:600}',
+      '.mp-sknm{color:#e8eefc}',
+      '.mp-skds{display:block;color:#8e9cba}',
+      '.mp-picker__foot{font-size:12px;color:#8a97b4}',
       '.mp-tag{font-size:11px;padding:2px 6px;border-radius:6px;background:rgba(255,255,255,.1);color:#b9c4dd}',
       '.mp-tag.ok{background:rgba(80,220,140,.18);color:#8ff0bb}',
       '.mp-tag.wait{background:rgba(255,255,255,.08);color:#8a97b4}',
@@ -11212,34 +11249,108 @@ window.__QRM = qrMatrix;
     var who = mk('span', 'who', s.cid ? (s.name || '玩家') : '空位（AI）');
     row.appendChild(who);
     if (s.cid && (i === mySeat || isHost)) {
-      var sel = document.createElement('select');
-      HEROES.forEach(function (h) {
-        var o = document.createElement('option');
-        o.value = h[0]; o.textContent = h[1];
-        if (s.hero === h[0]) o.selected = true;
-        sel.appendChild(o);
-      });
-      sel.onchange = function () {
-        if (isHost) {
-          var self = i;
-          var taken = false;
-          for (var q = 0; q < 6; q++) if (q !== self && lobbyState.seats[q].hero === sel.value) taken = true;
-          if (taken) { UI.foot.textContent = '该英雄已被选走。'; sel.value = s.hero; return; }
-          lobbyState.seats[self].hero = sel.value;
-          broadcast();
-          if (mySeat === self) send({ k: 'set', cid: myCid, hero: sel.value });
-          renderRoom();
-        } else if (mySeat === i) {
-          send({ k: 'set', cid: myCid, hero: sel.value });
-        }
-      };
-      row.appendChild(sel);
+      var hd = MP_HERO[s.hero] || { n: heroName(s.hero), r: '英雄' };
+      var bHero = mk('button', 'mp-hero-btn');
+      bHero.appendChild(mk('span', null, hd.n));
+      bHero.appendChild(mk('span', 'rn', hd.r));
+      bHero.title = '打开英雄详情，换英雄';
+      bHero.onclick = function () { openHeroPicker(i); };
+      row.appendChild(bHero);
     } else {
-      row.appendChild(mk('span', 'mp-tag', s.hero ? heroName(s.hero) : '—'));
+      var hd2 = MP_HERO[s.hero];
+      row.appendChild(mk('span', 'mp-tag', s.hero ? (heroName(s.hero) + (hd2 ? ' · ' + hd2.r : '')) : '待分配'));
     }
     var tagTxt = i === 0 ? '房主' : (s.ready ? '已准备' : (s.cid ? '未准备' : 'AI'));
     row.appendChild(mk('span', 'mp-tag ' + (s.ready ? 'ok' : 'wait'), tagTxt));
     return row;
+  }
+
+  /* ---------- 英雄选将面板（和单机同一套资料：称号/职业/技能/被动） ---------- */
+  function heroTaken(seatIdx, id) {
+    for (var q = 0; q < 6; q++) {
+      if (q === seatIdx) continue;
+      var st = lobbyState.seats[q];
+      if (st && st.cid && st.hero === id) return true;
+    }
+    return false;
+  }
+
+  function applyHero(seatIdx, id) {
+    if (!lobbyState) return;
+    var s = lobbyState.seats[seatIdx];
+    if (!s || s.hero === id) return;
+    if (heroTaken(seatIdx, id)) {
+      UI.foot.textContent = '该英雄已被队友选走，换一个吧。';
+      return;
+    }
+    s.hero = id;
+    if (isHost) {
+      broadcast();
+      if (mySeat === seatIdx) send({ k: 'set', cid: myCid, hero: id });
+      renderRoom();
+    } else if (mySeat === seatIdx) {
+      renderRoom();
+      send({ k: 'set', cid: myCid, hero: id });
+    }
+  }
+
+  function openHeroPicker(seatIdx) {
+    if (!lobbyState) return;
+    var cur = lobbyState.seats[seatIdx].hero;
+    var wrap = mk('div', 'mp-picker');
+    var head = mk('div', 'mp-picker__head');
+    head.appendChild(mk('span', null, '选择英雄 · 第 ' + (seatIdx + 1) + ' 席 · ' + (seatIdx < 3 ? '蜀汉（蓝）' : '曹魏（红）')));
+    head.appendChild(mk('small', null, '点卡片即选'));
+    var x = mk('button', 'mp-picker__x', '关闭');
+    head.appendChild(x);
+    wrap.appendChild(head);
+
+    var grid = mk('div', 'mp-picker__grid');
+    HEROES.forEach(function (h) {
+      var id = h[0], d = MP_HERO[id] || { n: h[1], t: '', r: '英雄', lane: '', pv: ['', ''], s: [['', ''], ['', ''], ['', '']] };
+      var off = heroTaken(seatIdx, id);
+      var card = mk('div', 'mp-hc' + (id === cur ? ' is-on' : '') + (off ? ' is-off' : ''));
+      card.style.setProperty('--rc', d.rc || '#999');
+      var top = mk('div', 'mp-hc__top');
+      top.appendChild(mk('span', 'mp-hc__role', d.r));
+      top.appendChild(mk('span', 'mp-hc__lane', d.lane));
+      if (id === cur) top.appendChild(mk('span', 'mp-hc__badge', '当前'));
+      else if (off) top.appendChild(mk('span', 'mp-hc__badge', '队友已选'));
+      card.appendChild(top);
+      card.appendChild(mk('div', 'mp-hc__name', d.n));
+      card.appendChild(mk('div', 'mp-hc__title', d.t));
+      var pv = mk('div', 'mp-hc__pv');
+      pv.appendChild(mk('b', null, '被动 · ' + d.pv[0]));
+      pv.appendChild(document.createTextNode(d.pv[1]));
+      card.appendChild(pv);
+      var sk = mk('div', 'mp-hc__sk');
+      var labels = ['1', '2', '大'];
+      for (var t2 = 0; t2 < 3; t2++) {
+        var row = mk('div', 'mp-skrow');
+        row.appendChild(mk('span', 'mp-sklb', labels[t2]));
+        row.appendChild(mk('span', 'mp-sknm', d.s[t2][0]));
+        row.appendChild(mk('span', 'mp-skds', d.s[t2][1]));
+        sk.appendChild(row);
+      }
+      card.appendChild(sk);
+      card.onclick = function () {
+        if (off) { UI.foot.textContent = '这个英雄已经被队友选走了。'; return; }
+        applyHero(seatIdx, id);
+        close();
+      };
+      grid.appendChild(card);
+    });
+    wrap.appendChild(grid);
+    wrap.appendChild(mk('div', 'mp-picker__foot', '7 个英雄、6 个席位，同队与对面都不能重复；空位由 AI 顶着。'));
+
+    function close() {
+      if (wrap.parentNode) wrap.parentNode.removeChild(wrap);
+      document.removeEventListener('keydown', onKey);
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    x.onclick = close;
+    document.addEventListener('keydown', onKey);
+    document.body.appendChild(wrap);
   }
 
   function copyText(txt) {
@@ -11456,7 +11567,8 @@ window.__QRM = qrMatrix;
       if (lobbyTimer) clearInterval(lobbyTimer);
       lobbyTimer = setInterval(broadcast, 400);
       broadcast();
-      setTimeout(function () { hostStart(); }, 9000);
+      renderRoom();
+      if (!TESTQ.get('hold')) setTimeout(function () { hostStart(); }, 9000);
     } else {
       mySeat = seat;
       if (TESTQ.get('solo')) {

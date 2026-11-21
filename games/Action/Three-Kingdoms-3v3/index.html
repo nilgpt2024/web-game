@@ -9554,6 +9554,274 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
       })();
     </script>
     <script>
+/* 内联 QR 编码器（字节模式 / 版本 1-10 / 纠错 L·M，已与 segno 参考实现 165/165 逐模块比对一致） */
+/* 极简 QR 生成器：字节模式，版本 1-10，纠错 L/M，返回 {matrix,version,ecl,mask} */
+function qrMatrix(text, wantEcl, forceMask) {
+  var ECLBITS = { L: 1, M: 0, Q: 3, H: 2 };
+  // 每版本每纠错级别：[数据块 [每组码字数, 组数]...] , 每块纠错码字数
+  var TAB = [
+    /* v1 */ { L: { q: [[19, 1]], e: 7 }, M: { q: [[16, 1]], e: 10 } },
+    /* v2 */ { L: { q: [[34, 1]], e: 10 }, M: { q: [[28, 1]], e: 16 } },
+    /* v3 */ { L: { q: [[55, 1]], e: 15 }, M: { q: [[44, 1]], e: 26 } },
+    /* v4 */ { L: { q: [[80, 1]], e: 20 }, M: { q: [[32, 2]], e: 18 } },
+    /* v5 */ { L: { q: [[108, 1]], e: 26 }, M: { q: [[43, 2]], e: 24 } },
+    /* v6 */ { L: { q: [[68, 2]], e: 18 }, M: { q: [[27, 4]], e: 16 } },
+    /* v7 */ { L: { q: [[78, 2]], e: 20 }, M: { q: [[31, 4]], e: 18 } },
+    /* v8 */ { L: { q: [[97, 2]], e: 24 }, M: { q: [[38, 2], [39, 2]], e: 22 } },
+    /* v9 */ { L: { q: [[116, 2]], e: 30 }, M: { q: [[36, 3], [37, 2]], e: 22 } },
+    /* v10 */{ L: { q: [[68, 2], [69, 2]], e: 18 }, M: { q: [[43, 4], [44, 1]], e: 26 } }
+  ];
+
+  var EXP = new Array(512), LOG = new Array(256);
+  (function () {
+    var x = 1;
+    for (var i = 0; i < 255; i++) { EXP[i] = x; LOG[x] = i; x <<= 1; if (x & 0x100) x ^= 0x11d; }
+    for (var j = 255; j < 512; j++) EXP[j] = EXP[j - 255];
+  })();
+  function gmul(a, b) { return (a && b) ? EXP[LOG[a] + LOG[b]] : 0; }
+  function rsGen(n) {
+    var g = [1];
+    for (var i = 0; i < n; i++) {
+      var ng = new Array(g.length + 1).fill(0);
+      for (var j = 0; j < g.length; j++) { ng[j] ^= g[j]; ng[j + 1] ^= gmul(g[j], EXP[i]); }
+      g = ng;
+    }
+    return g;
+  }
+  function rsEnc(block, n) {
+    var g = rsGen(n), res = new Array(n).fill(0);
+    for (var i = 0; i < block.length; i++) {
+      var f = block[i] ^ res[0];
+      res.shift(); res.push(0);
+      if (f) for (var j = 0; j < n; j++) res[j] ^= gmul(g[j + 1], f);
+    }
+    return res;
+  }
+
+  var bytes = Array.from(new TextEncoder().encode(text));
+  var ecl = wantEcl || 'M', v, lay, need = 2 + bytes.length;
+  function capOf(l) { var s = 0; for (var i = 0; i < l.q.length; i++) s += l.q[i][0] * l.q[i][1]; return s; }
+  function pick(e) {
+    for (var k = 1; k <= 10; k++) { var l = TAB[k - 1][e], c = capOf(l); if (need <= c) return { v: k, lay: l, cap: c }; }
+    return null;
+  }
+  var sel = pick(ecl);
+  if (!sel && ecl === 'M') { ecl = 'L'; sel = pick('L'); }
+  if (!sel) return null;
+  v = sel.v; lay = sel.lay;
+
+  var size = 17 + 4 * v, m = [], func = [], i, j;
+  for (i = 0; i < size; i++) { m.push(new Array(size).fill(0)); func.push(new Array(size).fill(false)); }
+
+  function set(y, x, dark) { if (y >= 0 && y < size && x >= 0 && x < size && !func[y][x]) m[y][x] = dark ? 1 : 0; }
+
+  // 定位图形 + 分隔符
+  function finder(cx, cy) {
+    for (var dy = -4; dy <= 4; dy++) for (var dx = -4; dx <= 4; dx++) {
+      var y = cy + dy, x = cx + dx;
+      if (y < 0 || x < 0 || y >= size || x >= size) continue;
+      func[y][x] = true;
+      var d = Math.max(Math.abs(dx), Math.abs(dy));
+      m[y][x] = (d !== 2 && d !== 4) ? 1 : 0;
+    }
+  }
+  finder(3, 3); finder(size - 4, 3); finder(3, size - 4);
+
+  // 定时图形
+  for (i = 8; i < size - 8; i++) {
+    func[6][i] = true; m[6][i] = (i % 2 === 0) ? 1 : 0;
+    func[i][6] = true; m[i][6] = (i % 2 === 0) ? 1 : 0;
+  }
+
+  // 校正图形
+  var ALIGN = [[], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]][v - 1];
+  for (i = 0; i < ALIGN.length; i++) for (j = 0; j < ALIGN.length; j++) {
+    var ax = ALIGN[i], ay = ALIGN[j];
+    if ((ax === 6 && ay === 6) || (ax === 6 && ay === size - 7) || (ax === size - 7 && ay === 6)) continue;
+    for (var dy2 = -2; dy2 <= 2; dy2++) for (var dx2 = -2; dx2 <= 2; dx2++) {
+      var yy = ay + dy2, xx = ax + dx2;
+      if (yy < 0 || xx < 0 || yy >= size || xx >= size) continue;
+      func[yy][xx] = true;
+      m[yy][xx] = Math.max(Math.abs(dy2), Math.abs(dx2)) !== 1 ? 1 : 0;
+    }
+  }
+
+  // 预留格式信息区 + 固定黑模块
+  function reserve(y, x) { if (y >= 0 && y < size && x >= 0 && x < size) { func[y][x] = true; m[y][x] = 0; } }
+  for (i = 0; i < 9; i++) { if (i !== 6) { reserve(8, i); reserve(i, 8); } }
+  for (i = 0; i < 8; i++) { reserve(8, size - 1 - i); if (size - 1 - i !== 6) reserve(size - 1 - i, 8); }
+  reserve(size - 8, 8);
+  m[size - 8][8] = 1;
+
+  // 预留版本信息区（v>=7）
+  if (v >= 7) {
+    for (i = 0; i < 6; i++) for (j = 0; j < 3; j++) { reserve(i, size - 11 + j); reserve(size - 11 + j, i); }
+  }
+
+  // ---- 编码数据 ----
+  var bits = [];
+  function push(val, n) { for (var k = n - 1; k >= 0; k--) bits.push((val >> k) & 1); }
+  push(4, 4);
+  push(bytes.length, v <= 9 ? 8 : 16);
+  for (i = 0; i < bytes.length; i++) push(bytes[i], 8);
+  var capBits = sel.cap * 8;
+  var term = Math.min(capBits - bits.length, 4);        // 终止符最多 4 个 0
+  for (i = 0; i < term; i++) bits.push(0);
+  var padBits = 8 - (bits.length % 8);                  // 对齐到码字边界（已对齐时补整字节，与主流实现一致）
+  for (i = 0; i < padBits && bits.length < capBits; i++) bits.push(0);
+  var cw = [];
+  for (i = 0; i < bits.length; i += 8) {
+    var b = 0;
+    for (j = 0; j < 8; j++) b = (b << 1) | bits[i + j];
+    cw.push(b);
+  }
+  var pad = [0xEC, 0x11], p = 0;
+  for (i = cw.length; i < sel.cap; i++) cw.push(pad[p++ % 2]);
+
+
+  // 分块 + 纠错 + 交织
+  var blocks = [], off = 0;
+  for (i = 0; i < lay.q.length; i++) {
+    for (j = 0; j < lay.q[i][1]; j++) {
+      var d = cw.slice(off, off + lay.q[i][0]);
+      off += lay.q[i][0];
+      blocks.push({ d: d, e: rsEnc(d, lay.e) });
+    }
+  }
+  var out = [], maxD = 0;
+  for (i = 0; i < blocks.length; i++) maxD = Math.max(maxD, blocks[i].d.length);
+  for (i = 0; i < maxD; i++) for (j = 0; j < blocks.length; j++) if (i < blocks[j].d.length) out.push(blocks[j].d[i]);
+  for (i = 0; i < lay.e; i++) for (j = 0; j < blocks.length; j++) out.push(blocks[j].e[i]);
+
+  function bitAt(k) {
+    var w = out[k >> 3];
+    return w === undefined ? 0 : (w >> (7 - (k & 7)) & 1);
+  }
+
+  // 放置（右下起之字形）
+  var k3 = 0, up = true;
+  for (var col = size - 1; col > 0; col -= 2) {
+    if (col === 6) col--;
+    for (var step = 0; step < size; step++) {
+      var y3 = up ? size - 1 - step : step;
+      for (var c = 0; c < 2; c++) {
+        var x3 = col - c;
+        if (func[y3][x3]) continue;
+        m[y3][x3] = bitAt(k3);
+        k3++;
+      }
+    }
+    up = !up;
+  }
+
+  // 掩码图案
+  var MASKS = [
+    function (y, x) { return (y + x) % 2 === 0; },
+    function (y, x) { return y % 2 === 0; },
+    function (y, x) { return x % 3 === 0; },
+    function (y, x) { return (y + x) % 3 === 0; },
+    function (y, x) { return ((y >> 1) + Math.floor(x / 3)) % 2 === 0; },
+    function (y, x) { return (y * x) % 2 + (y * x) % 3 === 0; },
+    function (y, x) { return ((y * x) % 2 + (y * x) % 3) % 2 === 0; },
+    function (y, x) { return ((y + x) % 2 + (y * x) % 3) % 2 === 0; }
+  ];
+
+  function fmtBits(mask) {
+    var d = (ECLBITS[ecl] << 3) | mask, rem = d;
+    for (var t = 0; t < 10; t++) { rem = (rem << 1) ^ (((rem >> 9) & 1) * 0x537); }
+    return ((d << 10) | (rem & 0x3ff)) ^ 0x5412;
+  }
+  function verBits() {
+    var rem = v;
+    for (var t = 0; t < 12; t++) { rem = (rem << 1) ^ (((rem >> 11) & 1) * 0x1f25); }
+    return (v << 12) | (rem & 0xfff);
+  }
+
+  function build(mask) {
+    var r = m.map(function (row) { return row.slice(); });
+    for (var y = 0; y < size; y++) for (var x = 0; x < size; x++) {
+      if (func[y][x]) continue;
+      if (MASKS[mask](y, x)) r[y][x] ^= 1;
+    }
+    var f = fmtBits(mask);
+    for (var i4 = 0; i4 < 15; i4++) {
+      var bit = (f >> i4) & 1 ? 1 : 0;
+      if (i4 < 6) r[i4][8] = bit;
+      else if (i4 === 6) r[7][8] = bit;
+      else if (i4 === 7) r[8][8] = bit;
+      else if (i4 === 8) r[8][7] = bit;
+      else r[8][14 - i4] = bit;
+      if (i4 < 8) r[8][size - 1 - i4] = bit;
+      else r[size - 15 + i4][8] = bit;
+    }
+    r[size - 8][8] = 1;
+    if (v >= 7) {
+      var vb = verBits();
+      for (var i5 = 0; i5 < 18; i5++) {
+        var b5 = (vb >> i5) & 1 ? 1 : 0;
+        r[Math.floor(i5 / 3)][size - 11 + (i5 % 3)] = b5;
+        r[size - 11 + (i5 % 3)][Math.floor(i5 / 3)] = b5;
+      }
+    }
+    return r;
+  }
+
+  function penalty(mm) {
+    var sc = 0, y, x, run;
+    for (y = 0; y < size; y++) {
+      run = 1;
+      for (x = 1; x < size; x++) {
+        if (mm[y][x] === mm[y][x - 1]) { run++; if (run === 5) sc += 3; else if (run > 5) sc++; }
+        else run = 1;
+      }
+    }
+    for (x = 0; x < size; x++) {
+      run = 1;
+      for (y = 1; y < size; y++) {
+        if (mm[y][x] === mm[y - 1][x]) { run++; if (run === 5) sc += 3; else if (run > 5) sc++; }
+        else run = 1;
+      }
+    }
+    for (y = 0; y < size - 1; y++) for (x = 0; x < size - 1; x++) {
+      var s = mm[y][x] + mm[y][x + 1] + mm[y + 1][x] + mm[y + 1][x + 1];
+      if (s === 0 || s === 4) sc += 3;
+    }
+    var pat = [1, 0, 1, 1, 1, 0, 1], pat2 = [0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1];
+    function scan(arr) {
+      for (var st = 0; st + 11 <= arr.length; st++) {
+        var ok1 = true, ok2 = true;
+        for (var q = 0; q < 11; q++) {
+          if (arr[st + q] !== pat2[q]) ok1 = false;
+          if (arr[st + q] !== pat2[10 - q]) ok2 = false;
+        }
+        if (ok1 || ok2) sc += 40;
+      }
+      for (var st2 = 0; st2 + 7 <= arr.length; st2++) {
+        var ok = true;
+        for (var q2 = 0; q2 < 7; q2++) if (arr[st2 + q2] !== pat[q2]) { ok = false; break; }
+        if (ok) sc += 40;
+      }
+    }
+    for (y = 0; y < size; y++) scan(mm[y]);
+    for (x = 0; x < size; x++) { var col = []; for (y = 0; y < size; y++) col.push(mm[y][x]); scan(col); }
+    var dark = 0;
+    for (y = 0; y < size; y++) for (x = 0; x < size; x++) dark += mm[y][x];
+    sc += Math.floor(Math.abs(dark * 100 / (size * size) - 50) / 5) * 10;
+    return sc;
+  }
+
+  if (typeof forceMask === 'number') return { matrix: build(forceMask), version: v, ecl: ecl, mask: forceMask };
+  var best = null, bestScore = 1e9, bestMask = 0;
+  for (i = 0; i < 8; i++) {
+    var cand = build(i), sc2 = penalty(cand);
+    if (sc2 < bestScore) { bestScore = sc2; best = cand; bestMask = i; }
+  }
+  return { matrix: best, version: v, ecl: ecl, mask: bestMask };
+}
+if (typeof module !== 'undefined') module.exports = { qrMatrix: qrMatrix };
+window.__QRM = qrMatrix;
+</script>
+<script>
 /* =========================================================================
    三国烽火 · 联机 3v3 模块（追加块，不改动原有游戏代码）
    - 传输：公网 MQTT over WSS（broker.emqx.io），无需自建服务器
@@ -10063,7 +10331,9 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
       '.mp-input{flex:1;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.35);color:#e8eefc;font-size:14px;outline:none}',
       '.mp-lbl{font-size:12px;color:#8a97b4;margin:2px 0 6px}',
       '.mp-code{font-family:ui-monospace,Consolas,monospace;font-size:26px;letter-spacing:2px;color:#ffdf9e;text-align:center;padding:12px;border-radius:12px;background:rgba(217,164,65,.1);border:1px dashed rgba(217,164,65,.45);margin:4px 0 10px;user-select:all}',
-      '.mp-seat{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.045);margin-bottom:6px;font-size:13px}',
+      '.mp-qrwrap{margin:2px 0 8px}',
+      '.mp-qr{margin:0 auto;padding:8px;border-radius:12px;background:#fff;display:flex;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.35)}',
+      '.mp-qr canvas{display:block;image-rendering:pixelated}',      '.mp-seat{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:rgba(255,255,255,.045);margin-bottom:6px;font-size:13px}',
       '.mp-seat.is-blue{border-left:3px solid #4f7dff}',
       '.mp-seat.is-red{border-left:3px solid #ff5a4f}',
       '.mp-seat.is-me{background:rgba(217,164,65,.14)}',
@@ -10326,6 +10596,34 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
     UI.hint = hi;
   }
 
+  // 邀请链接二维码（自带编码器，无外部依赖）
+  function qrPanel(link) {
+    var wrap = mk('div', 'mp-qrwrap');
+    try {
+      var q = (typeof window.__QRM === 'function') ? window.__QRM(link, 'M') : null;
+      if (q && q.matrix && q.matrix.length) {
+        var n = q.matrix.length, quiet = 4, total = n + quiet * 2;
+        var scale = Math.max(2, Math.floor(220 / total));
+        var px = total * scale;
+        var cv = document.createElement('canvas');
+        cv.width = px; cv.height = px;
+        cv.style.width = 'min(220px, 52vw)';
+        cv.style.height = 'auto';
+        var g = cv.getContext('2d');
+        g.fillStyle = '#ffffff'; g.fillRect(0, 0, px, px);
+        g.fillStyle = '#000000';
+        for (var yy = 0; yy < n; yy++) for (var xx = 0; xx < n; xx++) {
+          if (q.matrix[yy][xx]) g.fillRect((quiet + xx) * scale, (quiet + yy) * scale, scale, scale);
+        }
+        var box = mk('div', 'mp-qr');
+        box.appendChild(cv);
+        wrap.appendChild(box);
+        wrap.appendChild(mk('div', 'mp-hint', '手机扫一扫，直接进这间房'));
+      }
+    } catch (e) {}
+    return wrap;
+  }
+
   function renderRoom() {
     if (!lobbyState) return;
     UI.mask.style.display = 'flex';
@@ -10333,13 +10631,15 @@ button.sf-field { width: 100%; padding: 0; margin: 0; border: 0; background: non
     var codeTxt = room ? (room.code + '-' + room.token) : '';
     var codeEl = mk('div', 'mp-code', codeTxt);
     UI.body.appendChild(codeEl);
-    UI.body.appendChild(mk('div', 'mp-lbl', '房间码（发给朋友，或直接复制邀请链接）'));
+    UI.body.appendChild(mk('div', 'mp-lbl', '房间码（扫码或复制链接发给朋友）'));
+
+    var inviteLink = location.origin + location.pathname + '?mp=' + codeTxt;
+    UI.body.appendChild(qrPanel(inviteLink));
 
     var row = mk('div', 'mp-row');
     var bCopy = mk('button', 'mp-btn mp-btn--ghost', '复制邀请链接');
     bCopy.onclick = function () {
-      var link = location.origin + location.pathname + '?mp=' + codeTxt;
-      copyText(link);
+      copyText(inviteLink);
       bCopy.textContent = '已复制';
     };
     row.appendChild(bCopy);

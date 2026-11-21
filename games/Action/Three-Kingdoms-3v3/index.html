@@ -10271,6 +10271,8 @@ window.__QRM = qrMatrix;
   var myName = '';
   var lastLobbyAt = 0;      // 客机最后一次收到房主大厅广播的时间
   var mpGotStart = false;   // 客机已收到开局消息
+  var lastSeatSig = '';     // 上一次渲染的座位表指纹（避免无变化重绘）
+  var pendingRoomRender = false;
 
   function cidInit() {
     var c = sessionStorage.getItem(CID_KEY);
@@ -10293,6 +10295,10 @@ window.__QRM = qrMatrix;
     head.appendChild(close);
     card.appendChild(head);
     var body = mk('div', 'mp-body');
+    body.addEventListener('focusout', function () {
+      if (!pendingRoomRender) return;
+      setTimeout(function () { if (pendingRoomRender) renderRoom(); }, 0);
+    });
     card.appendChild(body);
     var foot = mk('div', 'mp-foot', '提示：进入战场后请勿切换窗口或后台运行，否则全房会同步等待。');
     card.appendChild(foot);
@@ -10548,11 +10554,13 @@ window.__QRM = qrMatrix;
     if (m.k === 'lobby') {
       if (isHost) return;
       lastLobbyAt = Date.now();
+      var wasSeat = mySeat;
       lobbyState = { seats: m.seats, started: false };
       for (var i = 0; i < m.seats.length; i++) {
         if (m.seats[i] && m.seats[i].cid === myCid) mySeat = i;
       }
-      if (mySeat >= 0) renderRoom();
+      // 座位表没变化就不重建 DOM，否则会打断玩家正在操作的下拉框
+      if (mySeat >= 0 && (seatSig(seatList(m.seats)) !== lastSeatSig || wasSeat !== mySeat)) renderRoom();
       return;
     }
     if (m.k === 'hello') {
@@ -10689,9 +10697,26 @@ window.__QRM = qrMatrix;
     return wrap;
   }
 
+  // 座位表指纹：内容一致就不重建大厅 DOM（房主每 400ms 广播一次）
+  function seatList(seats) {
+    return seats.map(function (s) {
+      return { cid: s && s.cid || '', name: s && s.name || '', hero: s && s.hero || '', ready: !!(s && s.ready) };
+    });
+  }
+  function seatSig(seats) {
+    return seats.map(function (s) {
+      return (s.cid || '') + '|' + (s.name || '') + '|' + (s.hero || '') + '|' + (s.ready ? 1 : 0);
+    }).join(';');
+  }
+
   function renderRoom() {
     if (!lobbyState) return;
+    lastSeatSig = seatSig(lobbyState.seats);
     UI.mask.style.display = 'flex';
+    // 玩家正在操作座位表里的下拉框（选英雄）时不要重建 DOM，否则弹出的选项会被冲掉
+    var ae = document.activeElement;
+    if (ae && ae.tagName === 'SELECT' && UI.body.contains(ae)) { pendingRoomRender = true; return; }
+    pendingRoomRender = false;
     UI.body.innerHTML = '';
     var codeTxt = room ? (room.code + '-' + room.token) : '';
     var inviteLink = location.origin + location.pathname + '?mp=' + codeTxt;

@@ -10591,7 +10591,6 @@ window.__QRM = qrMatrix;
   function renderJoinWait() {
     UI.mask.style.display = 'flex';
     UI.body.innerHTML = '';
-    UI.body.appendChild(mk('div', 'mp-code', room ? (room.code + '-' + room.token) : ''));
     var hi = mk('div', 'mp-hint', '正在连接房间，等待房主响应…');
     UI.body.appendChild(hi);
     UI.hint = hi;
@@ -10630,21 +10629,23 @@ window.__QRM = qrMatrix;
     UI.mask.style.display = 'flex';
     UI.body.innerHTML = '';
     var codeTxt = room ? (room.code + '-' + room.token) : '';
-    var codeEl = mk('div', 'mp-code', codeTxt);
-    UI.body.appendChild(codeEl);
-    UI.body.appendChild(mk('div', 'mp-lbl', '房间码（扫码或复制链接发给朋友）'));
-
     var inviteLink = location.origin + location.pathname + '?mp=' + codeTxt;
-    UI.body.appendChild(qrPanel(inviteLink));
-
-    var row = mk('div', 'mp-row');
-    var bCopy = mk('button', 'mp-btn mp-btn--ghost', '复制邀请链接');
-    bCopy.onclick = function () {
-      copyText(inviteLink);
-      bCopy.textContent = '已复制';
-    };
-    row.appendChild(bCopy);
-    UI.body.appendChild(row);
+    if (isHost) {
+      var codeEl = mk('div', 'mp-code', codeTxt);
+      UI.body.appendChild(codeEl);
+      UI.body.appendChild(mk('div', 'mp-lbl', '房间码（扫码或复制链接发给朋友）'));
+      UI.body.appendChild(qrPanel(inviteLink));
+      var row = mk('div', 'mp-row');
+      var bCopy = mk('button', 'mp-btn mp-btn--ghost', '复制邀请链接');
+      bCopy.onclick = function () {
+        copyText(inviteLink);
+        bCopy.textContent = '已复制';
+      };
+      row.appendChild(bCopy);
+      UI.body.appendChild(row);
+    } else {
+      UI.body.appendChild(mk('div', 'mp-hint', '你已加入房主的房间，选好英雄并准备，等待房主开始对局。'));
+    }
 
     var blue = mk('div', 'mp-lbl', '蜀汉（蓝方）');
     UI.body.appendChild(blue);

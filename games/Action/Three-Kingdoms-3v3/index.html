@@ -10056,6 +10056,8 @@ window.__QRM = qrMatrix;
     this.offline = {};    // seat -> 1 已判掉线的座位
     this.lastRxT = 0;     // 最近一次收到任何对局消息的时间（用于断线重连探测）
     this.ctrlAt = 0;      // 交回控制权的 tick（不到这个 tick 不采纳自己的输入）
+    this.adj = 0;         // 当前裁判席位（默认房主 0；房主卡死时可移交给别人）
+    this.adjSince = 0;    // 上次移交/开局的时间（防抖）
   }
 
   Lock.prototype.install = function (world, sess) {
@@ -10104,6 +10106,9 @@ window.__QRM = qrMatrix;
       if (this.humans.indexOf(i) >= 0) w.setBotControl(h.id, false);
     }
     this.inited = true;
+    this.adj = 0;
+    this.adjSince = Date.now();
+    this.lastSeen[this.seat] = Date.now();
     // 预铺 0..DELAY-1 的空帧（这些 tick 不可能有输入）
     var empty = [];
     for (var d = 0; d < DELAY; d++) empty.push([]);
@@ -10159,12 +10164,13 @@ window.__QRM = qrMatrix;
     if (this.replaying) return;          // 追帧期间由 onRep 直接驱动，不进实时锁步
     var T = st.tick;
     this.runSched(T);
-    if (this.seat === 0) this.judgeLag(T, Date.now());
+    if (this.seat === this.adj) this.judgeLag(T, Date.now());
+    else this.watchAdj(T);
     if (!this.has(T)) {
       var nowMs = Date.now();
       if (!this.waitFrom) this.waitFrom = nowMs;
       var miss = this.missing(T);
-      if (this.seat === 0 && miss.length && nowMs - this.waitFrom > 6000) {
+      if (this.seat === this.adj && miss.length && nowMs - this.waitFrom > 6000) {
         // 兜底：极端情况下仍被卡住，房主直接判掉线并广播（按 tick 生效）
         this.dropNow(miss, T);
       }
@@ -10172,7 +10178,7 @@ window.__QRM = qrMatrix;
         this.reqAt = nowMs;
         this.send({ k: 'req', s: this.seat, t: T });
       }
-      mpStall(true, T, this.missing(T), (this.seat !== 0 && miss.indexOf(0) >= 0) ? 'host' : '');
+      mpStall(true, T, this.missing(T), (this.seat !== this.adj && this.adj === 0 && miss.indexOf(0) >= 0) ? 'host' : '');
       return;
     }
     this.waitFrom = 0;
@@ -10256,12 +10262,20 @@ window.__QRM = qrMatrix;
       this.lagWin[s] = [T, t1];
       this.purge(s, T, t1);              // 窗口内已缓存的真实帧一律作废，保证各端口径一致
       this.lagN++;
-      this.send({ k: 'lag', s: s, t0: T, t1: t1 });
+      this.send({ k: 'lag', s: s, t0: T, t1: t1, a: this.adj });
     }
   };
 
   Lock.prototype.after = function (cur) {
     var self = this;
+    // 自己刚从冻结/后台恢复：本机时间跳了一大截，说明自己曾掉线。
+    // 如果此刻还握着裁判权，立刻交出去，避免“醒来后和现任裁判同时裁决”。
+    var nowT = Date.now();
+    if (this.__lastAfter && nowT - this.__lastAfter > 2000 && this.seat === this.adj) {
+      var nb = this.nextAdj();
+      if (nb >= 0 && nb !== this.seat) this.switchAdj(nb, true);
+    }
+    this.__lastAfter = nowT;
     if (!this.nextPub) this.nextPub = DELAY;
     var guard = 0;
     while (this.state.tick >= this.nextPub - 1 && guard++ < 8) {
@@ -10299,11 +10313,11 @@ window.__QRM = qrMatrix;
     for (var s2 in this.sent) if (+s2 < cur - 30) delete this.sent[s2];
     for (var s3 in this.frames) if (+s3 > cur + 120) delete this.frames[s3];
 
-    // 每 30 tick（1 秒）做一次状态校验和，房主下发，客户端对比，及时发现不同步
+    // 每 30 tick（1 秒）做一次状态校验和，裁判席位下发，客户端对比，及时发现不同步
     if (cur % 30 === 0) {
       var hh = this.hash();
       this.ckS[cur] = hh;
-      if (this.seat === 0) this.send({ k: 'ck', t: cur, h: hh });
+      if (this.seat === this.adj) this.send({ k: 'ck', t: cur, h: hh, from: this.seat });
       else this.checkSync(cur);
       for (var s4 in this.ckS) if (+s4 < cur - 90) delete this.ckS[s4];
       for (var s5 in this.ckRef) if (+s5 < cur - 90) delete this.ckRef[s5];
@@ -10345,6 +10359,15 @@ window.__QRM = qrMatrix;
     if (!w || m.t1 > w[1]) this.lagWin[m.s] = [m.t0, m.t1];
     this.purge(m.s, m.t0, m.t1);         // 同样作废窗口内的真实帧
     if (!this.lagSeen[m.s]) { this.lagSeen[m.s] = 1; mpLagNotice(m.s); }
+    // 有人以“裁判”身份在下发裁决，而我的裁判席位早就没动静了 → 跟随它的裁决身份
+    if (typeof m.a === 'number' && m.a !== this.adj && m.a !== this.seat && this.humans.indexOf(m.a) >= 0) {
+      var curSeen = this.lastSeen[this.adj] || 0;
+      if (Date.now() - curSeen > 2500) {
+        this.adj = m.a;
+        this.adjSince = Date.now();
+        this.lagSeen = {};
+      }
+    }
   };
 
   /* ---------- 掉线 AI 接管 / 回来接管（追帧） ---------- */
@@ -10389,13 +10412,67 @@ window.__QRM = qrMatrix;
     if (s === this.seat) { this.ctrlAt = 0; this.replaying = false; }
   };
 
+  /* ---------- 裁判权移交（房主卡死时，别人接管裁决） ---------- */
+  // 候选人：按座位号环形往后，取第一个“还活着”的玩家（自己一定算活着）
+  Lock.prototype.nextAdj = function () {
+    var list = this.humans.slice().sort(function (a, b) { return a - b; });
+    if (!list.length) return -1;
+    var i = list.indexOf(this.adj), now = Date.now();
+    for (var k = 1; k <= list.length; k++) {
+      var s = list[(i + k) % list.length];
+      if (s === this.seat) return s;
+      if (this.offline[s]) continue;
+      if (now - (this.lastSeen[s] || 0) < 1500) return s;
+    }
+    return -1;
+  };
+
+  Lock.prototype.switchAdj = function (a, announce) {
+    if (a < 0 || a === this.adj) return;
+    this.adj = a;
+    this.adjSince = Date.now();
+    this.lagSeen = {};
+    if (announce) this.send({ k: 'adj', a: a, from: this.seat });
+    mpNotice('房主失去响应，裁判权已交给 玩家' + (a + 1) + '，本局继续', 3000);
+  };
+
+  // 非裁判席位：发现自己被裁判席位卡住超过 2.5 秒，就推动移交
+  Lock.prototype.watchAdj = function (T) {
+    var now = Date.now();
+    if (!this.adjSince) this.adjSince = now;
+    if (now - this.adjSince < 3000) return;                 // 开局/刚移交时给宽限
+    var seen = this.lastSeen[this.adj] || 0;
+    if (now - seen < 2500 && !this.offline[this.adj]) return;
+    if (this.has(T)) return;
+    if (this.missing(T).indexOf(this.adj) < 0) return;       // 不是被裁判席位卡住
+    var next = this.nextAdj();
+    if (next < 0 || next === this.adj) return;
+    this.switchAdj(next, true);
+  };
+
+  Lock.prototype.onAdj = function (m) {
+    if (m.from === this.seat) return;
+    if (typeof m.a !== 'number' || m.a < 0) return;
+    if (m.a === this.adj) return;
+    if (this.humans.indexOf(m.a) < 0) return;
+    var now = Date.now();
+    if (this.adjSince && now - this.adjSince < 3000) return; // 刚移交过，别跟着抖
+    // 只有确认现任裁判确实断了才接受，避免某个客户端自己掉线就乱切
+    var seen = this.lastSeen[this.adj] || 0;
+    if (now - seen < 2500 && !this.offline[this.adj]) return;
+    this.adj = m.a;
+    this.adjSince = now;
+    this.lagSeen = {};
+    mpNotice('房主失去响应，裁判权已交给 玩家' + (m.a + 1) + '，本局继续', 3000);
+  };
+
   // 房主裁决掉线：提前 2*DELAY 广播带 tick 的事件，全房在同一个 tick 切成 AI
   Lock.prototype.dropNow = function (seats, T) {
     var dt = T + 2 * DELAY;
     for (var i = 0; i < seats.length; i++) this.offline[seats[i]] = 1;
     this.evLog.push({ t: dt, k: 'drop', seats: seats.slice() });
     this.plan(dt, (function (self, list) { return function () { self.applyDrop(list); }; })(this, seats.slice()));
-    this.send({ k: 'drop', seats: seats.slice(), t: dt, from: this.seat });
+    this.send({ k: 'drop', seats: seats.slice(), t: dt, from: this.seat, a: this.adj });
     mpNotice(seats.map(function (s) { return '玩家' + (s + 1); }).join('、') + ' 掉线，英雄由 AI 接管（重连回来可继续操作）', 3000);
   };
 
@@ -10469,6 +10546,7 @@ window.__QRM = qrMatrix;
     this.desync = '';
     this.backStop = false;
     this.backShown = false;
+    this.backN = 0;
     var t = this.state.tick, empties = [];
     for (var i = 0; i < DELAY; i++) { empties.push([]); this.store(t + i, this.seat, []); }
     this.send({ k: 'f', s: this.seat, t0: t, n: DELAY, c: empties });
@@ -10511,6 +10589,12 @@ window.__QRM = qrMatrix;
 
   Lock.prototype.sendBack = function () {
     if (this.backStop) return;
+    this.backN = (this.backN || 0) + 1;
+    if (this.backN > 20) {              // 连喊 20 秒没人理：房主多半已经不在了
+      this.backStop = true;
+      mpNotice('房主已离开本局，无法续接，本局由其他玩家继续', 5000);
+      return;
+    }
     this.send({ k: 'back', cid: (typeof myCid === 'undefined' ? '' : myCid), s: this.seat, t: this.lastApplied || 0 });
   };
 
@@ -10541,7 +10625,8 @@ window.__QRM = qrMatrix;
 
   Lock.prototype.onCk = function (m) {
     if (typeof m.t !== 'number' || typeof m.h !== 'number') return;
-    if (this.seat === 0) return;         // 房主是基准
+    if (this.seat === this.adj) return;            // 我是裁判，自己就是基准
+    if (m.from != null && m.from !== this.adj) return;   // 只认现任裁判的校验和
     this.ckRef[m.t] = m.h;
     this.checkSync(m.t);
   };
@@ -11266,6 +11351,7 @@ window.__QRM = qrMatrix;
       else if (m.k === 'lag' && lock) lock.onLag(m);
       else if (m.k === 'ck' && lock) lock.onCk(m);
       else if (m.k === 'drop' && lock) lock.onDrop(m);
+      else if (m.k === 'adj' && lock) lock.onAdj(m);
       else if (m.k === 'rejoin' && lock) lock.onRejoin(m);
       else if (m.k === 'rep' && lock) { lock.lastRxT = Date.now(); lock.onRep(m); }
       else if (m.k === 'rel' && lock) { lock.lastRxT = Date.now(); lock.onRel(m); }
@@ -11373,6 +11459,17 @@ window.__QRM = qrMatrix;
       setTimeout(function () { hostStart(); }, 9000);
     } else {
       mySeat = seat;
+      if (TESTQ.get('solo')) {
+        // 单机验证用：直接开一局，房主座位 0 永远静默，用来测试“裁判权移交”
+        var sr = [[HEROES[0][0], HEROES[1][0], HEROES[2][0]], [HEROES[3][0], HEROES[4][0], HEROES[5][0]]];
+        var scfg = {
+          seat: seat, humans: [0, seat], roster: sr, seed: +(TESTQ.get('seed') || 424242),
+          code: code, token: token, map: { 'T0': 0, 'T3': 3 },
+          myHero: sr[seat < 3 ? 0 : 1][seat % 3], cid: myCid, name: '客机'
+        };
+        goMatch(scfg);
+        return;
+      }
       openRoom(code, token, false);
       setInterval(function () {
         if (!navigating) send({ k: 'hello', cid: myCid, name: '客机' });
@@ -11446,7 +11543,7 @@ window.__QRM = qrMatrix;
         }
         o.room = !!(netClient && netClient.ok);
         o.qtick = lock && lock.frames ? Object.keys(lock.frames).length : 0;
-        try{o.has=lock.has(lock.state.tick)?1:0;o.miss=lock.missing(lock.state.tick).join(',');o.fk=Object.keys(lock.frames).sort(function(a,b){return a-b}).slice(0,12).join('|');o.dly=DELAY+'/'+PUB_EVERY;o.hum=lock.humans.join(',');o.dropped=(window.__mpDropped||[]).join(',');o.dsy=lock.desync||'';o.off=Object.keys(lock.offline).join(',');o.rep=lock.replaying?1:0;o.lap=lock.lastApplied;var ckk=Object.keys(lock.ckS).sort(function(a,b){return (+a)-(+b)}).slice(-4);o.ckk=ckk.map(function(k){return k+':'+lock.ckS[k]}).join('|');o.ckr=ckk.map(function(k){return (lock.ckRef[k]==null?'-':lock.ckRef[k])}).join('|');}catch(e2){o.hasx=String(e2);}
+        try{o.has=lock.has(lock.state.tick)?1:0;o.miss=lock.missing(lock.state.tick).join(',');o.fk=Object.keys(lock.frames).sort(function(a,b){return a-b}).slice(0,12).join('|');o.dly=DELAY+'/'+PUB_EVERY;o.hum=lock.humans.join(',');o.dropped=(window.__mpDropped||[]).join(',');o.dsy=lock.desync||'';o.off=Object.keys(lock.offline).join(',');o.rep=lock.replaying?1:0;o.lap=lock.lastApplied;o.adj=lock.adj;var ckk=Object.keys(lock.ckS).sort(function(a,b){return (+a)-(+b)}).slice(-4);o.ckk=ckk.map(function(k){return k+':'+lock.ckS[k]}).join('|');o.ckr=ckk.map(function(k){return (lock.ckRef[k]==null?'-':lock.ckRef[k])}).join('|');}catch(e2){o.hasx=String(e2);}
         o.rx = mpStats.rx; o.tx = mpStats.tx; o.lastRx = mpStats.lastRx;
         o.sub = netClient ? netClient.pid : -1;
         o.wsr = netClient && netClient.ws ? netClient.ws.readyState : -1;

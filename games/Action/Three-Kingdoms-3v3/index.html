@@ -10533,6 +10533,7 @@ window.__QRM = qrMatrix;
           if (typeof m.ready === 'boolean') row.ready = m.ready;
         }
       }
+      renderRoom();
       broadcast();
       return;
     }
@@ -10664,7 +10665,10 @@ window.__QRM = qrMatrix;
       var bReady = mk('button', 'mp-btn', me && me.ready ? '取消准备' : '准备');
       bReady.onclick = function () {
         if (mySeat < 0) return;
-        send({ k: 'set', cid: myCid, ready: !lobbyState.seats[mySeat].ready });
+        var row = lobbyState.seats[mySeat];
+        row.ready = !row.ready;
+        renderRoom();
+        send({ k: 'set', cid: myCid, ready: row.ready });
       };
       act.appendChild(bReady);
     }

@@ -10088,6 +10088,8 @@ window.__QRM = qrMatrix;
     this.ckS = {};        // 本地状态校验和：tick -> hash
     this.ckRef = {};      // 房主下发的校验和
     this.desync = '';     // 最近一次不同步说明
+    this.emitT = 0;       // 我下一次要发出去的 tick（按墙钟推进，不等本机模拟）
+    this.pumpT = 0;       // 下一次发包时间
     this.sched = {};      // tick -> [fn] 到点才生效的全局事件（掉线/接管），保证各端同一 tick 切换
     this.log = {};        // tick -> {seat: cmds} 房主记录的“实际应用输入”，供掉线玩家追帧
     this.logMin = 0;      // log 里最早保留的 tick（约 100 秒）
@@ -10099,7 +10101,35 @@ window.__QRM = qrMatrix;
     this.ctrlAt = 0;      // 交回控制权的 tick（不到这个 tick 不采纳自己的输入）
     this.adj = 0;         // 当前裁判席位（默认房主 0；房主卡死时可移交给别人）
     this.adjSince = 0;    // 上次移交/开局的时间（防抖）
+    this.delay = (cfg && cfg.delay > 0) ? Math.min(36, cfg.delay) : DELAY;  // 本局输入延迟（tick）
+    this.deadline = 0;    // 这个 tick 之前的输入一律作废（加长延迟时留下的空档）
   }
+
+  // 缓冲不够时把输入延迟加长：填满中间空档，之后迟到的真实帧一律作废
+  Lock.prototype.applyDelay = function (d) {
+    if (!this.state) return;
+    if (d <= this.delay) return;                 // 只加长，不缩短，避免来回抖
+    var T = this.state.tick, old = this.delay;
+    this.delay = Math.min(36, d);
+    var to = T + this.delay;
+    for (var t = T + old; t < to; t++) {
+      for (var i = 0; i < this.humans.length; i++) {
+        var s = this.humans[i];
+        var f = this.frames[t];
+        if (!f || f[s] == null) this.store(t, s, []);
+        this.sent[t] = true;
+      }
+    }
+    this.deadline = to;
+    this.waitFrom = 0;
+    if (this.seat === 0) mpNotice('网络延迟偏高，操作缓冲已加到 ' + this.delay + ' 帧', 2500);
+  };
+
+  Lock.prototype.onDly = function (m) {
+    if (typeof m.d !== 'number') return;
+    if (m.from === this.seat) return;
+    this.applyDelay(m.d);
+  };
 
   Lock.prototype.install = function (world, sess) {
     var self = this;
@@ -10125,10 +10155,23 @@ window.__QRM = qrMatrix;
       };
       try { origLoopPause(false); } catch (e) { }
     }
+    if (!this.pumpTimer) {
+      this.pumpTimer = setInterval(function () { try { self.pump(); } catch (e) { } }, 33);
+    }
+    if (!this.keepTimer) {
+      this.keepTimer = setInterval(function () { try { self.keepAlive(); } catch (e) { } }, 120);
+    }
     this.state = world.state;
     this.origStep = world.step.bind(world);
     this.origCommand = world.command.bind(world);
-    world.step = function () { self.onStep(); };
+    world.step = function () { if (!self.__pace) return; self.onStep(); };
+    if (!this.paceTimer) {
+      this.paceTimer = setInterval(function () {
+        if (!self.state || self.over) return;
+        self.__pace = true;
+        try { self.onStep(); } catch (e) { } finally { self.__pace = false; }
+      }, 33);
+    }
     world.command = function (id, cmd) {
       if (self.inited && id === self.myHeroId) { self.queue(cmd); return; }
       return self.origCommand(id, cmd);
@@ -10152,9 +10195,9 @@ window.__QRM = qrMatrix;
     this.lastSeen[this.seat] = Date.now();
     // 预铺 0..DELAY-1 的空帧（这些 tick 不可能有输入）
     var empty = [];
-    for (var d = 0; d < DELAY; d++) empty.push([]);
-    for (var t = 0; t < DELAY; t++) this.store(t, this.seat, []);
-    this.send({ k: 'f', s: this.seat, t0: 0, n: DELAY, c: empty });
+    for (var d = 0; d < this.delay; d++) empty.push([]);
+    for (var t = 0; t < this.delay; t++) this.store(t, this.seat, []);
+    this.send({ k: 'f', s: this.seat, t0: 0, n: this.delay, c: empty });
   };
 
   Lock.prototype.store = function (tick, seat, cmds) {
@@ -10191,13 +10234,56 @@ window.__QRM = qrMatrix;
     if (!this.state || this.state.over) return;
     if (this.replaying) return;
     if (this.offline[this.seat]) return;             // 自己已判掉线：英雄由 AI 代打，先不接受操作
-    var t = this.state.tick + DELAY;
+    var t = Math.max(this.state.tick + this.delay, this.emitT || 0);
     if (this.ctrlAt && t < this.ctrlAt) return;      // 控制权还没在 tick 上正式交回
     while (this.sent[t]) t++;
     this.pending.push({ t: t, c: cmd });
   };
 
+  // 帧跟不上时替自己补空输入（只在本机明显停顿时生效，正常运行不插手）
+  Lock.prototype.keepAlive = function () {
+    return;
+    if (!this.state || this.over || this.replaying) return;
+    if (this.offline[this.seat]) return;
+    var now = Date.now();
+    if (now - (this.lastStepMs || 0) < 150) return;
+    var rt = Math.max(this.remoteTick || 0, this.state.tick);
+    var from = Math.max(this.state.tick + this.delay, this.nextPub || 0);
+    var to = rt + this.delay + 6;
+    this.lastStepMs = now;
+    if (to <= from) return;
+    var c = [];
+    for (var t = from; t < to; t++) {
+      if (!this.sent[t]) { this.sent[t] = true; this.store(t, this.seat, []); }
+      c.push([]);
+    }
+    this.nextPub = to;
+    this.send({ k: 'f', s: this.seat, t0: from, n: c.length, c: c });
+  };
+
+  Lock.prototype.warm = function () {
+    var now = Date.now();
+    if (!this.warmTill) this.warmTill = now + 1500;
+    if (now < this.warmTill) return false;
+    if (!this.warmed) {
+      this.warmed = true;
+      if (this.seat === this.adj && !p2p.on) {
+        var worst = p2p.maxRtt || 0;
+        if (worst > 150) {
+          var want = Math.min(48, Math.max(6, Math.ceil(((worst * 1.25 + 40) / 1000) * 30)));
+          if (want > this.delay) {
+            this.applyDelay(want);
+            for (var i3 = 0; i3 < 3; i3++) this.send({ k: 'dly', d: want, from: this.seat });
+          }
+        }
+      }
+    }
+    return true;
+  };
+
   Lock.prototype.onStep = function () {
+    this.lastStepMs = Date.now();
+    if (this.state && this.state.tick <= 0 && !this.warm()) return;
     window.__mpStepN = (window.__mpStepN || 0) + 1;
     if (!this.inited) this.init();
     var st = this.state;
@@ -10307,6 +10393,36 @@ window.__QRM = qrMatrix;
     }
   };
 
+  // 关键：输入帧的发送只跟现实时间走，不跟本机模拟进度走。
+  // 本机被降频、卡帧、切后台时，仍然按 30Hz 把“我这一秒想干什么”发出去，别人不会等我。
+  Lock.prototype.pump = function () {
+    if (!this.state || this.over || this.replaying) return;
+    if (this.offline[this.seat]) return;
+    var now = Date.now();
+    if (now < (this.pumpT || 0)) return;
+    this.pumpT = now + 100;                       // 每 100ms 发 3 个 tick，正好 30Hz
+    if (!this.emitT) this.emitT = this.delay;
+    if (this.state.tick >= 0 && this.emitT > this.state.tick + 120) return;   // 领先太多就先攒着
+    var base = this.emitT, groups = [];
+    for (var r = 0; r < PUB_EVERY; r++) {
+      var t = base + r;
+      if (this.sent[t]) { groups.push([]); continue; }
+      this.sent[t] = true;
+      var list = [];
+      for (var i = this.pending.length - 1; i >= 0; i--) {
+        if (this.pending[i].t <= t) { list.unshift(this.pending[i].c); this.pending.splice(i, 1); }
+      }
+      this.store(t, this.seat, list);
+      groups.push(list);
+    }
+    this.emitT = base + PUB_EVERY;
+    this.nextPub = this.emitT;
+    var outMsg = { k: 'f', s: this.seat, t0: base, n: PUB_EVERY, c: groups };
+    this.hist.push(outMsg);
+    if (this.hist.length > 40) this.hist.shift();
+    this.send(outMsg);
+  };
+
   Lock.prototype.after = function (cur) {
     var self = this;
     // 自己刚从冻结/后台恢复：本机时间跳了一大截，说明自己曾掉线。
@@ -10317,33 +10433,8 @@ window.__QRM = qrMatrix;
       if (nb >= 0 && nb !== this.seat) this.switchAdj(nb, true);
     }
     this.__lastAfter = nowT;
-    if (!this.nextPub) this.nextPub = DELAY;
-    var guard = 0;
-    while (this.state.tick >= this.nextPub - 1 && guard++ < 8) {
-      var base = this.nextPub, groups = [];
-      for (var r = 0; r < PUB_EVERY; r++) {
-        var t = base + r;
-        if (this.sent[t]) { groups.push([]); continue; }
-        this.sent[t] = true;
-        var list = [];
-        for (var i = this.pending.length - 1; i >= 0; i--) {
-          if (this.pending[i].t === t) {
-            list.unshift(this.pending[i].c);
-            this.pending.splice(i, 1);
-          } else if (this.pending[i].t < t) {
-            list.unshift(this.pending[i].c);   // 迟到的输入并入最近一帧
-            this.pending.splice(i, 1);
-          }
-        }
-        this.store(t, this.seat, list);
-        groups.push(list);
-      }
-      this.nextPub = base + PUB_EVERY;
-      var outMsg = { k: 'f', s: this.seat, t0: base, n: PUB_EVERY, c: groups };
-      this.hist.push(outMsg);
-      if (this.hist.length > 40) this.hist.shift();
-      this.send(outMsg);
-    }
+    if (!this.nextPub) this.nextPub = this.delay;
+    this.pump();
     // 修剪旧帧
     var keys = Object.keys(this.frames);
     if (keys.length > 90) {
@@ -10352,7 +10443,7 @@ window.__QRM = qrMatrix;
       }
     }
     for (var s2 in this.sent) if (+s2 < cur - 30) delete this.sent[s2];
-    for (var s3 in this.frames) if (+s3 > cur + 120) delete this.frames[s3];
+    // 未来帧保留（慢机追帧还要用），只清太久远的
 
     // 每 30 tick（1 秒）做一次状态校验和，裁判席位下发，客户端对比，及时发现不同步
     if (cur % 30 === 0) {
@@ -10381,10 +10472,12 @@ window.__QRM = qrMatrix;
       delete this.silentFrom[m.s];      // 该座位恢复上报
       delete this.lagSeen[m.s];
     }
-    var cap = this.state.tick + 64;
+    var cap = this.state.tick + 240;
+    if (t0 + n > (this.remoteTick || 0)) this.remoteTick = t0 + n;   // 别人的帧到了多远，保活时参考
     for (var i = 0; i < n; i++) {
       var t = t0 + i;
       if (t < this.state.tick) continue;
+      if (t < this.deadline) continue;    // 加长缓冲时的空档，迟到的输入不再采纳
       if (t > cap) continue;             // 远期帧直接丢弃，防止帧表无限增长
       if (this.covered(m.s, t)) continue; // 已裁决为空输入的区间，真实帧不再参与
       this.store(t, m.s, m.c[i] || []);
@@ -10509,7 +10602,7 @@ window.__QRM = qrMatrix;
 
   // 房主裁决掉线：提前 2*DELAY 广播带 tick 的事件，全房在同一个 tick 切成 AI
   Lock.prototype.dropNow = function (seats, T) {
-    var dt = T + 2 * DELAY;
+    var dt = T + 2 * this.delay;
     for (var i = 0; i < seats.length; i++) this.offline[seats[i]] = 1;
     this.evLog.push({ t: dt, k: 'drop', seats: seats.slice() });
     this.plan(dt, (function (self, list) { return function () { self.applyDrop(list); }; })(this, seats.slice()));
@@ -10589,8 +10682,8 @@ window.__QRM = qrMatrix;
     this.backShown = false;
     this.backN = 0;
     var t = this.state.tick, empties = [];
-    for (var i = 0; i < DELAY; i++) { empties.push([]); this.store(t + i, this.seat, []); }
-    this.send({ k: 'f', s: this.seat, t0: t, n: DELAY, c: empties });
+    for (var i = 0; i < this.delay; i++) { empties.push([]); this.store(t + i, this.seat, []); }
+    this.send({ k: 'f', s: this.seat, t0: t, n: this.delay, c: empties });
     mpNotice('重连成功，已接管你的英雄', 2500);
   };
 
@@ -10620,7 +10713,7 @@ window.__QRM = qrMatrix;
       }
       this.send({ k: 'rep', s: s, t0: t0, d: d, ev: ev, from: this.seat });
     }
-    var rt = cur + 2 * DELAY;
+    var rt = cur + 2 * this.delay;
     this.evLog.push({ t: rt, k: 'rejoin', seats: [s] });
     this.plan(rt, (function (self, seat) { return function () { self.applyRejoin(seat); }; })(this, s));
     this.send({ k: 'rejoin', s: s, t: rt, from: this.seat });
@@ -11613,6 +11706,7 @@ window.__QRM = qrMatrix;
   var matchPillTimer = 0;
 
   var mpStats = { rx: 0, tx: 0, lastRx: '', sub: 0 };
+  var p2pTimer = 0, netTimer = 0;
 
   function sanitizeCfg(cfg) {
     if (!cfg || !Array.isArray(cfg.roster)) return cfg;
@@ -11635,17 +11729,202 @@ window.__QRM = qrMatrix;
     return cfg;
   }
 
+
+  /* ---------- 6.5 点对点直连（局域网/同一网络内直接传帧，绕开公共中转） ---------- */
+  var p2p = { used: false, host: false, on: false, rtt: 0, peers: {}, expected: 0, maxRtt: 0, seatRtt: {} };
+
+  function p2pConf() {
+    try { return { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }; }
+    catch (e) { return null; }
+  }
+
+  function p2pCount() {
+    var n = 0;
+    for (var cid in p2p.peers) if (p2p.peers[cid].open) n++;
+    return n;
+  }
+  function p2pAll() { return p2pCount() >= Math.max(1, p2p.expected); }
+
+  function p2pSig(obj) {                   // 信令仍然走 MQTT（只发几包）
+    p2p.sigS = (p2p.sigS || '') + obj.k + ' ';
+    if (p2p.sigS.length > 160) p2p.sigS = p2p.sigS.slice(-160);
+    if (netClient) netClient.publish(obj);
+  }
+
+  function p2pSendRaw(obj) {               // 只走直连，不落中转
+    var js = JSON.stringify(obj), ok = false;
+    if (p2p.host) {
+      for (var cid in p2p.peers) {
+        var e = p2p.peers[cid];
+        if (e.open && e.dc) { try { e.dc.send(js); ok = true; } catch (x) { } }
+      }
+    } else if (p2p.dc && p2p.dc.readyState === 'open') {
+      try { p2p.dc.send(js); ok = true; } catch (x) { }
+    }
+    return ok;
+  }
+
+  // 对外发包：能直连就直连；房主只有在还有人没直连上时才继续发中转兜底
+  function mpPublish(obj) {
+    if (p2p.host) {
+      p2pSendRaw(obj);
+      if (!p2pAll()) { if (netClient) netClient.publish(obj); }
+      return;
+    }
+    if (!p2pSendRaw(obj)) { if (netClient) netClient.publish(obj); }
+  }
+
+  function p2pRefresh() {
+    var wasOn = p2p.on;
+    p2p.on = p2p.host ? p2pCount() > 0 : !!(p2p.dc && p2p.dc.readyState === 'open');
+    if (p2p.on && !wasOn) { p2p.rtt = 0; p2p.maxRtt = 0; p2p.seatRtt = {}; mpStats.rttN = 0; }
+    if (UI.pill) pillText();
+  }
+
+  function p2pHostPeer(cid) {
+    var e = p2p.peers[cid];
+    if (e) return e;
+    e = p2p.peers[cid] = { pc: null, dc: null, open: false };
+    try {
+      var pc = new RTCPeerConnection(p2pConf());
+      e.pc = pc;
+      pc.onicecandidate = function (ev) {
+        if (ev.candidate) p2pSig({ k: 'ri', cid: myCid, to: cid, c: ev.candidate.toJSON(), dir: 'h' });
+      };
+      pc.ondatachannel = function (ev) {
+        var dc = ev.channel;
+        e.dc = dc;
+        dc.onopen = function () { e.open = true; p2pRefresh(); };
+        dc.onclose = function () { e.open = false; p2pRefresh(); };
+        dc.onmessage = function (mev) {
+          var m = null;
+          try { m = JSON.parse(mev.data); } catch (x) { m = null; }
+          if (m && p2p.inbox) { try { p2p.inbox(m); } catch (e) { } }
+        };
+      };
+      pc.onconnectionstatechange = function () {
+        if (pc.connectionState === 'failed' || pc.connectionState === 'closed' || pc.connectionState === 'disconnected') {
+          e.open = false;
+          try { pc.close(); } catch (x) { }
+          if (p2p.peers[cid] === e) delete p2p.peers[cid];
+          p2pRefresh();
+        }
+      };
+    } catch (x) { delete p2p.peers[cid]; return null; }
+    return e;
+  }
+
+  function p2pGuestStart() {
+    if (p2p.host || p2p.dc) return;
+    try {
+      var pc = new RTCPeerConnection(p2pConf());
+      p2p.pc = pc;
+      var dc = pc.createDataChannel('game', { ordered: true });
+      p2p.dc = dc;
+      dc.onopen = function () { p2pRefresh(); mpNotice('已建立直连，延迟大幅降低', 2500); };
+      dc.onclose = function () { p2pRefresh(); };
+      dc.onmessage = function (mev) {
+        var m = null;
+        try { m = JSON.parse(mev.data); } catch (x) { m = null; }
+        if (m && p2p.inbox) { try { p2p.inbox(m); } catch (e) { } }
+      };
+      pc.onicecandidate = function (ev) {
+        if (ev.candidate) p2pSig({ k: 'ri', cid: myCid, c: ev.candidate.toJSON(), dir: 'g' });
+      };
+      pc.createOffer().then(function (off) {
+        return pc.setLocalDescription(off).then(function () {
+          p2pSig({ k: 'ro', cid: myCid, sdp: off.sdp, seat: p2p.mySeat });
+        });
+      }).catch(function () { });
+    } catch (x) { p2p.dc = null; }
+  }
+
+  function p2pSignaling(m) {
+    if (!m || !m.k) return false;
+    if (m.k === 'ro' || m.k === 'ra' || m.k === 'ri') {
+      p2p.sigR = (p2p.sigR || '') + m.k + (m.dir || '') + ' ';
+      if (p2p.sigR.length > 160) p2p.sigR = p2p.sigR.slice(-160);
+    }
+    if (m.k === 'ro') {                    // 房主收到客机的 offer
+      if (!p2p.host || !m.cid) return true;
+      var oldE = p2p.peers[m.cid];
+      if (oldE && !oldE.open) {
+        try { if (oldE.pc) oldE.pc.close(); } catch (x) { }
+        delete p2p.peers[m.cid];
+      }
+      var e = p2pHostPeer(m.cid);
+      if (!e) return true;
+      e.pc.setRemoteDescription({ type: 'offer', sdp: m.sdp }).then(function () {
+        return e.pc.createAnswer();
+      }).then(function (ans) {
+        return e.pc.setLocalDescription(ans).then(function () {
+          p2pSig({ k: 'ra', cid: m.cid, sdp: ans.sdp });
+        });
+      }).catch(function () { });
+      return true;
+    }
+    if (m.k === 'ra') {
+      if (p2p.host || !p2p.pc || m.cid !== myCid) return true;
+      p2p.pc.setRemoteDescription({ type: 'answer', sdp: m.sdp }).catch(function () { });
+      return true;
+    }
+    if (m.k === 'ri') {
+      try {
+        if (m.dir === 'h' && !p2p.host && p2p.pc) p2p.pc.addIceCandidate(m.c).catch(function () { });
+        else if (m.dir === 'g' && p2p.host && m.cid) { var pe = p2p.peers[m.cid]; if (pe && pe.pc) pe.pc.addIceCandidate(m.c).catch(function () { }); }
+      } catch (x) { }
+      return true;
+    }
+    return false;
+  }
+
+  // 每 3 秒重试一次建连（手机切网、后台回来都能自愈）
+  function p2pKick() {
+    if (!lock || !bootCfg) return;
+    if (p2p.host) {
+      if (p2pAll()) return;
+      p2pSig({ k: 'ping', t: Date.now(), s: lock.seat });
+      return;
+    }
+    if (p2p.on) return;
+    if (p2p.dc && p2p.dc.readyState === 'open') return;
+    if (Date.now() - (p2p.lastTry || 0) < 3000) return;
+    p2p.lastTry = Date.now();
+    try { if (p2p.pc) { p2p.pc.close(); } } catch (x) { }
+    p2p.pc = null; p2p.dc = null;
+    p2pGuestStart();
+  }
+
   function startMatchNet(cfg) {
     sanitizeCfg(cfg);
     if (netClient) { netClient.close(); netClient = null; }
     var topic = 'sg3v3/' + cfg.code + '/' + cfg.token;
-    netClient = new Client('sg3-' + cfg.code + '-s' + cfg.seat + '-' + randCode(4, 'abcdefghijkmnpqrstuvwxyz23456789'), function (m) {
+    function mpHandle(m) {
       if (!m || !m.k) return;
       if (lock) lock.lastRxT = Date.now();
       mpStats.rx++;
       mpStats.lastRx = m.k + ':' + (m.s != null ? m.s : '') + ':' + (m.t0 != null ? m.t0 : '');
       mpStats.kinds = (mpStats.kinds || '') + m.k + (m.s != null ? m.s : '') + ' ';
       if (mpStats.kinds.length > 120) mpStats.kinds = mpStats.kinds.slice(-120);
+      if (p2pSignaling(m)) return;
+      if (m.k === 'ping') { mpPublish({ k: 'pong', t: m.t, s: (lock ? lock.seat : cfg.seat) }); return; }
+      if (m.k === 'pong') {
+        var r = Date.now() - m.t;
+        if (r >= 0 && r < 6000) {
+          if (r > 1500) return;                      // 后台标签被节流的假样本，丢掉
+          mpStats.rttN = (mpStats.rttN || 0) + 1;
+          if (p2p.host) {
+            if (typeof m.s === 'number') p2p.seatRtt[m.s] = r;
+            var mx = 0;
+            for (var sk in p2p.seatRtt) if (p2p.seatRtt[sk] > mx) mx = p2p.seatRtt[sk];
+            p2p.maxRtt = mx;
+          } else {
+            p2p.rtt = p2p.rtt ? (p2p.rtt * 0.7 + r * 0.3) : r;
+          }
+        }
+        return;
+      }
+      if (m.k === 'dly') { if (lock) lock.onDly(m); return; }
       if (m.k === 'f' && lock) lock.onFrame(m);
       else if (m.k === 'req' && lock) lock.onReq(m);
       else if (m.k === 'lag' && lock) lock.onLag(m);
@@ -11684,13 +11963,63 @@ window.__QRM = qrMatrix;
         }
         lock.ackBack(m.s, m.t);
       }
-    }, function (st) {
+      }
+
+  // 两条通道统一入口：先处理，再由房主转发给其他客机（锁步要求所有人都收到所有人的输入帧）
+  function mpIn(m) {
+    if (!m || !m.k) return;
+    mpHandle(m);
+    try { p2pRelay(m); } catch (e) { }
+  }
+
+  function p2pRelay(m) {
+    if (!p2p.host) return;
+    if (typeof m.s !== 'number' || m.s === 0) return;
+    if (m.k !== 'f' && m.k !== 'req') return;          // 只转发输入帧/补帧请求
+    var js = JSON.stringify(m), map = (window.__MPCFG && window.__MPCFG.map) || {};
+    for (var cid in p2p.peers) {
+      if (map[cid] === m.s) continue;
+      var e = p2p.peers[cid];
+      if (e.open && e.dc) { try { e.dc.send(js); } catch (x) { } }
+    }
+    if (!p2pAll()) { if (netClient) netClient.publish(m); }
+  }
+
+  function mpStartClient(cfg, topic) {
+    netClient = new Client('sg3-' + cfg.code + '-s' + cfg.seat + '-' + randCode(4, 'abcdefghijkmnpqrstuvwxyz23456789'), function (m) { mpIn(m); }, function (st) {
       mpStats.status = st;
       if (st === 'up') pillText();
     });
     netClient.start(topic);
-    lock = new Lock(cfg, function (obj) { mpStats.tx++; netClient && netClient.publish(obj); });
-    allowSend = function (o) { try { netClient && netClient.publish(o); } catch (e) { } };
+  }
+    p2p.inbox = function (m) { try { mpIn(m); } catch (e) { } };
+    mpStats.rttN = 0;
+    mpStartClient(cfg, topic);
+    p2p.host = (cfg.seat === 0);
+    p2p.expected = Math.max(0, (cfg.humans || [0]).length - 1);
+    p2p.mySeat = cfg.seat;
+    p2p.rtt = 0; p2p.maxRtt = 0; p2p.seatRtt = {}; p2p.peers = {};
+    lock = new Lock(cfg, function (obj) { mpStats.tx++; mpPublish(obj); });
+    allowSend = function (o) { try { mpPublish(o); } catch (e) { } };
+    if (!p2p.host) p2pGuestStart();
+    if (p2pTimer) clearInterval(p2pTimer);
+    p2pTimer = setInterval(p2pKick, 3000);
+    if (netTimer) clearInterval(netTimer);
+    netTimer = setInterval(function () {
+      if (!lock || !lock.state || lock.state.over) return;
+      if (!lock.warmed) { mpPublish({ k: 'ping', t: Date.now(), s: lock.seat }); return; }
+      mpPublish({ k: 'ping', t: Date.now(), s: lock.seat });
+      var inf = UI.pill && UI.pill.querySelector('.mp-netinfo');
+      if (inf) inf.textContent = netInfoText();
+      // 房主：按最差往返延迟把缓冲加长到够用（只加不减）
+      if (lock.seat === 0) {
+        var worst = p2p.on ? 0 : (p2p.maxRtt || 0);
+        if (worst > 150 && (mpStats.rttN || 0) >= 3) {
+          var want = Math.min(36, Math.max(6, Math.ceil(((worst * 1.25 + 40) / 1000) * 30)));
+          if (want > lock.delay) { lock.applyDelay(want); mpPublish({ k: 'dly', d: want, from: 0 }); }
+        }
+      }
+    }, 1000);
     lock.lastRxT = Date.now();
     // 断线自救：超过 1.6 秒收不到任何帧就认定自己掉线，带 cid 请求房主续接
     setInterval(function () {
@@ -11709,6 +12038,14 @@ window.__QRM = qrMatrix;
       }
       lock.sendBack();
     }, 1000);
+  }
+
+  function netInfoText() {
+    var d = lock ? lock.delay : DELAY;
+    var rtt = Math.round(p2p.host ? (p2p.maxRtt || 0) : (p2p.rtt || 0));
+    var head = p2p.on ? '直连' : '中转';
+    var tail = (p2p.host && p2p.expected) ? (' · 已直连 ' + p2pCount() + '/' + p2p.expected) : '';
+    return head + ' ' + rtt + 'ms · 缓冲 ' + d + ' 帧' + tail;
   }
 
   function pillText(extra) {
@@ -11730,6 +12067,7 @@ window.__QRM = qrMatrix;
       UI.pill.appendChild(bAllow2);
     }
     if (extra) UI.pill.appendChild(mk('span', null, extra));
+    UI.pill.appendChild(mk('span', 'mp-netinfo', netInfoText()));
   }
 
   function ensureHook() {
@@ -11871,6 +12209,19 @@ window.__QRM = qrMatrix;
         o.room = !!(netClient && netClient.ok);
         o.qtick = lock && lock.frames ? Object.keys(lock.frames).length : 0;
         try{o.has=lock.has(lock.state.tick)?1:0;o.miss=lock.missing(lock.state.tick).join(',');o.fk=Object.keys(lock.frames).sort(function(a,b){return a-b}).slice(0,12).join('|');o.dly=DELAY+'/'+PUB_EVERY;o.hum=lock.humans.join(',');o.dropped=(window.__mpDropped||[]).join(',');o.dsy=lock.desync||'';o.off=Object.keys(lock.offline).join(',');o.rep=lock.replaying?1:0;o.lap=lock.lastApplied;o.adj=lock.adj;var ckk=Object.keys(lock.ckS).sort(function(a,b){return (+a)-(+b)}).slice(-4);o.ckk=ckk.map(function(k){return k+':'+lock.ckS[k]}).join('|');o.ckr=ckk.map(function(k){return (lock.ckRef[k]==null?'-':lock.ckRef[k])}).join('|');}catch(e2){o.hasx=String(e2);}
+        try {
+          o.p2ph = p2p.host ? 1 : 0;
+          o.cid = typeof myCid === 'undefined' ? '' : myCid;
+          o.p2pd = p2p.host ? Object.keys(p2p.peers).map(function (k) { return k.slice(-3) + ':' + (p2p.peers[k].dc ? p2p.peers[k].dc.readyState : 'none'); }).join(',') : (p2p.dc ? p2p.dc.readyState : 'none');
+          o.p2pc = p2p.host ? Object.keys(p2p.peers).map(function (k) { return (p2p.peers[k].pc ? p2p.peers[k].pc.connectionState : '-') + '/' + (p2p.peers[k].pc ? p2p.peers[k].pc.iceConnectionState : '-'); }).join(',') : (p2p.pc ? p2p.pc.connectionState + '/' + p2p.pc.iceConnectionState : '-');
+          o.p2pon = p2p.on ? 1 : 0;
+          o.sigS = p2p.sigS || ''; o.sigR = p2p.sigR || '';
+        } catch (e3) { o.p2px = String(e3); }
+        try {
+          o.et = lock.emitT; o.pt = lock.pumpT - Date.now(); o.sn = Object.keys(lock.sent).length;
+          o.pl = lock.pending.length; o.stp = window.__mpStepN || 0; o.dln = lock.delay;
+          o.hasd = (lock.emitT || 0) - (lock.state ? lock.state.tick : 0);
+        } catch (e4) { o.dbgx = String(e4); }
         o.rx = mpStats.rx; o.tx = mpStats.tx; o.lastRx = mpStats.lastRx;
         o.sub = netClient ? netClient.pid : -1;
         o.wsr = netClient && netClient.ws ? netClient.ws.readyState : -1;

@@ -11734,7 +11734,7 @@ window.__QRM = qrMatrix;
   var p2p = { used: false, host: false, on: false, rtt: 0, peers: {}, expected: 0, maxRtt: 0, seatRtt: {} };
 
   function p2pConf() {
-    try { return { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] }; }
+    try { return { iceServers: [{ urls: ['stun:stun.miwifi.com:3478', 'stun:stun.chat.bilibili.com:3478', 'stun:stun.qq.com:3478', 'stun:stun.l.google.com:19302'] }] }; }
     catch (e) { return null; }
   }
 

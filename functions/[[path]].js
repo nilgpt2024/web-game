@@ -17,15 +17,17 @@ export async function onRequest(context) {
   // ---------- 门户域 suipce.com ----------
   if (host === PORTAL_HOST) {
     // 根路径与 /index.html 出门户页（200 重写，非跳转）
+    // 注意必须用目录形式 /portal/：请求 /portal/index.html 会被 Pages 的 clean-URL
+    // 规则 308 到 /portal/，形成「根 → portal → 根」的循环。
     if (path === "/" || path === "/index.html") {
-      return env.ASSETS.fetch(new Request(new URL("/portal/index.html", url), request));
+      return env.ASSETS.fetch(new Request(new URL("/portal/", url), request));
     }
     // 门户自己的 robots
     if (path === "/robots.txt") {
       return env.ASSETS.fetch(new Request(new URL("/portal/robots.txt", url), request));
     }
     // 门户副本不外露，收敛到根
-    if (path === "/portal" || path === "/portal/index.html") {
+    if (path === "/portal" || path === "/portal/" || path === "/portal/index.html") {
       return Response.redirect("https://suipce.com/", 301);
     }
     // 其余旧路径（旧游戏页、旧 sitemap、旧 blog）301 到游戏域，保留权重

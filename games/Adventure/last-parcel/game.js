@@ -1,7 +1,8 @@
 // LAST PARCEL — outbreak night
 // A first-person survival run built on three.js + Polyfork low-poly assets:
 // a small spherical planet, an infected street, and a sidearm with 8 rounds.
-// Single-level demo: three serum drops, one horde, one way out.
+// One night shift, ONE sealed medical case, and a cure that arrives too late.
+// An unofficial, non-commercial homage to the Raccoon City outbreak film.
 
 import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
@@ -35,54 +36,58 @@ const STREET = {
   walkLimit: 7.0,
 };
 
+// Three waypoints on the long walk to Raccoon General. They are NOT three
+// parcels: the film has one sealed case and it never leaves the courier's hands
+// until the lab door. Reaching a waypoint just cuts to the next act.
 const STOPS = [
-  { id: 'clinic',  name: 'Corner Clinic',        x: -5.1, z: 56,  line: 'First serum into the corner clinic.' },
-  { id: 'ward',    name: 'Ward 3 quarantine door', x:  5.1, z: 124, line: 'Blood samples to the quarantine door at Ward 3.' },
-  { id: 'er',      name: 'East evacuation gate',  x:  4.9, z: 196, line: 'Last cooler to the east gate before the vehicles leave.' },
+  { id: 'barricade', name: 'the quarantine barricade', x: -5.1, z: 56,  line: 'Past the barricade. Keep to the lamps.', action: 'get past the barricade' },
+  { id: 'parking',   name: 'the hospital parking deck', x:  5.1, z: 124, line: 'Hospital is up ahead. Keep the case dry.', action: 'cross the parking deck' },
+  { id: 'lab',       name: 'the Umbrella lab, floor 28', x:  4.9, z: 196, line: 'Floor 28. Just get it there.', action: 'set the case down' },
 ];
 
-// The run is cut into three acts the way a one-night outbreak film is: it
-// starts quiet, the cordon arrives, then the block stops being survivable.
+// The run follows the shape of the film: an ordinary night shift, the truth
+// about what is in the case, and the lab where the cure is one minute late.
+// No chosen survivor, no extraction. This is the origin story of a monster.
 const ACTS = [
   {
     no: 'ACT I',
     time: '03:40',
-    place: 'ALDER STREET',
-    title: 'THE FIRST ONE',
+    place: 'RACCOON CITY OUTSKIRTS',
+    title: 'THE NIGHT SHIFT',
     lines: [
-      'The sirens start three blocks east, and then they stop.',
-      'There is a man standing in the road who does not step aside for you.',
-      'Clinic first. The first serum goes in before the street fills up.',
+      `03:40. Double pay. Michelle is asleep, or pretending to be.`,
+      `The van is in the ditch and I can still hear her through the broken glass.`,
+      `Green case, back seat, floor 28. I don't open it. That's the job.`,
     ],
-    broadcast: '…emergency broadcast: Alder Street is closed at the second block. Do not approach anyone showing symptoms. Repeat: do not approach…',
+    broadcast: '…emergency broadcast. Remain calm. Remain in your homes. Emergency services are responding. Remain calm. Remain calm…',
     horde: 2,
     label: 'ACT I · 03:40',
   },
   {
     no: 'ACT II',
     time: '04:05',
-    place: 'THE CORDON',
-    title: 'THE LINE MOVES EAST',
+    place: 'THE TUNNEL',
+    title: 'WHAT IS IN THE CASE',
     lines: [
-      'Sandbags go down at the corner and nobody warns the people inside the line.',
-      'The clinic radio repeats one sentence: hold the street, hold the street.',
-      'The Ward 3 quarantine door opens once. Blood samples have to be on the step when it does.',
+      `A man in an Umbrella coat asks what I'm carrying. I tell him I don't know.`,
+      `He says "stabilizer" like I'm supposed to understand, and then he stops looking at my face.`,
+      `In the tunnel a little girl says help me. I put my arm out.`,
     ],
-    broadcast: '…the cordon is now at Third and Alder. If you are inside the line, stay where you are. There is no crossing point…',
+    broadcast: '…Umbrella internal: sample integrity is the priority. Do not disclose the payload to the courier. The city is already written off…',
     horde: 3,
     label: 'ACT II · 04:05',
   },
   {
     no: 'ACT III',
     time: '04:40',
-    place: 'THE BREAK',
-    title: 'NOTHING LEFT TO HOLD',
+    place: 'RACCOON GENERAL',
+    title: 'FLOOR 28',
     lines: [
-      'The cordon has stopped moving because there is nobody left to move it.',
-      'Whatever walks this block now used to live on this block.',
-      'The east gate takes one more cooler, and then the last vehicles are gone.',
+      `The stairwell smells like bleach and something under it.`,
+      `My left hand won't close properly. I keep swapping the case to the right.`,
+      `Carl's voice is still in my ear: 24, skybridge, 28. Don't use the elevator.`,
     ],
-    broadcast: '…last convoy is leaving the east gate. There will not be a second pass. If you can hear this, you are on your own…',
+    broadcast: '…containment is in effect. Helicopters over the hospital at first light. There is no ground extraction…',
     horde: 4,
     label: 'ACT III · 04:40',
   },
@@ -102,11 +107,13 @@ const PLAYER = {
 
 const COLD = {
   max: 100,
-  drain: 0.3,
-  sprintDrain: 0.5,
-  lampRegen: 12.0,
+  drain: 0.16,
+  sprintDrain: 0.26,
+  biteDrain: 0.14,   // after the tunnel, the virus has a head start
+  lampRegen: 0,      // legacy: light no longer cures anything
+  lampSlow: 0.45,    // a lit safe spot (typewriter, doorway) only buys seconds
   crouchMul: 0.9,
-  freezeAt: 100,   // infection reaching 100 turns you; light pushes it back down
+  freezeAt: 100,     // 100 is not a respawn — it is the end of the story
 };
 
 const STAM = { max: 100, sprint: 17, regen: 13, minToStart: 12 };
@@ -150,6 +157,7 @@ const dom = {
   app: $('app'),
   hud: $('hud'),
   objText: $('objText'),
+  feverLabel: $('feverLabel'),
   warmBar: $('warmBar'),
   stamBar: $('stamBar'),
   stopDots: $('stopDots'),
@@ -195,6 +203,7 @@ class Sound {
     this.master.gain.value = 0.9;
     this.master.connect(this.ctx.destination);
     this.startWind();
+    this.startDrone();
     this.enabled = true;
   }
 
@@ -236,6 +245,80 @@ class Sound {
   setWind(level) {
     if (!this.wind) return;
     this.wind.gain.gain.value = 0.22 + level * 0.35;
+  }
+
+  // a room tone under everything: low, slow, always there
+  startDrone() {
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    const lp = this.ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 190;
+    o.type = 'sawtooth';
+    o.frequency.value = 37;
+    g.gain.value = 0.032;
+    o.connect(lp).connect(g).connect(this.master);
+    o.start();
+    this.drone = g;
+  }
+
+  // the thing the whole street is listening for, and never hears twice
+  siren(distance = 1) {
+    if (!this.enabled) return;
+    const t = this.ctx.currentTime;
+    const amp = 0.09 / Math.max(1, distance * 0.8);
+    for (let k = 0; k < 2; k++) {
+      const o = this.ctx.createOscillator();
+      const g = this.ctx.createGain();
+      const bp = this.ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 520;
+      bp.Q.value = 3;
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(430 + k * 18, t);
+      o.frequency.linearRampToValueAtTime(660, t + 1.4);
+      o.frequency.linearRampToValueAtTime(430, t + 2.8);
+      o.frequency.linearRampToValueAtTime(660, t + 4.2);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(amp, t + 0.6);
+      g.gain.linearRampToValueAtTime(amp * 0.9, t + 3.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 4.6);
+      o.connect(bp).connect(g).connect(this.master);
+      o.start(t);
+      o.stop(t + 4.7);
+    }
+  }
+
+  splat() {
+    if (!this.enabled) return;
+    const t = this.ctx.currentTime;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.noiseBuffer(0.18, false);
+    const bp = this.ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 880;
+    bp.Q.value = 0.8;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.3, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+    src.connect(bp).connect(g).connect(this.master);
+    src.start();
+  }
+
+  shell() {
+    if (!this.enabled) return;
+    const t = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(3400, t + 0.12);
+    o.frequency.exponentialRampToValueAtTime(2100, t + 0.3);
+    g.gain.setValueAtTime(0.0001, t + 0.12);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.14);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+    o.connect(g).connect(this.master);
+    o.start(t + 0.12);
+    o.stop(t + 0.36);
   }
 
   step() {
@@ -445,6 +528,27 @@ function glowTexture(inner = '255,238,205') {
 
 const GLOW = glowTexture('255,232,196');
 const GLOW_COOL = glowTexture('196,224,255');
+
+// vertical falloff for lamp shafts: bright at the cone's top, gone at the ground
+let _coneTex = null;
+function coneGradient() {
+  if (_coneTex) return _coneTex;
+  const w = 4, h = 128;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, h);
+  g.addColorStop(0, 'rgba(255,255,255,0.95)');
+  g.addColorStop(0.25, 'rgba(255,255,255,0.35)');
+  g.addColorStop(0.7, 'rgba(255,255,255,0.09)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  _coneTex = new THREE.CanvasTexture(c);
+  _coneTex.colorSpace = THREE.SRGBColorSpace;
+  return _coneTex;
+}
 const glows = [];
 
 function addGlow(parent, x, y, z, scale, tex = GLOW, color = 0xffe4bd, opacity = 0.9) {
@@ -562,6 +666,7 @@ const loadingSteps = [
   ['paving the street', () => buildStreet()],
   ['raising the block', () => buildBlocks()],
   ['hanging the lamps', () => buildLamps()],
+  ['dressing the night', () => buildNightDetail()],
   ['snow and props', () => buildProps()],
   ['opening the stops', () => buildStops()],
   ['the infected', () => buildHorde()],
@@ -570,14 +675,15 @@ const loadingSteps = [
 ];
 
 const state = {
-  phase: 'loading',      // loading | title | interlude | playing | paused | end
+  phase: 'loading',      // loading | title | cine | interlude | playing | shot | paused | ending | end
   act: 0,                // 0-based index into ACTS
-  warmth: 22,            // infection, 0 = clean, 100 = you turn
+  warmth: 10,            // T-virus load, 0 = clean, 100 = the origin of something else
   stamina: STAM.max,
-  carrying: 0,           // parcels in hand (0/1)
-  delivered: 0,
-  legIndex: 0,           // which stop is next
+  carrying: 0,           // the one sealed case (0/1)
+  delivered: 0,          // waypoints cleared, not parcels handed over
+  legIndex: 0,           // which waypoint is next
   bites: 0,
+  bittenByGirl: false,   // the tunnel bite: irreversible, and it starts the clock
   turnings: 0,
   kills: 0,
   shots: 0,
@@ -591,6 +697,10 @@ const state = {
   alerted: 0,
   detections: 0,
 };
+
+// scripted story beats that must survive an act card; separate from the ending
+// sequence so skipping the ending never cancels the tunnel bite mid-act.
+const storyTimers = [];
 
 const keys = {};
 const player = {
@@ -612,7 +722,7 @@ let parcelMesh = null;
 function buildStreet() {
   const snowBall = new THREE.Mesh(
     new THREE.SphereGeometry(GLOBE.R, 180, 90),
-    new THREE.MeshStandardMaterial({ color: 0xa5bacd, roughness: 1, metalness: 0 })
+    new THREE.MeshStandardMaterial({ color: 0x2f3d4b, roughness: 1, metalness: 0 })
   );
   snowBall.userData.noWrap = true;
   world.add(snowBall);
@@ -621,7 +731,7 @@ function buildStreet() {
   const roadS1 = STREET.zEnd + 16;
 
   const asphaltMat = new THREE.MeshStandardMaterial({
-    color: 0x242a33, roughness: 0.92, metalness: 0, side: THREE.DoubleSide,
+    color: 0x1a1f26, roughness: 0.62, metalness: 0.22, side: THREE.DoubleSide,
   });
   world.add(bandMesh(roadS0, roadS1, -STREET.half, STREET.half, 0.03, asphaltMat, 300, 10));
 
@@ -637,22 +747,23 @@ function buildStreet() {
 
   // kerb + plowed snow along both sides
   const kerbMat = new THREE.MeshStandardMaterial({
-    color: 0x8d9dab, roughness: 0.9, metalness: 0, side: THREE.DoubleSide,
+    color: 0x46525e, roughness: 0.9, metalness: 0, side: THREE.DoubleSide,
   });
   const snowMat = new THREE.MeshStandardMaterial({
-    color: 0xdfeaf4, roughness: 1, metalness: 0, side: THREE.DoubleSide,
+    color: 0x5b6874, roughness: 1, metalness: 0, side: THREE.DoubleSide,
   });
   for (const side of [-1, 1]) {
     const latA = side < 0 ? -7.6 : 4.3;
     const latB = side < 0 ? -4.3 : 7.6;
-    world.add(bandMesh(roadS0, roadS1, latA, latB, 0.08, kerbMat, 300, 10));
+    world.add(bandMesh(roadS0, roadS1, latA, latB, 0.13, kerbMat, 300, 10));
     const snowA = side < 0 ? -7.45 : 4.45;
     const snowB = side < 0 ? -4.45 : 7.45;
-    world.add(bandMesh(roadS0, roadS1, snowA, snowB, 0.13, snowMat, 300, 10));
+    world.add(bandMesh(roadS0, roadS1, snowA, snowB, 0.135, snowMat, 300, 10));
   }
 }
 
 // --- buildings
+const BLOCKS = [];
 function buildBlocks() {
   const variants = [
     mkPrewar({ colorway: 'red-brick' }),
@@ -672,8 +783,9 @@ function buildBlocks() {
       const big = proto === variants[3];
       b.scale.setScalar(big ? 0.62 : 0.46);
       b.rotation.y = side === 1 ? -Math.PI / 2 : Math.PI / 2;
-      b.position.set(side * (big ? 9.6 : 11.4), 0, z);
+      b.position.set(side * (big ? 8.4 : 9.4), 0, z);
       world.add(b);
+      BLOCKS.push({ obj: b, side });
     }
   });
 
@@ -686,6 +798,63 @@ function buildBlocks() {
   const hosp2 = hosp.clone(true);
   hosp2.position.set(15, 0, 202);
   world.add(hosp2);
+}
+
+// --- night dressing: lit windows, plow marks, drifts
+function buildNightDetail() {
+  const litMat = new THREE.MeshBasicMaterial({ color: 0xffb877 });
+  const dimMat = new THREE.MeshBasicMaterial({ color: 0x1d2732 });
+  const coolMat = new THREE.MeshBasicMaterial({ color: 0xa8c6e0 });
+  const winGeo = new THREE.PlaneGeometry(0.72, 0.95);
+  let seed = 9381;
+  const rnd = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const box = new THREE.Box3();
+
+  // windows are anchored to the actual facades, so none of them float in the gaps
+  BLOCKS.forEach(({ obj, side }) => {
+    box.setFromObject(obj);
+    const faceX = side === 1 ? box.min.x - 0.05 : box.max.x + 0.05;
+    const zA = box.min.z + 0.9;
+    const zB = box.max.z - 0.9;
+    for (let y = box.min.y + 1.9; y < box.max.y - 1.1; y += 1.75) {
+      for (let z = zA; z < zB; z += 1.6) {
+        const w = new THREE.Mesh(winGeo, dimMat);
+        w.position.set(faceX, y, z);
+        w.rotation.y = side === 1 ? -Math.PI / 2 : Math.PI / 2;
+        const r = rnd();
+        if (r > 0.9) w.material = litMat;
+        else if (r > 0.82) w.material = coolMat;
+        world.add(w);
+      }
+    }
+  });
+
+  // plow ridges on both shoulders, and tyre lines in the slush
+  const ridgeMat = new THREE.MeshStandardMaterial({ color: 0x38434e, roughness: 1 });
+  const tyreMat = new THREE.MeshStandardMaterial({ color: 0x141a20, roughness: 0.85 });
+  for (const side of [-1, 1]) {
+    for (let z = -24; z <= 210; z += 4) {
+      const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.07, 3.1 + rnd() * 1.2), ridgeMat);
+      ridge.position.set(side * (5.0 + rnd() * 1.5), 0.15, z);
+      ridge.rotation.y = (rnd() - 0.5) * 0.12;
+      world.add(ridge);
+    }
+    for (const lat of [1.35, 2.55]) {
+      const tyre = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.02, 6.2), tyreMat);
+      tyre.position.set(side * lat, 0.06, 0);
+      for (let z = -20; z <= 208; z += 6.4) {
+        const t = tyre.clone();
+        t.position.z = z;
+        world.add(t);
+      }
+    }
+  }
+
+  // the cordon's strobes, far up the street where the line went down
+  for (let i = 0; i < 4; i++) {
+    const s = 104 + i * 22;
+    addGlow(world, (i % 2 ? -1 : 1) * 5.6, 1.5, s, 0.9, GLOW, i % 2 ? 0xff5a4a : 0x5aa8ff, 0.55);
+  }
 }
 
 // --- lamps
@@ -755,6 +924,19 @@ function buildProps() {
     world.add(t);
   }
 
+  // the first thing you see when you get up: a tree line and a knocked barricade
+  const closeTree = treeProto.clone(true);
+  closeTree.position.set(-7.4, 0, 1.0);
+  closeTree.rotation.y = 0.7;
+  closeTree.scale.setScalar(1.15);
+  world.add(closeTree);
+
+  const knocked = barricadeProto.clone(true);
+  knocked.position.set(-1.9, 0, 9);
+  knocked.rotation.set(0.12, Math.PI / 2 + 0.5, 0.18);
+  world.add(knocked);
+  addCollider(-1.9, 9, 1.0);
+
   // mailboxes + parked cruiser
   for (const z of [22, 84, 150]) {
     const m = mailboxProto.clone(true);
@@ -791,19 +973,26 @@ function buildStops() {
   const ambulanceProto = mkAmbulance({ colorway: 'clinical-white' });
   const courierProto = mkCourier();
 
-  // depot marker: a courier waiting with the first box
+  // depot marker: the courier beside the van that went into the ditch
   const depotCourier = cloneSkinned(courierProto);
   poseRelaxed(depotCourier);
   depotCourier.position.set(DEPOT.x - 1.5, 0, DEPOT.z - 1.4);
   depotCourier.rotation.y = 0.9;
   world.add(depotCourier);
+
+  // an ambulance left with its doors open, right where the night started
+  const ambStart = ambulanceProto.clone(true);
+  ambStart.position.set(3.1, 0, 20);
+  ambStart.rotation.y = 0.35;
+  world.add(ambStart);
+  addCollider(3.1, 20, 1.9);
   const depotLight = new THREE.PointLight(0xffcf9a, 2.2, 14, 2);
   depotLight.position.set(DEPOT.x, 2.6, DEPOT.z);
   world.add(depotLight);
   addGlow(world, DEPOT.x - 1.5, 1.9, DEPOT.z - 1.4, 3.0, GLOW, 0xffdcaa, 0.4);
   warmSpots.push({ x: DEPOT.x, z: DEPOT.z, r: 4.4, strength: COLD.lampRegen });
 
-  // 1. clinic — curb side, away from the driving lane
+  // 1. quarantine barricade — curb side, away from the driving lane
   const bed1 = bedProto.clone(true);
   bed1.position.set(-6.1, 0, 56);
   bed1.rotation.y = Math.PI / 2 + 0.15;
@@ -816,7 +1005,7 @@ function buildStops() {
   bin1.position.set(-6.4, 0, 52.4);
   world.add(bin1);
 
-  // 2. ward 3
+  // 2. hospital parking deck
   const gas1 = gasProto.clone(true);
   gas1.position.set(6.2, 0, 121);
   world.add(gas1);
@@ -828,7 +1017,7 @@ function buildStops() {
   st2.rotation.y = -0.6;
   world.add(st2);
 
-  // 3. ER — ambulance backed into the bay
+  // 3. lab approach — ambulance backed into the hospital bay
   const amb = ambulanceProto.clone(true);
   amb.position.set(6.4, 0, 192);
   amb.rotation.y = -0.25;
@@ -910,6 +1099,7 @@ function clearParcelMarker() {
 // Street now used to be the people who lived on it.
 const infected = [];
 let weapon = null;
+let weaponParts = null;
 let muzzle = null;
 let muzzleT = 0;
 
@@ -1004,7 +1194,14 @@ function buildHorde() {
   ACTS.forEach((act, ai) => {
     for (let i = 0; i < act.horde; i++) {
       const band = ACT_BANDS[ai][i % ACT_BANDS[ai].length];
-      infected.push(makeInfected(band[0], band[1], INFECTED_LOOKS[(ai * 3 + i) % INFECTED_LOOKS.length], ai + 1));
+      const z = makeInfected(band[0], band[1], INFECTED_LOOKS[(ai * 3 + i) % INFECTED_LOOKS.length], ai + 1);
+      // The film's creatures are not nine identical shamblers: a few are
+      // fused, swollen or half-collapsed. Scale is the cheap read at distance.
+      const shape = (ai * 3 + i) % 9;
+      if (shape === 2 || shape === 6) z.root.scale.set(1.3, 1.12, 1.3);   // fused mass
+      else if (shape === 4) z.root.scale.set(0.76, 0.9, 0.76);            // crawler
+      else if (shape === 7) z.root.scale.set(1.06, 1.3, 1.06);            // swollen
+      infected.push(z);
     }
   });
 }
@@ -1012,26 +1209,81 @@ function buildHorde() {
 // ---------------------------------------------------------------- sidearm
 function buildWeapon() {
   const g = new THREE.Group();
-  const steel = new THREE.MeshStandardMaterial({ color: 0x222b31, roughness: 0.55, metalness: 0.6 });
-  const slideMat = new THREE.MeshStandardMaterial({ color: 0x3d474e, roughness: 0.42, metalness: 0.7 });
-  const gripMat = new THREE.MeshStandardMaterial({ color: 0x12171a, roughness: 0.9, metalness: 0.1 });
+  const steel = new THREE.MeshStandardMaterial({ color: 0x2b343a, roughness: 0.38, metalness: 0.85 });
+  const slideMat = new THREE.MeshStandardMaterial({ color: 0x3b454d, roughness: 0.28, metalness: 0.92 });
+  const polymer = new THREE.MeshStandardMaterial({ color: 0x14181c, roughness: 0.88, metalness: 0.12 });
+  const glove = new THREE.MeshStandardMaterial({ color: 0x1c2127, roughness: 0.94, metalness: 0.04 });
+  const cuff = new THREE.MeshStandardMaterial({ color: 0x2d353d, roughness: 0.95, metalness: 0.02 });
 
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.052, 0.062, 0.2), steel);
-  body.position.set(0, 0.012, -0.02);
-  const slide = new THREE.Mesh(new THREE.BoxGeometry(0.046, 0.038, 0.22), slideMat);
-  slide.position.set(0, 0.056, -0.03);
-  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.11, 10), steel);
+  // ---- pistol, built around a reciprocating slide
+  const pistol = new THREE.Group();
+
+  const slide = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.03, 0.186), slideMat);
+  slide.position.set(0, 0.021, -0.046);
+  for (let i = 0; i < 5; i++) {
+    const serr = new THREE.Mesh(new THREE.BoxGeometry(0.037, 0.026, 0.0035), steel);
+    serr.position.set(0, 0, 0.052 + i * 0.008);
+    slide.add(serr);
+  }
+  const sightF = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.007, 0.007), steel);
+  sightF.position.set(0, 0.018, -0.088);
+  slide.add(sightF);
+  const sightR = new THREE.Mesh(new THREE.BoxGeometry(0.024, 0.005, 0.007), steel);
+  sightR.position.set(0, 0.018, 0.062);
+  slide.add(sightR);
+
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(0.029, 0.023, 0.132), steel);
+  frame.position.set(0, -0.009, -0.021);
+
+  const dustCover = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.014, 0.055), steel);
+  dustCover.position.set(0, -0.018, -0.088);
+
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.0072, 0.0072, 0.028, 10), steel);
   barrel.rotation.x = Math.PI / 2;
-  barrel.position.set(0, 0.02, -0.16);
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.115, 0.058), gripMat);
-  grip.position.set(0, -0.062, 0.062);
-  grip.rotation.x = -0.2;
-  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.026, 0.005, 6, 12), steel);
-  guard.position.set(0, -0.03, 0.02);
-  guard.rotation.y = Math.PI / 2;
+  barrel.position.set(0, 0.017, -0.156);
 
-  g.add(body, slide, barrel, grip, guard);
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.031, 0.098, 0.045), polymer);
+  grip.position.set(0, -0.058, 0.03);
+  grip.rotation.x = -0.22;
+  const magBase = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.011, 0.048), polymer);
+  magBase.position.set(0, -0.104, 0.043);
+  magBase.rotation.x = -0.22;
 
+  const guard = new THREE.Mesh(new THREE.TorusGeometry(0.019, 0.0032, 5, 14, Math.PI * 1.3), steel);
+  guard.position.set(0, -0.026, -0.008);
+  guard.rotation.set(0, Math.PI / 2, 0.45);
+  const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.021, 0.006), steel);
+  trigger.position.set(0, -0.029, 0.002);
+
+  pistol.add(slide, frame, dustCover, barrel, grip, magBase, guard, trigger);
+
+  // ---- two gloved hands around the grip (right hand high, left cupping)
+  const hands = new THREE.Group();
+  function handShape(side) {
+    const h = new THREE.Group();
+    const palm = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.058, 0.048), glove);
+    palm.position.set(side * 0.014, -0.05, 0.05);
+    palm.rotation.set(-0.16, side * 0.14, side * 0.1);
+    h.add(palm);
+    for (let i = 0; i < 4; i++) {
+      const f = new THREE.Mesh(new THREE.BoxGeometry(0.0102, 0.042 - i * 0.0035, 0.011), glove);
+      f.position.set(-0.019 + i * 0.0115 + side * 0.002, -0.05, -0.007 - i * 0.0015);
+      f.rotation.set(-0.62, 0, 0.06);
+      h.add(f);
+    }
+    const thumb = new THREE.Mesh(new THREE.BoxGeometry(0.011, 0.03, 0.013), glove);
+    thumb.position.set(side * 0.007, -0.028, 0.016);
+    thumb.rotation.set(0.2, 0, side * 0.62);
+    h.add(thumb);
+    return h;
+  }
+  hands.add(handShape(1), handShape(-1));
+  hands.position.set(0, -0.002, 0);
+  pistol.add(hands);
+
+  g.add(pistol);
+
+  // ---- muzzle: billboard flash + a real light that lights the street for 2 frames
   muzzle = new THREE.Sprite(new THREE.SpriteMaterial({
     map: glowTexture('255,214,150'),
     color: 0xffe6b8,
@@ -1040,16 +1292,56 @@ function buildWeapon() {
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   }));
-  muzzle.scale.set(0.5, 0.5, 1);
-  muzzle.position.set(0, 0.02, -0.24);
+  muzzle.scale.set(0.26, 0.26, 1);
+  muzzle.position.set(0, 0.018, -0.168);
   g.add(muzzle);
 
-  g.scale.setScalar(0.62);
-  g.position.set(0.13, -0.185, -0.5);
-  g.rotation.set(0.05, 0.32, 0.02);
+  const muzzleLight = new THREE.PointLight(0xffc38a, 0, 9, 2);
+  muzzleLight.position.copy(muzzle.position);
+  g.add(muzzleLight);
+
+  g.scale.setScalar(0.46);
+  g.position.set(0.158, -0.178, -0.40);
+  g.rotation.set(0.03, 0.15, 0.015);
   g.renderOrder = 2;
   camera.add(g);
   weapon = g;
+  weaponParts = { slide, slideZ: slide.position.z, muzzleLight, pistol };
+}
+
+const shells = [];
+let shellProto = null;
+function ejectShell() {
+  if (!weapon) return;
+  if (!shellProto) {
+    shellProto = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.0032, 0.0032, 0.011, 6),
+      new THREE.MeshStandardMaterial({ color: 0xc0913f, roughness: 0.3, metalness: 0.95 })
+    );
+  }
+  const s = shellProto.clone();
+  s.position.set(0.02, 0.045, 0.02);
+  s.rotation.set(Math.random() * 2, Math.random() * 2, Math.random() * 2);
+  s.userData.v = new THREE.Vector3(0.24, 0.34, 0.12 + Math.random() * 0.1);
+  s.userData.t = 0;
+  weapon.add(s);
+  shells.push(s);
+  sound.shell();
+}
+
+function updateShells(dt) {
+  for (let i = shells.length - 1; i >= 0; i--) {
+    const s = shells[i];
+    s.userData.t += dt;
+    s.userData.v.y -= dt * 0.85;
+    s.position.addScaledVector(s.userData.v, dt);
+    s.rotation.x += dt * 9;
+    s.rotation.z += dt * 6;
+    if (s.userData.t > 1.4) {
+      weapon.remove(s);
+      shells.splice(i, 1);
+    }
+  }
 }
 
 function updateWeapon(dt) {
@@ -1057,20 +1349,46 @@ function updateWeapon(dt) {
   const t = performance.now() * 0.001;
   const sway = Math.cos(player.bob * 0.5) * 0.006;
   const bob = Math.sin(player.bob) * 0.006;
-  const kick = state.gunCd > 0 ? (GUN.cooldown - state.gunCd) / GUN.cooldown : 0;
-  weapon.position.set(0.13 + sway, -0.185 + bob - kick * 0.01, -0.5 + kick * 0.04);
-  weapon.rotation.set(0.05 + kick * 0.16, 0.32, 0.02 + sway * 0.5);
+  const rec = state.gunCd > 0 ? state.gunCd / GUN.cooldown : 0; // 1 = just fired
+  const breathe = Math.sin(t * 1.4) * 0.0022;
+
+  weapon.position.set(0.158 + sway + breathe * 1.6, -0.178 + bob - rec * 0.006, -0.40 + rec * 0.028);
+  weapon.rotation.set(0.03 + rec * 0.17, 0.15 + sway * 0.5, 0.015 + sway * 0.8 + breathe);
+
+  if (weaponParts) {
+    weaponParts.slide.position.z = weaponParts.slideZ + rec * 0.022;
+    weaponParts.muzzleLight.intensity = muzzleT > 0 ? 3.2 * (muzzleT / 0.055) : 0;
+  }
+
   if (state.reloading) {
     const p = 1 - state.reloadT / GUN.reloadTime;
-    weapon.rotation.x += Math.sin(p * Math.PI) * 0.5;
-    weapon.position.y -= Math.sin(p * Math.PI) * 0.09;
+    const dip = Math.sin(Math.min(1, p * 1.15) * Math.PI);
+    weapon.rotation.x += dip * 0.42;
+    weapon.rotation.z += dip * 0.34;
+    weapon.position.y -= dip * 0.085;
+    weapon.position.x += dip * 0.02;
   }
+
+  updateShells(dt);
+
   if (muzzleT > 0) {
     muzzleT = Math.max(0, muzzleT - dt);
-    muzzle.material.opacity = muzzleT > 0 ? 0.9 : 0;
-    muzzle.scale.setScalar(0.34 + Math.random() * 0.24);
+    muzzle.material.opacity = muzzleT > 0 ? 0.95 : 0;
+    muzzle.scale.setScalar(0.2 + Math.random() * 0.12);
   } else if (muzzle) {
     muzzle.material.opacity = 0;
+  }
+
+  // the case is heavy: it lags half a step behind you and rides your breathing
+  // (a shot may be holding the case out toward a door — leave it alone then)
+  if (carriedMesh && !SHOT.active) {
+    const step = Math.sin(player.bob) * 0.012;
+    carriedMesh.position.set(
+      0.34 + Math.cos(player.bob * 0.5) * 0.01,
+      -0.36 + step + Math.sin(t * 1.4) * 0.004,
+      -0.9
+    );
+    carriedMesh.rotation.set(0.16 + step * 0.6, -0.4 + Math.cos(player.bob * 0.5) * 0.02, 0.1 + step);
   }
 }
 
@@ -1113,17 +1431,17 @@ function buildWeather() {
 // ---------------------------------------------------------------- lighting
 let moonLight = null;
 function buildLights() {
-  scene.add(new THREE.HemisphereLight(0x50789e, 0x1d2a35, 1.5));
-  const moon = new THREE.DirectionalLight(0xa9c6ee, 0.85);
+  scene.add(new THREE.HemisphereLight(0x5c86ab, 0x1a2430, 1.9));
+  const moon = new THREE.DirectionalLight(0xa9c6ee, 0.9);
   moon.position.set(-40, 60, -30);
   scene.add(moon);
   moonLight = moon;
   // soft fill so facades facing the player still read as surfaces
-  const fill = new THREE.DirectionalLight(0x6f8fb8, 0.34);
+  const fill = new THREE.DirectionalLight(0x7d9cc4, 0.55);
   fill.position.set(24, 30, 70);
   scene.add(fill);
 
-  const flashlight = new THREE.SpotLight(0xffeccd, 2.4, 26, Math.PI / 7.5, 0.42, 1.4);
+  const flashlight = new THREE.SpotLight(0xffeccd, 1.5, 22, Math.PI / 8, 0.94, 1.7);
   flashlight.position.set(0.18, -0.12, 0.0);
   flashlight.target.position.set(0.05, -0.05, -1);
   camera.add(flashlight);
@@ -1147,7 +1465,12 @@ async function boot() {
   dom.loadFill.style.width = '100%';
   dom.loadNote.textContent = 'ready';
   state.phase = 'title';
-  if (location.search.includes('debug')) window.__dbg = { THREE, scene, camera, renderer, world, player, state, STREET, STOPS, DEPOT, infected, fire, startReload };
+  if (location.search.includes('debug')) window.__dbg = {
+    THREE, scene, camera, renderer, world, player, state, STREET, STOPS, DEPOT, ACTS,
+    infected, fire, startReload, deliver, runEnding, skipEnding, tunnelBite, updateFeverVoice,
+    SHOT, SHOTS, playShot, endShot, updateShot, ensureShotProps, updateColdOpen,
+    stopStoryTimers: () => { for (const id of storyTimers) clearTimeout(id); storyTimers.length = 0; },
+  };
   dom.loading.classList.add('hidden');
   dom.title.classList.remove('hidden');
   renderer.setAnimationLoop(tick);
@@ -1193,15 +1516,197 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
+// requestPointerLock() returns a promise in modern browsers and rejects when
+// the click was not a real user gesture (or the tab is backgrounded). Swallow
+// it: the game still plays with mouse-look on the next click.
+function lockPointer() {
+  const p = renderer.domElement.requestPointerLock();
+  if (p && typeof p.catch === 'function') p.catch(() => {});
+}
+
 function startGame() {
   sound.init();
   dom.title.classList.add('hidden');
+  dom.hud.classList.add('hidden');
+  dom.ammo.classList.add('hidden');
+  state.phase = 'cine';
+  state.startedAt = performance.now();
+  lockPointer();
+  updateAmmoDom();
+  updateCamera(0.016);
+  startColdOpen();
+}
+
+// ---------------------------------------------------------------- cold open
+// The first thirty seconds are not a tutorial. They are the scene the film
+// opens on: you on the pavement, the street still standing, one thing walking.
+let cineRoot = null;
+let cineFade = null;
+let cineSub = null;
+let bloodScreen = null;
+const CINE = { t: 0, step: 0, z: null, shake: 0, crashed: false };
+const _cineV = new THREE.Vector3();
+let biteBloodTimer = null;
+
+function buildCineDom() {
+  if (cineRoot) return;
+  cineRoot = document.createElement('div');
+  cineRoot.id = 'cine';
+  cineRoot.className = 'hidden';
+  cineRoot.innerHTML = '<div class="cine-bar top"></div><div class="cine-bar bot"></div><div id="cineFade" class="dark"></div>';
+  document.body.appendChild(cineRoot);
+  cineFade = cineRoot.querySelector('#cineFade');
+
+  cineSub = document.createElement('div');
+  cineSub.id = 'subtitle';
+  cineSub.innerHTML = '<span class="who"></span><span class="line"></span>';
+  document.body.appendChild(cineSub);
+
+  const grain = document.createElement('div');
+  grain.className = 'grain';
+  document.body.appendChild(grain);
+
+  const grade = document.createElement('div');
+  grade.className = 'grade';
+  document.body.appendChild(grade);
+
+  bloodScreen = document.createElement('div');
+  bloodScreen.id = 'bloodScreen';
+  document.body.appendChild(bloodScreen);
+}
+
+let subTyping = null;
+let subHide = null;
+function say(text, opts = {}) {
+  if (!cineSub) buildCineDom();
+  const ms = opts.ms || 4200;
+  clearInterval(subTyping);
+  clearTimeout(subHide);
+  const whoEl = cineSub.querySelector('.who');
+  const lineEl = cineSub.querySelector('.line');
+  whoEl.textContent = opts.who || '';
+  whoEl.style.display = opts.who ? 'block' : 'none';
+  lineEl.textContent = '';
+  cineSub.classList.add('on');
+  const step = Math.max(16, (ms * 0.45) / Math.max(1, text.length));
+  let i = 0;
+  subTyping = setInterval(() => {
+    i += 1;
+    lineEl.textContent = text.slice(0, i);
+    if (i >= text.length) clearInterval(subTyping);
+  }, step);
+  subHide = setTimeout(() => cineSub.classList.remove('on'), ms);
+}
+
+function startColdOpen() {
+  buildCineDom();
+  CINE.t = 0;
+  CINE.step = 0;
+  CINE.shake = 0;
+  CINE.crashed = false;
+  cineRoot.classList.remove('hidden');
+  void cineRoot.offsetHeight;
+  cineRoot.classList.add('on');
+  cineFade.className = 'dark';
+  setTimeout(() => cineRoot.classList.add('bars'), 500);
+
+  // the first one stands up the road, facing back down it
+  const z = infected[0];
+  if (z) {
+    z.root.visible = true;
+    z.s = player.pos.z + 26;
+    z.lat = 1.0;
+    z.mode = 'wander';
+    z.heading = Math.PI;
+    placeOnGlobe(z.root, z.s, z.lat, 0, Math.PI);
+    CINE.z = z;
+  }
+  if (weapon) weapon.visible = false;
+  if (bloodScreen) bloodScreen.style.opacity = 0;
+}
+
+const COLD_LINES = [
+  { t: 1.0, text: `—Bryan? Bryan, you there? … Eleven minutes of nothing.`, who: 'DISPATCH RADIO', ms: 5400 },
+  { t: 5.4, text: `Hey. It's me. I know it's late. Just call me when you get in, okay? I don't care what time.`, who: 'MICHELLE · VOICEMAIL', ms: 5200 },
+  { t: 9.2, text: `Headlights caught her for half a second. Then the wheel, then the ditch. Snow's coming in through the windscreen.`, who: 'BRYAN', ms: 4600 },
+  { t: 12.2, text: `She's standing back up. That is not how people stand up.`, who: 'BRYAN', ms: 5400 },
+  { t: 15.6, text: `Eight rounds in his belt. He isn't getting up either. Okay. Okay.`, who: 'BRYAN', ms: 4600 },
+  { t: 18.6, text: `Green case, back seat, floor twenty-eight. Just get it there. Just get it there.`, who: 'BRYAN', ms: 4600 },
+];
+
+function updateColdOpen(dt) {
+  CINE.t += dt;
+  const t = CINE.t;
+
+  // 03:40, 8.9s in: cut to the crash itself for a second and a half. CINE.t
+  // is frozen while the shot owns the frame, so the voice-over lands after it.
+  if (!CINE.crashed && t > 8.85) {
+    CINE.crashed = true;
+    playShot('crash');
+    return;
+  }
+
+  if (CINE.step < COLD_LINES.length && t >= COLD_LINES[CINE.step].t) {
+    const l = COLD_LINES[CINE.step];
+    say(l.text, { ms: l.ms, who: l.who });
+    if (CINE.step === 2) sound.growl(0.85);   // ringing ears after the impact
+    CINE.step += 1;
+  }
+
+  // fade the black off the lens, lift the camera off the pavement, then cut to black again
+  if (t > 1.0 && t < 3.4) cineFade.className = 'mid';
+  if (t > 3.4 && t < 12.0) cineFade.className = '';
+  if (t > 12.4 && t < 15.0) cineFade.className = 'mid';
+  if (t >= 15.0) cineFade.className = 'dark';
+
+  if (t > 8.6 && CINE.z && CINE.z.mode !== 'chase') {
+    CINE.z.mode = 'chase';
+    sound.growl(0.9);
+  }
+
+  const eye = 0.34 + Math.min(1, Math.max(0, (t - 5.8) / 3.6)) ** 2 * (3 - 2 * Math.min(1, Math.max(0, (t - 5.8) / 3.6))) * 1.28;
+  const camLat = player.pos.x + 2.4;   // lying in the road, not up on the kerb
+  const b = surfBasis(player.pos.z, camLat);
+  const near = CINE.z ? Math.max(0, 1 - Math.hypot(CINE.z.s - player.pos.z, CINE.z.lat - player.pos.x) / 14) : 0;
+  const amp = 0.006 + near * 0.022 + (t < 4 ? 0.014 * (1 - t / 4) : 0);
+  _cineV.set(
+    Math.sin(t * 2.3) * amp,
+    Math.sin(t * 1.9) * amp * 0.6,
+    Math.cos(t * 1.7) * amp
+  );
+  const base = surfPos(player.pos.z, camLat).addScaledVector(b.up, eye).add(_cineV);
+  camera.up.copy(b.up);
+  camera.position.copy(base);
+  const look = b.fwd.clone().addScaledVector(b.up, 0.03 + near * 0.05).normalize();
+  camera.lookAt(base.clone().add(look));
+
+  if (t > 19.4) finishColdOpen();
+}
+
+function finishColdOpen() {
+  if (state.phase !== 'cine') return;
+  cineRoot.classList.remove('on', 'bars');
+  cineRoot.classList.add('hidden');
+  cineFade.className = 'dark';
+  if (cineSub) cineSub.classList.remove('on');
+
+  // cut: the thing that was on top of us is now six metres away, and we are armed
+  const z = CINE.z;
+  if (z) {
+    z.s = player.pos.z + 6.5;
+    z.lat = 0.8;
+    z.mode = 'wander';
+    z.biteCd = 2.5;
+    z.anim = 0;
+    placeOnGlobe(z.root, z.s, z.lat, 0, Math.PI);
+  }
+  if (weapon) weapon.visible = true;
+
+  state.phase = 'playing';
   dom.hud.classList.remove('hidden');
   dom.ammo.classList.remove('hidden');
-  state.phase = 'playing';
-  state.startedAt = performance.now();
-  renderer.domElement.requestPointerLock();
-  updateAmmoDom();
+  player.eye = PLAYER.eyeStand;
+  clock.getDelta();
   updateCamera(0.016);
   startAct(0);
 }
@@ -1234,6 +1739,7 @@ function startAct(i) {
   for (const z of infected) if (z.act <= i + 1) z.root.visible = true;
   updateObjective();
   showActCard(act);
+  if (i >= 1) sound.siren(1.2);
 }
 
 function showActCard(act) {
@@ -1278,6 +1784,13 @@ addEventListener('keydown', (e) => {
   }
 });
 
+addEventListener('keydown', (e) => {
+  if (state.phase === 'cine' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape')) {
+    e.preventDefault();
+    finishColdOpen();
+  }
+});
+
 function pause() {
   state.phase = 'paused';
   dom.pause.classList.remove('hidden');
@@ -1287,7 +1800,7 @@ function pause() {
 function resume() {
   dom.pause.classList.add('hidden');
   state.phase = 'playing';
-  renderer.domElement.requestPointerLock();
+  lockPointer();
   clock.getDelta();
 }
 
@@ -1296,14 +1809,13 @@ function updateObjective() {
   const label = document.querySelector('.obj-label');
   if (label && ACTS[state.act]) label.textContent = ACTS[state.act].label;
   if (state.delivered >= STOPS.length) {
-    dom.objText.textContent = 'Through the line. Run complete.';
+    dom.objText.textContent = "It's on the bench. I did what I was paid to do.";
   } else if (state.carrying === 0) {
     dom.objText.textContent = state.delivered === 0
-      ? 'Pick up the first serum vial at the depot behind you.'
-      : 'Grab the next sample cooler at the drop point.';
+      ? "Green case, back seat. Don't leave it."
+      : 'Pick it back up. Both hands.';
   } else {
-    const stop = STOPS[state.legIndex];
-    dom.objText.textContent = `${stop.line} ${Math.max(0, Math.round(player.pos.z - stop.z < 0 ? stop.z - player.pos.z : 0))} m ahead.`;
+    dom.objText.textContent = STOPS[state.legIndex].line;
   }
   renderDots();
 }
@@ -1320,16 +1832,16 @@ function renderDots() {
 function nearestInteract() {
   if (state.carrying === 0) {
     const targets = [];
-    if (state.delivered === 0) targets.push({ x: DEPOT.x, z: DEPOT.z + 0.4, kind: 'pickup', label: 'Take the serum vial' });
+    if (state.delivered === 0) targets.push({ x: DEPOT.x, z: DEPOT.z + 0.4, kind: 'pickup', label: 'Take the case off the van' });
     else {
       const stop = STOPS[state.legIndex - 1];
-      if (stop) targets.push({ x: stop.x, z: stop.z, kind: 'pickup', label: 'Take the next sample' });
+      if (stop) targets.push({ x: stop.x, z: stop.z, kind: 'pickup', label: 'Pick the case back up' });
     }
     return closest(targets, 3.2);
   }
   const stop = STOPS[state.legIndex];
   if (!stop) return null;
-  return closest([{ x: stop.x, z: stop.z, kind: 'deliver', label: `Deliver to ${stop.name}` }], 3.6);
+  return closest([{ x: stop.x, z: stop.z, kind: 'deliver', label: stop.action }], 3.6);
 }
 
 function closest(list, radius) {
@@ -1358,31 +1870,49 @@ function interact() {
 }
 
 function deliver() {
-  state.carrying = 0;
+  // Waypoints, not hand-overs: the one sealed case stays in your hands until
+  // the lab door. There is no relay of fresh coolers in the film.
+  const stop = STOPS[state.legIndex];
   state.delivered += 1;
   state.legIndex = state.delivered;
-  state.checkpoint = { x: STOPS[state.delivered - 1].x, z: STOPS[state.delivered - 1].z };
+  state.checkpoint = { x: stop.x, z: stop.z };
+  state.carrying = 1;
+  setCarried(true);
   sound.pickup();
-  // parcel marker disappears from the world until the next pickup
-  clearParcelMarker();
-  setCarried(false);
 
   if (state.delivered >= STOPS.length) {
-    win();
+    if (SHOT.active) endShot();
+    playShot('lab');   // the handover is played, not reported
     return;
   }
-  // next parcel waits at this stop
-  spawnParcelAt(STOPS[state.delivered - 1].x, STOPS[state.delivered - 1].z + 0.3);
-  // the drop point is stocked: top the magazine up there
-  state.reserve = Math.min(24, state.reserve + 8);
-  state.ammo = GUN.mag;
+  // Only scavenged rounds at a waypoint — no free magazine refill.
+  state.reserve = Math.min(20, state.reserve + 4);
   state.reloading = false;
   state.reloadT = 0;
   updateMeters(0);
   updateObjective();
   flashObjective();
-  // the next act of the night starts here, with its own slice of the street
+  // ACT II is where the night stops being survivable: the tunnel bite.
+  if (state.delivered === 1) tunnelBite();
   startAct(state.delivered);
+}
+
+// The little girl under the overpass. The bite is not a scratch you can walk
+// off: from here the T-virus only goes one way, and the lab is still a long
+// walk. The ACT II card plays first, then the street is replaced by a shot.
+function tunnelBite() {
+  state.bites += 1;
+  state.bittenByGirl = true;
+  state.warmth = Math.max(state.warmth, 48);
+  const cut = () => {
+    if (state.phase === 'paused' || state.phase === 'interlude') {
+      storyTimers.push(setTimeout(cut, 600));
+      return;
+    }
+    if (state.phase !== 'playing') return;
+    playShot('girl');
+  };
+  storyTimers.push(setTimeout(cut, 5700));
 }
 
 function flashObjective() {
@@ -1407,22 +1937,19 @@ function busted() {
   sound.sting();
   dom.flash.style.opacity = 0.55;
   setTimeout(() => { dom.flash.style.opacity = 0; }, 240);
-  dom.alert.textContent = 'BITTEN — PUSHED BACK';
+  dom.alert.textContent = 'that one got close';
   dom.alert.classList.remove('hidden');
   setTimeout(() => dom.alert.classList.add('hidden'), 1400);
   respawn();
 }
 
-function turned() {
+function turnEnding() {
+  if (state.phase !== 'playing') return;
   state.turnings += 1;
-  state.warmth = 46;
-  state.stamina = STAM.max;
-  dom.flash.style.opacity = 0.6;
-  setTimeout(() => { dom.flash.style.opacity = 0; }, 300);
-  dom.alert.textContent = 'YOU TURNED — YOU CAME ROUND';
+  dom.alert.textContent = "i can't stand up";
   dom.alert.classList.remove('hidden');
-  setTimeout(() => dom.alert.classList.add('hidden'), 1500);
-  respawn();
+  setTimeout(() => dom.alert.classList.add('hidden'), 1600);
+  runEnding('turn');
 }
 
 function respawn() {
@@ -1440,39 +1967,496 @@ function respawn() {
     z.lat = Math.max(-STREET.half + 0.7, Math.min(STREET.half - 0.7, z.lat));
     placeOnGlobe(z.root, z.s, z.lat, 0, z.heading);
   }
-  // keep the parcel in hand state; re-place a marker if empty-handed
-  if (state.carrying === 0 && state.delivered < STOPS.length) {
-    const target = state.delivered === 0 ? { x: DEPOT.x, z: DEPOT.z + 0.4 } : STOPS[state.delivered - 1];
-    spawnParcelAt(target.x, target.z + 0.4);
+  // blacked out and came round at the last waypoint — the case never left you
+  if (state.carrying === 0 && state.delivered === 0) {
+    spawnParcelAt(DEPOT.x, DEPOT.z + 0.4);
+  } else if (state.carrying === 0) {
+    state.carrying = 1;
+    setCarried(true);
   }
   updateObjective();
 }
 
-function win() {
-  state.phase = 'end';
+// ---------------------------------------------------------------- ending
+// The delivery succeeds. The cure does not. The last act is told from behind
+// the courier's eyes, and the sentences fall apart as he does: no narrator,
+// no summary, just shorter and shorter things he can still say.
+const END_LINES = {
+  lab: [
+    { text: "The lab is warm. That's the first thing I notice. My coat's still wet.", who: 'BRYAN', ms: 4400 },
+    { text: "—set it down. On the bench. Don't — don't come any closer.", who: 'CARL · INTERCOM', ms: 4600 },
+    { text: "He isn't looking at my face. He's looking at my arm.", who: 'BRYAN', ms: 4000 },
+    { text: "I can hear the case being opened. I can't feel my left hand.", who: 'BRYAN', ms: 4400 },
+    { text: "There's a syringe on the bench. I'm trying to say please.", who: 'BRYAN', ms: 4200 },
+    { text: "It's on the floor now. I'm trying to say Michelle.", who: 'BRYAN', ms: 4000 },
+    { text: 'M—', who: 'BRYAN', ms: 3000 },
+  ],
+  turn: [
+    { text: "I can't swallow. The case is getting heavy.", who: 'BRYAN', ms: 4200 },
+    { text: "I'm going to set it down for a second. Just a second.", who: 'BRYAN', ms: 4400 },
+    { text: 'M—', who: 'BRYAN', ms: 3200 },
+  ],
+};
+
+let endSeq = null;
+let endKind = null;
+const endTimers = [];
+
+function runEnding(kind) {
+  if (state.phase === 'ending' || state.phase === 'end') return;
+  state.phase = 'ending';
+  endKind = kind;
   if (document.pointerLockElement) document.exitPointerLock();
+  dom.hud.classList.add('hidden');
+  dom.ammo.classList.add('hidden');
+  setCarried(false);
+  clearParcelMarker();
+  buildCineDom();
+
+  if (!endSeq) {
+    endSeq = document.createElement('div');
+    endSeq.id = 'endSeq';
+    endSeq.innerHTML = '<div class="beam"></div><div class="endseq-tag"></div>';
+    document.body.appendChild(endSeq);
+  }
+  endSeq.querySelector('.endseq-tag').textContent = kind === 'lab'
+    ? 'UMBRELLA / LAB 28 · 05:07'
+    : 'RACCOON CITY · 04:52';
+  void endSeq.offsetHeight;
+  endSeq.classList.add('on');
+
+  let t = 500;
+  for (const l of END_LINES[kind]) {
+    const at = t;
+    endTimers.push(setTimeout(() => say(l.text, { ms: l.ms - 350, who: l.who }), at));
+    t += l.ms;
+  }
+  // The black screen thins out and the live street shows through, but from
+  // the floor and going wide: the last shot plays under the final subtitles.
+  endTimers.push(setTimeout(() => {
+    if (state.phase === 'ending' && !SHOT.active) playShot('turn');
+  }, Math.max(0, t - 1400)));
+  endTimers.push(setTimeout(() => endSeq.classList.add('searchlight'), t - 3000));
+  endTimers.push(setTimeout(() => say('A light moves across the ceiling. I can still see it.', { ms: 2900, who: 'BRYAN' }), t + 100));
+  endTimers.push(setTimeout(() => endSeq.classList.add('blackout'), t + 3100));
+  endTimers.push(setTimeout(() => showEndCard(kind), t + 4100));
+}
+
+function skipEnding() {
+  if (state.phase !== 'ending' || !endKind) return;
+  for (const id of endTimers) clearTimeout(id);
+  endTimers.length = 0;
+  if (SHOT.active && !SHOT.block) endShot();
+  showEndCard(endKind);
+}
+
+addEventListener('keydown', (e) => {
+  if (state.phase === 'ending' && (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape')) {
+    e.preventDefault();
+    skipEnding();
+  }
+});
+
+function showEndCard(kind) {
+  if (SHOT.active && !SHOT.block) endShot();
+  state.phase = 'end';
+  if (cineSub) cineSub.classList.remove('on');
   const mins = Math.floor((performance.now() - state.startedAt) / 60000);
   const secs = Math.floor(((performance.now() - state.startedAt) % 60000) / 1000);
-  dom.endKicker.textContent = '05:12 — EAST GATE';
-  dom.endTitle.textContent = 'THROUGH';
-  dom.endBody.textContent = 'The gate closes behind you and the driver does not ask what is in the cooler. Behind you Alder Street goes dark block by block, like someone is pulling a switch. Three samples made it out of the outbreak night. The city did not.';
+  // By this point the courier cannot narrate anything. What is left is a log
+  // written by the people who were never going to give him the syringe.
+  if (kind === 'lab') {
+    dom.endKicker.textContent = 'UMBRELLA / LAB 28 · INCIDENT LOG · 05:12';
+    dom.endTitle.textContent = 'SUBJECT ZERO';
+    dom.endBody.textContent = '05:07 — Sample 0447 received, seal intact. 05:11 — Antiviral synthesized. 05:12 — No administration recorded. The courier who carried it in has been designated Subject Zero. There is one unplayed message on his answering machine.';
+  } else {
+    dom.endKicker.textContent = 'RACCOON CITY · RECOVERY LOG · 05:40';
+    dom.endTitle.textContent = 'TOO LATE';
+    dom.endBody.textContent = '04:52 — Courier down between the barricade and the hospital. 05:40 — Order 0447 recovered from the snow, still sealed, still cold; carried the rest of the way by another hand. The message on his answering machine was never returned.';
+  }
   dom.endStats.innerHTML = `
     <li><span>Time on the street</span><b>${mins}m ${String(secs).padStart(2, '0')}s</b></li>
-    <li><span>Acts survived</span><b>${Math.min(state.act + 1, ACTS.length)} / ${ACTS.length}</b></li>
-    <li><span>Samples delivered</span><b>${state.delivered} / ${STOPS.length}</b></li>
-    <li><span>Infected put down</span><b>${state.kills}</b></li>
+    <li><span>Route logged</span><b>${state.delivered} / ${STOPS.length}</b></li>
+    <li><span>Order 0447</span><b>${kind === 'lab' ? 'Delivered, sealed' : 'Recovered, sealed'}</b></li>
+    <li><span>Fever at handover</span><b>${Math.round(state.warmth)}%</b></li>
+    <li><span>Bodies on the street</span><b>${state.kills}</b></li>
     <li><span>Rounds fired</span><b>${state.shots}</b></li>
-    <li><span>Bites taken</span><b>${state.bites}</b></li>
-    <li><span>Times you turned</span><b>${state.turnings}</b></li>`;
+    <li><span>Bites</span><b>${state.bites}</b></li>`;
   dom.hud.classList.add('hidden');
   dom.end.classList.remove('hidden');
 }
+
+// ---------------------------------------------------------- realtime story shots
+// No pre-rendered CG. Every cutscene is a camera move through the same live
+// street, using the same assets the player walks past: the woman in the
+// headlights, the kid under the overpass, a door at the end of the road, and
+// your own lens when it stops being yours. Props are built lazily and marked
+// noWrap because the rest of the world has already been bent onto the globe.
+const FOV_BASE = 70;
+const SHOT = { active: false, name: null, t: 0, dur: 0, block: true, returnPhase: null, cues: [], ctx: {} };
+let shotLayer = null;
+let shotProps = null;
+
+const easeInOut = (u) => (u < 0.5 ? 2 * u * u : 1 - ((-2 * u + 2) ** 2) / 2);
+
+function buildShotLayer() {
+  if (shotLayer) return;
+  shotLayer = document.createElement('div');
+  shotLayer.id = 'shotLayer';
+  shotLayer.className = 'hidden';
+  shotLayer.innerHTML = `<div class="sb top"></div><div class="sb bot"></div>
+    <div class="shot-grade"></div>
+    <svg class="crack" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="shot-vig"></div>`;
+  document.body.appendChild(shotLayer);
+
+  // windscreen glass, drawn as SVG paths at runtime — no image files
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = shotLayer.querySelector('.crack');
+  const cx = 500, cy = 290;
+  for (let i = 0; i < 15; i++) {
+    const a = (i / 15) * Math.PI * 2 + 0.11;
+    const len = 150 + (i % 5) * 96;
+    const mx = cx + Math.cos(a + 0.08) * len * 0.52;
+    const my = cy + Math.sin(a + 0.08) * len * 0.36;
+    const x = cx + Math.cos(a) * len;
+    const y = cy + Math.sin(a) * len * 0.72;
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', `M${cx} ${cy} L${mx.toFixed(1)} ${my.toFixed(1)} L${x.toFixed(1)} ${y.toFixed(1)}`);
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', 'rgba(228,241,255,0.55)');
+    p.setAttribute('stroke-width', i % 3 === 0 ? '2.1' : '1');
+    svg.appendChild(p);
+  }
+  for (let r = 46; r <= 190; r += 52) {
+    const pts = [];
+    for (let i = 0; i <= 15; i++) {
+      const a = (i / 15) * Math.PI * 2;
+      const rr = r * (0.86 + 0.18 * Math.sin(i * 2.7 + r));
+      pts.push(`${(cx + Math.cos(a) * rr).toFixed(1)},${(cy + Math.sin(a) * rr * 0.72).toFixed(1)}`);
+    }
+    const poly = document.createElementNS(NS, 'polyline');
+    poly.setAttribute('points', pts.join(' '));
+    poly.setAttribute('fill', 'none');
+    poly.setAttribute('stroke', 'rgba(210,230,250,0.32)');
+    poly.setAttribute('stroke-width', '1.2');
+    svg.appendChild(poly);
+  }
+}
+
+function makeShotFigure(opts) {
+  const body = mkCourier(opts);
+  const bones = poseRelaxed(body);
+  const g = new THREE.Group();
+  g.add(body);
+  g.userData.noWrap = true;
+  g.visible = false;
+  world.add(g);
+  return { g, body, bones };
+}
+
+function ensureShotProps() {
+  buildShotLayer();
+  if (shotProps) return shotProps;
+
+  const crashWoman = makeShotFigure({
+    box: false, bag: false, hat: false, age: 'adult', figure: 'feminine', build: 0.94,
+    coat: '#4b3d44', denim: '#2b3138', skin: '#a89589', hair: '#241d1c',
+    boot: '#3a332f', sole: '#1a1715', pack: '#3a3330',
+  });
+  // Headlights still on. This lamp lives in the world, not on the figure:
+  // the figure's heading would swing it round to her far side.
+  const headlamp = new THREE.PointLight(0xffe6c4, 6.5, 12, 2);
+  headlamp.visible = false;
+  world.add(headlamp);
+
+  const tunnelGirl = makeShotFigure({
+    box: false, bag: false, hat: false, age: 'kid', figure: 'feminine', build: 0.88,
+    coat: '#6a4a4f', denim: '#333b42', skin: '#b39a8c', hair: '#2a211e',
+    boot: '#413632', sole: '#1c1815', pack: '#4a3a3c',
+  });
+  // one arm out, asking for help
+  if (tunnelGirl.bones.RightArm) {
+    tunnelGirl.bones.RightArm.rotation.z = 0.42;
+    tunnelGirl.bones.RightArm.rotation.y = -0.95;
+  }
+  if (tunnelGirl.bones.RightForeArm) tunnelGirl.bones.RightForeArm.rotation.y = 0.25;
+
+  // a lab door at the end of the street: two steel leaves and a lit seam
+  const door = new THREE.Group();
+  const steel = new THREE.MeshStandardMaterial({ color: 0x3b464e, roughness: 0.52, metalness: 0.62 });
+  const edge = new THREE.MeshStandardMaterial({ color: 0x1b232a, roughness: 0.8, metalness: 0.3 });
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(2.36, 2.66, 0.13), edge);
+  frame.position.z = 0.07;
+  door.add(frame);
+  const leaves = [];
+  for (const sx of [-1, 1]) {
+    const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.92, 2.5, 0.09), steel);
+    leaf.position.set(sx * 0.63, 0, -0.02);
+    door.add(leaf);
+    leaves.push(leaf);
+  }
+  const seam = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.18, 2.42),
+    new THREE.MeshBasicMaterial({ color: 0xb9753e, side: THREE.DoubleSide })
+  );
+  seam.position.set(0, 0, -0.09);
+  door.add(seam);
+  const light = new THREE.PointLight(0xffc98d, 1.6, 10, 2);
+  light.position.set(0, 0.1, -0.7);
+  door.add(light);
+  door.userData.noWrap = true;
+  door.visible = false;
+  world.add(door);
+
+  shotProps = { crashWoman, tunnelGirl, headlamp, door: { g: door, left: leaves[0], seam, light } };
+  return shotProps;
+}
+
+function shotCam(s, lat, h, ts, tlat, th, opt = {}) {
+  const b = surfBasis(s, lat);
+  const p = surfPos(s, lat).addScaledVector(b.up, h);
+  if (opt.shake) {
+    p.addScaledVector(b.right, Math.sin((opt.t || 0) * 37) * opt.shake)
+      .addScaledVector(b.up, Math.cos((opt.t || 0) * 29) * opt.shake * 0.6);
+  }
+  camera.up.copy(b.up);
+  camera.position.copy(p);
+  camera.lookAt(surfPos(ts, tlat).addScaledVector(surfUp(ts, tlat), th));
+  if (opt.roll) camera.rotateZ(opt.roll);
+  const fov = opt.fov ?? FOV_BASE;
+  if (Math.abs(camera.fov - fov) > 0.02) {
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+  }
+}
+
+const SHOTS = {
+  // 1 — the crash: headlight height, glass, a face, then the lens hits the road
+  crash: {
+    dur: 1.5, block: true, cls: 'crash',
+    start(ctx) {
+      ctx.s = player.pos.z;
+      ctx.lat = player.pos.x;
+      placeOnGlobe(shotProps.crashWoman.g, ctx.s + 3.6, ctx.lat + 0.15, 0, Math.PI);
+      shotProps.crashWoman.g.visible = true;
+      const b = surfBasis(ctx.s + 2.3, ctx.lat + 0.15);
+      shotProps.headlamp.position.copy(surfPos(ctx.s + 2.3, ctx.lat + 0.15).addScaledVector(b.up, 1.5));
+      shotProps.headlamp.visible = true;
+      shotLayer.classList.add('crack-on');
+      sound.sting();
+    },
+    frame(u, ctx) {
+      const t = SHOT.t;
+      const push = Math.min(1, u / 0.3);
+      const fall = Math.max(0, (u - 0.36) / 0.64);
+      shotCam(ctx.s + 0.35 + push * 1.2 - fall * 0.7, ctx.lat + 0.12,
+        1.42 - fall * 1.0, ctx.s + 3.6, ctx.lat + 0.15, 1.5 - fall * 0.3,
+        { fov: 70 + Math.sin(Math.min(1, u) * Math.PI) * 22 - fall * 5,
+          roll: (u - 0.3) * 0.22 + Math.sin(t * 22) * 0.012,
+          shake: 0.04 * (1 - u) + 0.01, t });
+      dom.flash.style.opacity = String(Math.max(0, 0.9 * (1 - u * 3.4)));
+      shotLayer.querySelector('.crack').style.opacity =
+        String(u > 0.8 ? Math.max(0, (1 - u) / 0.2) : 1);
+    },
+    end() {
+      shotProps.crashWoman.g.visible = false;
+      shotProps.headlamp.visible = false;
+      shotLayer.classList.remove('crack-on');
+      shotLayer.querySelector('.crack').style.opacity = '';
+      dom.flash.style.opacity = 0;
+    },
+  },
+
+  // 2 — the tunnel: a low push-in on the kid, then the bite and a recoil
+  girl: {
+    dur: 4.8, block: true, cls: 'girl',
+    start(ctx) {
+      const p = player.pos;
+      ctx.s = p.z + 5.2;
+      ctx.lat = Math.max(-STREET.half + 1, Math.min(STREET.half - 1, p.x + 1.1));
+      ctx.eye = player.eye;
+      placeOnGlobe(shotProps.tunnelGirl.g, ctx.s, ctx.lat, 0, Math.PI);
+      shotProps.tunnelGirl.g.visible = true;
+      state.bittenByGirl = true;
+      state.warmth = Math.max(state.warmth, 48);
+      updateMeters(0);
+      sound.growl(0.8);
+    },
+    cues: [
+      { u: 0.05, run: () => say(`—help me? I can't find my mum.`, { who: 'THE GIRL', ms: 2600 }) },
+      { u: 0.53, run: () => {
+        sound.sting();
+        dom.flash.style.opacity = 0.72;
+        setTimeout(() => { dom.flash.style.opacity = 0; }, 320);
+        if (bloodScreen) {
+          bloodScreen.style.opacity = 0.55;
+          setTimeout(() => { bloodScreen.style.opacity = 0; }, 2400);
+        }
+        const b = shotProps.tunnelGirl.bones;
+        if (b.Head) b.Head.rotation.x = -0.34;
+        if (b.Neck) b.Neck.rotation.x = -0.26;
+      } },
+      { u: 0.68, run: () => say(`She said help me. I put my arm out. There's a ring of teeth on it and it won't stop burning.`, { who: 'BRYAN', ms: 4200 }) },
+    ],
+    frame(u, ctx) {
+      const t = SHOT.t;
+      const push = easeInOut(Math.min(1, u / 0.62));
+      const recoil = Math.max(0, (u - 0.54) / 0.46);
+      const p = player.pos;
+      shotCam(p.z + push * 4.3 - recoil * 2.5,
+        p.x + (ctx.lat - p.x) * push * 0.72,
+        ctx.eye * (1 - push) + 1.0 * push - recoil * 0.22,
+        ctx.s, ctx.lat, 0.96 + recoil * 0.18,
+        { fov: 70 - push * 8 + recoil * 22,
+          roll: Math.sin(t * 1.7) * 0.008 + recoil * 0.18,
+          shake: 0.008 + recoil * 0.03, t });
+    },
+    end() {
+      shotProps.tunnelGirl.g.visible = false;
+      const b = shotProps.tunnelGirl.bones;
+      if (b.Head) b.Head.rotation.x = 0;
+      if (b.Neck) b.Neck.rotation.x = 0;
+      dom.flash.style.opacity = 0;
+    },
+  },
+
+  // 3 — handover: low angle through the six-inch gap in the lab door
+  lab: {
+    dur: 4.7, block: true, cls: 'lab',
+    start(ctx) {
+      const stop = STOPS[STOPS.length - 1];
+      ctx.ds = stop.z + 3.4;
+      ctx.dlat = stop.x;
+      setCarried(true);   // the case must be in frame for the handover
+      placeOnGlobe(shotProps.door.g, ctx.ds, ctx.dlat, 1.28, 0);
+      shotProps.door.g.visible = true;
+      shotProps.door.left.position.x = -0.63;
+      shotProps.door.seam.scale.x = 1;
+      shotProps.door.light.intensity = 1.6;
+    },
+    cues: [
+      { u: 0.06, run: () => say(`Bryan? Through here. Set it on the bench. Don't come in.`, { who: 'CARL · INTERCOM', ms: 3200 }) },
+      { u: 0.46, run: () => say(`The door opens six inches. A hand takes the case. It's warm behind it.`, { who: 'BRYAN', ms: 3400 }) },
+      { u: 0.82, run: () => say(`I can still hear them talking in there.`, { who: 'BRYAN', ms: 2600 }) },
+    ],
+    frame(u, ctx) {
+      const t = SHOT.t;
+      const push = easeInOut(Math.min(1, u / 0.88));
+      shotCam(ctx.ds - 3.8 + push * 2.3, ctx.dlat - 0.55 + push * 0.45,
+        0.72 + push * 0.24, ctx.ds, ctx.dlat, 1.28,
+        { fov: 70 - push * 5, roll: Math.sin(t * 1.3) * 0.004, shake: 0.006, t });
+      const open = Math.sin(Math.min(1, u) * Math.PI);
+      shotProps.door.left.position.x = -0.63 - open * 0.5;
+      shotProps.door.seam.scale.x = 1 + open * 1.0;
+      shotProps.door.light.intensity = 1.6 + open * 2.2;
+      if (carriedMesh) carriedMesh.position.set(0.34, -0.36 - open * 0.16, -0.9 - open * 0.45);
+    },
+    end() {
+      shotProps.door.g.visible = false;
+      if (carriedMesh) carriedMesh.position.set(0.34, -0.36, -0.9);
+      runEnding('lab');
+    },
+  },
+
+  // 4 — the lens stops being yours: it drops to the floor and goes wide
+  turn: {
+    dur: 4.4, block: false, cls: 'turn',
+    start(ctx) {
+      ctx.s = player.pos.z;
+      ctx.lat = player.pos.x;
+      if (endSeq) endSeq.classList.add('see');
+    },
+    frame(u, ctx) {
+      const t = SHOT.t;
+      const drop = easeInOut(Math.min(1, u / 0.9));
+      shotCam(ctx.s, ctx.lat, 1.62 - drop * 1.28,
+        ctx.s + 7, ctx.lat + Math.sin(u * 2.4) * 0.8, -0.12,
+        { fov: 70 + drop * 34,
+          roll: drop * (0.26 + Math.sin(t * 1.8) * 0.03),
+          shake: 0.01 + drop * 0.035, t });
+    },
+    end() {
+      if (endSeq) endSeq.classList.remove('see');
+    },
+  },
+};
+
+function playShot(name) {
+  const def = SHOTS[name];
+  if (!def || SHOT.active || state.phase === 'end' || state.phase === 'shot') return;
+  buildCineDom();
+  ensureShotProps();
+  SHOT.active = true;
+  SHOT.name = name;
+  SHOT.t = 0;
+  SHOT.dur = def.dur;
+  SHOT.block = def.block !== false;
+  SHOT.returnPhase = state.phase;
+  SHOT.ctx = {};
+  SHOT.cues = (def.cues || []).map((c) => ({ u: c.u, run: c.run, fired: false }));
+  shotLayer.className = `${def.cls} on`;
+  document.body.classList.add('in-shot');
+  if (SHOT.block) {
+    state.phase = 'shot';
+    dom.hud.classList.add('hidden');
+    dom.alert.classList.add('hidden');
+  }
+  def.start(SHOT.ctx);
+  clock.getDelta();
+}
+
+function endShot() {
+  if (!SHOT.active) return;
+  const def = SHOTS[SHOT.name];
+  const ctx = SHOT.ctx;
+  const wasBlock = SHOT.block;
+  const back = SHOT.returnPhase;
+  SHOT.active = false;
+  SHOT.name = null;
+  SHOT.cues = [];
+  shotLayer.className = 'hidden';
+  document.body.classList.remove('in-shot');
+  camera.fov = FOV_BASE;
+  camera.updateProjectionMatrix();
+  dom.flash.style.opacity = 0;
+  if (wasBlock && back && back !== 'shot') {
+    state.phase = back;
+    if (back === 'playing') dom.hud.classList.remove('hidden');
+  }
+  if (def && def.end) def.end(ctx);
+  clock.getDelta();
+}
+
+function updateShot(dt) {
+  if (!SHOT.active) return;
+  SHOT.t += dt;
+  const def = SHOTS[SHOT.name];
+  const u = Math.min(1, SHOT.t / SHOT.dur);
+  if (def.frame) def.frame(u, SHOT.ctx);
+  for (const c of SHOT.cues) {
+    if (!c.fired && u >= c.u) { c.fired = true; c.run(); }
+  }
+  if (u >= 1) endShot();
+}
+
+// a shot is a cut, not a wall: any of the usual skip keys gets you out of it
+addEventListener('keydown', (e) => {
+  if (SHOT.active && SHOT.block && (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape')) {
+    e.preventDefault();
+    endShot();
+  }
+});
 
 // ---------------------------------------------------------------- update
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
 
-  if (state.phase === 'playing') {
+  // A blocking shot owns the camera and freezes the player. An overlay shot
+  // (the mutation) still owns the camera but lets the ending's timers run.
+  if (SHOT.active && SHOT.block) {
+    updateShot(dt);
+  } else if (state.phase === 'playing') {
     updatePlayer(dt);
     updateHorde(dt);
     updateGun(dt);
@@ -1481,6 +2465,11 @@ function tick() {
     updateCamera(dt);
     updateWeapon(dt);
     animateParcel(dt);
+    updateBeats();
+  } else if (state.phase === 'cine') {
+    updateColdOpen(dt);
+    updateHorde(dt);
+    updateWeapon(dt);
   } else if (state.phase === 'title') {
     // slow drift down the street while the planet curves away
     const t = performance.now() * 0.0002;
@@ -1492,14 +2481,67 @@ function tick() {
     camera.position.copy(p);
     const targetS = camS + 42;
     camera.lookAt(surfPos(targetS, 0).addScaledVector(surfUp(targetS, 0), 1.8));
+  } else if (SHOT.active) {
+    updateShot(dt);
   }
 
   updateSnow(dt);
   updateGlows();
+  updateBloodFx(dt);
   renderer.render(scene, camera);
 }
 
 let lastHeart = 0;
+
+// Nothing here is a narrator. Every line has a source in the street: your own
+// voice, a message you never sent, a channel you were not meant to hear, a lab
+// intercom, and a police dispatcher on the other side of the same night.
+const BEATS = [
+  { s: 6,   text: `I should call her. Not yet. When I'm out of this.`, who: 'BRYAN', ms: 3800 },
+  { s: 20,  text: `Snow in my boots. The case is heavier than it looked on the manifest.`, who: 'BRYAN', ms: 4200 },
+  { s: 34,  text: `Green herb in the doorway. First aid spray in the cruiser. Somebody left a typewriter under the lamp.`, who: 'BRYAN', ms: 4400 },
+  { s: 68,  text: `—payload is intact. Do not disclose to the courier. The city is already written off.`, who: 'UMBRELLA FIELD CHANNEL', ms: 4600 },
+  { s: 100, text: `My arm's gone numb up to the elbow. I'm not going to look at it again.`, who: 'BRYAN', ms: 4200 },
+  { s: 146, text: `Bryan? Stairs to 24, skybridge, then 28. Don't use the elevator. Keep the case cold.`, who: 'CARL · INTERCOM', ms: 4600 },
+  { s: 165, text: `I can't feel the case in my left hand. Keep it in the right. Keep it in the right.`, who: 'BRYAN', ms: 4200 },
+  { s: 178, text: `—rookie just checked in at the station. Kennedy. Somebody tell him what night this is.`, who: 'RPD DISPATCH', ms: 4200 },
+];
+const beatFlags = [];
+function updateBeats() {
+  for (let i = 0; i < BEATS.length; i++) {
+    if (beatFlags[i] || player.pos.z < BEATS[i].s) continue;
+    beatFlags[i] = true;
+    say(BEATS[i].text, { ms: BEATS[i].ms || 4200, who: BEATS[i].who });
+  }
+}
+
+// The bite is felt, not measured. Each of these fires once, in order, as the
+// infection climbs — and the HUD label deteriorates along with him.
+const FEVER_LINES = [
+  { at: 52, text: "It's burning now. All the way up to the elbow.", who: 'BRYAN' },
+  { at: 64, text: "There's something moving under the skin. That's not the cold.", who: 'BRYAN' },
+  { at: 78, text: "I can't feel the case in my left hand anymore.", who: 'BRYAN' },
+  { at: 92, text: "I keep trying to say Michelle's name. It comes out wrong.", who: 'BRYAN' },
+];
+const feverFlags = [];
+const FEVER_LABELS = [
+  { at: 0,  label: 'COLD' },
+  { at: 48, label: 'BITE · LEFT ARM' },
+  { at: 64, label: 'UNDER THE SKIN' },
+  { at: 78, label: 'LEFT HAND GONE' },
+  { at: 92, label: "CAN'T SAY HER NAME" },
+];
+function updateFeverVoice() {
+  for (let i = 0; i < FEVER_LINES.length; i++) {
+    if (!feverFlags[i] && state.warmth >= FEVER_LINES[i].at) {
+      feverFlags[i] = true;
+      say(FEVER_LINES[i].text, { ms: 4200, who: FEVER_LINES[i].who });
+    }
+  }
+  let label = FEVER_LABELS[0].label;
+  for (const l of FEVER_LABELS) if (state.warmth >= l.at) label = l.label;
+  if (dom.feverLabel.textContent !== label) dom.feverLabel.textContent = label;
+}
 
 function updatePlayer(dt) {
   const forward = (keys.KeyW ? 1 : 0) - (keys.KeyS ? 1 : 0);
@@ -1558,23 +2600,26 @@ function updatePlayer(dt) {
   }
   player.lit = lit;
 
-  // infection
+  // T-virus load: strictly one-way. A lit safe spot only slows the climb,
+  // and the tunnel bite adds its own drip for the rest of the night.
   let gain = COLD.drain + (sprinting && wantsMove ? COLD.sprintDrain : 0);
   if (player.crouch) gain *= COLD.crouchMul;
-  if (lit) gain -= COLD.lampRegen;
-  state.warmth += (lit ? -COLD.lampRegen * 0.9 : gain) * dt;
-  state.warmth = Math.max(0, Math.min(COLD.max, state.warmth));
+  if (lit) gain *= COLD.lampSlow;
+  if (state.bittenByGirl) gain += COLD.biteDrain;
+  state.warmth = Math.min(COLD.max, state.warmth + gain * dt);
+  updateFeverVoice();
 
-  if (state.warmth >= COLD.freezeAt) turned();
+  if (state.warmth >= COLD.freezeAt) turnEnding();
 
   // heartbeat when the fever climbs
-  if (state.warmth > 62 && performance.now() - lastHeart > 900) {
+  if (state.warmth > 55 && performance.now() - lastHeart > 900) {
     lastHeart = performance.now();
-    sound.heartbeat((state.warmth - 62) / 38);
+    sound.heartbeat((state.warmth - 55) / 45);
   }
 }
 
 function updateCamera(dt) {
+  if (SHOT.active) return;   // a shot owns the lens; do not fight it
   const bob = Math.sin(player.bob) * 0.035 * (player.crouch ? 0.5 : 1);
   const sway = Math.cos(player.bob * 0.5) * 0.02;
   const b = surfBasis(player.pos.z, player.pos.x);
@@ -1587,7 +2632,10 @@ function updateCamera(dt) {
   const dir = b.fwd.clone().applyAxisAngle(b.up, player.yaw);
   dir.multiplyScalar(Math.cos(player.pitch)).addScaledVector(b.up, Math.sin(player.pitch));
   camera.lookAt(base.clone().add(dir));
-  camera.rotateZ(Math.sin(player.bob * 0.5) * 0.008);
+  // the fever puts a small unsteady tilt in the lens; nothing you can correct
+  const fever = Math.max(0, (state.warmth - 55) / 45);
+  camera.rotateZ(Math.sin(player.bob * 0.5) * (0.008 + fever * 0.01)
+    + Math.sin(performance.now() * 0.0007) * fever * 0.004);
 
   // the sky light follows the local horizon so the far side of the planet is lit too
   if (moonLight) {
@@ -1599,9 +2647,9 @@ function updateCamera(dt) {
 
 function updateMeters(dt) {
   dom.warmBar.style.width = `${Math.max(0, Math.min(100, state.warmth))}%`;
-  dom.warmBar.style.background = state.warmth > 60
-    ? 'linear-gradient(90deg,#8fbf6a,#e8553f)'
-    : 'linear-gradient(90deg,#4e7a4a,#9fc47a)';
+  dom.warmBar.style.background = state.warmth > 64
+    ? 'linear-gradient(90deg,#5a1c1c,#e8553f)'
+    : 'linear-gradient(90deg,#3a2026,#8c3a34)';
   dom.stamBar.style.width = `${Math.max(0, state.stamina)}%`;
   dom.vignette.style.opacity = state.warmth > 55 ? String(Math.min(0.75, (state.warmth - 55) / 50)) : '0';
   sound.setWind(0.4 + Math.min(0.6, (player.pos.z - STREET.zStart) / 260));
@@ -1613,12 +2661,7 @@ function updateMeters(dt) {
   }
   dom.ammoRes.textContent = String(state.reserve);
 
-  // live distance readout for the current leg
-  if (state.carrying && state.legIndex < STOPS.length) {
-    const stop = STOPS[state.legIndex];
-    const d = Math.max(0, Math.round(Math.hypot(player.pos.x - stop.x, player.pos.z - stop.z)));
-    dom.objText.textContent = `${stop.line} ${d} m out.`;
-  }
+  // no live distance counter — you walk toward the lamps, not toward a number
 }
 
 function updatePrompt() {
@@ -1669,7 +2712,16 @@ function updateHorde(dt) {
       if (dist < 34) sound.growl(dist / 10 + 1);
     }
 
-    if (dist < ZOMBIE.chaseRange) z.mode = 'chase';
+    if (dist < ZOMBIE.chaseRange) {
+      // not a "SPOTTED" system message — just the thought you have when it turns
+      if (z.mode !== 'chase' && !state.alerted) {
+        state.alerted = 1;
+        dom.alert.textContent = 'it saw me';
+        dom.alert.classList.remove('hidden');
+        setTimeout(() => { dom.alert.classList.add('hidden'); state.alerted = 0; }, 1600);
+      }
+      z.mode = 'chase';
+    }
     else if (z.mode === 'chase' && dist > ZOMBIE.chaseRange + 8) z.mode = 'wander';
 
     let step = 0;
@@ -1725,10 +2777,15 @@ function bite(z) {
   sound.bite();
   dom.flash.style.opacity = 0.5;
   setTimeout(() => { dom.flash.style.opacity = 0; }, 220);
-  dom.alert.textContent = 'BITTEN';
+  if (bloodScreen) {
+    bloodScreen.style.opacity = '0.62';
+    clearTimeout(biteBloodTimer);
+    biteBloodTimer = setTimeout(() => { bloodScreen.style.opacity = '0'; }, 1400);
+  }
+  dom.alert.textContent = "it's not going to close up";
   dom.alert.classList.remove('hidden');
   setTimeout(() => dom.alert.classList.add('hidden'), 900);
-  if (state.warmth >= COLD.max - 0.001) turned();
+  if (state.warmth >= COLD.max - 0.001) turnEnding();
   // shove the player back a step so the bite reads
   player.vel.x += (player.pos.x - z.lat) * 6;
   player.vel.z += (player.pos.z - z.s) * 6;
@@ -1737,6 +2794,58 @@ function bite(z) {
 // ---------------------------------------------------------------- gunplay
 const shotDir = new THREE.Vector3();
 const chestPos = new THREE.Vector3();
+
+// ---------------------------------------------------------------- blood
+const bloodBitMat = new THREE.MeshBasicMaterial({ color: 0x4d0a07, transparent: true, opacity: 0.9 });
+const bloodBits = [];
+const bloodPools = [];
+
+function sprayBlood(at, count = 9) {
+  for (let i = 0; i < count; i++) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.018 + Math.random() * 0.035, 5, 4), bloodBitMat);
+    m.position.copy(at);
+    m.userData.v = new THREE.Vector3(
+      (Math.random() - 0.5) * 1.5,
+      0.25 + Math.random() * 0.9,
+      (Math.random() - 0.5) * 1.5
+    );
+    m.userData.t = 0;
+    world.add(m);
+    bloodBits.push(m);
+  }
+}
+
+function spawnBloodPool(s, lat) {
+  const m = new THREE.Mesh(
+    new THREE.CircleGeometry(1, 18),
+    new THREE.MeshBasicMaterial({ color: 0x2c0605, transparent: true, opacity: 0, depthWrite: false })
+  );
+  m.rotation.x = -Math.PI / 2;
+  placeOnGlobe(m, s, lat, 0.012, 0);
+  m.scale.setScalar(0.35);
+  m.userData.t = 0;
+  world.add(m);
+  bloodPools.push(m);
+}
+
+function updateBloodFx(dt) {
+  for (let i = bloodBits.length - 1; i >= 0; i--) {
+    const b = bloodBits[i];
+    b.userData.t += dt;
+    b.userData.v.y -= dt * 1.6;
+    b.position.addScaledVector(b.userData.v, dt);
+    if (b.userData.t > 1.1) {
+      world.remove(b);
+      bloodBits.splice(i, 1);
+    }
+  }
+  for (const p of bloodPools) {
+    p.userData.t += dt;
+    const k = Math.min(1, p.userData.t / 1.6);
+    p.scale.setScalar(0.35 + k * 0.85);
+    p.material.opacity = 0.62 * Math.min(1, p.userData.t / 0.5);
+  }
+}
 
 function fire() {
   if (state.phase !== 'playing' || state.reloading) return;
@@ -1748,6 +2857,7 @@ function fire() {
   state.gunCd = GUN.cooldown;
   muzzleT = 0.055;
   sound.shot();
+  ejectShell();
   player.pitch = Math.min(1.0, player.pitch + 0.012);
 
   camera.getWorldDirection(shotDir);
@@ -1770,6 +2880,8 @@ function fire() {
   if (best) {
     best.hp -= GUN.damage;
     best.hurt = 0.2;
+    sprayBlood(chestPos.clone(), 7);
+    sound.splat();
     showHitMark();
     if (best.hp <= 0) killInfected(best);
     else {
@@ -1792,6 +2904,7 @@ function killInfected(z) {
   z.dead = true;
   z.deadT = 0;
   state.kills += 1;
+  spawnBloodPool(z.s, z.lat);
   sound.thud();
   sound.growl(2.2);
 }

@@ -1,4 +1,18 @@
-# Cloudflare Pages 重定向规则
-# ai-games.html 已合并到首页，301 重定向（避免重复内容，传递权重）
+# Cloudflare Pages 规则
+# 域名架构：suipce.com = 门户（tools + game 双入口），game.suipce.com = 游戏正典
+# 规则按顺序匹配：host 级静态规则必须排在通配规则之前
+
+# --- 门户：suipce.com 根与 robots 用 200 重写，保证门户自身可收录 ---
+https://suipce.com/  /portal/index.html  200
+https://suipce.com/robots.txt  /portal/robots.txt  200
+
+# --- 门户页副本不外露（避免与 suipce.com/ 重复，一跳收敛到根）---
+/portal  https://suipce.com/  301
+/portal/index.html  https://suipce.com/  301
+
+# --- suipce.com 其余路径（旧游戏页、旧 sitemap、旧 blog）301 到游戏域，保留权重 ---
+https://suipce.com/*  https://game.suipce.com/:splat  301
+
+# --- 历史路径合并 ---
 /ai-games.html  /  301
 /ai-games  /  301

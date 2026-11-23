@@ -1,0 +1,9 @@
+# suipce.com — portal robots
+# suipce.com 是门户（tools + game 双入口），游戏内容全部位于 game.suipce.com
+
+User-agent: *
+Allow: /
+Disallow: /portal/
+
+# 游戏站 sitemap（门户自身仅一页，不单独提供 sitemap）
+Sitemap: https://game.suipce.com/sitemap.xml

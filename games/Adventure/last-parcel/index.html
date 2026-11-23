@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#0a1018" />
 <title>Last Parcel — Outbreak Night | AIGameHub</title>
-<meta name="description" content="Play Last Parcel free in your browser: a low-poly first-person survival shooter on a tiny spherical planet. Carry serum samples through an outbreak night, shoot the infected off the street, and reach the evacuation checkpoint before the infection takes you." />
+<meta name="description" content="Play Last Parcel free in your browser: a low-poly first-person survival horror run through Raccoon City on the night the T-virus broke out. One medical courier, one sealed case of antiviral stabilizer, eight rounds, and a delivery that has to reach the Umbrella lab before the infection does." />
 <meta property="og:title" content="Last Parcel — Outbreak Night" />
-<meta property="og:description" content="A first-person outbreak-night run around a small spherical city. Three serum drops, a street full of infected, one sidearm and eight rounds." />
+<meta property="og:description" content="1998. Raccoon City. A medical courier takes a night shift for the overtime and never gets home. Get the case to the lab on floor 28. Try not to find out what is already inside you." />
 <meta property="og:type" content="website" />
-<link rel="stylesheet" href="./style.css?v=14" />
+<link rel="stylesheet" href="./style.css?v=30" />
 <script type="importmap">
 {
   "imports": {
@@ -18,6 +18,7 @@
   }
 }
 </script>
+<link rel="canonical" href="https://game.suipce.com/games/Adventure/last-parcel/">
 </head>
 <body>
 <div id="app"></div>
@@ -25,12 +26,12 @@
 <div id="hud" class="hidden">
   <div class="hud-top">
     <div class="objective">
-      <span class="obj-label">OBJECTIVE</span>
-      <span id="objText">Pick up the first parcel</span>
+      <span class="obj-label" id="objLabel">MANIFEST</span>
+      <span id="objText">Green case, back seat</span>
     </div>
     <div class="meters">
       <div class="meter">
-        <span class="meter-label">INFECTION</span>
+        <span class="meter-label" id="feverLabel">COLD</span>
         <div class="bar"><i id="warmBar"></i></div>
       </div>
       <div class="meter">
@@ -40,13 +41,13 @@
     </div>
   </div>
   <div class="hud-bottom">
-    <div id="prompt" class="prompt hidden"><kbd>E</kbd> <span id="promptText">Deliver the parcel</span></div>
+    <div id="prompt" class="prompt hidden"><kbd>E</kbd> <span id="promptText">Take the case</span></div>
     <div class="route">
-      <span class="route-label">STOPS</span>
+      <span class="route-label">ROUTE</span>
       <span id="stopDots"></span>
     </div>
   </div>
-  <div id="alert" class="alert hidden">SPOTTED</div>
+  <div id="alert" class="alert hidden">it saw me</div>
   <div id="ammo" class="ammo hidden"><b id="ammoNow">8</b><span>/</span><em id="ammoRes">16</em></div>
   <div id="coldVignette" class="vignette"></div>
   <div id="flash" class="flash"></div>
@@ -56,27 +57,34 @@
 
 <div id="title" class="screen">
   <div class="card">
-    <p class="kicker">COLD OPEN · ALDER STREET · 03:40 AM · BLIZZARD</p>
+    <p class="kicker">RACCOON CITY · 1998 · 03:40 AM · BLIZZARD</p>
     <h1>LAST PARCEL</h1>
-    <p class="sub">One night. Three acts. The street stops being yours somewhere in the middle.</p>
+    <p class="sub">One night shift. One sealed case.</p>
+    <div class="manifest">
+      <p><span>ORDER 0447</span> MEDICAL · STAT · 2× NIGHT RATE</p>
+      <p><span>DELIVER TO</span> Raccoon General, floor 28</p>
+      <p><span>CONTENTS</span> Do not open. Keep cold.</p>
+      <p><span>SIGNED</span> B. — 03:31</p>
+    </div>
+    <p class="vm">MICHELLE · 23:51<br />“call me when you get in. i don't care what time.”</p>
     <p class="body">
-      The sirens start three blocks east and then they stop. Somewhere between the corner clinic,
-      the quarantine cordon and the east gate is a street that used to belong to the people who
-      lived on it. Carry three serum samples through it, shoot what stands between you and the
-      drop point, and get through before the infection finishes what the night started.
+      The rent is due and she's pregnant, so you signed for it. Eleven minutes ago the
+      dispatch radio went quiet. Now there's a woman in the road, a van in the ditch,
+      and eight rounds in a patrolman's belt that he won't be needing. The case is
+      still on the back seat. Keep hold of it. Just get it there.
     </p>
     <div class="keys">
       <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move</span>
       <span><kbd>Shift</kbd> run</span>
       <span><kbd>C</kbd> crouch</span>
-      <span><kbd>E</kbd> pick up / deliver</span>
+      <span><kbd>E</kbd> pick up / hand over</span>
       <span><kbd>LMB</kbd> fire</span>
       <span><kbd>R</kbd> reload</span>
       <span><kbd>Mouse</kbd> look</span>
       <span><kbd>Space</kbd> skip act card</span>
     </div>
-    <button id="startBtn">Roll the night</button>
-    <p class="foot">Headphones recommended · Desktop, keyboard + mouse</p>
+    <button id="startBtn">Sign for the case</button>
+    <p class="foot">Headphones recommended · Desktop, keyboard + mouse · An unofficial fan-made homage</p>
   </div>
 </div>
 
@@ -90,11 +98,11 @@
 
 <div id="end" class="screen hidden">
   <div class="card">
-    <p class="kicker" id="endKicker">SHIFT COMPLETE</p>
-    <h1 id="endTitle">DELIVERED</h1>
+    <p class="kicker" id="endKicker">UMBRELLA / LAB 28 · INCIDENT LOG</p>
+    <h1 id="endTitle">SUBJECT ZERO</h1>
     <p class="body" id="endBody"></p>
     <ul class="stats" id="endStats"></ul>
-    <button id="againBtn">Run it again</button>
+    <button id="againBtn">Sign for it again</button>
   </div>
 </div>
 
@@ -106,6 +114,6 @@
   </div>
 </div>
 
-<script type="module" src="./game.js?v=14"></script>
+<script type="module" src="./game.js?v=30"></script>
 </body>
 </html>

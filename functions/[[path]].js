@@ -37,6 +37,10 @@ export async function onRequest(context) {
     );
   }
 
-  // ---------- 游戏域与 pages.dev 预览域：直接回源 ----------
+  // ---------- 游戏域与 pages.dev 预览域 ----------
+  // 门户副本不外露（避免 game 域也暴露门户页，形成重复内容）
+  if (path === "/portal" || path === "/portal/") {
+    return Response.redirect("https://suipce.com/", 301);
+  }
   return env.ASSETS.fetch(request);
 }

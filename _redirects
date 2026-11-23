@@ -1,17 +1,13 @@
 # Cloudflare Pages 规则
 # 域名架构：suipce.com = 门户（tools + game 双入口），game.suipce.com = 游戏正典
-# 规则按顺序匹配：host 级静态规则必须排在通配规则之前
+#
+# 重要：本项目实测不支持 host 级匹配（source 写 https://suipce.com/ 这类绝对域名不生效）。
+# 门户域的根 200 重写、robots 重写、旧路径 301 全部由 functions/[[path]].js 按主机名处理，
+# 此处只保留 path 级规则。
 
-# --- 门户：suipce.com 根与 robots 用 200 重写，保证门户自身可收录 ---
-https://suipce.com/  /portal/index.html  200
-https://suipce.com/robots.txt  /portal/robots.txt  200
-
-# --- 门户页副本不外露（避免与 suipce.com/ 重复，一跳收敛到根）---
+# --- 门户副本不外露（避免与 suipce.com/ 重复，一跳收敛到根）---
 /portal  https://suipce.com/  301
 /portal/index.html  https://suipce.com/  301
-
-# --- suipce.com 其余路径（旧游戏页、旧 sitemap、旧 blog）301 到游戏域，保留权重 ---
-https://suipce.com/*  https://game.suipce.com/:splat  301
 
 # --- 历史路径合并 ---
 /ai-games.html  /  301

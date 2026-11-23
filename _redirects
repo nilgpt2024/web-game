@@ -2,12 +2,10 @@
 # 域名架构：suipce.com = 门户（tools + game 双入口），game.suipce.com = 游戏正典
 #
 # 重要：本项目实测不支持 host 级匹配（source 写 https://suipce.com/ 这类绝对域名不生效）。
-# 门户域的根 200 重写、robots 重写、旧路径 301 全部由 functions/[[path]].js 按主机名处理，
-# 此处只保留 path 级规则。
-
-# --- 门户副本不外露（避免与 suipce.com/ 重复，一跳收敛到根）---
-/portal  https://suipce.com/  301
-/portal/index.html  https://suipce.com/  301
+# 门户域的根 200 重写、robots 重写、旧路径 301，全部由 functions/[[path]].js 按主机名处理。
+#
+# 另注：这里不能再写任何 /portal/index.html 的规则。Function 读门户页时会走这份 _redirects，
+# 一旦匹配到 301 就会形成「根 → portal → 根」的死循环。
 
 # --- 历史路径合并 ---
 /ai-games.html  /  301

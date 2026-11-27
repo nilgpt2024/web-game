@@ -20,6 +20,8 @@ Disallow: /.git/
 Disallow: /.github/
 Disallow: /docs/
 Disallow: /portal/
+# Cloudflare 邮件保护脚本路径，非页面内容，避免被误抓产生 404
+Disallow: /cdn-cgi/
 
 # 站点地图（仅保留一个）
 Sitemap: https://game.suipce.com/sitemap.xml

@@ -4,6 +4,8 @@
 User-agent: *
 Allow: /
 Disallow: /portal/
+# Cloudflare 邮件保护脚本路径，非页面内容
+Disallow: /cdn-cgi/
 
 # 游戏站 sitemap（门户自身仅一页，不单独提供 sitemap）
 Sitemap: https://game.suipce.com/sitemap.xml
